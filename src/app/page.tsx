@@ -1,15 +1,34 @@
 "use client";
 
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import Workspace from '@/components/Workspace';
+import "@xyflow/react/dist/style.css";
 
-export default function Home() {
+import React, { useState } from "react";
+import { ReactFlowProvider } from "@xyflow/react";
+
+import { WorkshopContextProvider } from "./context/WorkshopContext";
+import SideBar, { type SideBarItem } from "./components/SideBar";
+import Workspace from "@/app/components/Workspace";
+
+const App = () => {
+  const [activeSideBarNode, setActiveSideBarNode] =
+    useState<SideBarItem | null>(null);
+
   return (
-    <DndProvider backend={HTML5Backend}>
-      <main className="flex min-h-screen">
-        <Workspace />
-      </main>
-    </DndProvider>
+    <div className="dndflow">
+      <SideBar setActiveSideBarNode={setActiveSideBarNode} />
+      <Workspace activeSideBarNode={activeSideBarNode} />
+    </div>
   );
-}
+};
+
+const AppProvider = () => {
+  return (
+    <ReactFlowProvider>
+      <WorkshopContextProvider>
+        <App />
+      </WorkshopContextProvider>
+    </ReactFlowProvider>
+  );
+};
+
+export default AppProvider;
