@@ -19,12 +19,23 @@ export type NodeType =
 type BaseNodeParams = { data: BaseNodeData };
 type ConflictNodeParams = { data: ConflictNodeData };
 
+export const NodeColors = {
+  emotion: "#F28C82",
+  thought: "#7AB3E0",
+  sensation: "#F9B17A",
+  behavior: "#8BCB8B",
+  conflict: "#B19CD9",
+  part: "#F7E68F",
+  self: "#4ECDC4",
+  other: "#EFA9C8",
+};
+
 // Part: Octagon, Light Yellow (#F7E68F), 1000x1000
-const PartNode = ({ data }: { data: BaseNodeData }) => (
+const PartNode = ({ data }: BaseNodeParams) => (
   <svg width="1000" height="1000" viewBox="0 0 1000 1000">
     <polygon
       points="292,50 708,50 950,292 950,708 708,950 292,950 50,708 50,292"
-      fill="#F7E68F"
+      fill={NodeColors.part}
       stroke="black"
       strokeWidth="20"
     />
@@ -35,13 +46,13 @@ const PartNode = ({ data }: { data: BaseNodeData }) => (
 );
 
 // Other: Circle, Pink (#EFA9C8) - Already Correct
-const OtherNode = ({ data }: { data: BaseNodeData }) => (
+const OtherNode = ({ data }: BaseNodeParams) => (
   <svg width="100" height="100">
     <circle
       cx="50"
       cy="50"
       r="45"
-      fill="#EFA9C8"
+      fill={NodeColors.other}
       stroke="black"
       strokeWidth="2"
     />
@@ -52,14 +63,14 @@ const OtherNode = ({ data }: { data: BaseNodeData }) => (
 );
 
 // Body Sensation: Ellipse, Warm Orange (#F9B17A) - Already Correct
-const SensationNode = ({ data }: { data: BaseNodeData }) => (
+const SensationNode = ({ data }: BaseNodeParams) => (
   <svg width="100" height="100">
     <ellipse
       cx="50"
       cy="50"
       rx="45"
       ry="35"
-      fill="#F9B17A"
+      fill={NodeColors.sensation}
       stroke="black"
       strokeWidth="2"
     />
@@ -70,7 +81,7 @@ const SensationNode = ({ data }: { data: BaseNodeData }) => (
 );
 
 // Emotion: Heart, Soft Red (#F28C82)
-const EmotionNode = ({ data }: { data: BaseNodeData }) => (
+const EmotionNode = ({ data }: BaseNodeParams) => (
   <svg width="100" height="100" viewBox="0 0 100 100">
     {/* Improved symmetrical heart shape with slightly wider top curves */}
     <path
@@ -82,7 +93,7 @@ const EmotionNode = ({ data }: { data: BaseNodeData }) => (
       C15 10, 40 10, 50 30
       Z
     "
-      fill="#F28C82"
+      fill={NodeColors.emotion}
       stroke="black"
       strokeWidth="2"
     />
@@ -95,7 +106,7 @@ const EmotionNode = ({ data }: { data: BaseNodeData }) => (
 );
 
 // Thought: Cloud, Gentle Blue (#7AB3E0)
-const ThoughtNode = ({ data }: { data: BaseNodeData }) => (
+const ThoughtNode = ({ data }: BaseNodeParams) => (
   <svg width="200" height="200" viewBox="0 0 300 200">
     {/* Main bubble shape */}
     <path
@@ -109,7 +120,7 @@ const ThoughtNode = ({ data }: { data: BaseNodeData }) => (
       C90,140 70,110 90,95
       C60,90 65,70 90
     "
-      fill="white"
+      fill={NodeColors.thought}
       stroke="black"
       strokeWidth="2"
     />
@@ -119,7 +130,7 @@ const ThoughtNode = ({ data }: { data: BaseNodeData }) => (
       cx="100"
       cy="150"
       r="8"
-      fill="white"
+      fill={NodeColors.thought}
       stroke="black"
       strokeWidth="2"
     />
@@ -127,24 +138,24 @@ const ThoughtNode = ({ data }: { data: BaseNodeData }) => (
       cx="75"
       cy="160"
       r="5"
-      fill="white"
+      fill={NodeColors.thought}
       stroke="black"
       strokeWidth="2"
     />
 
     {/* Centered text */}
     <text x="150" y="100" textAnchor="middle" fill="black" fontSize="14">
-      sad
+      {data.label}
     </text>
   </svg>
 );
 
 // Self: Triangle, Teal (#4ECDC4) - Already Correct
-const SelfNode = ({ data }: { data: BaseNodeData }) => (
+const SelfNode = ({ data }: BaseNodeParams) => (
   <svg width="100" height="100">
     <polygon
       points="50,10 90,90 10,90"
-      fill="#4ECDC4"
+      fill={NodeColors.self}
       stroke="black"
       strokeWidth="2"
     />
@@ -155,19 +166,40 @@ const SelfNode = ({ data }: { data: BaseNodeData }) => (
 );
 
 // Behavior: Square, Muted Green (#8BCB8B) - Already Correct
-const BehaviorNode = ({ data }: { data: BaseNodeData }) => (
+const BehaviorNode = ({ data }: BaseNodeParams) => (
   <svg width="100" height="100">
     <rect
       x="10"
       y="10"
       width="80"
       height="80"
-      fill="#8BCB8B"
+      fill={NodeColors.behavior}
       stroke="black"
       strokeWidth="2"
     />
     <text x="50" y="55" textAnchor="middle" fill="black" fontSize="14">
       {data.label}
+    </text>
+  </svg>
+);
+
+// Conflict Node (Hexagon, Purple, Lists Connected Nodes)
+const ConflictNodeComponent = ({ data }: ConflictNodeParams) => (
+  <svg width="100" height="100">
+    <rect
+      x="10"
+      y="20"
+      width="80"
+      height="60"
+      fill={NodeColors.conflict}
+      stroke="black"
+      strokeWidth="2"
+    />
+    <text x="50" y="45" textAnchor="middle" fill="black" fontSize="14">
+      {data.label}
+    </text>
+    <text x="50" y="65" textAnchor="middle" fill="black" fontSize="10">
+      {data.connectedNodeIds.join(", ")}
     </text>
   </svg>
 );
@@ -181,27 +213,6 @@ const nodeMap = {
   self: SelfNode,
   other: OtherNode,
 };
-
-// Conflict Node (Hexagon, Purple, Lists Connected Nodes)
-const ConflictNodeComponent = ({ data }: ConflictNodeParams) => (
-  <svg width="100" height="100">
-    <rect
-      x="10"
-      y="20"
-      width="80"
-      height="60"
-      fill="#B19CD9"
-      stroke="black"
-      strokeWidth="2"
-    />
-    <text x="50" y="45" textAnchor="middle" fill="black" fontSize="14">
-      {data.label}
-    </text>
-    <text x="50" y="65" textAnchor="middle" fill="black" fontSize="10">
-      {data.connectedNodeIds.join(", ")}
-    </text>
-  </svg>
-);
 
 const CustomNodeComponent = ({
   type,

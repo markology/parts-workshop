@@ -14,7 +14,7 @@ import {
 } from "@xyflow/react";
 import { useCallback, useRef } from "react";
 import { nodeTypes } from "./WorkshopNode";
-import { SideBarItem } from "./SideBar";
+import { SideBarItem } from "./SideBar/SideBar";
 
 let id = 0;
 const getId = () => `pwnode_${id++}`;
@@ -97,7 +97,6 @@ const Workspace = ({
         onDrop={onDrop}
         onDragOver={onDragOver}
         fitView
-        style={{ backgroundColor: true ? "#2A3545" : "#F8F6F0" }}
         nodeTypes={nodeTypes}
       >
         <Controls />

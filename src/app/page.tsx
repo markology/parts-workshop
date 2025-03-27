@@ -6,15 +6,16 @@ import React, { useState } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 
 import { WorkshopContextProvider } from "./context/WorkshopContext";
-import SideBar, { type SideBarItem } from "./components/SideBar";
+import SideBar, { type SideBarItem } from "./components/SideBar/SideBar";
 import Workspace from "@/app/components/Workspace";
+import { ThemeContextProvider } from "./context/ThemeContext";
 
 const App = () => {
   const [activeSideBarNode, setActiveSideBarNode] =
     useState<SideBarItem | null>(null);
 
   return (
-    <div className="dndflow">
+    <div className={`PW`}>
       <SideBar setActiveSideBarNode={setActiveSideBarNode} />
       <Workspace activeSideBarNode={activeSideBarNode} />
     </div>
@@ -24,9 +25,11 @@ const App = () => {
 const AppProvider = () => {
   return (
     <ReactFlowProvider>
-      <WorkshopContextProvider>
-        <App />
-      </WorkshopContextProvider>
+      <ThemeContextProvider>
+        <WorkshopContextProvider>
+          <App />
+        </WorkshopContextProvider>
+      </ThemeContextProvider>
     </ReactFlowProvider>
   );
 };
