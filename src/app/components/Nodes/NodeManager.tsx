@@ -1,49 +1,14 @@
-interface BaseNodeData {
-  label: string;
-}
+import PartNode from "./PartNode";
+import {
+  BaseNodeData,
+  BaseNodeParams,
+  ConflictNodeData,
+  ConflictNodeParams,
+  NodeType,
+  PartNodeData,
+} from "./types";
 
-interface ConflictNodeData extends BaseNodeData {
-  connectedNodeIds: string[];
-}
-
-export type NodeType =
-  | "emotion"
-  | "thought"
-  | "sensation"
-  | "behavior"
-  | "conflict"
-  | "part"
-  | "other"
-  | "self";
-
-type BaseNodeParams = { data: BaseNodeData };
-type ConflictNodeParams = { data: ConflictNodeData };
-
-export const NodeColors = {
-  emotion: "#F28C82",
-  thought: "#7AB3E0",
-  sensation: "#F9B17A",
-  behavior: "#8BCB8B",
-  conflict: "#B19CD9",
-  part: "#F7E68F",
-  self: "#4ECDC4",
-  other: "#EFA9C8",
-};
-
-// Part: Octagon, Light Yellow (#F7E68F), 1000x1000
-const PartNode = ({ data }: BaseNodeParams) => (
-  <svg width="1000" height="1000" viewBox="0 0 1000 1000">
-    <polygon
-      points="292,50 708,50 950,292 950,708 708,950 292,950 50,708 50,292"
-      fill={NodeColors.part}
-      stroke="black"
-      strokeWidth="20"
-    />
-    <text x="500" y="500" textAnchor="middle" fill="black" fontSize="100">
-      {data.label}
-    </text>
-  </svg>
-);
+import { NodeColors } from "./constants";
 
 // Other: Circle, Pink (#EFA9C8) - Already Correct
 const OtherNode = ({ data }: BaseNodeParams) => (
@@ -199,7 +164,7 @@ const ConflictNodeComponent = ({ data }: ConflictNodeParams) => (
       {data.label}
     </text>
     <text x="50" y="65" textAnchor="middle" fill="black" fontSize="10">
-      {data.connectedNodeIds.join(", ")}
+      {data.connectedNodeIds && data.connectedNodeIds.join(", ")}
     </text>
   </svg>
 );
@@ -209,7 +174,6 @@ const nodeMap = {
   thought: ThoughtNode,
   sensation: SensationNode,
   behavior: BehaviorNode,
-  part: PartNode,
   self: SelfNode,
   other: OtherNode,
 };
@@ -218,7 +182,7 @@ const CustomNodeComponent = ({
   type,
   data,
 }: {
-  type: Exclude<NodeType, "conflict">;
+  type: keyof typeof nodeMap;
   data: BaseNodeData;
 }) => {
   const NodeComponent = nodeMap[type];
@@ -235,6 +199,7 @@ const NodeComponent = ({
   if (type === "conflict") {
     return <ConflictNodeComponent data={data as ConflictNodeData} />;
   }
+  if (type === "part") return <PartNode data={data as PartNodeData} />;
   return <CustomNodeComponent type={type} data={data as BaseNodeData} />;
 };
 

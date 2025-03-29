@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { NodeColors, NodeType } from "./../WorkshopNode";
-import { nodeTypes, SideBarItem } from "./SideBar";
-import { useThemeContext } from "@/app/context/ThemeContext";
+import { NodeColors } from "../Nodes/constants";
+import { NodeType } from "../Nodes/types";
+import { impressionTypes, SideBarItem } from "./SideBar";
 
 const ImpressionInput = ({
   setItems,
@@ -13,7 +13,6 @@ const ImpressionInput = ({
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const themeContext = useThemeContext();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -25,14 +24,11 @@ const ImpressionInput = ({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const createSideBarNode = (e: { key: string }) => {
     if (e.key === "Enter" && selectedType !== null) {
-      console.log("Creating Node", traitInput, selectedType);
       setItems({ id: `${Date.now()}`, label: traitInput, type: selectedType });
       setTraitInput("");
     }
@@ -44,12 +40,11 @@ const ImpressionInput = ({
         <div className="absolute top-2 left-2 flex flex-wrap gap-2 z-10">
           <button
             onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-            className={`px-3 py-1 rounded-full text-sm ${
-              selectedType
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-            style={{ backgroundColor: NodeColors[selectedType] }}
+            className="px-3 py-1 rounded-full text-sm"
+            style={{
+              backgroundColor: NodeColors[selectedType],
+              color: "black",
+            }}
           >
             {selectedType || "Select Type"}
           </button>
@@ -60,15 +55,17 @@ const ImpressionInput = ({
           value={traitInput}
           onChange={(e) => setTraitInput(e.target.value)}
           className="w-full p-2 pt-11 border rounded resize-y"
-          style={{ color: themeContext.darkMode ? "white" : "black" }}
           rows={5}
           onKeyDown={createSideBarNode}
-          placeholder="Add impression"
+          placeholder="Add Impression"
         />
         {isSelectorOpen && (
-          <div className="absolute top-0 left-0 mt-10 bg-white border rounded shadow-lg z-20 p-2">
+          <div
+            id="impression-selector"
+            className="absolute top-0 left-0 mt-10 bg-white border rounded shadow-lg z-20 p-2"
+          >
             <div className="flex flex-wrap gap-2">
-              {nodeTypes.map((type) => (
+              {impressionTypes.map((type) => (
                 <button
                   key={type}
                   onClick={() => {
@@ -76,8 +73,11 @@ const ImpressionInput = ({
                     setIsSelectorOpen(false);
                     textAreaRef.current?.focus();
                   }}
-                  className={`px-3 py-1 rounded-full text-sm text-white`}
-                  style={{ backgroundColor: NodeColors[type] }}
+                  className="px-3 py-1 rounded-full text-sm"
+                  style={{
+                    backgroundColor: NodeColors[type],
+                    color: "black",
+                  }}
                 >
                   {type}
                 </button>

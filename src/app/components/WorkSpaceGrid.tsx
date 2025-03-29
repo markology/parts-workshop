@@ -3,7 +3,6 @@
 import {
   ReactFlow,
   addEdge,
-  useNodesState,
   useEdgesState,
   Controls,
   useReactFlow,
@@ -11,9 +10,11 @@ import {
   Edge,
   Connection,
   Node,
+  OnNodesChange,
 } from "@xyflow/react";
 import { useCallback, useRef } from "react";
-import { nodeTypes } from "./WorkshopNode";
+import { NodeStateType } from "@/app/page";
+import { nodeTypes } from "./Nodes/NodeManager";
 import { SideBarItem } from "./SideBar/SideBar";
 
 let id = 0;
@@ -21,11 +22,13 @@ const getId = () => `pwnode_${id++}`;
 
 const Workspace = ({
   activeSideBarNode,
+  nodes,
+  setNodes,
+  onNodesChange,
 }: {
   activeSideBarNode: SideBarItem | null;
-}) => {
+} & NodeStateType) => {
   const reactFlowWrapper = useRef(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { screenToFlowPosition } = useReactFlow();
   // const {user} = useWorkshopContext();
@@ -64,11 +67,16 @@ const Workspace = ({
         y: event.clientY,
       });
 
+      const { type, label } = activeSideBarNode;
+      const data: { label: string; connectedNodeIds?: string[] } = { label };
+      if (type === "conflict") {
+        data.connectedNodeIds = [];
+      }
       const newNode = {
         id: getId(),
-        type: activeSideBarNode.type,
+        type,
         position,
-        data: { label: activeSideBarNode.label },
+        data: { label },
         style: {
           backgroundColor: "transparent",
           border: "none",
@@ -77,30 +85,33 @@ const Workspace = ({
         },
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds: Node[]) => nds.concat(newNode));
     },
     [screenToFlowPosition, activeSideBarNode]
   );
 
   return (
-    <div
-      className="reactflow-wrapper"
-      style={{ height: "100vh", width: "80vh" }}
-      ref={reactFlowWrapper}
-    >
+    <div className="reactflow-wrapper" ref={reactFlowWrapper}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
+        onNodesChange={onNodesChange as OnNodesChange<Node>}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
         fitView
         nodeTypes={nodeTypes}
+        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+        style={{
+          height: "4000px",
+          width: "4000px",
+        }}
+        minZoom={0}
+        maxZoom={2}
       >
-        <Controls />
         <Background />
+        <Controls className="absolute bottom-4 left-4" />
       </ReactFlow>
     </div>
   );

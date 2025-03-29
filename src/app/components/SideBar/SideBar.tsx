@@ -1,7 +1,9 @@
 import React, { Dispatch, SetStateAction, useState } from "react";
-import { NodeType } from "../WorkshopNode";
+import { NodeType } from "../Nodes/types";
 import ImpressionInput from "./ImpressionInput";
-import Impressions from "./Impressions";
+import ImpressionDisplay from "./ImpressionDisplay";
+import PartInput from "./PartInput";
+import { NodeStateType } from "@/app/page";
 
 export type SideBarItem = {
   id: string;
@@ -9,29 +11,35 @@ export type SideBarItem = {
   type: NodeType;
 };
 
-export const nodeTypes: NodeType[] = [
+export const impressionTypes: NodeType[] = [
   "emotion",
   "thought",
   "sensation",
   "behavior",
-  "conflict",
-  "part",
+  // "conflict",
+  // "part",
   "self",
   "other",
 ];
 
 const SideBar = ({
   setActiveSideBarNode,
+  setNodes,
 }: {
   setActiveSideBarNode: Dispatch<SetStateAction<SideBarItem | null>>;
+  setNodes: NodeStateType["setNodes"];
 }) => {
   const [items, setItems] = useState<SideBarItem[]>([]);
   const addNewItem = (item: SideBarItem) => setItems([...items, item]);
 
   return (
     <aside id="sidebar">
+      <PartInput setNodes={setNodes} />
       <ImpressionInput setItems={addNewItem} />
-      <Impressions setActiveSideBarNode={setActiveSideBarNode} items={items} />
+      <ImpressionDisplay
+        setActiveSideBarNode={setActiveSideBarNode}
+        items={items}
+      />
     </aside>
   );
 };

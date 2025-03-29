@@ -47,8 +47,21 @@ button {
   color: var(--text-color);
 }
 
-#sidebar {
+.part-impression-container {
+  @apply rounded-[10px] p-4;
+}
+
+.part-name {
+  color: var(--background);
+}
+
+#sidebar,
+#impression-selector {
   background: var(--aside-background);
+}
+
+#sidebar {
+  flex: "0 0 250px";
 }
 
 .PW {

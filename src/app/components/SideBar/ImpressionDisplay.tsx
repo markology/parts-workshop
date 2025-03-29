@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction } from "react";
 import { SideBarItem } from "./SideBar";
-import { NodeColors } from "../WorkshopNode";
+import { NodeColors } from "../Nodes/constants";
 
 const Impressions = ({
   items,
