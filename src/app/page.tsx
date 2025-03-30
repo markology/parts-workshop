@@ -8,7 +8,7 @@ import { FlowNodesProvider } from "@/context/FlowNodesContext";
 
 import { WorkshopContextProvider } from "@/context/WorkshopContext";
 import SideBar from "@/components/SideBar/SideBar";
-import WorkSpaceGrid from "@/components/WorkSpaceGrid";
+import WorkSpaceGrid from "@/components/WorkSpace/WorkSpaceGrid";
 import { ThemeContextProvider } from "@/context/ThemeContext";
 
 const App = () => {

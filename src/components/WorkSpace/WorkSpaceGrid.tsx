@@ -14,11 +14,12 @@ import {
   XYPosition,
 } from "@xyflow/react";
 import { useCallback, useRef } from "react";
-import { nodeTypes } from "./Nodes/NodeManager";
+import { nodeTypes } from "@/components/Nodes/NodeManager";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
 import { PartNode } from "@/types/Nodes";
 import { PartDataLabels } from "@/constants/Nodes";
+import TrashCan from "./TrashCan";
 
 let id = 0;
 const getId = () => `pwnode_${id++}`;
@@ -44,6 +45,30 @@ const Workspace = () => {
       event.dataTransfer.dropEffect = "move";
     },
     []
+  );
+
+  const handleNodeDragStop = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      const trashBucket = document.getElementById("trash-bucket");
+      if (!trashBucket) return;
+
+      const bucketRect = trashBucket.getBoundingClientRect();
+
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+
+      const isOverBucket =
+        mouseX >= bucketRect.left &&
+        mouseX <= bucketRect.right &&
+        mouseY >= bucketRect.top &&
+        mouseY <= bucketRect.bottom;
+
+      if (isOverBucket) {
+        // Delete the node:
+        setNodes((prev) => prev.filter((n) => n.id !== node.id));
+      }
+    },
+    [setNodes]
   );
 
   function isPointInsideNode(position: XYPosition, node: Node): boolean {
@@ -91,7 +116,11 @@ const Workspace = () => {
         type,
         position,
         hidden: !!partNodeToInsertImpression,
-        data: { label, parentNode: partNodeToInsertImpression || null },
+        data: {
+          label,
+          parentNode: partNodeToInsertImpression || null,
+          reactFlowWrapper,
+        },
         style: {
           backgroundColor: "transparent",
           border: "none",
@@ -147,6 +176,13 @@ const Workspace = () => {
     [screenToFlowPosition, activeSidebarNode]
   );
 
+  const handleDropItem = (item: { type: string; id: string }) => {
+    console.log("Deleting item", item);
+    // Implement deletion logic here: e.g., update state, remove node, etc.
+    // Example: if item.type is "part", filter out that part's node.
+    setNodes((prevNodes) => prevNodes.filter((node) => node.id !== item.id));
+  };
+
   return (
     <div className="reactflow-wrapper" ref={reactFlowWrapper}>
       <ReactFlow
@@ -154,6 +190,7 @@ const Workspace = () => {
         edges={edges}
         onNodesChange={onNodesChange as OnNodesChange<Node>}
         onEdgesChange={onEdgesChange}
+        onNodeDragStop={handleNodeDragStop}
         onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
@@ -170,6 +207,7 @@ const Workspace = () => {
         <Background />
         <Controls className="absolute bottom-4 left-4" />
       </ReactFlow>
+      <TrashCan onDropItem={handleDropItem} />
     </div>
   );
 };

@@ -11,6 +11,12 @@ const Impressions = () => {
     draggableId: string,
     type: ImpressionType
   ) => {
+    event.stopPropagation(); // critical if React Flow is interfering
+    event.dataTransfer.setData(
+      "application/my-app",
+      JSON.stringify({ type, id: draggableId })
+    );
+    event.dataTransfer.effectAllowed = "move";
     const activeSideBarNode = impressions[type][draggableId];
     setActiveSidebarNode(activeSideBarNode.id || null, type);
     event.dataTransfer.effectAllowed = "move";
