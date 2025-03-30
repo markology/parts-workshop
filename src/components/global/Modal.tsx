@@ -23,7 +23,7 @@ const Modal = ({
   return (
     <div
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000db] "
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000b0] "
     >
       <div ref={modalRef} className="rounded p-8 w-[650px] relative ml-[250px]">
         <button

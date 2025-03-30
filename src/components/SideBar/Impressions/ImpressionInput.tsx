@@ -14,6 +14,12 @@ const ImpressionInput = () => {
   const { addImpression } = useSidebarStore();
 
   useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.focus();
+    }
+  }, [selectedType]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         containerRef.current &&
@@ -26,8 +32,9 @@ const ImpressionInput = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const createSideBarNode = (e: { key: string }) => {
+  const createSideBarNode = (e: { preventDefault(): unknown; key: string }) => {
     if (e.key === "Enter" && selectedType !== null) {
+      e.preventDefault();
       addImpression({
         id: `${Date.now()}`,
         label: traitInput,
@@ -41,34 +48,45 @@ const ImpressionInput = () => {
     <div ref={containerRef} className="relative space-y-2">
       <div
         className="relative rounded"
-        style={{ background: NodeBackgroundColors[selectedType] }}
+        style={{
+          background: isSelectorOpen
+            ? "transparent"
+            : NodeBackgroundColors[selectedType],
+        }}
       >
-        <div className="absolute top-2 left-2 flex flex-wrap gap-2 z-10 p-[10px]">
-          <button
-            onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-            className="px-3 py-1 rounded-full text-sm capitalize"
-            style={{
-              backgroundColor: NodeColors[selectedType],
-              color: "black",
-            }}
+        <>
+          <div
+            className="absolute top-2 left-2 flex flex-wrap gap-2 z-10 p-[10px]"
+            style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
           >
-            {selectedType || "Select Type"}
-          </button>
-        </div>
+            <button
+              onClick={() => setIsSelectorOpen(!isSelectorOpen)}
+              className="px-3 py-1 rounded-full text-sm capitalize"
+              style={{
+                backgroundColor: NodeColors[selectedType],
+                color: "black",
+              }}
+            >
+              {selectedType || "Select Type"}
+            </button>
+          </div>
 
-        <textarea
-          ref={textAreaRef}
-          value={traitInput}
-          onChange={(e) => setTraitInput(e.target.value)}
-          className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none pt-[60px]"
-          rows={5}
-          onKeyDown={createSideBarNode}
-          placeholder="Add Impression"
-        />
+          <textarea
+            style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
+            ref={textAreaRef}
+            value={traitInput}
+            onChange={(e) => setTraitInput(e.target.value)}
+            className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none pt-[60px]"
+            rows={5}
+            onKeyDown={createSideBarNode}
+            placeholder="Add Impression"
+          />
+        </>
+
         {isSelectorOpen && (
           <div
             id="impression-selector"
-            className="absolute top-0 left-0 bg-white border rounded-t shadow-lg z-20 p-2 w-full p-[10px] mt-none"
+            className="absolute top-0 left-0 bg-transparent rounded-t z-20 p-2 w-full p-[10px] mt-none"
           >
             <div className="flex flex-wrap gap-2 justify-evenly">
               {ImpressionList.map((type) => (
@@ -77,7 +95,6 @@ const ImpressionInput = () => {
                   onClick={() => {
                     setSelectedType(type);
                     setIsSelectorOpen(false);
-                    textAreaRef.current?.focus();
                   }}
                   className="px-3 py-1 rounded-full text-sm capitalize"
                   style={{

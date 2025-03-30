@@ -51,12 +51,7 @@ button {
   @apply rounded-[10px] p-4;
 }
 
-.part-name {
-  color: var(--background);
-}
-
-#sidebar,
-#impression-selector {
+#sidebar {
   background: var(--aside-background);
 }
 

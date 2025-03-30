@@ -1,4 +1,4 @@
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionPluralType, ImpressionType } from "@/types/Impressions";
 
 export const NodeColors = {
   emotion: "#F28C82",
@@ -42,7 +42,7 @@ export const NodeTextColors = {
 // self	#4ECDC4	#4ecdc4ad	#396c6d ✅ (yours)
 // other	#EFA9C8	#efa9c8ad
 
-export const PartDataLabels: Record<ImpressionType, string> = {
+export const PartDataLabels: Record<ImpressionType, ImpressionPluralType> = {
   emotion: "emotions",
   thought: "thoughts",
   sensation: "sensations",

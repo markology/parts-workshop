@@ -5,3 +5,11 @@ export type ImpressionType =
   | "behavior"
   | "other"
   | "self";
+
+export type ImpressionPluralType =
+  | "emotions"
+  | "thoughts"
+  | "sensations"
+  | "behaviors"
+  | "others"
+  | "self";

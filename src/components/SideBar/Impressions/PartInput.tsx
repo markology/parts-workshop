@@ -22,7 +22,7 @@ const PartInput = () => {
           sensations: [],
           behaviors: [],
           others: [],
-          self: "",
+          self: [],
         },
       };
       setValue("");

@@ -22,7 +22,7 @@ export type NodeType =
   | "thought"
   | "sensation"
   | "behavior"
-  | "conflict"
+  // | "conflict"
   | "part"
   | "other"
   | "self";
