@@ -27,11 +27,11 @@ const PartNode = ({ data }: { data: PartNodeData }) => {
           >
             Emotions:
           </strong>
-          <ul className="list-disc pl-5 text-gray-700">
+          <div className="text-gray-700">
             {data.emotions.map((emotion, index) => (
-              <li key={index}>{emotion}</li>
+              <div key={index}>{emotion.data.label || ""}</div>
             ))}
-          </ul>
+          </div>
         </div>
 
         {/* Thoughts */}
