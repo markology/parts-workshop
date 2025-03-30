@@ -2,30 +2,16 @@
 
 import "@xyflow/react/dist/style.css";
 
-import React, { useState } from "react";
-import {
-  Node,
-  NodeChange,
-  ReactFlowProvider,
-  useNodesState,
-} from "@xyflow/react";
+import React from "react";
+import { ReactFlowProvider } from "@xyflow/react";
+import { FlowNodesProvider } from "@/context/FlowNodesContext";
 
-import { WorkshopContextProvider } from "./context/WorkshopContext";
-import SideBar, { type SideBarItem } from "./components/SideBar/SideBar";
-import WorkSpaceGrid from "@/app/components/WorkSpaceGrid";
-import { ThemeContextProvider } from "./context/ThemeContext";
-
-export type NodeStateType = {
-  nodes: Node[];
-  setNodes: (updater: (nodes: Node[]) => Node[]) => void;
-  onNodesChange: (changes: NodeChange<Node>[]) => void;
-};
+import { WorkshopContextProvider } from "@/context/WorkshopContext";
+import SideBar from "@/components/SideBar/SideBar";
+import WorkSpaceGrid from "@/components/WorkSpaceGrid";
+import { ThemeContextProvider } from "@/context/ThemeContext";
 
 const App = () => {
-  const [activeSideBarNode, setActiveSideBarNode] =
-    useState<SideBarItem | null>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-
   return (
     <div
       style={{
@@ -36,16 +22,10 @@ const App = () => {
       }}
       className={`PW`}
     >
-      <SideBar
-        setNodes={setNodes}
-        setActiveSideBarNode={setActiveSideBarNode}
-      />
-      <WorkSpaceGrid
-        nodes={nodes}
-        setNodes={setNodes}
-        onNodesChange={onNodesChange}
-        activeSideBarNode={activeSideBarNode}
-      />
+      <FlowNodesProvider>
+        <SideBar />
+        <WorkSpaceGrid />
+      </FlowNodesProvider>
     </div>
   );
 };

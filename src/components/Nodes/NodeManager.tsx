@@ -6,9 +6,9 @@ import {
   ConflictNodeParams,
   NodeType,
   PartNodeData,
-} from "./types";
+} from "@/types/Nodes";
 
-import { NodeColors } from "./constants";
+import { NodeColors } from "@/constants/Nodes";
 
 // Other: Circle, Pink (#EFA9C8) - Already Correct
 const OtherNode = ({ data }: BaseNodeParams) => (

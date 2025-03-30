@@ -1,12 +1,15 @@
 import { Handle, Position } from "@xyflow/react";
-import { PartNodeData } from "./types";
+import { PartNodeData } from "@/types/Nodes";
 
-import { NodeColors, NodeBackgroundColors, NodeTextColors } from "./constants";
+import { NodeBackgroundColors, NodeTextColors } from "@/constants/Nodes";
 
 const PartNode = ({ data }: { data: PartNodeData }) => {
   console.log({ data });
   return (
-    <div className="bg-[#a3c1e591] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-[500px] rounded-3xl">
+    <div
+      className="bg-[#a3c1e591] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-[500px] rounded-3xl"
+      style={{ zIndex: -999 }}
+    >
       {/* Title */}
       <h3 className="part-name font-semibold mb-2 text-gray-800 text-4xl pb-4">
         {data.label}

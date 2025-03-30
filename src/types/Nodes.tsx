@@ -1,3 +1,5 @@
+import { Node } from "@xyflow/react";
+
 export interface BaseNodeData {
   label: string;
 }
@@ -27,3 +29,6 @@ export type NodeType =
 
 export type BaseNodeParams = { data: BaseNodeData };
 export type ConflictNodeParams = { data: ConflictNodeData };
+
+export type ImpressionNode = Node & BaseNodeData;
+export type PartNode = Node & PartNodeData;

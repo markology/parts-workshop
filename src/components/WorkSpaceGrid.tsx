@@ -13,25 +13,19 @@ import {
   OnNodesChange,
 } from "@xyflow/react";
 import { useCallback, useRef } from "react";
-import { NodeStateType } from "@/app/page";
 import { nodeTypes } from "./Nodes/NodeManager";
-import { SideBarItem } from "./SideBar/SideBar";
+import { useFlowNodesContext } from "@/context/FlowNodesContext";
+import { useSidebarStore } from "@/stores/Sidebar";
 
 let id = 0;
 const getId = () => `pwnode_${id++}`;
 
-const Workspace = ({
-  activeSideBarNode,
-  nodes,
-  setNodes,
-  onNodesChange,
-}: {
-  activeSideBarNode: SideBarItem | null;
-} & NodeStateType) => {
+const Workspace = () => {
   const reactFlowWrapper = useRef(null);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { screenToFlowPosition } = useReactFlow();
-  // const {user} = useWorkshopContext();
+  const { setNodes, nodes, onNodesChange } = useFlowNodesContext();
+  const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -58,7 +52,7 @@ const Workspace = ({
       event.preventDefault();
 
       // check if the dropped element is valid
-      if (!activeSideBarNode?.type) {
+      if (!activeSidebarNode?.type) {
         return;
       }
 
@@ -67,11 +61,7 @@ const Workspace = ({
         y: event.clientY,
       });
 
-      const { type, label } = activeSideBarNode;
-      const data: { label: string; connectedNodeIds?: string[] } = { label };
-      if (type === "conflict") {
-        data.connectedNodeIds = [];
-      }
+      const { type, label } = activeSidebarNode;
       const newNode = {
         id: getId(),
         type,
@@ -81,13 +71,12 @@ const Workspace = ({
           backgroundColor: "transparent",
           border: "none",
           boxShadow: "none",
-          ...(activeSideBarNode.type === "part" ? { zIndex: -1 } : {}),
         },
       };
 
       setNodes((nds: Node[]) => nds.concat(newNode));
     },
-    [screenToFlowPosition, activeSideBarNode]
+    [screenToFlowPosition, activeSidebarNode]
   );
 
   return (
