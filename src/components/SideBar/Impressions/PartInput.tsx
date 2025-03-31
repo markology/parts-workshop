@@ -1,5 +1,6 @@
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useUIStore } from "@/stores/UI";
+import { useReactFlow } from "@xyflow/react";
 import { useEffect, useRef, useState } from "react";
 
 const PartInput = () => {
@@ -7,13 +8,15 @@ const PartInput = () => {
   const { setNodes } = useFlowNodesContext();
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const partInputRef = useRef<HTMLInputElement | null>(null);
+  const { getViewport, setCenter } = useReactFlow();
 
   const addPartNode = (e: { key: string }) => {
     if (e.key === "Enter" && value.trim()) {
+      const viewport = getViewport();
       const newPart = {
         id: `${Date.now()}`,
         type: "part",
-        position: { x: 100, y: 100 },
+        position: { x: viewport.x, y: viewport.y },
         style: { zIndex: -1 },
         data: {
           label: value,
@@ -28,6 +31,13 @@ const PartInput = () => {
       setValue("");
       setNodes((nodes) => [...nodes, newPart]);
       setShowPartModal(false);
+
+      setTimeout(() => {
+        setCenter(newPart.position.x + 400, newPart.position.y + 300, {
+          zoom: 0.6,
+          duration: 500,
+        });
+      }, 0);
     }
   };
 
