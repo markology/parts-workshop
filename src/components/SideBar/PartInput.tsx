@@ -33,7 +33,7 @@ const PartInput = () => {
       setShowPartModal(false);
 
       setTimeout(() => {
-        setCenter(newPart.position.x + 400, newPart.position.y + 300, {
+        setCenter(newPart.position.x + 500, newPart.position.y + 300, {
           zoom: 0.6,
           duration: 500,
         });
