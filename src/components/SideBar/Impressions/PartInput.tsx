@@ -41,19 +41,10 @@ const PartInput = () => {
         ref={partInputRef}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-full p-2 mb-3 border rounded"
+        className="w-full p-9 mb-3 border rounded bg-white/60 outline-none border-none h-24 text-4xl w-[600px]"
+        style={{ color: "black" }}
         onKeyDown={addPartNode}
         placeholder="Add Part"
-        style={{
-          background: "rgb(255 255 255 / 58%)",
-          color: "black",
-          outline: "none",
-          border: "none",
-          height: "100px",
-          fontSize: "40px",
-          width: "600px",
-          padding: "37px",
-        }}
       />
     </div>
   );

@@ -6,18 +6,20 @@ import { ImpressionType } from "@/types/Impressions";
 
 const Impressions = () => {
   const { impressions, setActiveSidebarNode } = useSidebarStore();
+
   const onDragStart = (
     event: React.DragEvent<HTMLDivElement>,
     draggableId: string,
     type: ImpressionType
   ) => {
     event.stopPropagation(); // critical if React Flow is interfering
+    // in order to pass to TrashCan
     event.dataTransfer.setData(
       "parts-workshop/sidebar-impression",
       JSON.stringify({ type, id: draggableId })
     );
 
-    event.dataTransfer.effectAllowed = "move";
+    // set ActiveSideBarNode
     const activeSideBarNode = impressions[type][draggableId];
     setActiveSidebarNode(activeSideBarNode.id || null, type);
     event.dataTransfer.effectAllowed = "move";

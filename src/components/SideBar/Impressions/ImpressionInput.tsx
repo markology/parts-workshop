@@ -54,34 +54,35 @@ const ImpressionInput = () => {
             : NodeBackgroundColors[selectedType],
         }}
       >
-        <>
-          <div
-            className="absolute top-2 left-2 flex flex-wrap gap-2 z-10 p-[10px]"
-            style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
+        {/* Current Impression Type and Button to Open Type Selector */}
+        <div
+          className="absolute top-2 left-2 flex flex-wrap gap-2 z-10 p-[10px]"
+          style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
+        >
+          <button
+            onClick={() => setIsSelectorOpen(!isSelectorOpen)}
+            className="px-3 py-1 rounded-full text-sm capitalize"
+            style={{
+              backgroundColor: NodeColors[selectedType],
+              color: "black",
+            }}
           >
-            <button
-              onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-              className="px-3 py-1 rounded-full text-sm capitalize"
-              style={{
-                backgroundColor: NodeColors[selectedType],
-                color: "black",
-              }}
-            >
-              {selectedType || "Select Type"}
-            </button>
-          </div>
+            {selectedType || "Select Type"}
+          </button>
+        </div>
 
-          <textarea
-            style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
-            ref={textAreaRef}
-            value={traitInput}
-            onChange={(e) => setTraitInput(e.target.value)}
-            className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none pt-[60px]"
-            rows={5}
-            onKeyDown={createSideBarNode}
-            placeholder="Add Impression"
-          />
-        </>
+        <textarea
+          style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
+          ref={textAreaRef}
+          value={traitInput}
+          onChange={(e) => setTraitInput(e.target.value)}
+          className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none pt-[60px]"
+          rows={5}
+          onKeyDown={createSideBarNode}
+          placeholder="Add Impression"
+        />
+
+        {/* Impression Type Selector */}
 
         {isSelectorOpen && (
           <div

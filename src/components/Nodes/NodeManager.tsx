@@ -8,7 +8,7 @@ import {
 
 import { NodeColors, NodeTextColors } from "@/constants/Nodes";
 import { ImpressionType } from "@/types/Impressions";
-import { useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
 import RightClickMenu from "../global/RightClickMenu";
@@ -25,8 +25,9 @@ const ImpressionNode = ({
 }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
-  const { setNodes } = useFlowNodesContext();
+  const { deleteNode } = useFlowNodesContext();
   const addImpression = useSidebarStore((s) => s.addImpression);
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -36,21 +37,35 @@ const ImpressionNode = ({
     }
   };
 
-  const handleDeleteImpressionNode = (id: string) => {
-    setNodes((prevNodes) => {
-      return prevNodes.filter((node) => node.id !== id);
-    });
-  };
+  const handleSendBackToSideBar = useCallback(
+    (id: string, type: ImpressionType) => {
+      deleteNode(id);
+      addImpression({
+        id,
+        type,
+        label,
+      });
+    },
+    [addImpression, deleteNode, label]
+  );
 
-  const handleSendBackToSideBar = (id: string, type: ImpressionType) => {
-    handleDeleteImpressionNode(id);
-
-    addImpression({
-      id,
-      type,
-      label,
-    });
-  };
+  const menuItems = useMemo(
+    () => [
+      {
+        icon: <Pencil size={16} />,
+        onClick: () => console.log("Edit node"),
+      },
+      {
+        icon: <Trash2 size={16} />,
+        onClick: () => deleteNode(id),
+      },
+      {
+        icon: <ListRestart size={16} />,
+        onClick: () => handleSendBackToSideBar(id, type),
+      },
+    ],
+    [deleteNode, handleSendBackToSideBar, id, type]
+  );
 
   return (
     <div key={`${id}`}>
@@ -68,25 +83,7 @@ const ImpressionNode = ({
         </strong>
         {label || null}
       </div>
-      {menuVisible && (
-        <RightClickMenu
-          items={[
-            {
-              icon: <Pencil size={16} />,
-              onClick: () => console.log("Edit node"),
-            },
-            {
-              icon: <Trash2 size={16} />,
-              onClick: () => handleDeleteImpressionNode(id),
-            },
-            {
-              icon: <ListRestart size={16} />,
-              onClick: () => handleSendBackToSideBar(id, type),
-            },
-          ]}
-          onClose={() => {}}
-        />
-      )}
+      {menuVisible && <RightClickMenu items={menuItems} onClose={() => {}} />}
     </div>
   );
 };

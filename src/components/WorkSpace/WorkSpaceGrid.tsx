@@ -25,13 +25,27 @@ import { ImpressionType } from "@/types/Impressions";
 let id = 0;
 const getId = () => `pwnode_${id++}`;
 
+function isPointInsideNode(position: XYPosition, node: Node): boolean {
+  if (node?.measured?.width == null || node?.measured?.height == null)
+    return false;
+
+  return (
+    position.x >= node.position.x &&
+    position.x <= node.position.x + node.measured.width &&
+    position.y >= node.position.y &&
+    position.y <= node.position.y + node.measured.height
+  );
+}
+
 const Workspace = () => {
   const reactFlowWrapper = useRef(null);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { screenToFlowPosition } = useReactFlow();
-  const { setNodes, nodes, onNodesChange } = useFlowNodesContext();
+  const { deleteNode, insertImpressionToPart, setNodes, nodes, onNodesChange } =
+    useFlowNodesContext();
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
   const removeImpression = useSidebarStore((s) => s.removeImpression);
+
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
     []
@@ -42,8 +56,6 @@ const Workspace = () => {
       preventDefault: () => void;
       dataTransfer: { dropEffect: string };
     }) => {
-      console.log("onDragOver");
-
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
     },
@@ -67,7 +79,7 @@ const Workspace = () => {
 
         if (isOverBucket) {
           // Delete the node:
-          setNodes((prev) => prev.filter((n) => n.id !== node.id));
+          deleteNode(node.id);
           return;
         }
       }
@@ -78,59 +90,25 @@ const Workspace = () => {
       });
 
       if (node.type === "part") return;
+
       const partNodeToInsertImpression: PartNode | undefined = nodes
         .filter((n) => n.type === "part")
         .find(
           (n): n is PartNode =>
-            n.type === "part" && isPointInsideNode(position, node)
+            n.type === "part" && isPointInsideNode(position, n)
         );
 
-      console.log(partNodeToInsertImpression, nodes);
-
       if (partNodeToInsertImpression) {
-        setNodes((prevNodes) => {
-          return prevNodes.reduce((acc: Node[], n) => {
-            if (n.id === node.id) return acc;
-            if (n.id === partNodeToInsertImpression.id) {
-              // const partDataLabelKey = node.type as keyof typeof PartDataLabels;
-              const partDataLabel = PartDataLabels[node.type as ImpressionType];
-              // Clone the part node and safely add the impression node
-              const updatedPartNode = {
-                ...n,
-                data: {
-                  ...n.data,
-                  [partDataLabel]: [
-                    ...((n.data[partDataLabel] as ImpressionNode[]) || []),
-                    node,
-                  ],
-                },
-              };
-
-              console.log(updatedPartNode);
-
-              acc.push(updatedPartNode);
-            } else acc.push(n);
-            return acc;
-          }, []);
-        });
+        insertImpressionToPart(
+          node as ImpressionNode,
+          node.id,
+          partNodeToInsertImpression.id,
+          node?.type as ImpressionType
+        );
       }
     },
-    [nodes, setNodes]
+    [deleteNode, insertImpressionToPart, nodes, screenToFlowPosition]
   );
-
-  function isPointInsideNode(position: XYPosition, node: Node): boolean {
-    console.log("isPointInsideNode");
-
-    if (node?.measured?.width == null || node?.measured?.height == null)
-      return false;
-
-    return (
-      position.x >= node.position.x &&
-      position.x <= node.position.x + node.measured.width &&
-      position.y >= node.position.y &&
-      position.y <= node.position.y + node.measured.height
-    );
-  }
 
   const onDrop = useCallback(
     (event: {
@@ -230,6 +208,7 @@ const Workspace = () => {
   return (
     <div className="reactflow-wrapper" ref={reactFlowWrapper}>
       <ReactFlow
+        className="h-[4000px] w-[4000px]"
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange as OnNodesChange<Node>}
@@ -241,10 +220,6 @@ const Workspace = () => {
         fitView
         nodeTypes={nodeTypes}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-        style={{
-          height: "4000px",
-          width: "4000px",
-        }}
         minZoom={0}
         maxZoom={2}
       >

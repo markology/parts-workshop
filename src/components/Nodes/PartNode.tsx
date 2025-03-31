@@ -3,16 +3,13 @@ import { PartNodeData } from "@/types/Nodes";
 import { ImpressionList } from "@/constants/Impressions";
 import { PartDataLabels } from "@/constants/Nodes";
 
-import PartImpressionList from "./PartImpressionList";
+import PartImpressionList from "./PartImpressionList/PartImpressionList";
 import { Pencil } from "lucide-react";
 let index = 0;
 
 const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   return (
-    <div
-      className="bg-[#a3c1e591] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl"
-      style={{ zIndex: -999 }}
-    >
+    <div className="bg-[#a3c1e591] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl">
       {/* Title */}
       <h3
         onClick={() => console.log("clicked")}

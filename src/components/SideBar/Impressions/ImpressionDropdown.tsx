@@ -41,15 +41,11 @@ const ImpressionDropdown = ({
         Object.values(filteredImpressions).map((item) => (
           <div
             key={item.id}
-            className="sidebar-impression input"
+            className="sidebar-impression text-white input draggable rounded-lg px-3 py-1 cursor-grab"
             onDragStart={(event) => onDragStart(event, item.id, item.type)}
             draggable
             style={{
-              backgroundColor: NodeColors[item.type],
-              borderRadius: 8,
-              padding: "15px",
-              paddingLeft: 0,
-              paddingRight: 0,
+              background: NodeColors[item.type],
             }}
           >
             {item.label}

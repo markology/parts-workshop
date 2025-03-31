@@ -44,20 +44,7 @@ const TrashCan: React.FC = () => {
       onDrop={handleDrop}
       onMouseOver={() => setIsHoveringTrash(true)}
       onMouseLeave={() => setIsHoveringTrash(false)}
-      style={{
-        width: "60px",
-        height: "60px",
-        position: "fixed", // or absolute if inside a container
-        top: "20px",
-        right: "20px",
-        borderRadius: "12px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        zIndex: 1000,
-        background: "#0000003b",
-      }}
+      className="fixed top-5 right-5 w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
       title="Drop here to delete"
       id="trash-bucket"
     >
