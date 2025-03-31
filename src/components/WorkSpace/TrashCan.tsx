@@ -1,41 +1,49 @@
-import React from "react";
-import { Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { Trash, Trash2 } from "lucide-react";
+import { useSidebarStore } from "@/stores/Sidebar";
 
-type TrashBucketProps = {
-  onDropItem: (item: { type: string; id: string }) => void;
-};
+const TrashCan: React.FC = () => {
+  const removeImpression = useSidebarStore((s) => s.removeImpression);
+  const [isHoveringTrash, setIsHoveringTrash] = useState(false);
 
-const TrashCan: React.FC<TrashBucketProps> = ({ onDropItem }) => {
-  //   const [isHover];
+  const handleDragEnter = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setIsHoveringTrash(true);
+  };
+
+  const handleDragLeave = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setIsHoveringTrash(false);
+  };
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    console.log("handling drop");
     e.preventDefault();
     e.stopPropagation();
-    // Retrieve the custom drag data
-    const data = e.dataTransfer.getData("application/my-app");
-    if (data) {
-      try {
-        const item = JSON.parse(data);
-        onDropItem(item);
-      } catch (error) {
-        console.error("Invalid drop data", error);
-      }
+
+    const sidebarData = e.dataTransfer.getData(
+      "parts-workshop/sidebar-impression"
+    );
+
+    if (sidebarData) {
+      const item = JSON.parse(sidebarData);
+      removeImpression(item.type, item.id);
+      return;
     }
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    console.log("dragging over");
     e.preventDefault();
-    // Show a move cursor or highlight the trash bucket
     e.dataTransfer.dropEffect = "move";
   };
 
   return (
     <div
-      onMouseOver={() => console.log("mouse onMouseOver")}
-      onMouseDown={() => console.log("mouse down")}
-      onDrop={handleDrop}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onMouseOver={() => setIsHoveringTrash(true)}
+      onMouseLeave={() => setIsHoveringTrash(false)}
       style={{
         width: "60px",
         height: "60px",
@@ -53,7 +61,11 @@ const TrashCan: React.FC<TrashBucketProps> = ({ onDropItem }) => {
       title="Drop here to delete"
       id="trash-bucket"
     >
-      <Trash2 color="white" strokeWidth={2} size={30} />
+      {!isHoveringTrash ? (
+        <Trash color="white" strokeWidth={2} size={30} />
+      ) : (
+        <Trash2 color="white" strokeWidth={2} size={30} />
+      )}
     </div>
   );
 };

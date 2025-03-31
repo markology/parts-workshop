@@ -13,9 +13,10 @@ const Impressions = () => {
   ) => {
     event.stopPropagation(); // critical if React Flow is interfering
     event.dataTransfer.setData(
-      "application/my-app",
+      "parts-workshop/sidebar-impression",
       JSON.stringify({ type, id: draggableId })
     );
+
     event.dataTransfer.effectAllowed = "move";
     const activeSideBarNode = impressions[type][draggableId];
     setActiveSidebarNode(activeSideBarNode.id || null, type);

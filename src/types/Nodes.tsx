@@ -9,12 +9,12 @@ export interface ConflictNodeData extends BaseNodeData {
 }
 
 export interface PartNodeData extends BaseNodeData {
-  emotions: Node[];
-  thoughts: Node[];
-  sensations: Node[];
-  behaviors: Node[];
-  others: Node[];
-  self: Node[];
+  emotions: ImpressionNode[];
+  thoughts: ImpressionNode[];
+  sensations: ImpressionNode[];
+  behaviors: ImpressionNode[];
+  others: ImpressionNode[];
+  self: ImpressionNode[];
 }
 
 export type NodeType =

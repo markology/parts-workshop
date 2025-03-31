@@ -4,11 +4,15 @@ import {
   NodeBackgroundColors,
   NodeColors,
   NodeTextColors,
+  PartDataLabels,
 } from "@/constants/Nodes";
 import { ImpressionType } from "@/types/Impressions";
 import { ReactElement, useRef, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { ListRestart, Pencil, Trash2 } from "lucide-react";
 import RightClickMenu from "../global/RightClickMenu";
+import { useFlowNodesContext } from "@/context/FlowNodesContext";
+import { useSidebarStore } from "@/stores/Sidebar";
+import { ImpressionNode } from "@/types/Nodes";
 
 let index = 0;
 const PartImpressionContainer = ({
@@ -44,13 +48,16 @@ const PartImpressionContainer = ({
 const PartImpressionNode = ({
   item,
   type,
+  partId,
 }: {
-  item: Node;
+  item: ImpressionNode;
   type: ImpressionType;
+  partId: string;
 }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const nodeRef = useRef<HTMLLIElement>(null);
-
+  const { setNodes } = useFlowNodesContext();
+  const addImpression = useSidebarStore((s) => s.addImpression);
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -58,6 +65,55 @@ const PartImpressionNode = ({
     if (nodeRef.current) {
       setMenuVisible(true);
     }
+  };
+
+  const handleDeleteImpressionNode = (
+    id: string,
+    partId: string,
+    type: ImpressionType
+  ) => {
+    setNodes((prevNodes) => {
+      return prevNodes.reduce((acc: Node[], node: Node) => {
+        if (node.id === id) {
+          // Skip the impression node we're deleting
+          return acc;
+        }
+
+        if (node.id === partId) {
+          // Update the parent node by removing the impression from its data
+          const updatedImpressions = (node.data[PartDataLabels[type]] as Node[]) // fix typescript
+            .filter((impression) => impression.id !== id);
+          const updatedNode = {
+            ...node,
+            data: {
+              ...node.data,
+              [PartDataLabels[type]]: updatedImpressions,
+            },
+          };
+
+          acc.push(updatedNode);
+        } else {
+          // All other nodes remain unchanged
+          acc.push(node);
+        }
+
+        return acc;
+      }, []);
+    });
+  };
+
+  const handleSendBackToSideBar = (
+    id: string,
+    partId: string,
+    type: ImpressionType
+  ) => {
+    handleDeleteImpressionNode(id, partId, type);
+
+    addImpression({
+      id,
+      type,
+      label: item.data.label as string,
+    });
   };
 
   return (
@@ -68,7 +124,7 @@ const PartImpressionNode = ({
         className="text-white text-left bg-[#4ecdc4] rounded py-1 px-4 break-words relative"
         style={{ backgroundColor: NodeColors[type] }}
       >
-        {String(item.data.label) || null}
+        {(item.data.label as string) || null}
       </li>
       {menuVisible && (
         <RightClickMenu
@@ -79,7 +135,11 @@ const PartImpressionNode = ({
             },
             {
               icon: <Trash2 size={16} />,
-              onClick: () => console.log("Delete node"),
+              onClick: () => handleDeleteImpressionNode(item.id, partId, type),
+            },
+            {
+              icon: <ListRestart size={16} />,
+              onClick: () => handleSendBackToSideBar(item.id, partId, type),
             },
           ]}
           onClose={() => {}}
@@ -92,9 +152,11 @@ const PartImpressionNode = ({
 const PartImpressionList = ({
   data,
   type,
+  partId,
 }: {
-  data: Node[];
+  data: ImpressionNode[];
   type: ImpressionType;
+  partId: string;
 }) => (
   <PartImpressionContainer type={type}>
     {data.map((item) => {
@@ -103,6 +165,7 @@ const PartImpressionList = ({
           item={item}
           type={type}
           key={`PartImpressionNode ${index++}`}
+          partId={partId}
         />
       );
     })}

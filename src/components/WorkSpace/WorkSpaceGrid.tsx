@@ -17,9 +17,10 @@ import { useCallback, useRef } from "react";
 import { nodeTypes } from "@/components/Nodes/NodeManager";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
-import { PartNode } from "@/types/Nodes";
+import { ImpressionNode, PartNode } from "@/types/Nodes";
 import { PartDataLabels } from "@/constants/Nodes";
 import TrashCan from "./TrashCan";
+import { ImpressionType } from "@/types/Impressions";
 
 let id = 0;
 const getId = () => `pwnode_${id++}`;
@@ -41,6 +42,8 @@ const Workspace = () => {
       preventDefault: () => void;
       dataTransfer: { dropEffect: string };
     }) => {
+      console.log("onDragOver");
+
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
     },
@@ -50,28 +53,74 @@ const Workspace = () => {
   const handleNodeDragStop = useCallback(
     (event: React.MouseEvent, node: Node) => {
       const trashBucket = document.getElementById("trash-bucket");
-      if (!trashBucket) return;
+      if (trashBucket) {
+        const bucketRect = trashBucket.getBoundingClientRect();
 
-      const bucketRect = trashBucket.getBoundingClientRect();
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
 
-      const mouseX = event.clientX;
-      const mouseY = event.clientY;
+        const isOverBucket =
+          mouseX >= bucketRect.left &&
+          mouseX <= bucketRect.right &&
+          mouseY >= bucketRect.top &&
+          mouseY <= bucketRect.bottom;
 
-      const isOverBucket =
-        mouseX >= bucketRect.left &&
-        mouseX <= bucketRect.right &&
-        mouseY >= bucketRect.top &&
-        mouseY <= bucketRect.bottom;
+        if (isOverBucket) {
+          // Delete the node:
+          setNodes((prev) => prev.filter((n) => n.id !== node.id));
+          return;
+        }
+      }
 
-      if (isOverBucket) {
-        // Delete the node:
-        setNodes((prev) => prev.filter((n) => n.id !== node.id));
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      if (node.type === "part") return;
+      const partNodeToInsertImpression: PartNode | undefined = nodes
+        .filter((n) => n.type === "part")
+        .find(
+          (n): n is PartNode =>
+            n.type === "part" && isPointInsideNode(position, node)
+        );
+
+      console.log(partNodeToInsertImpression, nodes);
+
+      if (partNodeToInsertImpression) {
+        setNodes((prevNodes) => {
+          return prevNodes.reduce((acc: Node[], n) => {
+            if (n.id === node.id) return acc;
+            if (n.id === partNodeToInsertImpression.id) {
+              // const partDataLabelKey = node.type as keyof typeof PartDataLabels;
+              const partDataLabel = PartDataLabels[node.type as ImpressionType];
+              // Clone the part node and safely add the impression node
+              const updatedPartNode = {
+                ...n,
+                data: {
+                  ...n.data,
+                  [partDataLabel]: [
+                    ...((n.data[partDataLabel] as ImpressionNode[]) || []),
+                    node,
+                  ],
+                },
+              };
+
+              console.log(updatedPartNode);
+
+              acc.push(updatedPartNode);
+            } else acc.push(n);
+            return acc;
+          }, []);
+        });
       }
     },
-    [setNodes]
+    [nodes, setNodes]
   );
 
   function isPointInsideNode(position: XYPosition, node: Node): boolean {
+    console.log("isPointInsideNode");
+
     if (node?.measured?.width == null || node?.measured?.height == null)
       return false;
 
@@ -89,6 +138,8 @@ const Workspace = () => {
       clientX: number;
       clientY: number;
     }) => {
+      console.log("onDrop");
+
       event.preventDefault();
 
       // check if the dropped element is valid
@@ -176,13 +227,6 @@ const Workspace = () => {
     [screenToFlowPosition, activeSidebarNode]
   );
 
-  const handleDropItem = (item: { type: string; id: string }) => {
-    console.log("Deleting item", item);
-    // Implement deletion logic here: e.g., update state, remove node, etc.
-    // Example: if item.type is "part", filter out that part's node.
-    setNodes((prevNodes) => prevNodes.filter((node) => node.id !== item.id));
-  };
-
   return (
     <div className="reactflow-wrapper" ref={reactFlowWrapper}>
       <ReactFlow
@@ -207,7 +251,7 @@ const Workspace = () => {
         <Background />
         <Controls className="absolute bottom-4 left-4" />
       </ReactFlow>
-      <TrashCan onDropItem={handleDropItem} />
+      <TrashCan />
     </div>
   );
 };

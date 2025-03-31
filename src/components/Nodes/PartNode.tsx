@@ -4,38 +4,29 @@ import { ImpressionList } from "@/constants/Impressions";
 import { PartDataLabels } from "@/constants/Nodes";
 
 import PartImpressionList from "./PartImpressionList";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 let index = 0;
 
-const PartNode = ({ data }: { data: PartNodeData }) => {
+const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   return (
     <div
       className="bg-[#a3c1e591] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl"
       style={{ zIndex: -999 }}
     >
       {/* Title */}
-      <div className="flex flex-col justify-between items-baseline">
-        <h3
-          onClick={() => console.log("clicked")}
-          className="part-name font-semibold mb-2 text-gray-800 text-4xl pb-4 flex gap-[20px]"
-        >
-          {data.label}
-          <button>
-            <Pencil
-              className="text-[#3d4f6a] cursor-default"
-              strokeWidth={3}
-              size={20}
-            />
-          </button>
-        </h3>
+      <h3
+        onClick={() => console.log("clicked")}
+        className="part-name font-semibold mb-2 text-gray-800 text-4xl pb-4 flex gap-[20px]"
+      >
+        {data.label}
         <button>
-          <Trash2
+          <Pencil
             className="text-[#3d4f6a] cursor-default"
             strokeWidth={3}
             size={20}
           />
         </button>
-      </div>
+      </h3>
       <div
         className={
           "flex flex-row gap-4 flex-grow space-evenly flex gap-2 flex-col min-h-[300px]"
@@ -46,6 +37,7 @@ const PartNode = ({ data }: { data: PartNodeData }) => {
             key={`PartImpressionList ${index++}`}
             data={data[PartDataLabels[impression]]}
             type={impression}
+            partId={partId}
           />
         ))}
       </div>
