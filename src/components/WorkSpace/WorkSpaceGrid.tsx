@@ -1,29 +1,28 @@
 "use client";
 
-import {
-  ReactFlow,
-  addEdge,
-  useEdgesState,
-  Controls,
-  useReactFlow,
-  Background,
-  Edge,
-  Connection,
-  Node,
-  OnNodesChange,
-  XYPosition,
-} from "@xyflow/react";
-import { useCallback, useRef } from "react";
 import { nodeTypes } from "@/components/Nodes/NodeManager";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
-import { ImpressionNode, PartNode } from "@/types/Nodes";
-import { PartDataLabels } from "@/constants/Nodes";
-import TrashCan from "./TrashCan";
+import { useUIStore } from "@/stores/UI";
 import { ImpressionType } from "@/types/Impressions";
-
-let id = 0;
-const getId = () => `pwnode_${id++}`;
+import { ConflictNode, ImpressionNode, PartNode } from "@/types/Nodes";
+import {
+  Background,
+  Connection,
+  Controls,
+  Edge,
+  EdgeChange,
+  Node,
+  OnNodesChange,
+  ReactFlow,
+  XYPosition,
+  addEdge,
+  useEdgesState,
+  useReactFlow,
+} from "@xyflow/react";
+import { useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
+import TrashCan from "./TrashCan";
 
 function isPointInsideNode(position: XYPosition, node: Node): boolean {
   if (node?.measured?.width == null || node?.measured?.height == null)
@@ -38,17 +37,57 @@ function isPointInsideNode(position: XYPosition, node: Node): boolean {
 }
 
 const Workspace = () => {
-  const reactFlowWrapper = useRef(null);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const { screenToFlowPosition } = useReactFlow();
-  const { deleteNode, insertImpressionToPart, setNodes, nodes, onNodesChange } =
-    useFlowNodesContext();
+  const { getEdge, getNode, screenToFlowPosition } = useReactFlow();
+  const {
+    addPartToConflict,
+    deleteNode,
+    insertImpressionToPart,
+    nodes,
+    onNodesChange,
+    setNodes,
+    removePartFromConflict,
+  } = useFlowNodesContext();
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
   const removeImpression = useSidebarStore((s) => s.removeImpression);
+  const setRightClickMenuOpen = useUIStore((s) => s.setRightClickMenuOpen);
+
+  const handlePaneClick = () => {
+    setRightClickMenuOpen(false);
+  };
+
+  const onEdgeChange = useCallback(
+    (changes: EdgeChange<Edge>[]) => {
+      changes.forEach((change) => {
+        if ("id" in change) {
+          const { target, source } = getEdge(change?.id) || {};
+          if (target && source) {
+            const conflictNode = getNode(target);
+            if (
+              change.type === "remove" &&
+              "connectedNodes" in (conflictNode?.data ?? {})
+            ) {
+              removePartFromConflict(conflictNode as ConflictNode, source);
+            }
+          }
+        }
+      });
+      // // Apply other edge changes (e.g., position updates)
+      onEdgesChange(changes);
+    },
+    [getEdge, getNode, onEdgesChange, removePartFromConflict]
+  );
 
   const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
-    []
+    (params: Edge | Connection) => {
+      const partNode = getNode(params.source) as PartNode;
+      const conflictNode = getNode(params.target) as ConflictNode;
+      if (partNode && conflictNode) addPartToConflict(conflictNode, partNode);
+      else return;
+
+      setEdges((eds) => addEdge(params, eds));
+    },
+    [addPartToConflict, getNode, setEdges]
   );
 
   const onDragOver = useCallback(
@@ -116,8 +155,6 @@ const Workspace = () => {
       clientX: number;
       clientY: number;
     }) => {
-      console.log("onDrop");
-
       event.preventDefault();
 
       // check if the dropped element is valid
@@ -136,20 +173,18 @@ const Workspace = () => {
           (node): node is PartNode =>
             node.type === "part" && isPointInsideNode(position, node)
         );
-
       const { id, type, label } = activeSidebarNode;
-      removeImpression(type, id);
 
-      const newNode = {
-        id: getId(),
+      const newNode: ImpressionNode = {
+        id: uuidv4(),
         type,
         position,
         hidden: !!partNodeToInsertImpression,
         data: {
-          label,
+          label, // Ensure label is included
           parentNode: partNodeToInsertImpression || null,
-          reactFlowWrapper,
         },
+        label, // Add label property here to satisfy BaseNodeData
         style: {
           backgroundColor: "transparent",
           border: "none",
@@ -157,70 +192,87 @@ const Workspace = () => {
         },
       };
 
-      setNodes((nds: Node[]) => {
-        const updatedNodes = [...nds];
-        console.log("esetting node", partNodeToInsertImpression);
+      if (partNodeToInsertImpression) {
+        insertImpressionToPart(
+          newNode,
+          id,
+          partNodeToInsertImpression.id,
+          type
+        );
+      } else {
+        setNodes((prev) => [...prev, newNode]);
+      }
+      removeImpression(type, id);
 
-        if (partNodeToInsertImpression) {
-          // i dont like this strung together typescript
-          const partDataLabelKey = type as keyof typeof PartDataLabels;
-          const partDataLabel = PartDataLabels[partDataLabelKey];
-          console.log(partDataLabel);
-          if (
-            partDataLabel &&
-            Array.isArray(partNodeToInsertImpression.data[partDataLabel])
-          ) {
-            console.log("made it to here");
-            // 1. Find the index of the part node
-            const index = updatedNodes.findIndex(
-              (node) => node.id === partNodeToInsertImpression.id
-            );
+      //   if (partNodeToInsertImpression) {
+      //     // i dont like this strung together typescript
+      //     const partDataLabelKey = type as keyof typeof PartDataLabels;
+      //     const partDataLabel = PartDataLabels[partDataLabelKey];
+      //     console.log(partDataLabel);
+      //     if (
+      //       partDataLabel &&
+      //       Array.isArray(partNodeToInsertImpression.data[partDataLabel])
+      //     ) {
+      //       console.log("made it to here");
+      //       // 1. Find the index of the part node
+      //       const index = updatedNodes.findIndex(
+      //         (node) => node.id === partNodeToInsertImpression.id
+      //       );
 
-            if (index !== -1) {
-              // 2. Clone the part node and mutate its data
-              const updatedPartNode = {
-                ...partNodeToInsertImpression,
-                data: {
-                  ...partNodeToInsertImpression.data,
-                  [partDataLabel]: [
-                    ...partNodeToInsertImpression.data[partDataLabel],
-                    newNode,
-                  ],
-                },
-              };
+      //       if (index !== -1) {
+      //         // 2. Clone the part node and mutate its data
+      //         const updatedPartNode = {
+      //           ...partNodeToInsertImpression,
+      //           data: {
+      //             ...partNodeToInsertImpression.data,
+      //             [partDataLabel]: [
+      //               ...partNodeToInsertImpression.data[partDataLabel],
+      //               newNode,
+      //             ],
+      //           },
+      //         };
 
-              // 3. Replace the original part node in the array
-              updatedNodes[index] = updatedPartNode;
-              console.log("here");
-              // 4. Don't add newNode separately
-              return updatedNodes;
-            }
-          }
-        }
+      //         // 3. Replace the original part node in the array
+      //         updatedNodes[index] = updatedPartNode;
+      //         console.log("here");
+      //         // 4. Don't add newNode separately
+      //         return updatedNodes;
+      //       }
+      //     }
+      //   }
 
-        // Default: add newNode normally
-        return [...updatedNodes, newNode];
-      });
+      //   // Default: add newNode normally
+      //   return [...updatedNodes, newNode];
+      // });
     },
-    [screenToFlowPosition, activeSidebarNode]
+    [
+      activeSidebarNode,
+      screenToFlowPosition,
+      nodes,
+      removeImpression,
+      insertImpressionToPart,
+      setNodes,
+    ]
   );
 
   return (
-    <div className="reactflow-wrapper" ref={reactFlowWrapper}>
+    <div className="reactflow-wrapper">
       <ReactFlow
         className="h-[4000px] w-[4000px]"
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange as OnNodesChange<Node>}
-        onEdgesChange={onEdgesChange}
+        onEdgesChange={onEdgeChange}
         onNodeDragStop={handleNodeDragStop}
         onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
         fitView
+        onPaneClick={handlePaneClick}
         nodeTypes={nodeTypes}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         minZoom={0}
+        deleteKeyCode="Delete"
         maxZoom={2}
       >
         <Background />

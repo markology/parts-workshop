@@ -5,6 +5,7 @@ import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
 import RightClickMenu from "../global/RightClickMenu";
 import { ListRestart, Pencil, Trash2 } from "lucide-react";
+
 const ImpressionNode = ({
   id,
   label,
@@ -12,7 +13,7 @@ const ImpressionNode = ({
 }: {
   id: string;
   label: string;
-  type: Exclude<ImpressionType, ["part", "conflict"]>;
+  type: ImpressionType;
 }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
@@ -74,7 +75,7 @@ const ImpressionNode = ({
         </strong>
         {label || null}
       </div>
-      {menuVisible && <RightClickMenu items={menuItems} onClose={() => {}} />}
+      {menuVisible && <RightClickMenu items={menuItems} />}
     </div>
   );
 };

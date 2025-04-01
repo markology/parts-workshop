@@ -8,6 +8,7 @@ import {
 
 import ImpressionNode from "./ImpressionNode";
 import ConflictNode from "./ConflictNode";
+import { ImpressionType } from "@/types/Impressions";
 
 const NodeComponent = ({
   type,
@@ -20,9 +21,21 @@ const NodeComponent = ({
 }) => {
   if (type === "part")
     return <PartNode partId={id} data={data as PartNodeData} />;
-  if (type === "conflict") return <ConflictNode key={id} />;
+  if (type === "conflict" && "connectedNodes" in data)
+    return (
+      <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
+    );
 
-  return <ImpressionNode key={id} type={type} id={id} label={data.label} />;
+  if (type !== "conflict") {
+    return (
+      <ImpressionNode
+        key={id}
+        type={type as ImpressionType}
+        id={id}
+        label={data.label}
+      />
+    );
+  }
 };
 
 export default NodeComponent;

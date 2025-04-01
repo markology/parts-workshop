@@ -1,21 +1,22 @@
-import React, { useMemo } from "react";
-import { PersonStanding, Plus, ShieldAlert } from "lucide-react";
-
-import ImpressionInput from "./Impressions/ImpressionInput";
-import ImpressionDisplay from "./Impressions/ImpressionDisplay";
-import PartInput from "./PartInput";
 import Modal from "@/components/global/Modal";
-
+import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useUIStore } from "@/stores/UI";
-import ConflictInput from "./ConflictNode";
+import { ImpressionType } from "@/types/Impressions";
+import { useReactFlow } from "@xyflow/react";
+import { PersonStanding, Plus, ShieldAlert } from "lucide-react";
+import { useMemo } from "react";
+
+import ImpressionDisplay from "./Impressions/ImpressionDisplay";
+import ImpressionInput from "./Impressions/ImpressionInput";
+import PartInput from "./PartInput";
 
 const SideBar = () => {
+  const { getViewport } = useReactFlow();
+  const { createNode } = useFlowNodesContext();
   const showPartModal = useUIStore((s) => s.showPartModal);
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const showImpressionModal = useUIStore((s) => s.showImpressionModal);
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
-  const showConflictModal = useUIStore((s) => s.showConflictModal);
-  const setShowConflictModal = useUIStore((s) => s.setShowConflictModal);
 
   const CreateButtons = useMemo(
     () => (
@@ -32,7 +33,10 @@ const SideBar = () => {
             <Plus size={20} strokeWidth={2} />
           </button>
           <button
-            onClick={() => setShowConflictModal(true)}
+            onClick={() => {
+              const viewport = getViewport();
+              createNode("conflict" as ImpressionType, viewport, "Conflict");
+            }}
             className="flex-1 text-white font-medium rounded shadow transition p-none flex justify-center items-center bg-[#d24c4c] items-center p-[5px]"
           >
             <ShieldAlert size={20} strokeWidth={2} />
@@ -49,7 +53,7 @@ const SideBar = () => {
         </button>
       </div>
     ),
-    [setShowConflictModal, setShowImpressionModal, setShowPartModal]
+    [createNode, getViewport, setShowImpressionModal, setShowPartModal]
   );
 
   return (
@@ -67,13 +71,6 @@ const SideBar = () => {
         onClose={() => setShowImpressionModal(false)}
       >
         <ImpressionInput />
-      </Modal>
-      {/* Conflict Input Modal */}
-      <Modal
-        show={showConflictModal}
-        onClose={() => setShowConflictModal(false)}
-      >
-        <ConflictInput />
       </Modal>
     </aside>
   );

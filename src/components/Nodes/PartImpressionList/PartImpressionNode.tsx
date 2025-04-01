@@ -1,13 +1,13 @@
 import { NodeColors } from "@/constants/Nodes";
 import { ImpressionType } from "@/types/Impressions";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { ListRestart, Pencil, Trash2 } from "lucide-react";
 import RightClickMenu from "../../global/RightClickMenu";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
 import { ImpressionNode } from "@/types/Nodes";
+import { useUIStore } from "@/stores/UI";
 
-// let index = 0;
 const PartImpressionNode = ({
   item,
   type,
@@ -17,16 +17,20 @@ const PartImpressionNode = ({
   type: ImpressionType;
   partId: string;
 }) => {
-  const [menuVisible, setMenuVisible] = useState(false);
   const nodeRef = useRef<HTMLLIElement>(null);
   const { detachImpressionFromPart } = useFlowNodesContext();
+
+  // store vars
   const addImpression = useSidebarStore((s) => s.addImpression);
+  const isRightClickMenuOpen = useUIStore((s) => s.isRightClickMenuOpen);
+  const setRightClickMenuOpen = useUIStore((s) => s.setRightClickMenuOpen);
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (nodeRef.current) {
-      setMenuVisible(true);
+      setRightClickMenuOpen(true);
     }
   };
 
@@ -58,7 +62,8 @@ const PartImpressionNode = ({
         onClick: () => handleSendBackToSideBar(item.id, partId, type),
       },
     ],
-    [item.id, partId, type]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [detachImpressionFromPart, item.id, partId, type]
   );
 
   return (
@@ -71,7 +76,7 @@ const PartImpressionNode = ({
       >
         {(item.data.label as string) || null}
       </li>
-      {menuVisible && <RightClickMenu items={menuItems} onClose={() => {}} />}
+      {isRightClickMenuOpen && <RightClickMenu items={menuItems} />}
     </div>
   );
 };

@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from "react";
 const PartInput = () => {
   const [value, setValue] = useState("");
   const { setNodes } = useFlowNodesContext();
-  const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const partInputRef = useRef<HTMLInputElement | null>(null);
   const { getViewport, setCenter } = useReactFlow();
+  const setShowPartModal = useUIStore((s) => s.setShowPartModal);
 
   const addPartNode = (e: { key: string }) => {
     if (e.key === "Enter" && value.trim()) {

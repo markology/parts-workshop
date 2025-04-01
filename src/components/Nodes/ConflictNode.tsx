@@ -1,85 +1,135 @@
 import { NodeColors, NodeTextColors } from "@/constants/Nodes";
-import { Handle, Position } from "@xyflow/react";
-// import { useCallback, useMemo, useRef, useState } from "react";
-// import { useFlowNodesContext } from "@/context/FlowNodesContext";
-// import { useSidebarStore } from "@/stores/Sidebar";
-// import RightClickMenu from "../global/RightClickMenu";
-// import { ListRestart, Pencil, Trash2 } from "lucide-react";
+import { useFlowNodesContext } from "@/context/FlowNodesContext";
+import {
+  ConflictNode as ConflictNodeType,
+  ConnectedNodeType,
+} from "@/types/Nodes";
+import { Handle, Position, useReactFlow } from "@xyflow/react";
+import { ShieldAlert } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-const ConflictNode = () =>
-  // { id, label }: { id: string; label: string }
-  {
-    //   const [menuVisible, setMenuVisible] = useState(false);
-    //   const nodeRef = useRef<HTMLDivElement>(null);
-    //   const { deleteNode } = useFlowNodesContext();
-    //   const addImpression = useSidebarStore((s) => s.addImpression);
+const ConflictNode = ({
+  connectedNodes,
+  id,
+}: {
+  connectedNodes: ConnectedNodeType[];
+  id: string;
+}) => {
+  const { getNode } = useReactFlow();
+  const { updateConflictDescription } = useFlowNodesContext();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    //   const handleContextMenu = (e: React.MouseEvent) => {
-    //     e.preventDefault();
-    //     e.stopPropagation();
+  // Handle Enter key or outside click save
+  const handleSave = useCallback(() => {
+    if (editingId) {
+      updateConflictDescription(
+        getNode(id) as ConflictNodeType,
+        editingId,
+        editValue
+      );
+    }
+    setEditValue("");
+    setEditingId(null);
+  }, [editValue, editingId, getNode, id, updateConflictDescription]);
 
-    //     if (nodeRef.current) {
-    //       setMenuVisible(true);
-    //     }
-    //   };
+  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSave();
+    }
+  };
 
-    //   const handleSendBackToSideBar = useCallback(
-    //     (id: string, type: ImpressionType) => {
-    //       deleteNode(id);
-    //       addImpression({
-    //         id,
-    //         type,
-    //         label,
-    //       });
-    //     },
-    //     [addImpression, deleteNode, label]
-    //   );
+  // Detect clicks outside the input
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        handleSave(); // Trigger save when clicking outside
+      }
+    };
 
-    //   const menuItems = useMemo(
-    //     () => [
-    //       {
-    //         icon: <Pencil size={16} />,
-    //         onClick: () => console.log("Edit node"),
-    //       },
-    //       {
-    //         icon: <Trash2 size={16} />,
-    //         onClick: () => deleteNode(id),
-    //       },
-    //       {
-    //         icon: <ListRestart size={16} />,
-    //         onClick: () => handleSendBackToSideBar(id, type),
-    //       },
-    //     ],
-    //     [deleteNode, handleSendBackToSideBar, id, type]
-    //   );
+    // Add listener when editing starts
+    if (editingId) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
 
-    return (
-      <div>
-        <div
-          className="text-white bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
-          style={{ backgroundColor: NodeColors["conflict"] }}
-          // ref={nodeRef}
-          // onContextMenu={handleContextMenu}
-        >
+    // Cleanup listener when editing stops or component unmounts
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [editingId, editValue, handleSave]);
+
+  return (
+    <>
+      <div
+        className="text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
+        style={{ backgroundColor: NodeColors["conflict"] }}
+      >
+        <div className="flex flex-row justify-between">
           <strong
-            className="text-sm flex-1 justify-items-center"
+            className="text-base text-white justify-items-center semibold"
             style={{ color: NodeTextColors["conflict"] }}
           >
             Conflict
           </strong>
-          {/* 
-            edges.map
-            create x part names and corresponding explanations
-        */}
+          <ShieldAlert className="color-[#705d93]" size={20} strokeWidth={2} />
         </div>
-        {/* {menuVisible && <RightClickMenu items={menuItems} onClose={() => {}} />} */}
-        {/* Handles for edges */}
-        <Handle type="source" position={Position.Top} />
-        <Handle type="source" position={Position.Bottom} />
-        <Handle type="source" position={Position.Left} />
-        <Handle type="source" position={Position.Right} />
+        <div className="flex gap-4 flex-col">
+          {connectedNodes.length ? (
+            connectedNodes.map(({ part, conflictDescription }) => (
+              <div
+                className="bg-[#745da7] p-3 rounded"
+                onClick={() => {
+                  setEditValue(conflictDescription);
+                  setEditingId(part.id);
+                }}
+                key={`connectedNode ${part.id}`}
+              >
+                <p
+                  className="text-xl pb-2 pl-1 mb-3 color-white border-b"
+                  key={part.id}
+                >
+                  {part.data.label as string}
+                </p>
+                <div className="min-h-6 pl-1">
+                  {part.id === editingId ? (
+                    <input
+                      className="text-sm h-[30px]"
+                      ref={inputRef}
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={handleEnter}
+                      autoFocus
+                      placeholder="Enter description"
+                    />
+                  ) : conflictDescription ? (
+                    <p className="max-w-[300px] text-sm break-words">
+                      {conflictDescription}
+                    </p>
+                  ) : (
+                    <p className="text-sm" style={{ color: "#c9b6f2" }}>
+                      Enter description
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-xl" style={{ color: "#c9b6f2" }}>
+              Connect Parts to Conflict
+            </p>
+          )}
+        </div>
       </div>
-    );
-  };
+      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Bottom} />
+      <Handle type="target" position={Position.Left} />
+      <Handle type="target" position={Position.Right} />
+    </>
+  );
+};
 
 export default ConflictNode;

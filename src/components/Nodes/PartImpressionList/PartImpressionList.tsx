@@ -4,7 +4,6 @@ import PartImpressionContainer from "./PartImpressionContainer";
 import PartImpressionNode from "./PartImpressionNode";
 
 let index = 0;
-
 const PartImpressionList = ({
   data,
   type,

@@ -14,22 +14,20 @@ const PartImpressionContainer = ({
   return (
     <div
       key={`PartImpressionWrapper ${index++}`}
+      className={`relative p-4 rounded-lg mb-4 flex-1 justify-items-center max-w-[140px]`}
       style={{
         backgroundColor: NodeBackgroundColors[type],
-        position: "relative",
-        padding: "16px",
-        borderRadius: "8px",
-        marginBottom: "16px",
       }}
-      className="mb-3 part-impression-container flex-1 justify-items-center max-w-[140px]"
     >
       <strong
-        className="text-sm  part-impression-container flex-1 justify-items-center"
+        className="text-sm flex-1 justify-items-center"
         style={{ color: NodeTextColors[type] }}
       >
         {`${type}:`}
       </strong>
-      <ul className="list-none w-full pt-2">{children}</ul>
+      <ul className="list-none w-full pt-2 flex flex-col gap-[6px]">
+        {children}
+      </ul>
     </div>
   );
 };

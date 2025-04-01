@@ -37,20 +37,22 @@ const ImpressionDropdown = ({
         )}
       </button>
       <hr />
-      {open &&
-        Object.values(filteredImpressions).map((item) => (
-          <div
-            key={item.id}
-            className="sidebar-impression text-white input draggable rounded-lg px-3 py-1 cursor-grab"
-            onDragStart={(event) => onDragStart(event, item.id, item.type)}
-            draggable
-            style={{
-              background: NodeColors[item.type],
-            }}
-          >
-            {item.label}
-          </div>
-        ))}
+      <div className="flex flex-col gap-[6px]">
+        {open &&
+          Object.values(filteredImpressions).map((item) => (
+            <div
+              key={item.id}
+              className="sidebar-impression text-white input draggable rounded-lg px-3 py-1 cursor-grab"
+              onDragStart={(event) => onDragStart(event, item.id, item.type)}
+              draggable
+              style={{
+                background: NodeColors[item.type],
+              }}
+            >
+              {item.label}
+            </div>
+          ))}
+      </div>
     </div>
   );
 };

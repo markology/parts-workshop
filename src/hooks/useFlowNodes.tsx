@@ -1,8 +1,15 @@
 import { PartDataLabels } from "@/constants/Nodes";
 import { ImpressionType } from "@/types/Impressions";
-import { ImpressionNode } from "@/types/Nodes";
-import { useNodesState, Node } from "@xyflow/react";
+import {
+  ConflictNode,
+  ConnectedNodeType,
+  ImpressionNode,
+  NodeType,
+  PartNode,
+} from "@/types/Nodes";
+import { useNodesState, Node, XYPosition } from "@xyflow/react";
 import { useCallback, useEffect, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
 
@@ -112,15 +119,83 @@ export const useFlowNodes = () => {
     [setNodes]
   );
 
+  const createNode = (type: NodeType, position: XYPosition, label: string) => {
+    const newNode: Node = {
+      id: uuidv4(),
+      type,
+      position,
+      data: {
+        label, // Ensure label is included
+        ...(type === "conflict" ? { connectedNodes: [] } : {}),
+      },
+      style: {
+        backgroundColor: "transparent",
+        border: "none",
+        boxShadow: "none",
+      },
+    };
+
+    setNodes((prev) => [...prev, newNode]);
+  };
+
+  const addPartToConflict = (conflict: ConflictNode, part: PartNode) => {
+    updateNode(conflict.id, {
+      data: {
+        ...conflict.data,
+        connectedNodes: [
+          ...((conflict.data.connectedNodes as ConnectedNodeType[]) || []),
+          { part, conflictDescription: "" },
+        ],
+      },
+    });
+  };
+
+  const removePartFromConflict = (conflict: ConflictNode, partId: string) => {
+    updateNode(conflict.id, {
+      data: {
+        ...conflict.data,
+        connectedNodes: (
+          conflict.data.connectedNodes as ConnectedNodeType[]
+        ).filter((cn) => cn.part.id !== partId),
+      },
+    });
+  };
+
+  const updateConflictDescription = (
+    conflict: ConflictNode,
+    connectedNodeId: string,
+    conflictDescription: string
+  ) => {
+    const newConnectedNodes = (
+      conflict.data.connectedNodes as ConnectedNodeType[]
+    ).reduce<ConnectedNodeType[]>((acc, connectedNode: ConnectedNodeType) => {
+      if (connectedNode.part.id === connectedNodeId)
+        connectedNode.conflictDescription = conflictDescription;
+      acc.push(connectedNode);
+      return acc;
+    }, []);
+
+    updateNode(conflict.id, {
+      data: {
+        ...conflict.data,
+        connectedNodes: newConnectedNodes,
+      },
+    });
+  };
+
   return {
+    addPartToConflict,
+    createNode,
     nodes,
     setNodes,
     onNodesChange,
     resetNodes,
+    removePartFromConflict,
     getNodes,
     deleteNode,
     updateNode,
     detachImpressionFromPart,
     insertImpressionToPart,
+    updateConflictDescription,
   };
 };

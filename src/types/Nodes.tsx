@@ -5,7 +5,7 @@ export interface BaseNodeData {
 }
 
 export interface ConflictNodeData extends BaseNodeData {
-  connectedNodeIds: string[];
+  connectedNodes: ConnectedNodeType[];
 }
 
 export interface PartNodeData extends BaseNodeData {
@@ -32,3 +32,9 @@ export type ConflictNodeParams = { data: ConflictNodeData };
 
 export type ImpressionNode = Node & BaseNodeData;
 export type PartNode = Node & PartNodeData;
+export type ConflictNode = Node & ConflictNodeData;
+
+export type ConnectedNodeType = {
+  part: PartNode;
+  conflictDescription: string;
+};
