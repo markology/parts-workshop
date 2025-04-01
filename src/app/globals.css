@@ -47,6 +47,20 @@ button {
   color: var(--text-color);
 }
 
+.conflict-handle {
+  width: 10px !important; /* Adjust size as needed */
+  height: 10px !important;
+  background-color: #5a4784 !important; /* Keep visible */
+  border: none !important;
+}
+
+.part-handle {
+  width: 14px !important; /* Adjust size as needed */
+  height: 14px !important;
+  background-color: #baceec !important; /* Keep visible */
+  border: none !important;
+}
+
 .part-impression-container {
   @apply rounded-[10px] p-4;
 }

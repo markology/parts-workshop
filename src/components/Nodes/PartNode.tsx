@@ -97,10 +97,14 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
       </div>
 
       {/* Handles for edges */}
-      <Handle type="source" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
-      <Handle type="source" position={Position.Left} />
-      <Handle type="source" position={Position.Right} />
+      <Handle className="part-handle" type="source" position={Position.Top} />
+      <Handle
+        className="part-handle"
+        type="source"
+        position={Position.Bottom}
+      />
+      <Handle className="part-handle" type="source" position={Position.Left} />
+      <Handle className="part-handle" type="source" position={Position.Right} />
     </div>
   );
 };

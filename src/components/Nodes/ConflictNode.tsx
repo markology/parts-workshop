@@ -124,10 +124,26 @@ const ConflictNode = ({
           )}
         </div>
       </div>
-      <Handle type="target" position={Position.Top} />
-      <Handle type="target" position={Position.Bottom} />
-      <Handle type="target" position={Position.Left} />
-      <Handle type="target" position={Position.Right} />
+      <Handle
+        className="conflict-handle"
+        type="target"
+        position={Position.Top}
+      />
+      <Handle
+        className="conflict-handle"
+        type="target"
+        position={Position.Bottom}
+      />
+      <Handle
+        className="conflict-handle"
+        type="target"
+        position={Position.Left}
+      />
+      <Handle
+        className="conflict-handle"
+        type="target"
+        position={Position.Right}
+      />
     </>
   );
 };
