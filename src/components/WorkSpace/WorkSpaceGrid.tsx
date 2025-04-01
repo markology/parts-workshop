@@ -51,9 +51,11 @@ const Workspace = () => {
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
   const removeImpression = useSidebarStore((s) => s.removeImpression);
   const setRightClickMenuOpen = useUIStore((s) => s.setRightClickMenuOpen);
+  const setIsEditing = useUIStore((s) => s.setIsEditing);
 
   const handlePaneClick = () => {
     setRightClickMenuOpen(false);
+    setIsEditing(false);
   };
 
   const onEdgeChange = useCallback(

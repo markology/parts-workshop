@@ -51,10 +51,10 @@ const PartInput = () => {
         ref={partInputRef}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-full p-9 mb-3 border rounded bg-white/60 outline-none border-none h-24 text-4xl w-[600px]"
+        className="w-full p-9 mb-3 border rounded bg-white outline-none border-none h-16 text-2xl w-[600px]"
         style={{ color: "black" }}
         onKeyDown={addPartNode}
-        placeholder="Add Part"
+        placeholder="Enter Part Name"
       />
     </div>
   );

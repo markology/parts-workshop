@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
-import { NodeBackgroundColors, NodeColors } from "@/constants/Nodes";
 import { ImpressionList } from "@/constants/Impressions";
-import { ImpressionType } from "@/types/Impressions";
+import { NodeBackgroundColors, NodeColors } from "@/constants/Nodes";
 import { useSidebarStore } from "@/stores/Sidebar";
+import { ImpressionType } from "@/types/Impressions";
+import React, { useEffect, useRef, useState } from "react";
 
 const ImpressionInput = () => {
   const [traitInput, setTraitInput] = useState("");
@@ -87,7 +87,7 @@ const ImpressionInput = () => {
         {isSelectorOpen && (
           <div
             id="impression-selector"
-            className="absolute top-0 left-0 bg-transparent rounded-t z-20 p-2 w-full p-[10px] mt-none"
+            className="absolute top-3 left-0 bg-transparent rounded-t z-20 p-2 w-full p-[10px] mt-none"
           >
             <div className="flex flex-wrap gap-2 justify-evenly">
               {ImpressionList.map((type) => (
