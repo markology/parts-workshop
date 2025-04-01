@@ -1,7 +1,7 @@
 import { NodeColors } from "@/constants/Nodes";
 import { ImpressionType } from "@/types/Impressions";
 import { useMemo, useRef } from "react";
-import { ListRestart, Pencil, Trash2 } from "lucide-react";
+import { ListRestart, Trash2 } from "lucide-react";
 import RightClickMenu from "../../global/RightClickMenu";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
@@ -49,10 +49,6 @@ const PartImpressionNode = ({
 
   const menuItems = useMemo(
     () => [
-      {
-        icon: <Pencil size={16} />,
-        onClick: () => console.log("Edit node"),
-      },
       {
         icon: <Trash2 size={16} />,
         onClick: () => detachImpressionFromPart(item.id, partId, type),

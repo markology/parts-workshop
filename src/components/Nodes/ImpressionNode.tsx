@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
 import RightClickMenu from "../global/RightClickMenu";
-import { ListRestart, Pencil, Trash2 } from "lucide-react";
+import { ListRestart, Trash2 } from "lucide-react";
 
 const ImpressionNode = ({
   id,
@@ -44,10 +44,6 @@ const ImpressionNode = ({
   const menuItems = useMemo(
     () => [
       {
-        icon: <Pencil size={16} />,
-        onClick: () => console.log("Edit node"),
-      },
-      {
         icon: <Trash2 size={16} />,
         onClick: () => deleteNode(id),
       },
@@ -60,9 +56,9 @@ const ImpressionNode = ({
   );
 
   return (
-    <div>
+    <div className="text-right">
       <div
-        className="text-white bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
+        className="text-white text-left bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
         style={{ backgroundColor: NodeColors[type] }}
         ref={nodeRef}
         onContextMenu={handleContextMenu}
