@@ -1,38 +1,35 @@
 import { Node } from "@xyflow/react";
+import { ImpressionType } from "./Impressions";
 
+export enum NodeDataTypes {
+  "ConflictNodeData",
+  "PartNodeData",
+}
 export interface BaseNodeData {
   label: string;
 }
 
 export interface ConflictNodeData extends BaseNodeData {
+  type: NodeDataTypes.ConflictNodeData;
   connectedNodes: ConnectedNodeType[];
 }
 
 export interface PartNodeData extends BaseNodeData {
-  emotions: ImpressionNode[];
-  thoughts: ImpressionNode[];
-  sensations: ImpressionNode[];
-  behaviors: ImpressionNode[];
-  others: ImpressionNode[];
-  self: ImpressionNode[];
+  type: NodeDataTypes.PartNodeData;
+  Emotions: ImpressionNode[];
+  Thoughts: ImpressionNode[];
+  Sensations: ImpressionNode[];
+  Behaviors: ImpressionNode[];
+  Others: ImpressionNode[];
+  Self: ImpressionNode[];
 }
 
-export type NodeType =
-  | "emotion"
-  | "thought"
-  | "sensation"
-  | "behavior"
-  | "conflict"
-  | "part"
-  | "other"
-  | "self";
+export type NodeType = ImpressionType | "part" | "conflict";
 
-export type BaseNodeParams = { data: BaseNodeData };
-export type ConflictNodeParams = { data: ConflictNodeData };
-
-export type ImpressionNode = Node & BaseNodeData;
-export type PartNode = Node & PartNodeData;
-export type ConflictNode = Node & ConflictNodeData;
+export type ImpressionNode = Node & { data: BaseNodeData };
+export type PartNode = Node & { data: PartNodeData };
+export type ConflictNode = Node & { data: ConflictNodeData };
+export type WorkshopNode = ImpressionNode | PartNode | ConflictNode;
 
 export type ConnectedNodeType = {
   part: PartNode;

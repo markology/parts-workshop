@@ -2,6 +2,7 @@ import PartNode from "./PartNode";
 import {
   BaseNodeData,
   ConflictNodeData,
+  NodeDataTypes,
   NodeType,
   PartNodeData,
 } from "@/types/Nodes";
@@ -16,26 +17,28 @@ const NodeComponent = ({
   id,
 }: {
   type: NodeType;
-  data: BaseNodeData | ConflictNodeData;
+  data: BaseNodeData | ConflictNodeData | PartNodeData;
   id: string;
 }) => {
-  if (type === "part")
-    return <PartNode partId={id} data={data as PartNodeData} />;
-  if (type === "conflict" && "connectedNodes" in data)
-    return (
-      <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
-    );
+  console.log(type, data, id);
+  if ("type" in data) {
+    if (data.type === NodeDataTypes.PartNodeData)
+      return <PartNode partId={id} data={data} />;
 
-  if (type !== "conflict") {
-    return (
-      <ImpressionNode
-        key={id}
-        type={type as ImpressionType}
-        id={id}
-        label={data.label}
-      />
-    );
+    if (data.type === NodeDataTypes.ConflictNodeData)
+      return (
+        <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
+      );
   }
+
+  return (
+    <ImpressionNode
+      key={id}
+      type={type as ImpressionType}
+      id={id}
+      label={data.label}
+    />
+  );
 };
 
 export default NodeComponent;

@@ -1,5 +1,5 @@
 import { NodeColors, NodeTextColors } from "@/constants/Nodes";
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
@@ -16,9 +16,9 @@ const ImpressionNode = ({
   type: ImpressionType;
 }) => {
   const [menuVisible, setMenuVisible] = useState(false);
-  const nodeRef = useRef<HTMLDivElement>(null);
   const { deleteNode } = useFlowNodesContext();
   const addImpression = useSidebarStore((s) => s.addImpression);
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,7 +67,7 @@ const ImpressionNode = ({
           className="text-sm flex-1 justify-items-center"
           style={{ color: NodeTextColors[type] }}
         >
-          {`${type}:`}
+          {`${ImpressionTextType[type]}:`}
         </strong>
         {label || null}
       </div>

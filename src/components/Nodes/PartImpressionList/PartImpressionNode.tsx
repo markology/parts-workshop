@@ -43,7 +43,7 @@ const PartImpressionNode = ({
     addImpression({
       id,
       type,
-      label: item.data.label as string,
+      label: item.data.label,
     });
   };
 
@@ -70,7 +70,7 @@ const PartImpressionNode = ({
         className="text-white text-left bg-[#4ecdc4] rounded py-1 px-4 break-words relative"
         style={{ backgroundColor: NodeColors[type] }}
       >
-        {(item.data.label as string) || null}
+        {item.data.label}
       </li>
       {isRightClickMenuOpen && <RightClickMenu items={menuItems} />}
     </div>

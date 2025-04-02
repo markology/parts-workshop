@@ -15,10 +15,10 @@ const createEmptyImpressionGroups = (): Record<
   ImpressionType,
   Record<string, SidebarImpression>
 > => {
-  return ImpressionList.reduce((acc, type) => {
-    acc[type] = {};
-    return acc;
-  }, {} as Record<ImpressionType, Record<string, SidebarImpression>>);
+  return Object.fromEntries(ImpressionList.map((type) => [type, {}])) as Record<
+    ImpressionType,
+    Record<string, SidebarImpression>
+  >;
 };
 
 const impressions: Record<

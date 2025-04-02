@@ -1,20 +1,21 @@
-import { PartDataLabels } from "@/constants/Nodes";
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import {
   ConflictNode,
   ConnectedNodeType,
   ImpressionNode,
+  NodeDataTypes,
   NodeType,
   PartNode,
+  WorkshopNode,
 } from "@/types/Nodes";
-import { useNodesState, Node, XYPosition } from "@xyflow/react";
+import { Node, useNodesState, XYPosition } from "@xyflow/react";
 import { useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
 
 export const useFlowNodes = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<WorkshopNode>([]);
 
   const getNodes = useRef(() => nodes);
 
@@ -23,7 +24,7 @@ export const useFlowNodes = () => {
   }, [nodes]);
 
   const resetNodes = useCallback(
-    (newNodes: Node[]) => {
+    (newNodes: WorkshopNode[]) => {
       setNodes(newNodes);
     },
     [setNodes]
@@ -37,7 +38,7 @@ export const useFlowNodes = () => {
   );
 
   const updateNode = useCallback(
-    (id: string, updater: Partial<Node>) => {
+    (id: string, updater: Partial<WorkshopNode>) => {
       setNodes((prev) =>
         prev.map((node) =>
           node.id === id
@@ -52,7 +53,7 @@ export const useFlowNodes = () => {
   const detachImpressionFromPart = useCallback(
     (impressionId: string, partId: string, type: ImpressionType) => {
       setNodes((prevNodes) => {
-        return prevNodes.reduce((acc: Node[], node: Node) => {
+        return prevNodes.reduce((acc: WorkshopNode[], node: WorkshopNode) => {
           if (impressionId === node.id) {
             // Skip the impression node we're deleting
             return acc;
@@ -61,14 +62,14 @@ export const useFlowNodes = () => {
           if (node.id === partId) {
             // Update the parent node by removing the impression from its data
             const updatedImpressions = (
-              node.data[PartDataLabels[type]] as Node[]
+              node.data[ImpressionTextType[type]] as Node[]
             ) // fix typescript
               .filter((impression) => impression.id !== impressionId);
             const updatedNode = {
               ...node,
               data: {
                 ...node.data,
-                [PartDataLabels[type]]: updatedImpressions,
+                [ImpressionTextType[type]]: updatedImpressions,
               },
             };
 
@@ -93,11 +94,10 @@ export const useFlowNodes = () => {
       type: ImpressionType
     ) => {
       setNodes((prevNodes) => {
-        return prevNodes.reduce((acc: Node[], n) => {
+        return prevNodes.reduce((acc: WorkshopNode[], n) => {
           if (n.id === impressionId) return acc;
           if (n.id === partId) {
-            // const partDataLabelKey = node.type as keyof typeof PartDataLabels;
-            const partDataLabel = PartDataLabels[type as ImpressionType];
+            const partDataLabel = ImpressionTextType[type];
             // Clone the part node and safely add the impression node
             const updatedPartNode = {
               ...n,
@@ -120,13 +120,15 @@ export const useFlowNodes = () => {
   );
 
   const createNode = (type: NodeType, position: XYPosition, label: string) => {
-    const newNode: Node = {
+    const newNode: WorkshopNode = {
       id: uuidv4(),
       type,
       position,
       data: {
         label, // Ensure label is included
-        ...(type === "conflict" ? { connectedNodes: [] } : {}),
+        ...(type === "conflict"
+          ? { connectedNodes: [], type: NodeDataTypes.ConflictNodeData }
+          : {}),
       },
       style: {
         backgroundColor: "transparent",

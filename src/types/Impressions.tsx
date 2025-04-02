@@ -6,10 +6,11 @@ export type ImpressionType =
   | "other"
   | "self";
 
-export type ImpressionPluralType =
-  | "emotions"
-  | "thoughts"
-  | "sensations"
-  | "behaviors"
-  | "others"
-  | "self";
+export enum ImpressionTextType {
+  emotion = "Emotions",
+  thought = "Thoughts",
+  sensation = "Sensations",
+  behavior = "Behaviors",
+  other = "Others",
+  self = "Self",
+}

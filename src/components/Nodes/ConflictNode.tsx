@@ -92,7 +92,7 @@ const ConflictNode = ({
                   className="text-xl pb-2 pl-1 mb-3 color-white border-b"
                   key={part.id}
                 >
-                  {part.data.label as string}
+                  {part.data.label}
                 </p>
                 <div className="min-h-6 pl-1">
                   {part.id === editingId ? (

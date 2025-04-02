@@ -1,52 +1,54 @@
 import { ImpressionList } from "@/constants/Impressions";
-import { PartDataLabels } from "@/constants/Nodes";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
+import { useUIStore } from "@/stores/UI";
+import { ImpressionTextType } from "@/types/Impressions";
 import { PartNodeData } from "@/types/Nodes";
 import { Handle, Position } from "@xyflow/react";
 import { Pencil, PersonStanding } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
-import { useUIStore } from "@/stores/UI";
 
 let index = 0;
 
 const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editValue, setEditValue] = useState<string>("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState(data.label);
   const { updateNode } = useFlowNodesContext();
   const isEditing = useUIStore((s) => s.isEditing);
   const setIsEditing = useUIStore((s) => s.setIsEditing);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = useCallback(() => {
-    if (editValue === "") {
+    if (title === data.label || title === "") {
       setIsEditing(false);
       setIsEditingTitle(false);
-      setEditValue(data.label); // Reset to original value
+      if (title === "") setTitle(data.label);
       return;
     }
 
     updateNode(partId, {
       data: {
         ...data,
-        label: editValue,
+        label: title,
       },
     });
+
     setIsEditing(false);
     setIsEditingTitle(false);
-  }, [editValue, updateNode, partId, data, setIsEditing]);
+  }, [title, data, updateNode, partId, setIsEditing]);
 
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
+      console.log("saving from enter");
       handleSave();
     }
   };
 
   // Detect clicks outside the input
   useEffect(() => {
-    if (!isEditing && data.label !== editValue) handleSave();
-  }, [data.label, editValue, handleSave, isEditing]);
+    if (!isEditing) handleSave();
+  }, [handleSave, isEditing]);
 
   return (
     <div className="bg-[#a3c1e591] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl">
@@ -56,9 +58,9 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
           <input
             className="part-name font-semibold mb-2 text-gray-800 text-4xl pb-4 flex gap-[20px]"
             ref={inputRef}
-            onChange={(e) => setEditValue(e.target.value)}
-            value={editValue}
             onKeyDown={handleEnter}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             autoFocus
           />
         ) : (
@@ -89,7 +91,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
         {ImpressionList.map((impression) => (
           <PartImpressionList
             key={`PartImpressionList ${index++}`}
-            data={data[PartDataLabels[impression]]}
+            data={data[ImpressionTextType[impression]]}
             type={impression}
             partId={partId}
           />

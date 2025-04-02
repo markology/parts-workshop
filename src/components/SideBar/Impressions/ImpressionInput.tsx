@@ -1,16 +1,16 @@
 import { ImpressionList } from "@/constants/Impressions";
 import { NodeBackgroundColors, NodeColors } from "@/constants/Nodes";
 import { useSidebarStore } from "@/stores/Sidebar";
-import { ImpressionType } from "@/types/Impressions";
-import React, { useEffect, useRef, useState } from "react";
+import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
+import { useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 const ImpressionInput = () => {
-  const [traitInput, setTraitInput] = useState("");
   const [selectedType, setSelectedType] = useState<ImpressionType>("emotion");
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
   const { addImpression } = useSidebarStore();
 
   useEffect(() => {
@@ -36,11 +36,10 @@ const ImpressionInput = () => {
     if (e.key === "Enter" && selectedType !== null) {
       e.preventDefault();
       addImpression({
-        id: `${Date.now()}`,
-        label: traitInput,
+        id: uuidv4(),
+        label: textAreaRef.current!.value,
         type: selectedType,
       });
-      setTraitInput("");
     }
   };
 
@@ -74,8 +73,6 @@ const ImpressionInput = () => {
         <textarea
           style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
           ref={textAreaRef}
-          value={traitInput}
-          onChange={(e) => setTraitInput(e.target.value)}
           className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none pt-[60px]"
           rows={5}
           onKeyDown={createSideBarNode}
@@ -97,13 +94,13 @@ const ImpressionInput = () => {
                     setSelectedType(type);
                     setIsSelectorOpen(false);
                   }}
-                  className="px-3 py-1 rounded-full text-sm capitalize"
+                  className="px-3 py-1 rounded-full text-sm"
                   style={{
                     backgroundColor: NodeColors[type],
                     color: "black",
                   }}
                 >
-                  {type}
+                  {ImpressionTextType[type]}
                 </button>
               ))}
             </div>

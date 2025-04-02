@@ -186,7 +186,6 @@ const Workspace = () => {
           label, // Ensure label is included
           parentNode: partNodeToInsertImpression || null,
         },
-        label, // Add label property here to satisfy BaseNodeData
         style: {
           backgroundColor: "transparent",
           border: "none",
@@ -205,47 +204,6 @@ const Workspace = () => {
         setNodes((prev) => [...prev, newNode]);
       }
       removeImpression(type, id);
-
-      //   if (partNodeToInsertImpression) {
-      //     // i dont like this strung together typescript
-      //     const partDataLabelKey = type as keyof typeof PartDataLabels;
-      //     const partDataLabel = PartDataLabels[partDataLabelKey];
-      //     console.log(partDataLabel);
-      //     if (
-      //       partDataLabel &&
-      //       Array.isArray(partNodeToInsertImpression.data[partDataLabel])
-      //     ) {
-      //       console.log("made it to here");
-      //       // 1. Find the index of the part node
-      //       const index = updatedNodes.findIndex(
-      //         (node) => node.id === partNodeToInsertImpression.id
-      //       );
-
-      //       if (index !== -1) {
-      //         // 2. Clone the part node and mutate its data
-      //         const updatedPartNode = {
-      //           ...partNodeToInsertImpression,
-      //           data: {
-      //             ...partNodeToInsertImpression.data,
-      //             [partDataLabel]: [
-      //               ...partNodeToInsertImpression.data[partDataLabel],
-      //               newNode,
-      //             ],
-      //           },
-      //         };
-
-      //         // 3. Replace the original part node in the array
-      //         updatedNodes[index] = updatedPartNode;
-      //         console.log("here");
-      //         // 4. Don't add newNode separately
-      //         return updatedNodes;
-      //       }
-      //     }
-      //   }
-
-      //   // Default: add newNode normally
-      //   return [...updatedNodes, newNode];
-      // });
     },
     [
       activeSidebarNode,
