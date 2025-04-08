@@ -1,4 +1,11 @@
-import { createContext, ReactElement, useContext, useState } from "react";
+"use client";
+import {
+  createContext,
+  ReactElement,
+  ReactNode,
+  useContext,
+  useState,
+} from "react";
 
 interface ContextValue {
   darkMode: boolean;
@@ -11,7 +18,7 @@ const ThemeContext = createContext<ContextValue>({
 export const ThemeContextProvider = ({
   children,
 }: {
-  children: ReactElement | ReactElement[];
+  children: ReactNode | ReactElement[];
 }) => {
   const [darkMode, toggleDarkMode] = useState<boolean>(true);
   const value = { darkMode, toggleDarkMode };
