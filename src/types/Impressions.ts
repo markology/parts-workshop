@@ -1,3 +1,4 @@
+// Impression Types
 export type ImpressionType =
   | "emotion"
   | "thought"
