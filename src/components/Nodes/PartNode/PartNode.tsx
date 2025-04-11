@@ -8,6 +8,7 @@ import { Pencil, PersonStanding } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
+import PartNeeds from "./PartNeeds";
 
 let index = 0;
 
@@ -97,16 +98,32 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
           />
         ))}
       </div>
-
+      <PartNeeds needs={data.needs} partId={partId} />
       {/* Handles for edges */}
-      <Handle className="part-handle" type="source" position={Position.Top} />
+      <Handle
+        className="part-handle"
+        type="source"
+        position={Position.Top}
+        id="top"
+      />
       <Handle
         className="part-handle"
         type="source"
         position={Position.Bottom}
+        id="bottom"
       />
-      <Handle className="part-handle" type="source" position={Position.Left} />
-      <Handle className="part-handle" type="source" position={Position.Right} />
+      <Handle
+        className="part-handle"
+        type="source"
+        position={Position.Left}
+        id="left"
+      />
+      <Handle
+        className="part-handle"
+        type="source"
+        position={Position.Right}
+        id="right"
+      />
     </div>
   );
 };

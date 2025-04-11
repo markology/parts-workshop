@@ -1,5 +1,5 @@
 import { NodeBackgroundColors, NodeTextColors } from "@/constants/Nodes";
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { ReactElement } from "react";
 
 let index = 0;
@@ -23,7 +23,7 @@ const PartImpressionContainer = ({
         className="text-sm flex-1 justify-items-center"
         style={{ color: NodeTextColors[type] }}
       >
-        {`${type}:`}
+        {`${ImpressionTextType[type]}:`}
       </strong>
       <ul className="list-none w-full pt-2 flex flex-col gap-[6px]">
         {children}

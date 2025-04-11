@@ -38,7 +38,7 @@ export const useFlowNodes = () => {
   );
 
   const updateNode = useCallback(
-    (id: string, updater: Partial<WorkshopNode>) => {
+    <NodeDataType>(id: string, updater: { data: Partial<NodeDataType> }) => {
       setNodes((prev) =>
         prev.map((node) =>
           node.id === id

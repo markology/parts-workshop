@@ -54,6 +54,7 @@ const Workspace = () => {
   const setIsEditing = useUIStore((s) => s.setIsEditing);
 
   const handlePaneClick = () => {
+    console.log("pane click");
     setRightClickMenuOpen(false);
     setIsEditing(false);
   };
@@ -81,13 +82,25 @@ const Workspace = () => {
   );
 
   const onConnect = useCallback(
-    (params: Edge | Connection) => {
+    (params: Connection) => {
       const partNode = getNode(params.source) as PartNode;
       const conflictNode = getNode(params.target) as ConflictNode;
+      if (
+        conflictNode.data.connectedNodes.find(
+          (connectedPartNode) => connectedPartNode.part.id === partNode.id
+        )
+      )
+        return;
       if (partNode && conflictNode) addPartToConflict(conflictNode, partNode);
       else return;
 
-      setEdges((eds) => addEdge(params, eds));
+      const newParams = {
+        ...params,
+        sourceHandle: params.sourceHandle,
+        targetHandle: params.targetHandle,
+      };
+
+      setEdges((eds) => addEdge(newParams, eds));
     },
     [addPartToConflict, getNode, setEdges]
   );
@@ -229,6 +242,7 @@ const Workspace = () => {
         onDragOver={onDragOver}
         fitView
         onPaneClick={handlePaneClick}
+        onDrag={() => console.log("draggin")}
         nodeTypes={nodeTypes}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         minZoom={0}

@@ -1,4 +1,4 @@
-import PartNode from "./PartNode";
+import { ImpressionType } from "@/types/Impressions";
 import {
   BaseNodeData,
   ConflictNodeData,
@@ -7,9 +7,9 @@ import {
   PartNodeData,
 } from "@/types/Nodes";
 
-import ImpressionNode from "./ImpressionNode";
 import ConflictNode from "./ConflictNode";
-import { ImpressionType } from "@/types/Impressions";
+import ImpressionNode from "./ImpressionNode";
+import PartNode from "./PartNode/PartNode";
 
 const NodeComponent = ({
   type,

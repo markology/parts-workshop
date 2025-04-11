@@ -21,6 +21,7 @@ const PartInput = () => {
         position: { x: viewport.x, y: viewport.y },
         style: { zIndex: -1 },
         data: {
+          needs: [],
           type: NodeDataTypes.PartNodeData,
           label: partInputRef.current!.value,
           Emotions: [],

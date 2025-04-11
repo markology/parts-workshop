@@ -1,4 +1,5 @@
 import { Node } from "@xyflow/react";
+
 import { ImpressionType } from "./Impressions";
 
 export enum NodeDataTypes {
@@ -16,6 +17,7 @@ export interface ConflictNodeData extends BaseNodeData {
 
 export interface PartNodeData extends BaseNodeData {
   type: NodeDataTypes.PartNodeData;
+  needs: string[];
   Emotions: ImpressionNode[];
   Thoughts: ImpressionNode[];
   Sensations: ImpressionNode[];
