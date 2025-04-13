@@ -10,12 +10,12 @@ export const authOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       httpOptions: {
-        timeout: 10000, // 10 seconds instead of 3500ms
+        timeout: 10000,
       },
     }),
   ],
   session: {
-    strategy: "jwt", // optional: "database" if you want DB sessions
+    strategy: "jwt",
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -30,4 +30,5 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-export default NextAuth(authOptions);
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };

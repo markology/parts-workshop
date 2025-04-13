@@ -1,28 +1,14 @@
-"use client";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import Landing from "@/components/Landing/Landing";
 
-import "@xyflow/react/dist/style.css";
-
-import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
-
-export function AuthButton() {
-  const { data: session } = useSession();
+export default async function Page() {
+  const session = await getServerSession(authOptions);
 
   if (session) {
-    return (
-      <div>
-        <span>Signed in as {session.user?.email}</span>
-        <button onClick={() => signOut()}>Sign out</button>
-      </div>
-    );
+    redirect("/Workspace");
   }
 
-  return <button onClick={() => signIn("github")}>Sign in with GitHub</button>;
+  return <Landing />;
 }
-
-const Landing = () => (
-  <SessionProvider>
-    <AuthButton />
-  </SessionProvider>
-);
-
-export default Landing;
