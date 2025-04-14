@@ -2,7 +2,7 @@ import { NodeColors } from "@/constants/Nodes";
 import { ImpressionType } from "@/types/Impressions";
 import { useMemo, useRef } from "react";
 import { ListRestart, Trash2 } from "lucide-react";
-import RightClickMenu from "../../../global/RightClickMenu";
+import RightClickMenu from "../../../../../global/RightClickMenu";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
 import { ImpressionNode } from "@/types/Nodes";

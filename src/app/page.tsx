@@ -5,9 +5,9 @@ import Landing from "@/components/Landing/Landing";
 
 export default async function Page() {
   const session = await getServerSession(authOptions);
-
+  console.log("MARK ACOSTA");
   if (session) {
-    redirect("/Workspace");
+    redirect("/workspace");
   }
 
   return <Landing />;

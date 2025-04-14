@@ -1,6 +1,6 @@
 "use client";
 
-import { nodeTypes } from "@/components/Nodes/NodeManager";
+import { nodeTypes } from "@/components/pages/Workspace/Nodes/NodeManager";
 import { useFlowNodesContext } from "@/context/FlowNodesContext";
 import { useSidebarStore } from "@/stores/Sidebar";
 import { useUIStore } from "@/stores/UI";
