@@ -23,6 +23,7 @@ import {
 import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import TrashCan from "./TrashCan";
+import { Map } from "@/types/api/map";
 
 function isPointInsideNode(position: XYPosition, node: Node): boolean {
   if (node?.measured?.width == null || node?.measured?.height == null)
@@ -36,7 +37,8 @@ function isPointInsideNode(position: XYPosition, node: Node): boolean {
   );
 }
 
-const Workspace = () => {
+const Workspace = ({ map }: { map?: Map }) => {
+  console.log("map in workspace", map);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { getEdge, getNode, screenToFlowPosition } = useReactFlow();
   const {
