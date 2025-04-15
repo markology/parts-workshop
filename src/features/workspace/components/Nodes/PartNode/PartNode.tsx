@@ -1,7 +1,6 @@
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useUIStore } from "@/state/UI";
-import { ImpressionTextType } from "@/types/Impressions";
 import { PartNodeData } from "@/types/Nodes";
 import { Handle, Position } from "@xyflow/react";
 import { Pencil, PersonStanding } from "lucide-react";
@@ -9,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
 import PartNeeds from "./PartNeeds";
+import { ImpressionTextType } from "@/types/Impressions";
 
 let index = 0;
 

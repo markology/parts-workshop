@@ -31,6 +31,7 @@ const useAutosave = ({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     timeoutRef.current = setTimeout(() => {
+      console.log("FETCHING THIS", mapId);
       fetch(`api/maps/${mapId}`, {
         method: "PUT",
         headers: {
@@ -51,15 +52,30 @@ const useAutosave = ({
 
   // Save on tab close
   useEffect(() => {
-    const saveOnExit = () => {
+    const saveOnUnload = () => {
+      if (!mapId || !latest.current) return;
+
       navigator.sendBeacon(
         `/api/maps/${mapId}`,
-        new Blob([JSON.stringify(latest.current)], { type: "application/json" })
+        new Blob([JSON.stringify(latest.current)], {
+          type: "application/json",
+        })
       );
     };
 
-    window.addEventListener("beforeunload", saveOnExit);
-    return () => window.removeEventListener("beforeunload", saveOnExit);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        saveOnUnload();
+      }
+    };
+
+    window.addEventListener("beforeunload", saveOnUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", saveOnUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [mapId]);
 };
 

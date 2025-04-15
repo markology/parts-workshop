@@ -14,7 +14,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "typeRoots": ["./types", "./node_modules/@types"],    
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "baseUrl": "./",
     "plugins": [
       {
         "name": "next"
@@ -23,9 +24,9 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/types/*": ["./src/types/*"],
-      "@/store/*": ["src/state/*"],
+      "@/store/*": ["./src/state/*"],
       "@/context/*": ["./src/context/*"],
-      "@/constants/*": ["src/features/workspace/constants/*"],
+      "@/constants/*": ["./src/features/workspace/constants/*"],
       "@/components/*": ["./src/components/*"]
     }
   },

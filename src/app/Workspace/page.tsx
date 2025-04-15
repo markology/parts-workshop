@@ -10,10 +10,10 @@ import WorkSpace from "@/features/workspace/components/WorkSpace";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "../api/auth/[...nextauth]/route";
 import { Map } from "@/types/api/map";
 import { ImpressionType } from "@/types/Impressions";
 import { SidebarImpression } from "@/types/Sidebar";
+import { authOptions } from "@/lib/authOptions";
 // import { hydrateMap } from "@/lib/mapTransformers";
 export type HydratedMap = Omit<
   PrismaMap,

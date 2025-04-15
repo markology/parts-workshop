@@ -15,7 +15,6 @@ import useAutosave from "../state/useAutosave";
 import { useSidebarStore } from "@/state/Sidebar";
 
 const Workspace = ({ map }: { map?: Map }) => {
-  console.log("map in workspace", map);
   const sidebarImpressions = useSidebarStore((s) => s.impressions);
   const {
     edges,

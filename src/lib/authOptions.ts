@@ -1,15 +1,20 @@
-import NextAuth from "next-auth";
-import type { AuthOptions, DefaultSession, Session } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+// lib/authOptions.ts
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
-import { JWT } from "next-auth/jwt";
+import type { AuthOptions } from "next-auth";
+import type { Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 
+// Extend the next-auth types
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-    } & DefaultSession["user"];
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    };
   }
 }
 
@@ -25,9 +30,6 @@ export const authOptions: AuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      httpOptions: {
-        timeout: 10000,
-      },
     }),
   ],
   session: {
@@ -45,6 +47,3 @@ export const authOptions: AuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
-
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
