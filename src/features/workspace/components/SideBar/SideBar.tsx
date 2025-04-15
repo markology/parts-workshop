@@ -1,3 +1,5 @@
+"use client";
+
 import Modal from "@/components/Modal";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useUIStore } from "@/state/UI";

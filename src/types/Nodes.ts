@@ -8,6 +8,7 @@ export interface BaseNodeData {
 }
 
 export interface PartNodeData extends BaseNodeData {
+  type: "partData";
   label: string;
   needs: string[];
   Emotions: ImpressionNode[];
@@ -18,13 +19,19 @@ export interface PartNodeData extends BaseNodeData {
   Self: ImpressionNode[];
 }
 
+export interface ConflictNodeData extends BaseNodeData {
+  type: "conflictData";
+  connectedNodes: ConnectedNodeType[];
+}
+
+export interface ImpressionNodeData extends BaseNodeData {
+  type: "impressionData";
+}
+
 export type ConnectedNodeType = {
   part: PartNode;
   conflictDescription: string;
 };
-export interface ConflictNodeData extends BaseNodeData {
-  connectedNodes: ConnectedNodeType[];
-}
 
 export type ImpressionNode = Node<BaseNodeData> & {
   type: ImpressionType | "default";

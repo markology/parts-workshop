@@ -1,3 +1,5 @@
+"use client";
+
 export type ContextMenuItem = {
   label?: string;
   icon?: React.ReactNode;

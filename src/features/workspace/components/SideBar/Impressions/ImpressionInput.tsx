@@ -1,3 +1,5 @@
+"use client";
+
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import {
   NodeBackgroundColors,

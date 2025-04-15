@@ -1,6 +1,8 @@
+"use client";
+
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useUIStore } from "@/state/UI";
-import { NodeDataTypes, PartNode } from "@/types/Nodes";
+import { PartNode } from "@/types/Nodes";
 import { useReactFlow } from "@xyflow/react";
 import { useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -22,7 +24,7 @@ const PartInput = () => {
         style: { zIndex: -1 },
         data: {
           needs: [],
-          type: NodeDataTypes.PartNodeData,
+          type: "partData",
           label: partInputRef.current!.value,
           Emotions: [],
           Thoughts: [],

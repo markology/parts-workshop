@@ -1,5 +1,6 @@
+"use client";
 import React, { createContext, useContext } from "react";
-import { useFlowNodes } from "@/hooks/useFlowNodes"; // your custom hook
+import { useFlowNodes } from "./useFlowNodes"; // your custom hook
 
 const FlowNodesContext = createContext<ReturnType<typeof useFlowNodes> | null>(
   null

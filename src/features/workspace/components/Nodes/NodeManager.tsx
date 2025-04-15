@@ -1,8 +1,6 @@
-import { ImpressionType } from "@/types/Impressions";
 import {
-  BaseNodeData,
   ConflictNodeData,
-  NodeDataTypes,
+  ImpressionNodeData,
   NodeType,
   PartNodeData,
 } from "@/types/Nodes";
@@ -10,6 +8,7 @@ import {
 import ConflictNode from "./ConflictNode";
 import ImpressionNode from "./ImpressionNode";
 import PartNode from "./PartNode/PartNode";
+import { ImpressionType } from "@/types/Impressions";
 
 const NodeComponent = ({
   type,
@@ -17,15 +16,13 @@ const NodeComponent = ({
   id,
 }: {
   type: NodeType;
-  data: BaseNodeData | ConflictNodeData | PartNodeData;
+  data: ImpressionNodeData | ConflictNodeData | PartNodeData;
   id: string;
 }) => {
-  console.log(type, data, id);
   if ("type" in data) {
-    if (data.type === NodeDataTypes.PartNodeData)
-      return <PartNode partId={id} data={data} />;
+    if (data.type === "partData") return <PartNode partId={id} data={data} />;
 
-    if (data.type === NodeDataTypes.ConflictNodeData)
+    if (data.type === "conflictData")
       return (
         <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
       );

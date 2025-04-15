@@ -1,7 +1,7 @@
-import { ImpressionType } from "@/types/Impressions";
 import { ImpressionNode } from "@/types/Nodes";
 import PartImpressionContainer from "./PartImpressionContainer";
 import PartImpressionNode from "./PartImpressionNode";
+import { ImpressionType } from "@/types/Impressions";
 
 let index = 0;
 const PartImpressionList = ({

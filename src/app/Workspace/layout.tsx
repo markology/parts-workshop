@@ -1,13 +1,8 @@
-import ProtectedRoute from "@/components/ProtectedRoute";
+// import ProtectedRoute from "@/components/ProtectedRoute";
 import "@xyflow/react/dist/style.css";
-import Page from "../page";
 
-const WorkspaceLayout = async () => {
-  return (
-    <ProtectedRoute>
-      <Page />
-    </ProtectedRoute>
-  );
+const WorkspaceLayout = ({ children }: { children: React.ReactNode }) => {
+  return children;
 };
 
 export default WorkspaceLayout;

@@ -1,5 +1,3 @@
-import "@xyflow/react/dist/style.css";
-
 import React from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { FlowNodesProvider } from "@/features/workspace/state/FlowNodesContext";
@@ -23,9 +21,17 @@ const WorkspacePage = async () => {
   return (
     <ReactFlowProvider>
       <FlowNodesProvider>
-        <div className="h-screen w-screen overflow-hidden flex PW">
+        <div
+          className="PW"
+          style={{
+            height: "100vh",
+            width: "100vw",
+            overflow: "hidden",
+            display: "flex",
+          }}
+        >
           <SideBar />
-          <WorkSpace map={maps?.[0] ?? undefined} />
+          <WorkSpace map={maps[0] ?? []} />
         </div>
       </FlowNodesProvider>
     </ReactFlowProvider>
