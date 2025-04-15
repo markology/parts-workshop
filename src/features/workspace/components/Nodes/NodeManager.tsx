@@ -19,13 +19,16 @@ const NodeComponent = ({
   data: ImpressionNodeData | ConflictNodeData | PartNodeData;
   id: string;
 }) => {
+  console.log(data, type, id);
   if ("type" in data) {
     if (data.type === "partData") return <PartNode partId={id} data={data} />;
 
-    if (data.type === "conflictData")
+    if (data.type === "conflictData") {
+      console.log("making conflict node");
       return (
         <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
       );
+    }
   }
 
   return (

@@ -29,6 +29,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
+import { Map } from "@/types/api/map";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
 
@@ -44,20 +45,53 @@ function isPointInsideNode(position: XYPosition, node: Node): boolean {
   );
 }
 
-export const useFlowNodes = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState<WorkshopNode>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+// Hook Features
+// add and remove conflicts
+// update, delete and create new nodes
+// update part title / needs
+// update conflict descriptions
+// add / remove impressions from parts
+// return impressions to sidebar
+// move impressions from sidebar to canvas
+// handle various events on ReactFlow
+
+// manages interactivity of flow nodes state and canvas
+
+export const useFlowNodes = (map?: Map) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState<WorkshopNode>(
+    map?.nodes || []
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
+    map?.edges || []
+  );
   const { getEdge, getNode, screenToFlowPosition } = useReactFlow();
   const getNodes = useRef(() => nodes);
 
+  const populateImpressions = useSidebarStore((s) => s.populateImpressions);
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
   const removeImpression = useSidebarStore((s) => s.removeImpression);
   const setRightClickMenuOpen = useUIStore((s) => s.setRightClickMenuOpen);
   const setIsEditing = useUIStore((s) => s.setIsEditing);
 
   useEffect(() => {
+    populateImpressions(map?.sidebarImpressions);
+  }, [map, populateImpressions]);
+
+  useEffect(() => {
     getNodes.current = () => nodes;
   }, [nodes]);
+
+  // GENERAL NODE MANAGENT
+
+  const createNode = (
+    type: NodeType,
+    position: XYPosition,
+    label: string,
+    impressionType?: ImpressionType
+  ) => {
+    const newNode = createNodeFN({ type, position, label, impressionType });
+    setNodes((prev: WorkshopNode[]) => [...prev, newNode]);
+  };
 
   const deleteNode = useCallback(
     (id: string) => {
@@ -74,6 +108,8 @@ export const useFlowNodes = () => {
     },
     [setNodes]
   );
+
+  // PART IMPRESSIONS
 
   const detachImpressionFromPart = useCallback(
     (impressionId: string, partId: string, type: ImpressionType) => {
@@ -109,38 +145,36 @@ export const useFlowNodes = () => {
     [setNodes]
   );
 
-  const createNode = (
-    type: NodeType,
-    position: XYPosition,
-    label: string,
-    impressionType?: ImpressionType
-  ) => {
-    const newNode = createNodeFN({ type, position, label, impressionType });
-    setNodes((prev: WorkshopNode[]) => [...prev, newNode]);
-  };
+  // CONFLICTS
 
-  const addPartToConflict = (conflict: ConflictNode, part: PartNode) => {
-    updateNode(conflict.id, {
-      data: {
-        ...conflict.data,
-        connectedNodes: [
-          ...((conflict.data.connectedNodes as ConnectedNodeType[]) || []),
-          { part, conflictDescription: "" },
-        ],
-      },
-    });
-  };
+  const addPartToConflict = useCallback(
+    (conflict: ConflictNode, part: PartNode) => {
+      updateNode(conflict.id, {
+        data: {
+          ...conflict.data,
+          connectedNodes: [
+            ...((conflict.data.connectedNodes as ConnectedNodeType[]) || []),
+            { part, conflictDescription: "" },
+          ],
+        },
+      });
+    },
+    [updateNode]
+  );
 
-  const removePartFromConflict = (conflict: ConflictNode, partId: string) => {
-    updateNode(conflict.id, {
-      data: {
-        ...conflict.data,
-        connectedNodes: (
-          conflict.data.connectedNodes as ConnectedNodeType[]
-        ).filter((cn) => cn.part.id !== partId),
-      },
-    });
-  };
+  const removePartFromConflict = useCallback(
+    (conflict: ConflictNode, partId: string) => {
+      updateNode(conflict.id, {
+        data: {
+          ...conflict.data,
+          connectedNodes: (
+            conflict.data.connectedNodes as ConnectedNodeType[]
+          ).filter((cn) => cn.part.id !== partId),
+        },
+      });
+    },
+    [updateNode]
+  );
 
   const updateConflictDescription = (
     conflict: ConflictNode,
@@ -163,6 +197,8 @@ export const useFlowNodes = () => {
       },
     });
   };
+
+  // REACT FLOW USER INTERACTIVITY
 
   const onDragOver = useCallback(
     (event: {

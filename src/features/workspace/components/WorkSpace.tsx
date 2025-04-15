@@ -1,5 +1,6 @@
 "use client";
 
+import type { Map } from "@/types/api/map";
 import { nodeTypes } from "@/features/workspace/components/Nodes/NodeManager";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import {
@@ -10,11 +11,12 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import TrashCan from "./TrashCan";
-import { Map } from "@prisma/client";
+import useAutosave from "../state/useAutosave";
+import { useSidebarStore } from "@/state/Sidebar";
 
 const Workspace = ({ map }: { map?: Map }) => {
   console.log("map in workspace", map);
-
+  const sidebarImpressions = useSidebarStore((s) => s.impressions);
   const {
     edges,
     handleNodeDragStop,
@@ -26,6 +28,8 @@ const Workspace = ({ map }: { map?: Map }) => {
     onEdgeChange,
     onNodesChange,
   } = useFlowNodesContext();
+
+  useAutosave({ mapId: map?.id, nodes, edges, sidebarImpressions });
 
   return (
     <div className="reactflow-wrapper">

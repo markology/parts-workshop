@@ -54,6 +54,7 @@ export default function createNodeFN({
         ...baseNode,
         type: "part",
         data: {
+          type: "partData",
           label,
           needs: [],
           Emotions: [],
@@ -71,6 +72,7 @@ export default function createNodeFN({
         ...baseNode,
         type: "conflict",
         data: {
+          type: "conflictData",
           label,
           connectedNodes: [],
         } as ConflictNodeData,

@@ -39,7 +39,7 @@ model Account {
 model Map {
   id                 String   @id @default(cuid())
   userId             String
-  title              String?
+  title              String
   nodes              Json
   edges              Json
   sidebarImpressions Json
