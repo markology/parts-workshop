@@ -13,6 +13,7 @@ import {
 import TrashCan from "./TrashCan";
 import useAutosave from "../state/useAutosave";
 import { useSidebarStore } from "@/state/Sidebar";
+import SaveProgress from "./SaveProgress";
 
 const Workspace = ({ map }: { map?: Map }) => {
   const sidebarImpressions = useSidebarStore((s) => s.impressions);
@@ -28,7 +29,12 @@ const Workspace = ({ map }: { map?: Map }) => {
     onNodesChange,
   } = useFlowNodesContext();
 
-  useAutosave({ mapId: map?.id, nodes, edges, sidebarImpressions });
+  const { saveMap } = useAutosave({
+    mapId: map?.id,
+    nodes,
+    edges,
+    sidebarImpressions,
+  });
 
   return (
     <div className="reactflow-wrapper">
@@ -54,6 +60,7 @@ const Workspace = ({ map }: { map?: Map }) => {
         <Controls className="absolute bottom-4 left-4" />
       </ReactFlow>
       <TrashCan />
+      <SaveProgress saveMap={saveMap} />
     </div>
   );
 };

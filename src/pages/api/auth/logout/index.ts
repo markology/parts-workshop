@@ -6,7 +6,7 @@ export default async function handler(
 ) {
   if (req.method === "GET") {
     try {
-      const redirectUrl = `./api/auth/signout?callbackUrl=/`;
+      const redirectUrl = `/api/auth/signout?callbackUrl=/`;
 
       res.writeHead(302, { Location: redirectUrl });
       res.end();

@@ -1,14 +1,34 @@
+import { useUIStore } from "@/state/UI";
 import { ImpressionType } from "@/types/Impressions";
 import { WorkshopNode } from "@/types/Nodes";
 import { SidebarImpression } from "@/types/Sidebar";
 import { Edge } from "@xyflow/react";
 import { useEffect, useRef } from "react";
 
-type SaveMapArgs = {
+export type SaveMapArgs = {
   mapId?: string;
   nodes: WorkshopNode[];
   edges: Edge[];
   sidebarImpressions: Record<ImpressionType, Record<string, SidebarImpression>>;
+};
+
+export const saveMap = ({
+  mapId,
+  nodes,
+  edges,
+  sidebarImpressions,
+}: SaveMapArgs): void => {
+  fetch(`api/maps/${mapId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      nodes,
+      edges,
+      sidebarImpressions,
+    }),
+  });
 };
 
 const useAutosave = ({
@@ -19,6 +39,7 @@ const useAutosave = ({
 }: SaveMapArgs) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const latest = useRef({ nodes, edges, sidebarImpressions });
+  const setIsSavingMap = useUIStore((s) => s.setIsSavingMap);
 
   useEffect(() => {
     latest.current = { nodes, edges, sidebarImpressions };
@@ -31,17 +52,12 @@ const useAutosave = ({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     timeoutRef.current = setTimeout(() => {
-      console.log("FETCHING THIS", mapId);
-      fetch(`api/maps/${mapId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nodes: latest.current.nodes,
-          edges: latest.current.edges,
-          sidebarImpressions: latest.current.sidebarImpressions,
-        }),
+      setIsSavingMap(true);
+      saveMap({
+        mapId,
+        nodes: latest.current.nodes,
+        edges: latest.current.edges,
+        sidebarImpressions: latest.current.sidebarImpressions,
       });
     }, 10000);
 
@@ -77,6 +93,10 @@ const useAutosave = ({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [mapId]);
+
+  return {
+    saveMap: () => saveMap({ mapId, nodes, edges, sidebarImpressions }),
+  };
 };
 
 export default useAutosave;
