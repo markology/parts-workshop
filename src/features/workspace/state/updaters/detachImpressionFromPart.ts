@@ -1,5 +1,5 @@
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
-import { NodeTypes, PartNode, WorkshopNode } from "@/types/Nodes";
+import { PartNode, WorkshopNode } from "@/types/Nodes";
 
 export default function detachImpressionFromPartCB({
   nodes,
@@ -18,7 +18,7 @@ export default function detachImpressionFromPartCB({
       return acc;
     }
 
-    if (node.id === partId && node.type === NodeTypes.PartNode) {
+    if (node.id === partId && node.type === "part") {
       // Update the parent node by removing the impression from its data
       const updatedImpressions = node.data[ImpressionTextType[type]] // fix typescript
         .filter((impression) => impression.id !== impressionId);

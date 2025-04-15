@@ -1,6 +1,5 @@
 import {
   ImpressionNode,
-  NodeTypes,
   PartNode,
   PartNodeData,
   WorkshopNode,
@@ -19,7 +18,7 @@ export default function insertImpressionToPartCB(
     if (node.id === impressionId) return acc;
 
     // 2. Update the part node and insert the impression into the correct type bucket
-    if (node.id === partId && node.type === NodeTypes.PartNode) {
+    if (node.id === partId && node.type === "part") {
       const label = ImpressionTextType[type];
       const updatedImpressions = [
         ...((node.data[label] as ImpressionNode[]) || []),

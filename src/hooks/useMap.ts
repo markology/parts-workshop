@@ -1,17 +1,10 @@
 "use client";
 
+import { Map } from "@prisma/client";
 import { useEffect, useState } from "react";
 
-type MapData = {
-  id: string;
-  title: string | null;
-  nodes: any[];
-  edges: any[];
-  sidebarImpressions: any[];
-};
-
 export const useMap = (mapId: string) => {
-  const [map, setMap] = useState<MapData | null>(null);
+  const [map, setMap] = useState<Map | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

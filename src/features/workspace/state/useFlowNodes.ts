@@ -1,21 +1,18 @@
 import { ImpressionType } from "@/types/Impressions";
 import {
   ConflictNode,
-  ConflictNodeData,
   ConnectedNodeType,
   ImpressionNode,
-  NodeDataTypes,
   NodeType,
-  NodeTypes,
   PartNode,
   WorkshopNode,
 } from "@/types/Nodes";
 import { useNodesState, XYPosition } from "@xyflow/react";
 import { useCallback, useEffect, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
 import insertImpressionToPartCB from "./updaters/insertImpressionToPart";
 import updateNodeCB from "./updaters/updateNode";
 import detachImpressionFromPartCB from "./updaters/detachImpressionFromPart";
+import createNodeFN from "./updaters/createNode";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
 
@@ -77,34 +74,14 @@ export const useFlowNodes = () => {
     [setNodes]
   );
 
-  const createNode = (type: NodeType, position: XYPosition, label: string) => {
-    let newNode = {
-      id: uuidv4(),
-      type,
-      position,
-      style: {
-        backgroundColor: "transparent",
-        border: "none",
-        boxShadow: "none",
-      },
-      data: {
-        label,
-      },
-    };
-
-    if (type === NodeTypes.ConflictNode) {
-      newNode = {
-        ...newNode,
-        data: {
-          ...newNode.data,
-          connectedNodes: [],
-          type: NodeDataTypes.ConflictNodeData,
-        } as ConflictNodeData,
-      };
-      setNodes((prev) => [...prev, newNode as ConflictNode]);
-      return;
-    }
-    setNodes((prev) => [...prev, newNode]);
+  const createNode = (
+    type: NodeType,
+    position: XYPosition,
+    label: string,
+    impressionType?: ImpressionType
+  ) => {
+    const newNode = createNodeFN({ type, position, label, impressionType });
+    setNodes((prev: WorkshopNode[]) => [...prev, newNode]);
   };
 
   const addPartToConflict = (conflict: ConflictNode, part: PartNode) => {

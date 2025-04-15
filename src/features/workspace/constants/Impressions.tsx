@@ -1,4 +1,4 @@
-import { ImpressionType } from "../../../types/Impressions";
+import { ImpressionType } from "@/types/Impressions";
 
 export const ImpressionList: ImpressionType[] = [
   "emotion",

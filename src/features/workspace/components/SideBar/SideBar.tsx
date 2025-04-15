@@ -1,7 +1,6 @@
 import Modal from "@/components/Modal";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useUIStore } from "@/state/UI";
-import { ImpressionType } from "@/types/Impressions";
 import { useReactFlow } from "@xyflow/react";
 import { PersonStanding, Plus, ShieldAlert } from "lucide-react";
 import { useMemo } from "react";
@@ -35,7 +34,7 @@ const SideBar = () => {
           <button
             onClick={() => {
               const viewport = getViewport();
-              createNode("conflict" as ImpressionType, viewport, "Conflict");
+              createNode("conflict", viewport, "Conflict");
             }}
             className="flex-1 text-white font-medium rounded shadow transition p-none flex justify-center items-center bg-[#d24c4c] items-center p-[5px]"
           >
