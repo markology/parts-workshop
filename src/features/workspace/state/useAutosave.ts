@@ -59,7 +59,7 @@ const useAutosave = ({
         edges: latest.current.edges,
         sidebarImpressions: latest.current.sidebarImpressions,
       });
-    }, 10000);
+    }, 300000);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);

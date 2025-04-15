@@ -12,7 +12,12 @@ const SaveProgress = ({ saveMap }: { saveMap: () => void }) => {
       onClick={handleSaveMap}
     >
       {isSavingMap && !saveCheck ? (
-        <LoaderCircle color="white" strokeWidth={2} size={30} />
+        <LoaderCircle
+          className="animate-spin"
+          color="white"
+          strokeWidth={2}
+          size={30}
+        />
       ) : saveCheck ? (
         <Check color="white" strokeWidth={2} size={30} />
       ) : (

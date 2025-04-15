@@ -14,6 +14,7 @@ import TrashCan from "./TrashCan";
 import useAutosave from "../state/useAutosave";
 import { useSidebarStore } from "@/state/Sidebar";
 import SaveProgress from "./SaveProgress";
+import Logout from "./Logout";
 
 const Workspace = ({ map }: { map?: Map }) => {
   const sidebarImpressions = useSidebarStore((s) => s.impressions);
@@ -61,6 +62,7 @@ const Workspace = ({ map }: { map?: Map }) => {
       </ReactFlow>
       <TrashCan />
       <SaveProgress saveMap={saveMap} />
+      <Logout />
     </div>
   );
 };
