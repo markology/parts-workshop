@@ -1,4 +1,7 @@
-import { NodeBackgroundColors, NodeTextColors } from "@/constants/Nodes";
+import {
+  NodeBackgroundColors,
+  NodeTextColors,
+} from "@/features/workspace/constants/Nodes";
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { ReactElement } from "react";
 

@@ -1,7 +1,7 @@
-import { ImpressionList } from "@/constants/Impressions";
+import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import ImpressionDropdown from "./ImpressionDropdown";
 
-import { useSidebarStore } from "@/stores/Sidebar";
+import { useSidebarStore } from "@/state/Sidebar";
 import { ImpressionType } from "@/types/Impressions";
 
 const Impressions = () => {

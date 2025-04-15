@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Trash, Trash2 } from "lucide-react";
-import { useSidebarStore } from "@/stores/Sidebar";
+import { useSidebarStore } from "@/state/Sidebar";
 
 const TrashCan: React.FC = () => {
   const removeImpression = useSidebarStore((s) => s.removeImpression);

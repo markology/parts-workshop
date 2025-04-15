@@ -1,5 +1,5 @@
-import { useFlowNodesContext } from "@/context/FlowNodesContext";
-import { useUIStore } from "@/stores/UI";
+import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
+import { useUIStore } from "@/state/UI";
 import { NodeDataTypes, PartNode } from "@/types/Nodes";
 import { useReactFlow } from "@xyflow/react";
 import { useRef } from "react";

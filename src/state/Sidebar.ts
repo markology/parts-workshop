@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { SidebarImpression } from "@/types/Sidebar";
-import { ImpressionList } from "@/constants/Impressions";
+import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionType } from "@/types/Impressions";
 
 type SidebarStore = {

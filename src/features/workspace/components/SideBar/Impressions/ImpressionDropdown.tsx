@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { SidebarImpression } from "@/types/Sidebar";
 import { NodeType } from "@/types/Nodes";
-import { NodeBackgroundColors, NodeColors } from "@/constants/Nodes";
+import {
+  NodeBackgroundColors,
+  NodeColors,
+} from "@/features/workspace/constants/Nodes";
 import { ChevronDown, ChevronUp } from "lucide-react"; // optional: use any icon library
 import { ImpressionType } from "@/types/Impressions";
 

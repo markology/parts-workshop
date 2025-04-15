@@ -1,9 +1,9 @@
 "use client";
 
-import { nodeTypes } from "@/components/pages/Workspace/Nodes/NodeManager";
-import { useFlowNodesContext } from "@/context/FlowNodesContext";
-import { useSidebarStore } from "@/stores/Sidebar";
-import { useUIStore } from "@/stores/UI";
+import { nodeTypes } from "@/features/workspace/components/Nodes/NodeManager";
+import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
+import { useSidebarStore } from "@/state/Sidebar";
+import { useUIStore } from "@/state/UI";
 import { ImpressionType } from "@/types/Impressions";
 import { ConflictNode, ImpressionNode, PartNode } from "@/types/Nodes";
 import {
@@ -23,7 +23,7 @@ import {
 import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import TrashCan from "./TrashCan";
-import { Map } from "@/types/api/map";
+import { Map } from "@prisma/client";
 
 function isPointInsideNode(position: XYPosition, node: Node): boolean {
   if (node?.measured?.width == null || node?.measured?.height == null)
@@ -50,13 +50,13 @@ const Workspace = ({ map }: { map?: Map }) => {
     setNodes,
     removePartFromConflict,
   } = useFlowNodesContext();
+
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
   const removeImpression = useSidebarStore((s) => s.removeImpression);
   const setRightClickMenuOpen = useUIStore((s) => s.setRightClickMenuOpen);
   const setIsEditing = useUIStore((s) => s.setIsEditing);
 
   const handlePaneClick = () => {
-    console.log("pane click");
     setRightClickMenuOpen(false);
     setIsEditing(false);
   };

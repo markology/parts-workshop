@@ -1,9 +1,12 @@
-import { NodeColors, NodeTextColors } from "@/constants/Nodes";
+import {
+  NodeColors,
+  NodeTextColors,
+} from "@/features/workspace/constants/Nodes";
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { useFlowNodesContext } from "@/context/FlowNodesContext";
-import { useSidebarStore } from "@/stores/Sidebar";
-import RightClickMenu from "../../../global/RightClickMenu";
+import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
+import { useSidebarStore } from "@/state/Sidebar";
+import RightClickMenu from "../../../components/RightClickMenu";
 import { ListRestart, Trash2 } from "lucide-react";
 
 const ImpressionNode = ({

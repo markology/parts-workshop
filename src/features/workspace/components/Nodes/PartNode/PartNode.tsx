@@ -1,6 +1,6 @@
-import { ImpressionList } from "@/constants/Impressions";
-import { useFlowNodesContext } from "@/context/FlowNodesContext";
-import { useUIStore } from "@/stores/UI";
+import { ImpressionList } from "@/features/workspace/constants/Impressions";
+import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
+import { useUIStore } from "@/state/UI";
 import { ImpressionTextType } from "@/types/Impressions";
 import { PartNodeData } from "@/types/Nodes";
 import { Handle, Position } from "@xyflow/react";

@@ -1,6 +1,6 @@
-import Modal from "@/components/global/Modal";
-import { useFlowNodesContext } from "@/context/FlowNodesContext";
-import { useUIStore } from "@/stores/UI";
+import Modal from "@/components/Modal";
+import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
+import { useUIStore } from "@/state/UI";
 import { ImpressionType } from "@/types/Impressions";
 import { useReactFlow } from "@xyflow/react";
 import { PersonStanding, Plus, ShieldAlert } from "lucide-react";

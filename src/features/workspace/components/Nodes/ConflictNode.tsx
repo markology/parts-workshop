@@ -1,5 +1,8 @@
-import { NodeColors, NodeTextColors } from "@/constants/Nodes";
-import { useFlowNodesContext } from "@/context/FlowNodesContext";
+import {
+  NodeColors,
+  NodeTextColors,
+} from "@/features/workspace/constants/Nodes";
+import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import {
   ConflictNode as ConflictNodeType,
   ConnectedNodeType,

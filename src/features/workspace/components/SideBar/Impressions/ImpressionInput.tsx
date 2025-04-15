@@ -1,6 +1,9 @@
-import { ImpressionList } from "@/constants/Impressions";
-import { NodeBackgroundColors, NodeColors } from "@/constants/Nodes";
-import { useSidebarStore } from "@/stores/Sidebar";
+import { ImpressionList } from "@/features/workspace/constants/Impressions";
+import {
+  NodeBackgroundColors,
+  NodeColors,
+} from "@/features/workspace/constants/Nodes";
+import { useSidebarStore } from "@/state/Sidebar";
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
