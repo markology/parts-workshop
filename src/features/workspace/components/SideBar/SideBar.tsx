@@ -21,7 +21,7 @@ const SideBar = () => {
 
   const CreateButtons = useMemo(
     () => (
-      <div className="mb-4">
+      <div id="sidebar-buttons" className="mb-4">
         <div className="flex gap-2 mb-[8px]">
           <button
             onClick={() => setShowPartModal(true)}

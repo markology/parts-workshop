@@ -68,7 +68,7 @@ const ConflictNode = ({
   return (
     <>
       <div
-        className="text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
+        className="node conflict-node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
         style={{ backgroundColor: NodeColors["conflict"] }}
       >
         <div className="flex flex-row justify-between">

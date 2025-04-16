@@ -40,7 +40,7 @@ const ImpressionDropdown = ({
           <ChevronDown size={16} strokeWidth={3} />
         )}
       </button>
-      <hr />
+      <hr className="pb-2" />
       <div className="flex flex-col gap-[6px]">
         {open &&
           Object.values(filteredImpressions).map((item) => (

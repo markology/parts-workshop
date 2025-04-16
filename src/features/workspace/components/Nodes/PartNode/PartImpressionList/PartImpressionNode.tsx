@@ -63,7 +63,7 @@ const PartImpressionNode = ({
   );
 
   return (
-    <div className="text-right">
+    <div className="node part-impression-node text-right">
       <li
         ref={nodeRef}
         onContextMenu={handleContextMenu}

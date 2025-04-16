@@ -15,6 +15,7 @@ import useAutosave from "../state/useAutosave";
 import { useSidebarStore } from "@/state/Sidebar";
 import SaveProgress from "./SaveProgress";
 import Logout from "./Logout";
+import ThemeToggle from "./ThemeToggle";
 
 const Workspace = ({ map }: { map?: Map }) => {
   const sidebarImpressions = useSidebarStore((s) => s.impressions);
@@ -63,6 +64,7 @@ const Workspace = ({ map }: { map?: Map }) => {
       <TrashCan />
       <SaveProgress saveMap={saveMap} />
       <Logout />
+      <ThemeToggle />
     </div>
   );
 };

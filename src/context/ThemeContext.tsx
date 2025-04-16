@@ -1,18 +1,22 @@
 "use client";
 import {
   createContext,
+  Dispatch,
   ReactElement,
   ReactNode,
+  SetStateAction,
   useContext,
   useState,
 } from "react";
 
 interface ContextValue {
   darkMode: boolean;
+  toggleDarkMode: Dispatch<SetStateAction<boolean>>;
 }
 
 const ThemeContext = createContext<ContextValue>({
   darkMode: true,
+  toggleDarkMode: () => {}, // will be overwritten in provider
 });
 
 export const ThemeContextProvider = ({

@@ -23,7 +23,7 @@ const PartImpressionContainer = ({
       }}
     >
       <strong
-        className="text-sm flex-1 justify-items-center"
+        className="impression-container-title  text-sm flex-1 justify-items-center"
         style={{ color: NodeTextColors[type] }}
       >
         {`${ImpressionTextType[type]}:`}

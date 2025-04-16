@@ -52,7 +52,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   }, [handleSave, isEditing]);
 
   return (
-    <div className="bg-[#a3c1e591] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl">
+    <div className="node part-node bg-[#a3c1e591] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl">
       {/* Title */}
       <div className="flex justify-between">
         {isEditingTitle ? (

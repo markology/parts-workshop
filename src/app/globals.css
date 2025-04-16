@@ -7,6 +7,8 @@
   --background: #f8f6f0;
   --aside-background: white;
   --text-color: black;
+  --text-against-part-node: #4e6176;
+  --text-color-alt: white;
 }
 
 @theme inline {
@@ -21,6 +23,8 @@
     --background: #2a3545;
     --aside-background: #242c36;
     --text-color: white;
+    --text-color-alt: black;
+    --text-against-part-node: var(--text-color);
   }
 }
 
@@ -67,6 +71,26 @@ button {
 
 #sidebar {
   background: var(--aside-background);
+}
+
+.light #sidebar-buttons button {
+  box-shadow: 0px 0px 6px 0px #656565;
+  color: var(--text-color-alt);
+}
+
+.light .part-node {
+  border: none;
+}
+
+.light .soothing-techniques h3,
+.light .soothing-techniques li {
+  color: var(--text-against-part-node);
+}
+
+/* .light .part-impression-node li, */
+.light .conflict-node p,
+.light .conflict-node div {
+  color: white;
 }
 
 #sidebar {
