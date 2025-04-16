@@ -15,6 +15,7 @@ import {
   ImpressionNode,
   NodeType,
   PartNode,
+  PartNodeData,
   WorkshopNode,
 } from "@/types/Nodes";
 import {
@@ -29,7 +30,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
-import { Map } from "@/types/api/map";
+import { Map as MapType } from "@/types/api/map";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
 
@@ -57,7 +58,7 @@ function isPointInsideNode(position: XYPosition, node: Node): boolean {
 
 // manages interactivity of flow nodes state and canvas
 
-export const useFlowNodes = (map?: Map) => {
+export const useFlowNodes = (map?: MapType) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<WorkshopNode>(
     map?.nodes || []
   );
@@ -108,6 +109,17 @@ export const useFlowNodes = (map?: Map) => {
     },
     [setNodes]
   );
+
+  // PART UPDATES
+
+  const updatePartName = (partId: string, partName: string) => {
+    updateNode<PartNodeData>(partId, {
+      data: {
+        label: partName,
+      },
+    });
+    updateConflictConnectedNodes(partId, partName);
+  };
 
   // PART IMPRESSIONS
 
@@ -195,6 +207,61 @@ export const useFlowNodes = (map?: Map) => {
         ...conflict.data,
         connectedNodes: newConnectedNodes,
       },
+    });
+  };
+
+  function isConflictNode(node: WorkshopNode): node is ConflictNode {
+    return node.type === "conflict" && "connectedNodes" in node.data;
+  }
+
+  const updateConflictConnectedNodes = (partId: string, partName: string) => {
+    setNodes((prev) => {
+      const conflictNodesContainingPartId: ConflictNode[] = prev.filter(
+        (node): node is ConflictNode =>
+          isConflictNode(node) &&
+          node.data.connectedNodes.some(
+            (connectedNode) => connectedNode.part.id === partId
+          )
+      );
+
+      const remappedConflictNodes: ConflictNode[] =
+        conflictNodesContainingPartId.map((conflictNode) => {
+          const connectedNodes = conflictNode.data.connectedNodes;
+          const updatedConnectedNodes = connectedNodes.map(
+            (connectedNode: ConnectedNodeType) => {
+              if (connectedNode.part.id === partId) {
+                return {
+                  ...connectedNode,
+                  part: {
+                    ...connectedNode.part,
+                    data: {
+                      ...connectedNode.part.data,
+                      label: partName,
+                    },
+                  },
+                };
+              }
+
+              return connectedNode;
+            }
+          );
+
+          return {
+            ...conflictNode,
+            data: {
+              ...conflictNode.data,
+              connectedNodes: updatedConnectedNodes,
+            },
+          };
+        });
+
+      const remappedMap = new Map(remappedConflictNodes.map((n) => [n.id, n]));
+
+      const newNodes = prev.map((node) =>
+        remappedMap.has(node.id) ? remappedMap.get(node.id)! : node
+      );
+
+      return newNodes;
     });
   };
 
@@ -391,6 +458,7 @@ export const useFlowNodes = (map?: Map) => {
     onDrop,
     onEdgeChange,
     updateNode,
+    updatePartName,
     detachImpressionFromPart,
     insertImpressionToPart,
     updateConflictDescription,

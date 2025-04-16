@@ -15,7 +15,7 @@ let index = 0;
 const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(data.label);
-  const { updateNode } = useFlowNodesContext();
+  const { updatePartName } = useFlowNodesContext();
   const isEditing = useUIStore((s) => s.isEditing);
   const setIsEditing = useUIStore((s) => s.setIsEditing);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -28,16 +28,11 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
       return;
     }
 
-    updateNode(partId, {
-      data: {
-        ...data,
-        label: title,
-      },
-    });
+    updatePartName(partId, title);
 
     setIsEditing(false);
     setIsEditingTitle(false);
-  }, [title, data, updateNode, partId, setIsEditing]);
+  }, [title, data, updatePartName, partId, setIsEditing]);
 
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
