@@ -10,12 +10,12 @@ import {
   OnNodesChange,
   ReactFlow,
 } from "@xyflow/react";
-import TrashCan from "./TrashCan";
+import TrashCan from "./Utilities/TrashCan";
 import useAutosave from "../state/useAutosave";
 import { useSidebarStore } from "@/state/Sidebar";
-import SaveProgress from "./SaveProgress";
-import Logout from "./Logout";
-import ThemeToggle from "./ThemeToggle";
+import SaveProgress from "./Utilities/SaveProgress";
+import Logout from "./Utilities/Logout";
+import ThemeToggle from "./Utilities/ThemeToggle";
 
 const Workspace = ({ map }: { map?: Map }) => {
   const sidebarImpressions = useSidebarStore((s) => s.impressions);

@@ -4,10 +4,12 @@ import { useState } from "react";
 import {
   NodeBackgroundColors,
   NodeColors,
+  NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
 import { ChevronDown, ChevronUp } from "lucide-react"; // optional: use any icon library
 import { ImpressionType } from "@/types/Impressions";
 import { SidebarImpression } from "@/types/Sidebar";
+import { useSidebarStore } from "@/state/Sidebar";
 
 const ImpressionDropdown = ({
   type,
@@ -23,6 +25,7 @@ const ImpressionDropdown = ({
   ) => void;
 }) => {
   const [open, toggleOpen] = useState(true);
+  const removeImpression = useSidebarStore((s) => s.removeImpression);
 
   return (
     <div className="mb-2">
@@ -46,14 +49,21 @@ const ImpressionDropdown = ({
           Object.values(filteredImpressions).map((item) => (
             <div
               key={item.id}
-              className="sidebar-impression text-white input draggable rounded-lg px-3 py-1 cursor-grab"
+              className="sidebar-impression text-white input draggable rounded-lg px-3 py-1 cursor-grab flex justify-between items-center"
               onDragStart={(event) => onDragStart(event, item.id, item.type)}
               draggable
               style={{
                 background: NodeColors[item.type],
               }}
             >
-              {item.label}
+              <span>{item.label}</span>
+              <button
+                className="px-1"
+                style={{ color: NodeTextColors[item.type] }}
+                onClick={() => removeImpression(item.type, item.id)}
+              >
+                x
+              </button>
             </div>
           ))}
       </div>

@@ -26,7 +26,9 @@ const Impressions = () => {
   };
 
   return (
-    <div className={`overflow-auto overscroll-x-none`}>
+    <div
+      className={`h-[calc(100vw-100px)] pr-3 overflow-auto overscroll-x-none`}
+    >
       <ul className="space-y-2">
         {ImpressionList.map((type) => (
           <ImpressionDropdown
