@@ -2,12 +2,13 @@ import {
   NodeColors,
   NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useSidebarStore } from "@/state/Sidebar";
 import { ListRestart, Trash2 } from "lucide-react";
 import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
+import { useUIStore } from "@/state/UI";
 
 const ImpressionNode = ({
   id,
@@ -18,17 +19,19 @@ const ImpressionNode = ({
   label: string;
   type: ImpressionType;
 }) => {
-  const [menuVisible, setMenuVisible] = useState(false);
   const { deleteNode } = useFlowNodesContext();
   const addImpression = useSidebarStore((s) => s.addImpression);
   const nodeRef = useRef<HTMLDivElement>(null);
-
+  const contextMenuParentNodeId = useUIStore((s) => s.contextMenuParentNodeId);
+  const setContextMenuParentNodeId = useUIStore(
+    (s) => s.setContextMenuParentNodeId
+  );
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (nodeRef.current) {
-      setMenuVisible(true);
+      setContextMenuParentNodeId(id);
     }
   };
 
@@ -74,7 +77,7 @@ const ImpressionNode = ({
         </strong>
         {label || null}
       </div>
-      {menuVisible && <RightClickMenu items={menuItems} />}
+      {contextMenuParentNodeId === id && <RightClickMenu items={menuItems} />}
     </div>
   );
 };

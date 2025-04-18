@@ -71,7 +71,9 @@ export const useFlowNodes = (map?: MapType) => {
   const populateImpressions = useSidebarStore((s) => s.populateImpressions);
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
   const removeImpression = useSidebarStore((s) => s.removeImpression);
-  const setRightClickMenuOpen = useUIStore((s) => s.setRightClickMenuOpen);
+  const setContextMenuParentNodeId = useUIStore(
+    (s) => s.setContextMenuParentNodeId
+  );
   const setIsEditing = useUIStore((s) => s.setIsEditing);
 
   useEffect(() => {
@@ -391,7 +393,7 @@ export const useFlowNodes = (map?: MapType) => {
   );
 
   const handlePaneClick = () => {
-    setRightClickMenuOpen(false);
+    setContextMenuParentNodeId("");
     setIsEditing(false);
   };
 

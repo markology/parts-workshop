@@ -22,15 +22,17 @@ const PartImpressionNode = ({
 
   // store vars
   const addImpression = useSidebarStore((s) => s.addImpression);
-  const isRightClickMenuOpen = useUIStore((s) => s.isRightClickMenuOpen);
-  const setRightClickMenuOpen = useUIStore((s) => s.setRightClickMenuOpen);
+  const contextMenuParentNodeId = useUIStore((s) => s.contextMenuParentNodeId);
+  const setContextMenuParentNodeId = useUIStore(
+    (s) => s.setContextMenuParentNodeId
+  );
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (nodeRef.current) {
-      setRightClickMenuOpen(true);
+      setContextMenuParentNodeId(item.id);
     }
   };
 
@@ -72,7 +74,9 @@ const PartImpressionNode = ({
       >
         {item.data.label}
       </li>
-      {isRightClickMenuOpen && <RightClickMenu items={menuItems} />}
+      {contextMenuParentNodeId === item.id && (
+        <RightClickMenu items={menuItems} />
+      )}
     </div>
   );
 };
