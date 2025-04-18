@@ -5,8 +5,9 @@ import {
   NodeBackgroundColors,
   NodeColors,
   NodeTextColors,
+  NodeTextColorsLight,
 } from "@/features/workspace/constants/Nodes";
-import { ChevronDown, ChevronUp } from "lucide-react"; // optional: use any icon library
+import { Minus, Plus } from "lucide-react"; // optional: use any icon library
 import { ImpressionType } from "@/types/Impressions";
 import { SidebarImpression } from "@/types/Sidebar";
 import { useSidebarStore } from "@/state/Sidebar";
@@ -38,9 +39,9 @@ const ImpressionDropdown = ({
       >
         <p>{type}</p>
         {open ? (
-          <ChevronUp size={16} strokeWidth={3} />
+          <Minus size={16} strokeWidth={5} />
         ) : (
-          <ChevronDown size={16} strokeWidth={3} />
+          <Plus size={16} strokeWidth={5} />
         )}
       </button>
       <hr className="pb-2" />

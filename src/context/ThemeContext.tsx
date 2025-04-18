@@ -29,17 +29,7 @@ export const ThemeContextProvider = ({
 
   return (
     <ThemeContext.Provider value={value}>
-      <div
-        className={darkMode ? "dark" : "light"}
-        style={
-          {
-            "--background": darkMode ? "#2a3545" : "#f8f6f0",
-            "--aside-background": darkMode ? "#242c36" : "white",
-          } as React.CSSProperties
-        }
-      >
-        {children}
-      </div>
+      <div className={darkMode ? "dark" : "light"}>{children}</div>
     </ThemeContext.Provider>
   );
 };

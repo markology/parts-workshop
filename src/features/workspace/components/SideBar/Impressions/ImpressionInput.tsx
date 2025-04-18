@@ -1,10 +1,7 @@
 "use client";
 
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
-import {
-  NodeBackgroundColors,
-  NodeColors,
-} from "@/features/workspace/constants/Nodes";
+import { NodeColors } from "@/features/workspace/constants/Nodes";
 import { useSidebarStore } from "@/state/Sidebar";
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { useEffect, useRef, useState } from "react";
@@ -37,7 +34,10 @@ const ImpressionInput = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const createSideBarNode = (e: { preventDefault(): unknown; key: string }) => {
+  const handleTextAreaKeyDown = (e: {
+    preventDefault(): unknown;
+    key: string;
+  }) => {
     if (e.key === "Enter" && selectedType !== null) {
       e.preventDefault();
       addImpression({
@@ -45,72 +45,59 @@ const ImpressionInput = () => {
         label: textAreaRef.current!.value,
         type: selectedType,
       });
+      textAreaRef.current!.value = "";
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      setSelectedType(
+        ImpressionList[
+          ImpressionList.indexOf(selectedType) < ImpressionList.length - 1
+            ? ImpressionList.indexOf(selectedType) + 1
+            : 0
+        ]
+      );
     }
   };
 
   return (
     <div ref={containerRef} className="relative space-y-2">
-      <div
-        className="relative rounded"
-        style={{
-          background: isSelectorOpen
-            ? "transparent"
-            : NodeBackgroundColors[selectedType],
-        }}
-      >
-        {/* Current Impression Type and Button to Open Type Selector */}
-        <div
-          className="absolute top-2 left-2 flex flex-wrap gap-2 z-10 p-[10px]"
-          style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
-        >
+      <div className="flex flex-wrap m-0">
+        {ImpressionList.map((type) => (
           <button
-            onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-            className="px-3 py-1 rounded-full text-sm capitalize"
+            key={type}
+            onClick={() => {
+              setSelectedType(type);
+              setIsSelectorOpen(false);
+            }}
+            className={`px-3 py-1 text-sm flex-1 rounded-t-xl`}
             style={{
-              backgroundColor: NodeColors[selectedType],
-              color: "black",
+              backgroundColor:
+                selectedType === type ? "white" : NodeColors[type],
+              color: selectedType === type ? NodeColors[type] : "white",
             }}
           >
-            {selectedType || "Select Type"}
+            {ImpressionTextType[type]}
           </button>
-        </div>
-
+        ))}
+      </div>
+      <div
+        className="relative rounded-b"
+        style={{
+          background: "white",
+          boxShadow: "1px 4px 5px 2px black",
+        }}
+      >
         <textarea
-          style={{ visibility: !isSelectorOpen ? "visible" : "hidden" }}
+          style={{
+            visibility: !isSelectorOpen ? "visible" : "hidden",
+            color: NodeColors[selectedType],
+          }}
           ref={textAreaRef}
-          className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none pt-[60px]"
-          rows={5}
-          onKeyDown={createSideBarNode}
+          className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none"
+          rows={3}
+          autoFocus
+          onKeyDown={handleTextAreaKeyDown}
           placeholder="Add Impression"
         />
-
-        {/* Impression Type Selector */}
-
-        {isSelectorOpen && (
-          <div
-            id="impression-selector"
-            className="absolute top-3 left-0 bg-transparent rounded-t z-20 p-2 w-full p-[10px] mt-none"
-          >
-            <div className="flex flex-wrap gap-2 justify-evenly">
-              {ImpressionList.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => {
-                    setSelectedType(type);
-                    setIsSelectorOpen(false);
-                  }}
-                  className="px-3 py-1 rounded-full text-sm"
-                  style={{
-                    backgroundColor: NodeColors[type],
-                    color: "black",
-                  }}
-                >
-                  {ImpressionTextType[type]}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

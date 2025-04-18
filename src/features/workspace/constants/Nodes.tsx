@@ -5,7 +5,7 @@ export const NodeColors = {
   behavior: "#8BCB8B",
   conflict: "#B19CD9",
   part: "#F7E68F",
-  self: "#4ECDC4",
+  self: "#80d7d1",
   other: "#EFA9C8",
 };
 
@@ -29,6 +29,17 @@ export const NodeTextColors = {
   part: "#998f3a",
   self: "#396c6d",
   other: "#934b6d",
+};
+
+export const NodeTextColorsLight = {
+  emotion: "#f4b4a3", // soft light red
+  thought: "#abdefd", // from you
+  sensation: "#f8cfa5", // warm cream
+  behavior: "#b5e8c1", // light mint green
+  conflict: "#d5caf1", // lavender
+  part: "#f4edb3", // pale yellow
+  self: "#b4e5e6", // light aqua
+  other: "#f4bfd3", // rose
 };
 
 // emotion	#F28C82	#f28c82ad	#994936

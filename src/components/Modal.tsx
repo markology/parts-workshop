@@ -24,15 +24,16 @@ const Modal = ({
 
   return (
     <div
+      id="modal-overlay"
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000b0] "
+      className="fixed inset-0 z-50 flex items-center justify-center"
     >
       <div ref={modalRef} className="rounded p-8 w-[650px] relative ml-[250px]">
         <button
           onClick={onClose}
-          className="absolute top-0 right-2 text-gray-500 hover:text-black"
+          className="absolute top-0 right-2  hover:text-black"
         >
-          <X strokeWidth={2} size={30} />
+          <X className="text-white" strokeWidth={2} size={30} />
         </button>
         {children}
       </div>

@@ -5,7 +5,9 @@
 
 :root:has(.light) {
   --background: #f8f6f0;
-  --aside-background: white;
+  /* --aside-background: white; */
+  --aside-background: linear-gradient(135deg, #fff, #e2ebff);
+
   --text-color: black;
   --text-against-part-node: #4e6176;
   --text-color-alt: white;
@@ -21,7 +23,8 @@
 @media (prefers-color-scheme: dark) {
   :root:has(.dark) {
     --background: #2a3545;
-    --aside-background: #242c36;
+    /* --aside-background: #242c36;*/
+    --aside-background: linear-gradient(135deg, #232931, #28466d);
     --text-color: white;
     --text-color-alt: black;
     --text-against-part-node: var(--text-color);
@@ -45,10 +48,21 @@ h2,
 h3,
 h4,
 h5,
-textarea,
 input,
 button {
   color: var(--text-color);
+}
+
+textarea {
+  color: white;
+}
+
+#modal-overlay {
+  background: #000000b0;
+}
+
+.light #modal-overlay {
+  background: #000000c9;
 }
 
 .conflict-handle {
@@ -71,6 +85,7 @@ button {
 
 #sidebar {
   background: var(--aside-background);
+  flex: "0 0 250px";
 }
 
 .light #sidebar-buttons button {
@@ -91,10 +106,6 @@ button {
 .light .conflict-node p,
 .light .conflict-node div {
   color: white;
-}
-
-#sidebar {
-  flex: "0 0 250px";
 }
 
 .PW {
