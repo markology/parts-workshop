@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Trash, Trash2 } from "lucide-react";
 import { useSidebarStore } from "@/state/Sidebar";
 
+//handleNodeDragStop triggers deletes from useFlowNodes
+
 const TrashCan: React.FC = () => {
   const removeImpression = useSidebarStore((s) => s.removeImpression);
   const [isHoveringTrash, setIsHoveringTrash] = useState(false);

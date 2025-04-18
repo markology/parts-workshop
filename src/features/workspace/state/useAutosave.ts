@@ -53,13 +53,13 @@ const useAutosave = ({
 
     timeoutRef.current = setTimeout(() => {
       setIsSavingMap(true);
-      saveMap({
-        mapId,
-        nodes: latest.current.nodes,
-        edges: latest.current.edges,
-        sidebarImpressions: latest.current.sidebarImpressions,
-      });
-    }, 300000);
+      // saveMap({
+      //   mapId,
+      //   nodes: latest.current.nodes,
+      //   edges: latest.current.edges,
+      //   sidebarImpressions: latest.current.sidebarImpressions,
+      // });
+    }, 30000000);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -71,12 +71,12 @@ const useAutosave = ({
     const saveOnUnload = () => {
       if (!mapId || !latest.current) return;
 
-      navigator.sendBeacon(
-        `/api/maps/${mapId}`,
-        new Blob([JSON.stringify(latest.current)], {
-          type: "application/json",
-        })
-      );
+      // navigator.sendBeacon(
+      //   `/api/maps/${mapId}`,
+      //   new Blob([JSON.stringify(latest.current)], {
+      //     type: "application/json",
+      //   })
+      // );
     };
 
     const handleVisibilityChange = () => {

@@ -118,7 +118,7 @@ export const useFlowNodes = (map?: MapType) => {
         label: partName,
       },
     });
-    updateConflictConnectedNodes(partId, partName);
+    updateConflictConnectedNodesPartName(partId, partName);
   };
 
   // PART IMPRESSIONS
@@ -214,7 +214,10 @@ export const useFlowNodes = (map?: MapType) => {
     return node.type === "conflict" && "connectedNodes" in node.data;
   }
 
-  const updateConflictConnectedNodes = (partId: string, partName: string) => {
+  const updateConflictConnectedNodesPartName = (
+    partId: string,
+    partName: string
+  ) => {
     setNodes((prev) => {
       const conflictNodesContainingPartId: ConflictNode[] = prev.filter(
         (node): node is ConflictNode =>
@@ -262,6 +265,51 @@ export const useFlowNodes = (map?: MapType) => {
       );
 
       return newNodes;
+    });
+  };
+
+  const removePartFromAllConflicts = (partId: string) => {
+    setNodes((prev) => {
+      const conflictNodesContainingPartId: ConflictNode[] = prev.filter(
+        (node): node is ConflictNode =>
+          isConflictNode(node) &&
+          node.data.connectedNodes.some(
+            (connectedNode) => connectedNode.part.id === partId
+          )
+      );
+
+      const remappedConflictNodes: ConflictNode[] =
+        conflictNodesContainingPartId.map((conflictNode) => {
+          const connectedNodes = conflictNode.data.connectedNodes;
+          const updatedConnectedNodes = connectedNodes.filter(
+            (connectedNode: ConnectedNodeType) =>
+              connectedNode.part.id !== partId
+          );
+
+          return {
+            ...conflictNode,
+            data: {
+              ...conflictNode.data,
+              connectedNodes: updatedConnectedNodes,
+            },
+          };
+        });
+
+      const remappedMap = new Map(remappedConflictNodes.map((n) => [n.id, n]));
+
+      const newNodes = prev.map((node) =>
+        remappedMap.has(node.id) ? remappedMap.get(node.id)! : node
+      );
+
+      return newNodes;
+    });
+  };
+
+  const deleteEdges = (nodeId: string) => {
+    setEdges((prev) => {
+      return prev.filter(
+        (edge) => edge.source !== nodeId && edge.target !== nodeId
+      );
     });
   };
 
@@ -349,6 +397,7 @@ export const useFlowNodes = (map?: MapType) => {
 
   const onEdgeChange = useCallback(
     (changes: EdgeChange<Edge>[]) => {
+      console.log("EDGE CHANGED");
       changes.forEach((change) => {
         if ("id" in change) {
           const { target, source } = getEdge(change?.id) || {};
@@ -411,6 +460,9 @@ export const useFlowNodes = (map?: MapType) => {
         if (isOverBucket) {
           // Delete the node:
           deleteNode(node.id);
+          if (node.type === "part") removePartFromAllConflicts(node.id);
+          if (node.type === "part" || node.type === "conflict")
+            deleteEdges(node.id);
           return;
         }
       }
@@ -438,7 +490,14 @@ export const useFlowNodes = (map?: MapType) => {
         );
       }
     },
-    [deleteNode, insertImpressionToPart, nodes, screenToFlowPosition]
+    [
+      deleteEdges,
+      deleteNode,
+      insertImpressionToPart,
+      nodes,
+      removePartFromAllConflicts,
+      screenToFlowPosition,
+    ]
   );
 
   return {
