@@ -5,7 +5,6 @@ import {
   NodeBackgroundColors,
   NodeColors,
   NodeTextColors,
-  NodeTextColorsLight,
 } from "@/features/workspace/constants/Nodes";
 import { Minus, Plus } from "lucide-react"; // optional: use any icon library
 import { ImpressionType } from "@/types/Impressions";

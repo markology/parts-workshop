@@ -14,7 +14,7 @@ type SidebarStore = {
   setActiveSidebarNode: (nodeId: string | null, type: string) => void;
 };
 
-const createEmptyImpressionGroups = (): Record<
+export const createEmptyImpressionGroups = (): Record<
   ImpressionType,
   Record<string, SidebarImpression>
 > => {
@@ -35,7 +35,7 @@ export const useSidebarStore = create<SidebarStore>((set) => ({
     initImpressions?: Record<ImpressionType, Record<string, SidebarImpression>>
   ) =>
     set(() => ({
-      impressions: initImpressions || impressions,
+      impressions: initImpressions || createEmptyImpressionGroups(),
     })),
   activeSidebarNode: null,
   addImpression: (item) =>

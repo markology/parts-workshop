@@ -24,6 +24,7 @@ const SideBar = () => {
       <div id="sidebar-buttons" className="mb-4">
         <div className="flex gap-2 mb-[8px]">
           <button
+            id="create-part-button"
             onClick={() => setShowPartModal(true)}
             className="flex-1 bg-white font-medium rounded shadow transition p-none flex justify-center items-center "
             style={{
@@ -34,6 +35,7 @@ const SideBar = () => {
             <Plus size={20} strokeWidth={2} />
           </button>
           <button
+            id="create-conflict-button"
             onClick={() => {
               const viewport = getViewport();
               createNode("conflict", viewport, "Conflict");
@@ -46,6 +48,7 @@ const SideBar = () => {
         </div>
 
         <button
+          id="create-impression-button"
           onClick={() => setShowImpressionModal(true)}
           className="flex-1 w-full text-white font-medium rounded shadow transition p-none flex justify-center items-center bg-[#45618a] items-center p-[5px]"
         >

@@ -65,6 +65,24 @@ textarea {
   background: #000000c9;
 }
 
+#tour-modal-tooltip,
+#tour-modal-tooltip-arrow {
+  background: "white";
+}
+
+.light #tour-modal-tooltip {
+  background: #161616;
+}
+
+.light #tour-modal-tooltip-arrow {
+  border-right-color: #161616;
+}
+
+#tour-modal p,
+#tour-modal button {
+  color: black;
+}
+
 .conflict-handle {
   width: 10px !important; /* Adjust size as needed */
   height: 10px !important;
@@ -132,7 +150,6 @@ textarea {
   }
 
   .PW aside {
-    width: 20%;
-    max-width: 250px;
+    width: 200px;
   }
 }

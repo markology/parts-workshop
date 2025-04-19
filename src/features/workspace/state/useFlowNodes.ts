@@ -77,7 +77,11 @@ export const useFlowNodes = (map?: MapType) => {
   const setIsEditing = useUIStore((s) => s.setIsEditing);
 
   useEffect(() => {
-    populateImpressions(map?.sidebarImpressions);
+    populateImpressions(
+      map?.sidebarImpressions && "thoughts" in map.sidebarImpressions
+        ? map.sidebarImpressions
+        : undefined
+    );
   }, [map, populateImpressions]);
 
   useEffect(() => {
@@ -399,7 +403,6 @@ export const useFlowNodes = (map?: MapType) => {
 
   const onEdgeChange = useCallback(
     (changes: EdgeChange<Edge>[]) => {
-      console.log("EDGE CHANGED");
       changes.forEach((change) => {
         if ("id" in change) {
           const { target, source } = getEdge(change?.id) || {};

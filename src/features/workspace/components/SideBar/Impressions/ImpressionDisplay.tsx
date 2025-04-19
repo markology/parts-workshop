@@ -27,6 +27,7 @@ const Impressions = () => {
 
   return (
     <div
+      id="impression-dropdown-container"
       className={`h-[calc(100vw-100px)] pr-3 overflow-auto overscroll-x-none`}
     >
       <ul className="space-y-2">

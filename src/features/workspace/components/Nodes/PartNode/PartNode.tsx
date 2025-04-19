@@ -35,7 +35,6 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
 
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      console.log("saving from enter");
       handleSave();
     }
   };

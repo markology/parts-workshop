@@ -39,7 +39,7 @@ const Workspace = ({ map }: { map?: Map }) => {
   });
 
   return (
-    <div className="reactflow-wrapper">
+    <div id="canvas" className="reactflow-wrapper">
       <ReactFlow
         className="h-[4000px] w-[4000px]"
         nodes={nodes}
