@@ -3,7 +3,6 @@
 import { useState } from "react";
 import {
   NodeBackgroundColors,
-  NodeColors,
   NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
 import { Minus, Plus } from "lucide-react"; // optional: use any icon library

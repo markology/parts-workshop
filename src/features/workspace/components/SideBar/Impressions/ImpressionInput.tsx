@@ -69,7 +69,7 @@ const ImpressionInput = () => {
               setIsSelectorOpen(false);
             }}
             className={`px-3 py-1 text-sm flex-1 rounded-t-xl ${
-              selectedType === type ? "font-bold" : ""
+              selectedType === type ? "font-bold z-[9999999]" : ""
             }`}
             style={{
               backgroundColor:
