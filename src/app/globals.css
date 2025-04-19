@@ -16,8 +16,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-aside-background: var(--aside-background);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +28,10 @@
     --text-color-alt: black;
     --text-against-part-node: var(--text-color);
   }
+}
+
+* {
+  font-family: var(--font-inter);
 }
 
 body {
@@ -55,6 +58,10 @@ button {
 
 textarea {
   color: white;
+}
+
+button {
+  cursor: pointer;
 }
 
 #modal-overlay {
@@ -84,15 +91,15 @@ textarea {
 }
 
 .conflict-handle {
-  width: 10px !important; /* Adjust size as needed */
-  height: 10px !important;
+  width: 16px !important; /* Adjust size as needed */
+  height: 16px !important;
   background-color: #5a4784 !important; /* Keep visible */
   border: none !important;
 }
 
 .part-handle {
-  width: 14px !important; /* Adjust size as needed */
-  height: 14px !important;
+  width: 20px !important; /* Adjust size as needed */
+  height: 20px !important;
   border: none !important;
 }
 

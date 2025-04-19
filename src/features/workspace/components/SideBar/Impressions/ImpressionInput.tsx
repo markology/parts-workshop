@@ -68,7 +68,9 @@ const ImpressionInput = () => {
               setSelectedType(type);
               setIsSelectorOpen(false);
             }}
-            className={`px-3 py-1 text-sm flex-1 rounded-t-xl`}
+            className={`px-3 py-1 text-sm flex-1 rounded-t-xl ${
+              selectedType === type ? "font-bold" : ""
+            }`}
             style={{
               backgroundColor:
                 selectedType === type ? "white" : NodeBackgroundColors[type],
@@ -93,7 +95,7 @@ const ImpressionInput = () => {
             color: NodeBackgroundColors[selectedType],
           }}
           ref={textAreaRef}
-          className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none"
+          className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none font-semibold"
           rows={3}
           autoFocus
           onKeyDown={handleTextAreaKeyDown}

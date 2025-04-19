@@ -26,21 +26,42 @@ const ImpressionDropdown = ({
 }) => {
   const [open, toggleOpen] = useState(true);
   const removeImpression = useSidebarStore((s) => s.removeImpression);
-
+  const isImpressionsEmpty = !Object.keys(filteredImpressions).length;
+  const emptyOpacityStyle = isImpressionsEmpty ? 0.4 : 1;
   return (
     <div className="mb-2">
       <button
         className={`capitalize flex items-center justify-between w-full p-2 text-left font-semibold rounded hover:bg-["${NodeBackgroundColors[type]}"]`}
+        disabled={isImpressionsEmpty}
         onClick={() => toggleOpen(!open)}
         style={{
-          color: NodeColors[type],
+          color: NodeBackgroundColors[type],
+          opacity: emptyOpacityStyle,
         }}
       >
-        <p>{type}</p>
+        <p
+          style={{
+            color: NodeBackgroundColors[type],
+          }}
+        >
+          {type}
+        </p>
         {open ? (
-          <Minus size={16} strokeWidth={3} />
+          <Minus
+            style={{
+              opacity: emptyOpacityStyle,
+            }}
+            size={16}
+            strokeWidth={3}
+          />
         ) : (
-          <Plus size={16} strokeWidth={3} />
+          <Plus
+            style={{
+              opacity: emptyOpacityStyle,
+            }}
+            size={16}
+            strokeWidth={3}
+          />
         )}
       </button>
       <hr className="pb-2" />

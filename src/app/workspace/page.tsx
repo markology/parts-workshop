@@ -14,7 +14,7 @@ import { Map } from "@/types/api/map";
 import { ImpressionType } from "@/types/Impressions";
 import { SidebarImpression } from "@/types/Sidebar";
 import { authOptions } from "@/lib/authOptions";
-// import TourOverlay from "@/components/TourOverlay";
+import TourOverlay from "@/components/TourOverlay";
 import { createEmptyImpressionGroups } from "@/state/Sidebar";
 // import { hydrateMap } from "@/lib/mapTransformers";
 export type HydratedMap = Omit<
@@ -62,7 +62,7 @@ const WorkspacePage = async () => {
 
   return (
     <ReactFlowProvider>
-      {/* <TourOverlay /> */}
+      <TourOverlay />
       <FlowNodesProvider map={clientMap}>
         <div
           className="PW"
