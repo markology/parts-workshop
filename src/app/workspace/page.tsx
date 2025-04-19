@@ -62,7 +62,7 @@ const WorkspacePage = async () => {
 
   return (
     <ReactFlowProvider>
-      <TourOverlay />
+      {/* <TourOverlay /> */}
       <FlowNodesProvider map={clientMap}>
         <div
           className="PW"
