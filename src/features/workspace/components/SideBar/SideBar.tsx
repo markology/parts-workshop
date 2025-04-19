@@ -4,12 +4,13 @@ import Modal from "@/components/Modal";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useUIStore } from "@/state/UI";
 import { useReactFlow } from "@xyflow/react";
-import { PersonStanding, Plus, ShieldAlert } from "lucide-react";
+import { MessageCircleWarning, Plus, SquareUserRound } from "lucide-react";
 import { useMemo } from "react";
 
 import ImpressionDisplay from "./Impressions/ImpressionDisplay";
 import ImpressionInput from "./Impressions/ImpressionInput";
 import PartInput from "./PartInput";
+import { NodeBackgroundColors } from "../../constants/Nodes";
 
 const SideBar = () => {
   const { getViewport } = useReactFlow();
@@ -31,7 +32,7 @@ const SideBar = () => {
               color: "black",
             }}
           >
-            <PersonStanding strokeWidth={3} />
+            <SquareUserRound size={21} strokeWidth={2} className="mr-1" />
             <Plus size={20} strokeWidth={2} />
           </button>
           <button
@@ -40,9 +41,10 @@ const SideBar = () => {
               const viewport = getViewport();
               createNode("conflict", viewport, "Conflict");
             }}
-            className="flex-1 text-white font-medium rounded shadow transition p-none flex justify-center items-center bg-[#d24c4c] items-center p-[5px]"
+            style={{ background: NodeBackgroundColors["conflict"] }}
+            className="flex-1 text-white font-medium rounded shadow transition p-none flex justify-center items-center items-center p-[5px]"
           >
-            <ShieldAlert size={20} strokeWidth={2} />
+            <MessageCircleWarning size={20} strokeWidth={2} />
             <Plus className="ml-1" size={20} strokeWidth={2} />
           </button>
         </div>

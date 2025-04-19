@@ -4,7 +4,7 @@ import { useUIStore } from "@/state/UI";
 import { ImpressionTextType } from "@/types/Impressions";
 import { PartNodeData } from "@/types/Nodes";
 import { Handle, Position } from "@xyflow/react";
-import { Pencil, PersonStanding } from "lucide-react";
+import { Pencil, SquareUserRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
@@ -75,7 +75,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
             </button>
           </h3>
         )}
-        <PersonStanding className="text-[#a7c0dd]" strokeWidth={3} size={40} />
+        <SquareUserRound className="text-[#a7c0dd]" strokeWidth={2} size={40} />
       </div>
       <div
         className={

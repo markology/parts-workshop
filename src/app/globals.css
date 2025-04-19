@@ -24,7 +24,7 @@
   :root:has(.dark) {
     --background: #2a3545;
     /* --aside-background: #242c36;*/
-    --aside-background: linear-gradient(135deg, #232931, #28466d);
+    --aside-background: linear-gradient(135deg, #101418, #142235);
     --text-color: white;
     --text-color-alt: black;
     --text-against-part-node: var(--text-color);
@@ -93,8 +93,15 @@ textarea {
 .part-handle {
   width: 14px !important; /* Adjust size as needed */
   height: 14px !important;
-  background-color: #baceec !important; /* Keep visible */
   border: none !important;
+}
+
+.light .part-handle {
+  background-color: #88b7fd !important;
+}
+
+.dark .part-handle {
+  background-color: #baceec !important; /* Keep visible */
 }
 
 .part-impression-container {
@@ -124,6 +131,10 @@ textarea {
 .light .conflict-node p,
 .light .conflict-node div {
   color: white;
+}
+
+.light #create-conflict-button {
+  background: #5a4784 !important;
 }
 
 .PW {

@@ -1,15 +1,4 @@
 export const NodeColors = {
-  emotion: "#F28C82",
-  thought: "#7AB3E0",
-  sensation: "#F9B17A",
-  behavior: "#8BCB8B",
-  conflict: "#B19CD9",
-  part: "#F7E68F",
-  self: "#80d7d1",
-  other: "#EFA9C8",
-};
-
-export const NodeBackgroundColors = {
   emotion: "#f28c82ad",
   thought: "#7ab3e0ad",
   sensation: "#f9b17aad",
@@ -18,6 +7,17 @@ export const NodeBackgroundColors = {
   part: "#f7e68fad",
   self: "#4ecdc4ad",
   other: "#efa9c8ad",
+};
+
+export const NodeBackgroundColors = {
+  emotion: "#F28C82",
+  thought: "#7AB3E0",
+  sensation: "#F9B17A",
+  behavior: "#8BCB8B",
+  conflict: "#B19CD9",
+  part: "#F7E68F",
+  self: "#80d7d1",
+  other: "#EFA9C8",
 };
 
 export const NodeTextColors = {

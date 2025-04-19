@@ -38,9 +38,9 @@ const ImpressionDropdown = ({
       >
         <p>{type}</p>
         {open ? (
-          <Minus size={16} strokeWidth={5} />
+          <Minus size={16} strokeWidth={3} />
         ) : (
-          <Plus size={16} strokeWidth={5} />
+          <Plus size={16} strokeWidth={3} />
         )}
       </button>
       <hr className="pb-2" />
@@ -53,7 +53,7 @@ const ImpressionDropdown = ({
               onDragStart={(event) => onDragStart(event, item.id, item.type)}
               draggable
               style={{
-                background: NodeColors[item.type],
+                background: NodeBackgroundColors[item.type],
               }}
             >
               <span>{item.label}</span>

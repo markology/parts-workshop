@@ -1,4 +1,4 @@
-import { NodeColors } from "@/features/workspace/constants/Nodes";
+import { NodeTextColors } from "@/features/workspace/constants/Nodes";
 import { useMemo, useRef } from "react";
 import { ListRestart, Trash2 } from "lucide-react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
@@ -70,7 +70,10 @@ const PartImpressionNode = ({
         ref={nodeRef}
         onContextMenu={handleContextMenu}
         className="text-white text-left bg-[#4ecdc4] rounded py-1 px-4 break-words relative"
-        style={{ backgroundColor: NodeColors[type] }}
+        style={{
+          backgroundColor: NodeTextColors[type],
+          boxShadow: "0px 1px 4px 0px rgba(0, 0, 0, 0.35)",
+        }}
       >
         {item.data.label}
       </li>

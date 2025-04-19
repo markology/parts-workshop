@@ -384,7 +384,7 @@ export const useFlowNodes = (map?: MapType) => {
       } else {
         setNodes((prev) => [...prev, newNode]);
       }
-      removeImpression(type, id);
+      // removeImpression(type, id);
     },
     [
       activeSidebarNode,

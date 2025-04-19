@@ -1,7 +1,7 @@
 "use client";
 
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
-import { NodeColors } from "@/features/workspace/constants/Nodes";
+import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
 import { useSidebarStore } from "@/state/Sidebar";
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { useEffect, useRef, useState } from "react";
@@ -71,8 +71,9 @@ const ImpressionInput = () => {
             className={`px-3 py-1 text-sm flex-1 rounded-t-xl`}
             style={{
               backgroundColor:
-                selectedType === type ? "white" : NodeColors[type],
-              color: selectedType === type ? NodeColors[type] : "white",
+                selectedType === type ? "white" : NodeBackgroundColors[type],
+              color:
+                selectedType === type ? NodeBackgroundColors[type] : "white",
             }}
           >
             {ImpressionTextType[type]}
@@ -89,7 +90,7 @@ const ImpressionInput = () => {
         <textarea
           style={{
             visibility: !isSelectorOpen ? "visible" : "hidden",
-            color: NodeColors[selectedType],
+            color: NodeBackgroundColors[selectedType],
           }}
           ref={textAreaRef}
           className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none"

@@ -1,5 +1,5 @@
 import {
-  NodeColors,
+  NodeBackgroundColors,
   NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
@@ -8,7 +8,7 @@ import {
   ConnectedNodeType,
 } from "@/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
-import { ShieldAlert } from "lucide-react";
+import { MessageCircleWarning } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const ConflictNode = ({
@@ -69,7 +69,7 @@ const ConflictNode = ({
     <>
       <div
         className="node conflict-node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
-        style={{ backgroundColor: NodeColors["conflict"] }}
+        style={{ backgroundColor: NodeBackgroundColors["conflict"] }}
       >
         <div className="flex flex-row justify-between">
           <strong
@@ -78,7 +78,11 @@ const ConflictNode = ({
           >
             Conflict
           </strong>
-          <ShieldAlert className="color-[#705d93]" size={20} strokeWidth={2} />
+          <MessageCircleWarning
+            className="color-[#705d93]"
+            size={20}
+            strokeWidth={2}
+          />
         </div>
         <div className="flex gap-4 flex-col">
           {connectedNodes.length ? (

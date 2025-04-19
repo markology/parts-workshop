@@ -1,5 +1,5 @@
 import {
-  NodeColors,
+  NodeBackgroundColors,
   NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
 import { useCallback, useMemo, useRef } from "react";
@@ -65,7 +65,7 @@ const ImpressionNode = ({
     <div className="node impression-node text-right">
       <div
         className="text-white text-left bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
-        style={{ backgroundColor: NodeColors[type] }}
+        style={{ backgroundColor: NodeBackgroundColors[type] }}
         ref={nodeRef}
         onContextMenu={handleContextMenu}
       >
