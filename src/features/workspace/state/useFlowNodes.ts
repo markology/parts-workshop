@@ -70,7 +70,6 @@ export const useFlowNodes = (map?: MapType) => {
 
   const populateImpressions = useSidebarStore((s) => s.populateImpressions);
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
-  const removeImpression = useSidebarStore((s) => s.removeImpression);
   const setContextMenuParentNodeId = useUIStore(
     (s) => s.setContextMenuParentNodeId
   );
@@ -384,13 +383,11 @@ export const useFlowNodes = (map?: MapType) => {
       } else {
         setNodes((prev) => [...prev, newNode]);
       }
-      // removeImpression(type, id);
     },
     [
       activeSidebarNode,
       screenToFlowPosition,
       nodes,
-      removeImpression,
       insertImpressionToPart,
       setNodes,
     ]
