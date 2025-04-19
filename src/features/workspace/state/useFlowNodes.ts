@@ -273,50 +273,58 @@ export const useFlowNodes = (map?: MapType) => {
     });
   };
 
-  const removePartFromAllConflicts = (partId: string) => {
-    setNodes((prev) => {
-      const conflictNodesContainingPartId: ConflictNode[] = prev.filter(
-        (node): node is ConflictNode =>
-          isConflictNode(node) &&
-          node.data.connectedNodes.some(
-            (connectedNode) => connectedNode.part.id === partId
-          )
-      );
+  const removePartFromAllConflicts = useCallback(
+    (partId: string) => {
+      setNodes((prev) => {
+        const conflictNodesContainingPartId: ConflictNode[] = prev.filter(
+          (node): node is ConflictNode =>
+            isConflictNode(node) &&
+            node.data.connectedNodes.some(
+              (connectedNode) => connectedNode.part.id === partId
+            )
+        );
 
-      const remappedConflictNodes: ConflictNode[] =
-        conflictNodesContainingPartId.map((conflictNode) => {
-          const connectedNodes = conflictNode.data.connectedNodes;
-          const updatedConnectedNodes = connectedNodes.filter(
-            (connectedNode: ConnectedNodeType) =>
-              connectedNode.part.id !== partId
-          );
+        const remappedConflictNodes: ConflictNode[] =
+          conflictNodesContainingPartId.map((conflictNode) => {
+            const connectedNodes = conflictNode.data.connectedNodes;
+            const updatedConnectedNodes = connectedNodes.filter(
+              (connectedNode: ConnectedNodeType) =>
+                connectedNode.part.id !== partId
+            );
 
-          return {
-            ...conflictNode,
-            data: {
-              ...conflictNode.data,
-              connectedNodes: updatedConnectedNodes,
-            },
-          };
-        });
+            return {
+              ...conflictNode,
+              data: {
+                ...conflictNode.data,
+                connectedNodes: updatedConnectedNodes,
+              },
+            };
+          });
 
-      const remappedMap = new Map(remappedConflictNodes.map((n) => [n.id, n]));
+        const remappedMap = new Map(
+          remappedConflictNodes.map((n) => [n.id, n])
+        );
 
-      const newNodes = prev.map((node) =>
-        remappedMap.has(node.id) ? remappedMap.get(node.id)! : node
-      );
+        const newNodes = prev.map((node) =>
+          remappedMap.has(node.id) ? remappedMap.get(node.id)! : node
+        );
 
-      return newNodes;
-    });
-  };
+        return newNodes;
+      });
+    },
+    [setNodes]
+  );
 
-  const deleteEdges = (nodeId: string) => {
-    setEdges((prev) => {
-      return prev.filter(
-        (edge) => edge.source !== nodeId && edge.target !== nodeId
-      );
-    });
-  };
+  const deleteEdges = useCallback(
+    (nodeId: string) => {
+      setEdges((prev) => {
+        return prev.filter(
+          (edge) => edge.source !== nodeId && edge.target !== nodeId
+        );
+      });
+    },
+    [setEdges]
+  );
 
   // REACT FLOW USER INTERACTIVITY
 

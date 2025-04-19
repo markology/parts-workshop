@@ -1,15 +1,30 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import Landing from "@/features/landing/components/Landing";
-import { authOptions } from "@/lib/authOptions";
-export const dynamic = "force-static"; // ✅ Next.js SSG
+import Image from "next/image";
+import SignInButton from "@/features/landing/components/SignInButton";
+import ClientRedirect from "@/components/ClientRedirect";
 
-export default async function Page() {
-  const session = await getServerSession(authOptions);
+const Landing = () => {
+  return (
+    <div
+      className="relative h-screen w-screen"
+      style={{ background: "linear-gradient(161deg, #643312, #327b86)" }}
+    >
+      <ClientRedirect />
+      <Image
+        className="absolute top-0 bottom-0 left-0 right-0 h-full w-screen object-contain"
+        src="/parts-hero.png"
+        alt="Parts Workshop Hero"
+        width={2200} // <-- your actual image dimensions
+        height={1500}
+        priority
+        placeholder="empty" // or use "blur" with local import
+      />
 
-  if (session) {
-    redirect("/workspace");
-  }
+      <div className="absolute z-10 inset-0 flex items-center justify-center flex-col">
+        <h1 className="text-8xl mb-3">Parts Workshop</h1>
+        <SignInButton />
+      </div>
+    </div>
+  );
+};
 
-  return <Landing />;
-}
+export default Landing;

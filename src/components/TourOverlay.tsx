@@ -189,7 +189,7 @@ export default function TourOverlay() {
     if (!step?.target || step.videoModal) return;
     const el = document.querySelector(step.target) as HTMLElement | null;
     if (el) setTargetEl(el);
-  }, [step?.target, stepIndex]);
+  }, [step.target, step.videoModal, stepIndex]);
 
   const next = () => setStepIndex((i) => i + 1);
   const prev = () => setStepIndex((i) => Math.max(i - 1, 0));

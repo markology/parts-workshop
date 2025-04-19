@@ -27,7 +27,7 @@ const useSaveMap = ({ saveMap }: { saveMap: () => void }) => {
           setSaveCheck(false);
         }, 1000);
       }, 1000);
-  }, [isSavingMap]);
+  }, [isSavingMap, setIsSavingMap]);
 
   const handleSaveMap = () => {
     if (!isSavingMap) {

@@ -64,7 +64,7 @@ const useAutosave = ({
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [mapId, nodes, edges, sidebarImpressions]);
+  }, [mapId, nodes, edges, sidebarImpressions, setIsSavingMap]);
 
   // Save on tab close
   useEffect(() => {
