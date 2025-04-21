@@ -1,20 +1,21 @@
-import React from "react";
 import Image from "next/image";
-import SignInButton from "./SignInButton";
+import SignInButton from "@/features/landing/components/SignInButton";
+import ClientRedirect from "@/components/ClientRedirect";
 
 const Landing = () => {
+  console.log("in landing");
   return (
     <div
       className="relative h-screen w-screen"
       style={{ background: "linear-gradient(161deg, #643312, #327b86)" }}
     >
+      <ClientRedirect />
       <Image
         className="absolute top-0 bottom-0 left-0 right-0 h-full w-screen object-contain"
         src="/parts-hero.png"
         alt="Parts Workshop Hero"
-        width={2200} // <-- your actual image dimensions
-        height={1500}
         priority
+        fill
         placeholder="empty" // or use "blur" with local import
       />
 

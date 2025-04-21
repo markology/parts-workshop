@@ -25,10 +25,13 @@ export type HydratedMap = Omit<
 
 const WorkspacePage = async () => {
   const session = await getServerSession(authOptions);
+  console.log("SESSIONworkspace", session);
   if (!session?.user) redirect("/");
 
   let map = await prisma.map.findFirst({ where: { userId: session.user.id } });
   let clientMap: Map | undefined = undefined;
+
+  const showTour = !map;
 
   if (!map) {
     // map = await prisma.map.create({
@@ -62,7 +65,7 @@ const WorkspacePage = async () => {
 
   return (
     <ReactFlowProvider>
-      <TourOverlay />
+      {showTour && <TourOverlay />}
       <FlowNodesProvider map={clientMap}>
         <div
           className="PW"
