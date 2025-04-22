@@ -83,7 +83,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
       <div
         onContextMenu={handleContextMenu}
         ref={nodeRef}
-        className="node part-node bg-[#a3c1e591] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl"
+        className="node part-node bg-[#a3c1e591] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl text-left"
       >
         {/* Title */}
         <div className="flex justify-between">

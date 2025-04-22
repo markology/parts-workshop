@@ -65,9 +65,9 @@ export const useFlowNodes = (map?: MapType) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
     map?.edges || []
   );
-  const { getEdge, getNode, screenToFlowPosition } = useReactFlow();
+  const { getViewport, setCenter, getEdge, getNode, screenToFlowPosition } =
+    useReactFlow();
   const getNodes = useRef(() => nodes);
-
   const populateImpressions = useSidebarStore((s) => s.populateImpressions);
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
   const setContextMenuParentNodeId = useUIStore(
@@ -91,12 +91,44 @@ export const useFlowNodes = (map?: MapType) => {
 
   const createNode = (
     type: NodeType,
-    position: XYPosition,
     label: string,
-    impressionType?: ImpressionType
+    impressionType?: ImpressionType,
+    position?: XYPosition,
+    style?: unknown
   ) => {
-    const newNode = createNodeFN({ type, position, label, impressionType });
+    const viewport = getViewport();
+    const newNode = createNodeFN({
+      type,
+      position: position || { x: viewport.x, y: viewport.y },
+      label,
+      impressionType,
+      style,
+    });
     setNodes((prev: WorkshopNode[]) => [...prev, newNode]);
+    const offsets: Record<NodeType, Record<string, number>> = {
+      conflict: {
+        x: 200,
+        y: 100,
+      },
+      part: {
+        x: 500,
+        y: 300,
+      },
+      impression: {
+        x: 40,
+        y: 20,
+      },
+    };
+    setTimeout(() => {
+      setCenter(
+        newNode.position.x + offsets[type].x,
+        newNode.position.y + offsets[type].y,
+        {
+          zoom: 0.6,
+          duration: 500,
+        }
+      );
+    }, 0);
   };
 
   const deleteNode = useCallback(

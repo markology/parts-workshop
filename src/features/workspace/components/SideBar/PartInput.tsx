@@ -2,48 +2,19 @@
 
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useUIStore } from "@/state/UI";
-import { PartNode } from "@/types/Nodes";
-import { useReactFlow } from "@xyflow/react";
 import { useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
 
 const PartInput = () => {
-  const { setNodes } = useFlowNodesContext();
-  const { getViewport, setCenter } = useReactFlow();
+  const { createNode } = useFlowNodesContext();
 
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const partInputRef = useRef<HTMLInputElement | null>(null);
 
   const addPartNode = (e: { key: string }) => {
     if (e.key === "Enter" && partInputRef.current!.value.trim()) {
-      const viewport = getViewport();
-      const newPart: PartNode = {
-        id: uuidv4(),
-        type: "part",
-        position: { x: viewport.x, y: viewport.y },
-        style: { zIndex: -1, textAlign: "right" },
-        data: {
-          needs: [],
-          type: "partData",
-          label: partInputRef.current!.value,
-          Emotions: [],
-          Thoughts: [],
-          Sensations: [],
-          Behaviors: [],
-          Others: [],
-          Self: [],
-        },
-      };
+      createNode("part", partInputRef.current!.value);
       partInputRef.current!.value = "";
-      setNodes((nodes) => [...nodes, newPart]);
       setShowPartModal(false);
-
-      setTimeout(() => {
-        setCenter(newPart.position.x + 500, newPart.position.y + 300, {
-          zoom: 0.6,
-          duration: 500,
-        });
-      }, 0);
     }
   };
 

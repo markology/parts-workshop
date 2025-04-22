@@ -3,7 +3,6 @@
 import Modal from "@/components/Modal";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useUIStore } from "@/state/UI";
-import { useReactFlow } from "@xyflow/react";
 import { MessageCircleWarning, Plus, SquareUserRound } from "lucide-react";
 import { useMemo } from "react";
 
@@ -14,7 +13,6 @@ import { NodeBackgroundColors } from "../../constants/Nodes";
 import React from "react";
 
 const SideBar = () => {
-  const { getViewport } = useReactFlow();
   const { createNode } = useFlowNodesContext();
   const showPartModal = useUIStore((s) => s.showPartModal);
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
@@ -39,8 +37,7 @@ const SideBar = () => {
           <button
             id="create-conflict-button"
             onClick={() => {
-              const viewport = getViewport();
-              createNode("conflict", viewport, "Conflict");
+              createNode("conflict", "Conflict");
             }}
             style={{ background: NodeBackgroundColors["conflict"] }}
             className="flex-1 text-white font-medium rounded shadow transition p-none flex justify-center items-center items-center p-[5px]"
@@ -60,7 +57,7 @@ const SideBar = () => {
         </button>
       </div>
     ),
-    [createNode, getViewport, setShowImpressionModal, setShowPartModal]
+    [createNode, setShowImpressionModal, setShowPartModal]
   );
 
   return (

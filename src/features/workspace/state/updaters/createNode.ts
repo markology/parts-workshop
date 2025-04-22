@@ -16,11 +16,13 @@ export default function createNodeFN({
   position,
   label,
   impressionType,
+  style,
 }: {
   type: NodeType;
   position: XYPosition;
   label: string;
   impressionType?: ImpressionType;
+  style?: unknown;
 }) {
   const id = uuidv4();
   const baseNode = {
@@ -30,6 +32,7 @@ export default function createNodeFN({
       backgroundColor: "transparent",
       border: "none",
       boxShadow: "none",
+      ...(typeof style === "object" ? style : {}),
     },
   };
 
@@ -55,6 +58,7 @@ export default function createNodeFN({
         type: "part",
         style: {
           textAlign: "right",
+          zIndex: -1,
         },
         data: {
           type: "partData",
@@ -88,5 +92,6 @@ export default function createNodeFN({
     default:
       throw new Error(`Unknown node type: ${type}`);
   }
+
   return newNode;
 }
