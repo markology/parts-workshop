@@ -21,7 +21,6 @@ export default async function handler(
     });
 
     if (!entry) {
-      console.log("CREATING NODE", nodeId);
       entry = await prisma.journalEntry.create({
         data: {
           userId,
@@ -39,8 +38,6 @@ export default async function handler(
     const existing = await prisma.journalEntry.findFirst({
       where: { userId, nodeId },
     });
-
-    console.log("UPDATING NODE", existing);
 
     const entry = existing
       ? await prisma.journalEntry.update({

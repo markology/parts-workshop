@@ -2,12 +2,12 @@ import { NodeTextColors } from "@/features/workspace/constants/Nodes";
 import { useMemo } from "react";
 import { ListRestart, PencilIcon, Trash2 } from "lucide-react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import { useSidebarStore } from "@/state/Sidebar";
 import { ImpressionNode } from "@/types/Nodes";
 import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionType } from "@/types/Impressions";
 import useContextMenu from "@/hooks/useContextMenu";
 import { useJournalStore } from "@/state/Journal";
+import { useWorkingStore } from "@/features/workspace/state/useWorkingStore";
 
 const PartImpressionNode = ({
   item,
@@ -43,7 +43,6 @@ const PartImpressionNode = ({
         [detachImpressionFromPart, item.id, partId, type]
       ),
     });
-  const addImpression = useSidebarStore((s) => s.addImpression);
 
   const handleSendBackToSideBar = (
     id: string,
@@ -51,7 +50,7 @@ const PartImpressionNode = ({
     type: ImpressionType
   ) => {
     detachImpressionFromPart(id, partId, type);
-    addImpression({
+    useWorkingStore.getState().addImpression({
       id,
       type,
       label: item.data.label,

@@ -3,7 +3,6 @@ import SignInButton from "@/features/landing/components/SignInButton";
 import ClientRedirect from "@/components/ClientRedirect";
 
 const Landing = () => {
-  console.log("in landing");
   return (
     <div
       className="relative h-screen w-screen"

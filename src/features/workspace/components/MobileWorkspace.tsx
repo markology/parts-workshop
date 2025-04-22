@@ -1,10 +1,5 @@
-// import TourOverlay from "@/components/TourOverlay";
-import Canvas from "@/features/workspace/components/Canvas";
-// import SideBar from "@/features/workspace/components/SideBar/SideBar";
-import { FlowNodesProvider } from "@/features/workspace/state/FlowNodesContext";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
-import { createEmptyImpressionGroups } from "@/state/Sidebar";
 import { Map } from "@/types/api/map";
 import { ImpressionType } from "@/types/Impressions";
 import { WorkshopNode } from "@/types/Nodes";
@@ -15,8 +10,9 @@ import { Edge } from "@xyflow/react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import React from "react";
+import { createEmptyImpressionGroups } from "../state/useWorkingStore";
+import CanvasClient from "./CanvasClient";
 
-// import { hydrateMap } from "@/lib/mapTransformers";
 export type HydratedMap = Omit<
   PrismaMap,
   "nodes" | "edges" | "sidebarImpressions" | "userId"
@@ -25,16 +21,12 @@ export type HydratedMap = Omit<
 
 const MobileWorkspace = async () => {
   const session = await getServerSession(authOptions);
-  console.log("SESSIONworkspace", session);
   if (!session?.user) redirect("/");
 
   let map = await prisma.map.findFirst({ where: { userId: session.user.id } });
   let clientMap: Map | undefined = undefined;
 
-  // const showTour = !map;
-
   if (!map) {
-    // map = await prisma.map.create({
     map = await prisma.map.create({
       data: {
         userId: session.user.id,
@@ -64,19 +56,17 @@ const MobileWorkspace = async () => {
   };
   return (
     <ReactFlowProvider>
-      <FlowNodesProvider map={clientMap}>
-        <div
-          className="PW"
-          style={{
-            height: "100vh",
-            width: "100vw",
-            overflow: "hidden",
-            display: "flex",
-          }}
-        >
-          <Canvas map={clientMap} />
-        </div>
-      </FlowNodesProvider>
+      <div
+        className="PW"
+        style={{
+          height: "100vh",
+          width: "100vw",
+          overflow: "hidden",
+          display: "flex",
+        }}
+      >
+        <CanvasClient mapId={clientMap.id} />
+      </div>
     </ReactFlowProvider>
   );
 };

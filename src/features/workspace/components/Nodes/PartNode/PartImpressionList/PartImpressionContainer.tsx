@@ -5,8 +5,6 @@ import {
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { ReactElement } from "react";
 
-let index = 0;
-
 const PartImpressionContainer = ({
   type,
   children,
@@ -16,7 +14,7 @@ const PartImpressionContainer = ({
 }) => {
   return (
     <div
-      key={`PartImpressionWrapper ${index++}`}
+      key={`PartImpressionWrapper ${type}`}
       className={`relative p-4 rounded-lg mb-4 flex-1 justify-items-center max-w-[140px]`}
       style={{
         backgroundColor: NodeBackgroundColors[type],

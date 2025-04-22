@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Trash, Trash2 } from "lucide-react";
-import { useSidebarStore } from "@/state/Sidebar";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
-
-//handleNodeDragStop triggers deletes from useFlowNodes
+import { useWorkingStore } from "../../state/useWorkingStore";
+import { SidebarImpression } from "@/types/Sidebar";
 
 const TrashCan: React.FC = () => {
-  const removeImpression = useSidebarStore((s) => s.removeImpression);
   const [isHoveringTrash, setIsHoveringTrash] = useState(false);
 
   const handleDragEnter = (e: { preventDefault: () => void }) => {
@@ -28,9 +26,10 @@ const TrashCan: React.FC = () => {
     );
 
     if (sidebarData) {
-      const item = JSON.parse(sidebarData);
-      removeImpression(item.type, item.id);
-      return;
+      const item: SidebarImpression = JSON.parse(sidebarData);
+      useWorkingStore
+        .getState()
+        .removeImpression({ type: item.type, id: item.id });
     }
   };
 

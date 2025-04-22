@@ -22,15 +22,6 @@ export type Map = {
   //   updatedAt: Date;
 };
 
-export type SerializedMap = {
-  id: string;
-  title: string;
-  nodes: string; // from Prisma — stored as JSON string
-  edges: string;
-  sidebarImpressions: string;
-  userId: string;
-};
-
 export type HydratedMap = {
   id: string;
   title: string;

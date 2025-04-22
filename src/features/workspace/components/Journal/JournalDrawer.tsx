@@ -20,8 +20,6 @@ export default function JournalDrawer() {
   const { data: globalData, isLoading: isGlobalLoading } =
     useGlobalJournalQuery();
 
-  console.log({ globalData, isGlobalLoading });
-
   const content =
     journalTarget?.type === "node"
       ? nodeData?.content ?? ""

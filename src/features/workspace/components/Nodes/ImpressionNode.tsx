@@ -4,13 +4,13 @@ import {
 } from "@/features/workspace/constants/Nodes";
 import { useCallback, useMemo } from "react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import { useSidebarStore } from "@/state/Sidebar";
 import { ListRestart, PencilIcon, Trash2 } from "lucide-react";
 import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import useContextMenu from "@/hooks/useContextMenu";
 import detachImpressionFromPart from "../../state/updaters/detachImpressionFromPart";
 import { useJournalStore } from "@/state/Journal";
+import { useWorkingStore } from "../../state/useWorkingStore";
 
 const ImpressionNode = ({
   id,
@@ -22,7 +22,6 @@ const ImpressionNode = ({
   type: ImpressionType;
 }) => {
   const { deleteNode } = useFlowNodesContext();
-  const addImpression = useSidebarStore((s) => s.addImpression);
   const { setJournalTarget } = useJournalStore();
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
@@ -51,13 +50,13 @@ const ImpressionNode = ({
   const handleSendBackToSideBar = useCallback(
     (id: string, type: ImpressionType) => {
       deleteNode(id);
-      addImpression({
+      useWorkingStore.getState().addImpression({
         id,
         type,
         label,
       });
     },
-    [addImpression, deleteNode, label]
+    [deleteNode, label]
   );
 
   return (

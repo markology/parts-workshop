@@ -2,7 +2,6 @@
 
 import { ReactFlowProvider } from "@xyflow/react";
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/authOptions";
 import {
@@ -10,17 +9,15 @@ import {
   QueryClient,
   dehydrate,
 } from "@tanstack/react-query";
-import { FlowNodesProvider } from "@/features/workspace/state/FlowNodesContext";
-import Canvas from "@/features/workspace/components/Canvas";
-import SideBar from "@/features/workspace/components/SideBar/SideBar";
+import CanvasClient from "@/features/workspace/components/CanvasClient";
 import TourOverlay from "@/features/workspace/components/TourOverlay";
-import { createEmptyImpressionGroups } from "@/state/Sidebar";
 import { WorkshopNode } from "@/types/Nodes";
 import { Edge } from "@xyflow/react";
 import { Map } from "@/types/api/map";
 import { Map as PrismaMap } from "@prisma/client";
 import { ImpressionType } from "@/types/Impressions";
 import { SidebarImpression } from "@/types/Sidebar";
+import { createEmptyImpressionGroups } from "../state/useWorkingStore";
 
 export type HydratedMap = Omit<
   PrismaMap,
@@ -30,14 +27,20 @@ export type HydratedMap = Omit<
 
 async function DesktopWorkspace() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/");
+  console.log("SESSION:", session);
+
+  if (!session?.user?.id) {
+    throw new Error("User not logged in");
+  }
 
   const userId = session.user.id;
   let map = await prisma.map.findFirst({ where: { userId } });
+  console.log("MAP FOUND:", map?.id);
 
   const showTour = !map;
 
   if (!map) {
+    console.log("❌ No map found — creating a new one");
     map = await prisma.map.create({
       data: {
         userId,
@@ -74,24 +77,23 @@ async function DesktopWorkspace() {
     staleTime: Infinity,
   });
 
+  console.log(clientMap);
+
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ReactFlowProvider>
         {showTour && <TourOverlay />}
-        <FlowNodesProvider map={clientMap}>
-          <div
-            className="PW"
-            style={{
-              height: "100vh",
-              width: "100vw",
-              overflow: "hidden",
-              display: "flex",
-            }}
-          >
-            <SideBar />
-            <Canvas map={clientMap} />
-          </div>
-        </FlowNodesProvider>
+        <div
+          className="PW"
+          style={{
+            height: "100vh",
+            width: "100vw",
+            overflow: "hidden",
+            display: "flex",
+          }}
+        >
+          <CanvasClient mapId={clientMap.id} />
+        </div>
       </ReactFlowProvider>
     </HydrationBoundary>
   );

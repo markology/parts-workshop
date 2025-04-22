@@ -27,7 +27,6 @@ export const useSaveJournalMutation = () => {
       }
     },
     onSuccess: (_data, variables) => {
-      console.log("CHECKING VARIABLES", variables);
       if (variables.type === "global") {
         queryClient.setQueryData(["journal", "global"], _data); // ✅ update cache immediately
       } else {

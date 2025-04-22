@@ -3,7 +3,6 @@ import PartImpressionContainer from "./PartImpressionContainer";
 import PartImpressionNode from "./PartImpressionNode";
 import { ImpressionType } from "@/types/Impressions";
 
-let index = 0;
 const PartImpressionList = ({
   data,
   type,
@@ -19,7 +18,7 @@ const PartImpressionList = ({
         <PartImpressionNode
           item={item}
           type={type}
-          key={`PartImpressionNode ${index++}`}
+          key={`PartImpressionNode ${item.id}`}
           partId={partId}
         />
       );

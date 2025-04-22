@@ -12,37 +12,21 @@ import Logout from "./Logout";
 import SaveProgress from "./SaveProgress";
 import ThemeToggle from "./ThemeToggle";
 import TrashCan from "./TrashCan";
-import { WorkshopNode } from "@/types/Nodes";
-import { Edge } from "@xyflow/react";
-import { SidebarImpression } from "@/types/Sidebar";
-import { ImpressionType } from "@/types/Impressions";
 import SaveJournal from "./SaveJournal";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
 
-export default function Utilities({
-  saveMapData,
-}: {
-  saveMapData?: {
-    mapId: string;
-    nodes: WorkshopNode[];
-    edges: Edge[];
-    sidebarImpressions: Record<
-      ImpressionType,
-      Record<string, SidebarImpression>
-    >;
-  };
-}) {
+export default function Utilities({ full }: { full?: boolean }) {
   const [visible, setVisible] = useState(true);
   const [hoveringHide, setHoveringHide] = useState(false);
   const isOpen = useJournalStore((s) => s.isOpen);
   return (
     <div
       className={`fixed top-4 right-4 z-50 flex flex-col items-end gap-2.5 ${
-        !saveMapData ? "z-[51]" : "z-[1]"
+        !full ? "z-[51]" : "z-[1]"
       }`}
     >
       {/* Toggle Button */}
-      {saveMapData && (
+      {full && (
         <ToolTipWrapper
           message={visible ? "Hide Utilities" : "Reveal Utilities"}
         >
@@ -75,13 +59,13 @@ export default function Utilities({
           visible ? "translate-x-0" : "translate-x-20"
         }`}
       >
-        {saveMapData && <Logout />}
+        {full && <Logout />}
         <ThemeToggle />
         {isOpen && <SaveJournal />}
         <JournalToggle />
-        {!isOpen && saveMapData && (
+        {!isOpen && full && (
           <>
-            <SaveProgress saveMapData={saveMapData} />
+            <SaveProgress />
             <TrashCan />
           </>
         )}

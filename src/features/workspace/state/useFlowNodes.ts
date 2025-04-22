@@ -30,7 +30,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
-import { Map as MapType } from "@/types/api/map";
+import { useWorkingStore } from "./useWorkingStore";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
 
@@ -58,34 +58,45 @@ function isPointInsideNode(position: XYPosition, node: Node): boolean {
 
 // manages interactivity of flow nodes state and canvas
 
-export const useFlowNodes = (map?: MapType) => {
+export const useFlowNodes = () => {
+  const initialNodes = useWorkingStore.getState().nodes;
+  const initialEdges = useWorkingStore.getState().edges;
+
   const [nodes, setNodes, onNodesChange] = useNodesState<WorkshopNode>(
-    map?.nodes || []
+    initialNodes || []
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
-    map?.edges || []
+    initialEdges || []
   );
   const { getViewport, setCenter, getEdge, getNode, screenToFlowPosition } =
     useReactFlow();
   const getNodes = useRef(() => nodes);
-  const populateImpressions = useSidebarStore((s) => s.populateImpressions);
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
+
   const setContextMenuParentNodeId = useUIStore(
     (s) => s.setContextMenuParentNodeId
   );
   const setIsEditing = useUIStore((s) => s.setIsEditing);
 
   useEffect(() => {
-    populateImpressions(
-      map?.sidebarImpressions && "thoughts" in map.sidebarImpressions
-        ? map.sidebarImpressions
-        : undefined
-    );
-  }, [map, populateImpressions]);
-
-  useEffect(() => {
     getNodes.current = () => nodes;
   }, [nodes]);
+
+  useEffect(() => {
+    const handle = requestIdleCallback(() => {
+      useWorkingStore.getState().setState({ nodes });
+    });
+
+    return () => cancelIdleCallback(handle);
+  }, [nodes]);
+
+  useEffect(() => {
+    const handle = requestIdleCallback(() => {
+      useWorkingStore.getState().setState({ edges });
+    });
+
+    return () => cancelIdleCallback(handle);
+  }, [edges]);
 
   // GENERAL NODE MANAGENT
 

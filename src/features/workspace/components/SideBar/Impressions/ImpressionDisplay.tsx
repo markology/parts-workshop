@@ -3,10 +3,11 @@ import ImpressionDropdown from "./ImpressionDropdown";
 
 import { useSidebarStore } from "@/state/Sidebar";
 import { ImpressionType } from "@/types/Impressions";
+import { useWorkingStore } from "@/features/workspace/state/useWorkingStore";
 
 const Impressions = () => {
-  const { impressions, setActiveSidebarNode } = useSidebarStore();
-
+  const { setActiveSidebarNode } = useSidebarStore();
+  const impressions = useWorkingStore((s) => s.sidebarImpressions);
   const onDragStart = (
     event: React.DragEvent<HTMLDivElement>,
     draggableId: string,

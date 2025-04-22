@@ -8,7 +8,7 @@ import {
 import { Minus, Plus } from "lucide-react"; // optional: use any icon library
 import { ImpressionType } from "@/types/Impressions";
 import { SidebarImpression } from "@/types/Sidebar";
-import { useSidebarStore } from "@/state/Sidebar";
+import { useWorkingStore } from "@/features/workspace/state/useWorkingStore";
 
 const ImpressionDropdown = ({
   type,
@@ -24,7 +24,6 @@ const ImpressionDropdown = ({
   ) => void;
 }) => {
   const [open, toggleOpen] = useState(true);
-  const removeImpression = useSidebarStore((s) => s.removeImpression);
   const isImpressionsEmpty = !Object.keys(filteredImpressions).length;
   const emptyOpacityStyle = isImpressionsEmpty ? 0.4 : 1;
   return (
@@ -80,7 +79,11 @@ const ImpressionDropdown = ({
               <button
                 className="px-1"
                 style={{ color: NodeTextColors[item.type] }}
-                onClick={() => removeImpression(item.type, item.id)}
+                onClick={() =>
+                  useWorkingStore
+                    .getState()
+                    .removeImpression({ type: item.type, id: item.id })
+                }
               >
                 x
               </button>
