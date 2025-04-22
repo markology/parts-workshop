@@ -29,6 +29,37 @@
     --text-against-part-node: var(--text-color);
   }
 }
+[contenteditable] font[size="1"] {
+  font-size: 0.75rem;
+}
+[contenteditable] font[size="2"] {
+  font-size: 0.875rem;
+}
+[contenteditable] font[size="3"] {
+  font-size: 1rem;
+}
+[contenteditable] font[size="4"] {
+  font-size: 1.25rem;
+}
+[contenteditable] font[size="5"] {
+  font-size: 1.5rem;
+}
+[contenteditable] font[size="6"] {
+  font-size: 1.875rem;
+}
+[contenteditable] font[size="7"] {
+  font-size: 2.25rem;
+}
+
+[contenteditable] ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+}
+
+[contenteditable] ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+}
 
 * {
   font-family: var(--font-inter);
@@ -65,6 +96,7 @@ h3,
 h4,
 h5,
 input,
+select,
 button {
   color: var(--text-color);
 }
@@ -101,6 +133,22 @@ button {
 #tour-modal p,
 #tour-modal button {
   color: black;
+}
+
+#journal-editor div {
+  color: var(--text-color);
+}
+
+#journal-drawer {
+  background: var(--background);
+}
+
+#journal-drawer div {
+  color: var(--text-color);
+}
+
+#journal-editor select {
+  background: var(--background);
 }
 
 .conflict-handle {

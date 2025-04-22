@@ -8,36 +8,36 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  emailVerified Boolean? @default(false)
-  createdAt DateTime  @default(now())
-  image     String?
-  name      String?
-  accounts  Account[]
-  maps      Map[]
-  tags      Tag[]
-  parts     Part[]
-  conflicts Conflict[]
-  journalEntries JournalEntry[]
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  emailVerified      Boolean?            @default(false)
+  createdAt          DateTime            @default(now())
+  image              String?
+  name               String?
+  accounts           Account[]
+  maps               Map[]
+  tags               Tag[]
+  parts              Part[]
+  conflicts          Conflict[]
+  journalEntries     JournalEntry[]
   soothingTechniques SoothingTechnique[]
-  impressions Impression[]
+  impressions        Impression[]
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-  user               User   @relation(fields: [userId], references: [id])
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
 }
@@ -55,12 +55,12 @@ model Map {
 }
 
 model Tag {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  label     String
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  label  String
 
-  conflicts Conflict[]     @relation("ConflictTags")
+  conflicts      Conflict[]     @relation("ConflictTags")
   journalEntries JournalEntry[] @relation("JournalTags")
 
   @@unique([userId, label])
@@ -68,64 +68,68 @@ model Tag {
 }
 
 model Part {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  title       String
-  scratchpad  String?
+  title              String
+  scratchpad         String?
   soothingTechniques SoothingTechnique[] @relation("PartSoothing")
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SoothingTechnique {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  label     String
-  parts     Part[]   @relation("PartSoothing")
+  label String
+  parts Part[] @relation("PartSoothing")
 
   createdAt DateTime @default(now())
 }
 
 model Conflict {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  title     String
-  journal   String?
-  partIds   String[]
-  tags      Tag[]     @relation("ConflictTags")
+  title   String
+  journal String?
+  partIds String[]
+  tags    Tag[]    @relation("ConflictTags")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model JournalEntry {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  content   String
-  tags      Tag[]     @relation("JournalTags")
+  title     String?
+  content String
+  tags    Tag[]  @relation("JournalTags")
 
+  conflictId String?
+  conflict   Conflict? @relation(fields: [conflictId], references: [id])
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Impression {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  label     String
-  type      String
-  isNode    Boolean  @default(false)
-  nodeId    String?
+  label      String
+  type       String
+  isNode     Boolean @default(false)
+  nodeId     String?
   scratchpad String?
 
   createdAt DateTime @default(now())
