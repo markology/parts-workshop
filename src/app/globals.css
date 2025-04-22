@@ -197,7 +197,8 @@ button {
 
 /* .light .part-impression-node li, */
 .light .conflict-node p,
-.light .conflict-node div {
+.light .conflict-node div,
+.light .conflict-node input {
   color: white;
 }
 

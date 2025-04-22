@@ -1,4 +1,4 @@
-import TourOverlay from "@/components/TourOverlay";
+import TourOverlay from "@/features/workspace/components/TourOverlay";
 import Canvas from "@/features/workspace/components/Canvas";
 import SideBar from "@/features/workspace/components/SideBar/SideBar";
 import { FlowNodesProvider } from "@/features/workspace/state/FlowNodesContext";

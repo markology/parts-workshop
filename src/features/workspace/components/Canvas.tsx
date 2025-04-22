@@ -10,13 +10,9 @@ import {
   OnNodesChange,
   ReactFlow,
 } from "@xyflow/react";
-import TrashCan from "./Utilities/TrashCan";
 import useAutosave from "../state/useAutosave";
 import { useSidebarStore } from "@/state/Sidebar";
-import SaveProgress from "./Utilities/SaveProgress";
-import Logout from "./Utilities/Logout";
-import ThemeToggle from "./Utilities/ThemeToggle";
-import JournalToggle from "./Utilities/JournalToggle";
+import Utilities from "./Utilities/Utilities";
 
 const Workspace = ({ map }: { map?: Map }) => {
   const sidebarImpressions = useSidebarStore((s) => s.impressions);
@@ -62,11 +58,7 @@ const Workspace = ({ map }: { map?: Map }) => {
         <Background />
         <Controls className="absolute bottom-4 left-4" />
       </ReactFlow>
-      <TrashCan />
-      <SaveProgress saveMap={saveMap} />
-      <Logout />
-      <ThemeToggle />
-      <JournalToggle />
+      <Utilities saveMap={saveMap} />
     </div>
   );
 };

@@ -75,6 +75,7 @@ model Part {
   title              String
   scratchpad         String?
   soothingTechniques SoothingTechnique[] @relation("PartSoothing")
+  impressions        Impression[]        @relation("PartImpressions")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -101,8 +102,9 @@ model Conflict {
   partIds String[]
   tags    Tag[]    @relation("ConflictTags")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  JournalEntry JournalEntry[]
 }
 
 model JournalEntry {
@@ -110,15 +112,19 @@ model JournalEntry {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  title     String?
+  title   String?
   content String
-  tags    Tag[]  @relation("JournalTags")
+  tags    Tag[]   @relation("JournalTags")
 
   conflictId String?
   conflict   Conflict? @relation(fields: [conflictId], references: [id])
-  
+
+  nodeId    String? // Optional: linked to a node if not global
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([nodeId])
 }
 
 model Impression {
@@ -131,6 +137,8 @@ model Impression {
   isNode     Boolean @default(false)
   nodeId     String?
   scratchpad String?
+  part       Part?   @relation("PartImpressions", fields: [partId], references: [id])
 
   createdAt DateTime @default(now())
+  partId    String?
 }

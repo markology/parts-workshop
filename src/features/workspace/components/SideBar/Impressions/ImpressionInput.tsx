@@ -7,13 +7,54 @@ import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
+const isValidImpression = (text: string) => {
+  const trimmed = text.trim();
+
+  // Reject if empty or only newlines/spaces
+  if (!trimmed || /^[\n\r\s]*$/.test(text)) return false;
+
+  // Optional: max length
+  if (trimmed.length > 500) return false;
+
+  return true;
+};
+
 const ImpressionInput = () => {
   const [selectedType, setSelectedType] = useState<ImpressionType>("emotion");
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
   const { addImpression } = useSidebarStore();
+
+  const handleTextAreaKeyDown = (e: {
+    preventDefault(): unknown;
+    key: string;
+  }) => {
+    if (
+      e.key === "Enter" &&
+      selectedType !== null &&
+      isValidImpression(textAreaRef.current!.value)
+    ) {
+      e.preventDefault();
+      addImpression({
+        id: uuidv4(),
+        label: textAreaRef.current!.value,
+        type: selectedType,
+      });
+      textAreaRef.current!.value = "";
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      setSelectedType(
+        ImpressionList[
+          ImpressionList.indexOf(selectedType) < ImpressionList.length - 1
+            ? ImpressionList.indexOf(selectedType) + 1
+            : 0
+        ]
+      );
+    }
+  };
 
   useEffect(() => {
     if (textAreaRef.current) {
@@ -33,30 +74,6 @@ const ImpressionInput = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleTextAreaKeyDown = (e: {
-    preventDefault(): unknown;
-    key: string;
-  }) => {
-    if (e.key === "Enter" && selectedType !== null) {
-      e.preventDefault();
-      addImpression({
-        id: uuidv4(),
-        label: textAreaRef.current!.value,
-        type: selectedType,
-      });
-      textAreaRef.current!.value = "";
-    } else if (e.key === "Tab") {
-      e.preventDefault();
-      setSelectedType(
-        ImpressionList[
-          ImpressionList.indexOf(selectedType) < ImpressionList.length - 1
-            ? ImpressionList.indexOf(selectedType) + 1
-            : 0
-        ]
-      );
-    }
-  };
 
   return (
     <div ref={containerRef} className="relative space-y-2">
