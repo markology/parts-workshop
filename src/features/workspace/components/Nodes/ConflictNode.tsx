@@ -97,7 +97,7 @@ const ConflictNode = ({
   return (
     <>
       <div
-        className="node conflict-node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] text-left"
+        className="node conflict-node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[linear-gradient(348deg,#72609b,#c4b2e7);] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] text-left"
         style={{ backgroundColor: NodeBackgroundColors["conflict"] }}
         onContextMenu={handleContextMenu}
         ref={nodeRef}

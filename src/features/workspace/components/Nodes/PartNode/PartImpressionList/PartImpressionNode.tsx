@@ -59,7 +59,7 @@ const PartImpressionNode = ({
   };
 
   return (
-    <div ref={nodeRef} className="node part-impression-node text-right">
+    <div ref={nodeRef} className="part-impression-node text-right">
       <li
         onContextMenu={handleContextMenu}
         className="text-white text-left bg-[#4ecdc4] rounded py-1 px-4 break-words relative"

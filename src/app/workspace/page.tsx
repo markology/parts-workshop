@@ -7,7 +7,6 @@ export default function Page() {
   return (
     <>
       <JournalDrawer />
-
       <ViewportSizeSwitch
         mobile={<MobileWorkspace />}
         desktop={<DesktopWorkspace />}

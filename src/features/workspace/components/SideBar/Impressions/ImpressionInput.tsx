@@ -116,7 +116,7 @@ const ImpressionInput = () => {
           rows={3}
           autoFocus
           onKeyDown={handleTextAreaKeyDown}
-          placeholder="Add Impression"
+          placeholder="Add Impression and Press Enter ↵ + (Tab switches types)"
         />
       </div>
     </div>

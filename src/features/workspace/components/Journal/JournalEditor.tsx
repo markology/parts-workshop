@@ -209,6 +209,25 @@ export default function JournalEditor({
           {saveStatus === "error" && "Error saving"}
         </div>
       )}
+      {!readOnly && (
+        <div className="flex justify-end">
+          <button
+            id="save-entry"
+            onClick={() => {
+              setSaveStatus("saving");
+              try {
+                onSave?.(content);
+                setSaveStatus("saved");
+              } catch {
+                setSaveStatus("error");
+              }
+            }}
+            className="px-4 py-2 rounded shadow hover:bg-gray-300 border"
+          >
+            Save Entry
+          </button>
+        </div>
+      )}
     </div>
   );
 }
