@@ -1,8 +1,8 @@
 // components/TourOverlay.tsx
 "use client";
 
+import Modal from "@/components/Modal";
 import { useEffect, useState } from "react";
-import Modal from "./Modal";
 
 const LeftArrow = ({ placement }: { placement?: string }) => {
   const style = {

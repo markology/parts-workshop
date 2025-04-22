@@ -7,7 +7,7 @@ const SaveProgress = ({ saveMap }: { saveMap: () => void }) => {
 
   return (
     <button
-      className="fixed top-25 right-5 w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
+      className="w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
       id="save-progress"
       onClick={handleSaveMap}
     >

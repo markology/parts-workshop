@@ -6,7 +6,7 @@ const ThemeToggle: React.FC = () => {
   const { darkMode, toggleDarkMode } = useThemeContext();
   return (
     <button
-      className="fixed top-65 right-5 w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
+      className=" w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
       id="theme-toggle"
       onClick={() => toggleDarkMode((prev) => !prev)}
     >

@@ -7,7 +7,7 @@ const JournalToggle: React.FC = () => {
   return (
     <>
       <button
-        className="fixed top-85 right-5 w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
+        className=" w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
         id="open-journal"
         onClick={() =>
           isOpen ? closeJournal() : setJournalTarget({ type: "global" })
