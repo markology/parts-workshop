@@ -125,6 +125,7 @@ model JournalEntry {
 
   @@index([userId])
   @@index([nodeId])
+  @@unique([userId, nodeId]) // ✅ ensures only one journal per node per user (nodeId=null for global)
 }
 
 model Impression {

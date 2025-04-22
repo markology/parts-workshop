@@ -1,13 +1,30 @@
+import { useJournalStore } from "@/state/Journal";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+
 import JournalToggle from "./JournalToggle";
 import Logout from "./Logout";
 import SaveProgress from "./SaveProgress";
 import ThemeToggle from "./ThemeToggle";
 import TrashCan from "./TrashCan";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useJournalStore } from "@/state/Journal";
+import { WorkshopNode } from "@/types/Nodes";
+import { Edge } from "@xyflow/react";
+import { SidebarImpression } from "@/types/Sidebar";
+import { ImpressionType } from "@/types/Impressions";
 
-export default function Utilities({ saveMap }: { saveMap: () => void }) {
+export default function Utilities({
+  saveMapData,
+}: {
+  saveMapData: {
+    mapId: string;
+    nodes: WorkshopNode[];
+    edges: Edge[];
+    sidebarImpressions: Record<
+      ImpressionType,
+      Record<string, SidebarImpression>
+    >;
+  };
+}) {
   const [visible, setVisible] = useState(true);
   const isOpen = useJournalStore((s) => s.isOpen);
   return (
@@ -37,7 +54,7 @@ export default function Utilities({ saveMap }: { saveMap: () => void }) {
         <JournalToggle />
         {!isOpen && (
           <>
-            <SaveProgress saveMap={saveMap} />
+            <SaveProgress saveMapData={saveMapData} />
             <TrashCan />
           </>
         )}

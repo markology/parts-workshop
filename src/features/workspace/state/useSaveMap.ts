@@ -1,43 +1,35 @@
-import { useUIStore } from "@/state/UI";
-import { useEffect, useState } from "react";
-import { WorkshopNode } from "@/types/Nodes";
-import { Edge } from "@xyflow/react";
-import { ImpressionType } from "@/types/Impressions";
-import { SidebarImpression } from "@/types/Sidebar";
+import { useState } from "react";
+import { useSaveMapMutation } from "./hooks/api/useSaveMapMutation";
+import { SaveMapArgs } from "@/types/api/map";
 
-export type SaveMapArgs = {
-  mapId?: string;
-  nodes: WorkshopNode[];
-  edges: Edge[];
-  sidebarImpressions: Record<ImpressionType, Record<string, SidebarImpression>>;
-};
-
-const useSaveMap = ({ saveMap }: { saveMap: () => void }) => {
-  const isSavingMap = useUIStore((s) => s.isSavingMap);
-  const setIsSavingMap = useUIStore((s) => s.setIsSavingMap);
+const useSaveMap = ({
+  mapId,
+  nodes,
+  edges,
+  sidebarImpressions,
+}: SaveMapArgs) => {
+  const mutation = useSaveMapMutation();
   const [saveCheck, setSaveCheck] = useState(false);
 
-  useEffect(() => {
-    if (isSavingMap)
-      setTimeout(() => {
-        setSaveCheck(true);
-
-        setTimeout(() => {
-          setIsSavingMap(false);
-          setSaveCheck(false);
-        }, 1000);
-      }, 1000);
-  }, [isSavingMap, setIsSavingMap]);
-
   const handleSaveMap = () => {
-    if (!isSavingMap) {
-      setIsSavingMap(true);
-      saveMap();
-    }
+    mutation.mutate(
+      {
+        mapId,
+        nodes,
+        edges,
+        sidebarImpressions,
+      },
+      {
+        onSuccess: () => {
+          setSaveCheck(true);
+          setTimeout(() => setSaveCheck(false), 1000);
+        },
+      }
+    );
   };
 
   return {
-    isSavingMap,
+    isSavingMap: mutation.isPending,
     saveCheck,
     handleSaveMap,
   };

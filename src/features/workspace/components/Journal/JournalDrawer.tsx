@@ -1,35 +1,69 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useJournalStore } from "@/state/Journal";
 import JournalEditor from "./JournalEditor";
-import { useEffect } from "react";
+import { useNodeJournalQuery } from "@/features/workspace/state/hooks/api/useNodeJournalQuery";
+import { useSaveJournalMutation } from "@/features/workspace/state/hooks/api/useSaveJournalMutation";
+import { useGlobalJournalQuery } from "@/features/workspace/state/hooks/api/useGlobalJourneyQuery";
 
 export default function JournalDrawer() {
-  const {
-    isOpen,
-    closeJournal,
-    setJournalData,
-    journalData,
-    journalTarget,
-    saveNodeJournal,
-    saveGlobalJournal,
-  } = useJournalStore();
+  const { isOpen, closeJournal, journalTarget } = useJournalStore();
 
+  const saveMutation = useSaveJournalMutation();
+
+  const nodeId = journalTarget?.type === "node" ? journalTarget.nodeId : null;
+  const { data: nodeData, isLoading: isNodeLoading } = useNodeJournalQuery(
+    nodeId ?? ""
+  );
+  const { data: globalData, isLoading: isGlobalLoading } =
+    useGlobalJournalQuery();
+
+  console.log({ globalData, isGlobalLoading });
+
+  const content =
+    journalTarget?.type === "node"
+      ? nodeData?.content ?? ""
+      : globalData?.content ?? "";
+
+  const [editorContent, setEditorContent] = useState("");
+
+  // Sync content into local editor state
   useEffect(() => {
-    if (journalTarget?.type === "node") {
-      fetch(`/api/journal/${journalTarget.nodeId}`)
-        .then((res) => res.json())
-        .then((data) => setJournalData(data));
-    } else if (journalTarget?.type === "global") {
-      fetch("/api/journal/global")
-        .then((res) => res.json())
-        .then((data) => setJournalData(data));
+    setEditorContent(content);
+  }, [content]);
+
+  // Sync content into editor when drawer opens or query returns
+  useEffect(() => {
+    if (!isOpen) {
+      setEditorContent("");
+      return;
     }
-  }, [journalTarget, setJournalData]);
 
-  useEffect(() => {
-    if (!isOpen) setJournalData(null);
-  }, [isOpen, setJournalData]);
+    if (journalTarget?.type === "global" && globalData?.content) {
+      setEditorContent(globalData.content);
+    } else if (
+      journalTarget?.type === "node" &&
+      nodeData?.content !== undefined
+    ) {
+      setEditorContent(nodeData?.content ?? ""); // fallback to empty for new
+    }
+  }, [isOpen, journalTarget, globalData, nodeData]);
+
+  const handleSave = (html: string) => {
+    if (journalTarget?.type === "global") {
+      saveMutation.mutate({ type: "global", content: html });
+    } else if (journalTarget?.type === "node") {
+      saveMutation.mutate({
+        type: "node",
+        nodeId: journalTarget.nodeId,
+        content: html,
+      });
+    }
+  };
+
+  const isLoading =
+    journalTarget?.type === "node" ? isNodeLoading : isGlobalLoading;
 
   return (
     <div
@@ -52,16 +86,11 @@ export default function JournalDrawer() {
       >
         <JournalEditor
           title={
-            journalTarget?.type !== "global" ? journalTarget?.nodeId : undefined
+            journalTarget?.type === "node" ? journalTarget.nodeId : undefined
           }
-          initialContent={journalData ?? ""}
-          onSave={(html) => {
-            if (journalTarget?.type === "node") {
-              saveNodeJournal(journalTarget.nodeId, html);
-            } else {
-              saveGlobalJournal(html);
-            }
-          }}
+          initialContent={editorContent}
+          onSave={handleSave}
+          isLoading={isLoading || saveMutation.isPending}
         />
       </div>
     </div>

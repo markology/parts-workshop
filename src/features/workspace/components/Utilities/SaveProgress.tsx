@@ -1,9 +1,9 @@
-import React from "react";
 import { Check, LoaderCircle, Save } from "lucide-react";
 import useSaveMap from "../../state/useSaveMap";
+import { SaveMapArgs } from "@/types/api/map";
 
-const SaveProgress = ({ saveMap }: { saveMap: () => void }) => {
-  const { handleSaveMap, saveCheck, isSavingMap } = useSaveMap({ saveMap });
+const SaveProgress = ({ saveMapData }: { saveMapData: SaveMapArgs }) => {
+  const { handleSaveMap, saveCheck, isSavingMap } = useSaveMap(saveMapData);
 
   return (
     <button

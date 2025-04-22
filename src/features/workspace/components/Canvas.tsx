@@ -10,11 +10,11 @@ import {
   OnNodesChange,
   ReactFlow,
 } from "@xyflow/react";
-import useAutosave from "../state/useAutosave";
 import { useSidebarStore } from "@/state/Sidebar";
 import Utilities from "./Utilities/Utilities";
+import { useAutosave } from "../state/useAutosave";
 
-const Workspace = ({ map }: { map?: Map }) => {
+const Workspace = ({ map }: { map: Map }) => {
   const sidebarImpressions = useSidebarStore((s) => s.impressions);
   const {
     edges,
@@ -28,8 +28,8 @@ const Workspace = ({ map }: { map?: Map }) => {
     onNodesChange,
   } = useFlowNodesContext();
 
-  const { saveMap } = useAutosave({
-    mapId: map?.id,
+  useAutosave({
+    mapId: map.id,
     nodes,
     edges,
     sidebarImpressions,
@@ -58,7 +58,14 @@ const Workspace = ({ map }: { map?: Map }) => {
         <Background />
         <Controls className="absolute bottom-4 left-4" />
       </ReactFlow>
-      <Utilities saveMap={saveMap} />
+      <Utilities
+        saveMapData={{
+          mapId: map.id,
+          nodes,
+          edges,
+          sidebarImpressions,
+        }}
+      />
     </div>
   );
 };

@@ -8,6 +8,7 @@ interface JournalEditorProps {
   onSave?: (html: string) => void;
   readOnly?: boolean;
   title?: string;
+  isLoading: boolean; // ✅ renamed for clarity
 }
 
 export default function JournalEditor({
@@ -15,6 +16,7 @@ export default function JournalEditor({
   onSave,
   readOnly = false,
   title = "Scratch",
+  isLoading,
 }: JournalEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const { darkMode } = useThemeContext();
@@ -22,6 +24,14 @@ export default function JournalEditor({
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
+
+  // Set initial content from prop on mount/update
+  useEffect(() => {
+    if (!readOnly && editorRef.current && initialContent) {
+      editorRef.current.innerHTML = initialContent;
+      setContent(initialContent); // keep state in sync
+    }
+  }, [initialContent, readOnly]);
 
   const [formats, setFormats] = useState({
     bold: false,
@@ -54,21 +64,21 @@ export default function JournalEditor({
   };
 
   // --- Debounced Save ---
-  useEffect(() => {
-    if (readOnly || !onSave) return;
-    const timeout = setTimeout(() => {
-      if (content) {
-        setSaveStatus("saving");
-        try {
-          onSave(content);
-          setSaveStatus("saved");
-        } catch {
-          setSaveStatus("error");
-        }
-      }
-    }, 2000);
-    return () => clearTimeout(timeout);
-  }, [content]);
+  // useEffect(() => {
+  //   if (readOnly || !onSave) return;
+  //   const timeout = setTimeout(() => {
+  //     if (content) {
+  //       setSaveStatus("saving");
+  //       try {
+  //         onSave(content);
+  //         setSaveStatus("saved");
+  //       } catch {
+  //         setSaveStatus("error");
+  //       }
+  //     }
+  //   }, 2000);
+  //   return () => clearTimeout(timeout);
+  // }, [content]);
 
   // --- Initial DOM hydration ---
   useEffect(() => {
@@ -185,15 +195,19 @@ export default function JournalEditor({
 
       {/* Editable Area */}
       <div className="relative flex-1 overflow-auto">
-        <div
-          ref={editorRef}
-          contentEditable={!readOnly}
-          suppressContentEditableWarning
-          className="min-h-[250px] border rounded p-4 focus:outline-none"
-          style={{ whiteSpace: "pre-wrap" }}
-          onInput={() => setContent(editorRef.current?.innerHTML || "")}
-          dangerouslySetInnerHTML={readOnly ? { __html: content } : undefined}
-        />
+        {isLoading ? (
+          <div className="text-gray-500 italic">Loading journal...</div>
+        ) : (
+          <div
+            ref={editorRef}
+            contentEditable={!readOnly}
+            suppressContentEditableWarning
+            className="min-h-[250px] border rounded p-4 focus:outline-none"
+            style={{ whiteSpace: "pre-wrap" }}
+            onInput={() => setContent(editorRef.current?.innerHTML || "")}
+            dangerouslySetInnerHTML={readOnly ? { __html: content } : undefined}
+          />
+        )}
         {!readOnly && content === "" && (
           <div className="absolute top-4 left-4 text-gray-400 pointer-events-none">
             Start writing your journal entry...

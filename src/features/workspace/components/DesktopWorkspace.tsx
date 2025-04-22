@@ -1,43 +1,46 @@
-import TourOverlay from "@/features/workspace/components/TourOverlay";
-import Canvas from "@/features/workspace/components/Canvas";
-import SideBar from "@/features/workspace/components/SideBar/SideBar";
-import { FlowNodesProvider } from "@/features/workspace/state/FlowNodesContext";
-import { authOptions } from "@/lib/authOptions";
-import { prisma } from "@/lib/prisma";
-import { createEmptyImpressionGroups } from "@/state/Sidebar";
-import { Map } from "@/types/api/map";
-import { ImpressionType } from "@/types/Impressions";
-import { WorkshopNode } from "@/types/Nodes";
-import { SidebarImpression } from "@/types/Sidebar";
-import { Map as PrismaMap } from "@prisma/client";
+// app/workspace/page.tsx (or pages/workspace/index.tsx if using Pages Router)
+
 import { ReactFlowProvider } from "@xyflow/react";
-import { Edge } from "@xyflow/react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import React from "react";
+import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/authOptions";
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate,
+} from "@tanstack/react-query";
+import { FlowNodesProvider } from "@/features/workspace/state/FlowNodesContext";
+import Canvas from "@/features/workspace/components/Canvas";
+import SideBar from "@/features/workspace/components/SideBar/SideBar";
+import TourOverlay from "@/features/workspace/components/TourOverlay";
+import { createEmptyImpressionGroups } from "@/state/Sidebar";
+import { WorkshopNode } from "@/types/Nodes";
+import { Edge } from "@xyflow/react";
+import { Map } from "@/types/api/map";
+import { Map as PrismaMap } from "@prisma/client";
+import { ImpressionType } from "@/types/Impressions";
+import { SidebarImpression } from "@/types/Sidebar";
 
-// import { hydrateMap } from "@/lib/mapTransformers";
 export type HydratedMap = Omit<
   PrismaMap,
   "nodes" | "edges" | "sidebarImpressions" | "userId"
 > &
   Map;
 
-const DesktopWorkspace = async () => {
+async function DesktopWorkspace() {
   const session = await getServerSession(authOptions);
-  console.log("SESSIONworkspace", session);
   if (!session?.user) redirect("/");
 
-  let map = await prisma.map.findFirst({ where: { userId: session.user.id } });
-  let clientMap: Map | undefined = undefined;
+  const userId = session.user.id;
+  let map = await prisma.map.findFirst({ where: { userId } });
 
   const showTour = !map;
 
   if (!map) {
-    // map = await prisma.map.create({
     map = await prisma.map.create({
       data: {
-        userId: session.user.id,
+        userId,
         title: "Untitled Map",
         nodes: [],
         edges: [],
@@ -46,7 +49,7 @@ const DesktopWorkspace = async () => {
     });
   }
 
-  clientMap = {
+  const clientMap: Map = {
     id: map.id,
     title: map.title || "Untitled Map",
     nodes: Array.isArray(map.nodes)
@@ -62,25 +65,36 @@ const DesktopWorkspace = async () => {
           >)
         : ({} as Record<ImpressionType, Record<string, SidebarImpression>>),
   };
+
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ["map", map.id],
+    queryFn: () => Promise.resolve(clientMap),
+    staleTime: Infinity,
+  });
+
   return (
-    <ReactFlowProvider>
-      {showTour && <TourOverlay />}
-      <FlowNodesProvider map={clientMap}>
-        <div
-          className="PW"
-          style={{
-            height: "100vh",
-            width: "100vw",
-            overflow: "hidden",
-            display: "flex",
-          }}
-        >
-          <SideBar />
-          <Canvas map={clientMap} />
-        </div>
-      </FlowNodesProvider>
-    </ReactFlowProvider>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <ReactFlowProvider>
+        {showTour && <TourOverlay />}
+        <FlowNodesProvider map={clientMap}>
+          <div
+            className="PW"
+            style={{
+              height: "100vh",
+              width: "100vw",
+              overflow: "hidden",
+              display: "flex",
+            }}
+          >
+            <SideBar />
+            <Canvas map={clientMap} />
+          </div>
+        </FlowNodesProvider>
+      </ReactFlowProvider>
+    </HydrationBoundary>
   );
-};
+}
 
 export default DesktopWorkspace;
