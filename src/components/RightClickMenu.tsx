@@ -8,12 +8,15 @@ export type ContextMenuItem = {
 
 type ContextMenuProps = {
   items: ContextMenuItem[];
+  style?: "float" | "dropdown";
 };
 
-const RightClickMenu = ({ items }: ContextMenuProps) => {
+const RightClickMenu = ({ items, style = "float" }: ContextMenuProps) => {
   return (
     <div
-      className="inline-block ml-[-33px] absolute bg-white border border-[#ccc] rounded-[4px] p-[4px_0] gap-[10px] z-1000 shadow-[0px_2px_8px_rgba(0,0,0,0.15)]" // close when clicking the menu
+      className={`inline-block ml-[-33px] absolute bg-white border border-[#ccc] rounded-[4px] p-[4px_0] gap-[10px] z-1000 shadow-[0px_2px_8px_rgba(0,0,0,0.15)] ${
+        style === "float" && "inline-flex top-[-50px] right-0"
+      } `} // close when clicking the menu
     >
       {items.map((item, index) => (
         <div

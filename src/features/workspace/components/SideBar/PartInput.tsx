@@ -21,7 +21,7 @@ const PartInput = () => {
         id: uuidv4(),
         type: "part",
         position: { x: viewport.x, y: viewport.y },
-        style: { zIndex: -1 },
+        style: { zIndex: -1, textAlign: "right" },
         data: {
           needs: [],
           type: "partData",

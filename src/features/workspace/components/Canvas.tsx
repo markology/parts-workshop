@@ -16,7 +16,7 @@ import { useSidebarStore } from "@/state/Sidebar";
 import SaveProgress from "./Utilities/SaveProgress";
 import Logout from "./Utilities/Logout";
 import ThemeToggle from "./Utilities/ThemeToggle";
-import JournalToggle from "./Utilities/NotePad";
+import JournalToggle from "./Utilities/JournalToggle";
 
 const Workspace = ({ map }: { map?: Map }) => {
   const sidebarImpressions = useSidebarStore((s) => s.impressions);

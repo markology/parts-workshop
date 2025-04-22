@@ -7,12 +7,14 @@ interface JournalEditorProps {
   initialContent?: string;
   onSave?: (html: string) => void;
   readOnly?: boolean;
+  title?: string;
 }
 
 export default function JournalEditor({
   initialContent = "",
   onSave,
   readOnly = false,
+  title = "Scratch",
 }: JournalEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const { darkMode } = useThemeContext();
@@ -130,6 +132,7 @@ export default function JournalEditor({
       id="journal-editor"
       className="max-w-2xl mx-auto space-y-6 p-4 shadow-md rounded h-full flex flex-col"
     >
+      <p>{title}</p>
       {!readOnly && (
         <div className="flex flex-wrap items-center gap-2 border-b pb-3 sticky top-0 z-10">
           <ToolbarButton label="Bold" command="bold" active={formats.bold}>
@@ -162,9 +165,10 @@ export default function JournalEditor({
             className="border px-2 py-1 rounded text-sm"
             title="Font Size"
           >
-            <option value="3">Text Size</option>
             <option value="1">Small</option>
-            <option value="3">Normal</option>
+            <option selected value="3">
+              Normal
+            </option>
             <option value="5">Large</option>
             <option value="7">Huge</option>
           </select>

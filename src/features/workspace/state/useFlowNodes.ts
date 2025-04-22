@@ -521,6 +521,7 @@ export const useFlowNodes = (map?: MapType) => {
     onNodesChange,
     removePartFromConflict,
     getNodes,
+    deleteEdges,
     deleteNode,
     onConnect,
     onDragOver,
@@ -530,6 +531,7 @@ export const useFlowNodes = (map?: MapType) => {
     updatePartName,
     detachImpressionFromPart,
     insertImpressionToPart,
+    removePartFromAllConflicts,
     updateConflictDescription,
   };
 };

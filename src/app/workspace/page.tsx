@@ -1,4 +1,4 @@
-import JournalDrawer from "@/components/JournalDrawer";
+import JournalDrawer from "@/features/workspace/components/Journal/JournalDrawer";
 import ViewportSizeSwitch from "@/components/ViewportSizeSwitch";
 import DesktopWorkspace from "@/features/workspace/components/DesktopWorkspace";
 import MobileWorkspace from "@/features/workspace/components/MobileWorkspace";

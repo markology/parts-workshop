@@ -53,6 +53,9 @@ export default function createNodeFN({
       newNode = {
         ...baseNode,
         type: "part",
+        style: {
+          textAlign: "right",
+        },
         data: {
           type: "partData",
           label,
@@ -71,6 +74,9 @@ export default function createNodeFN({
       newNode = {
         ...baseNode,
         type: "conflict",
+        style: {
+          textAlign: "right",
+        },
         data: {
           type: "conflictData",
           label,

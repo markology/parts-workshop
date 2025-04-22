@@ -11,6 +11,7 @@ import ImpressionDisplay from "./Impressions/ImpressionDisplay";
 import ImpressionInput from "./Impressions/ImpressionInput";
 import PartInput from "./PartInput";
 import { NodeBackgroundColors } from "../../constants/Nodes";
+import React from "react";
 
 const SideBar = () => {
   const { getViewport } = useReactFlow();
@@ -82,4 +83,4 @@ const SideBar = () => {
   );
 };
 
-export default SideBar;
+export default React.memo(SideBar);

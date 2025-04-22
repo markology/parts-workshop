@@ -2,13 +2,15 @@ import {
   NodeBackgroundColors,
   NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useSidebarStore } from "@/state/Sidebar";
-import { ListRestart, Trash2 } from "lucide-react";
+import { ListRestart, PencilIcon, Trash2 } from "lucide-react";
 import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
-import { useUIStore } from "@/state/UI";
+import useContextMenu from "@/hooks/useContextMenu";
+import detachImpressionFromPart from "../../state/updaters/detachImpressionFromPart";
+import { useJournalStore } from "@/state/Journal";
 
 const ImpressionNode = ({
   id,
@@ -21,19 +23,30 @@ const ImpressionNode = ({
 }) => {
   const { deleteNode } = useFlowNodesContext();
   const addImpression = useSidebarStore((s) => s.addImpression);
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const contextMenuParentNodeId = useUIStore((s) => s.contextMenuParentNodeId);
-  const setContextMenuParentNodeId = useUIStore(
-    (s) => s.setContextMenuParentNodeId
-  );
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const { setJournalTarget } = useJournalStore();
 
-    if (nodeRef.current) {
-      setContextMenuParentNodeId(id);
-    }
-  };
+  const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
+    useContextMenu({
+      id,
+      menuItems: useMemo(
+        () => [
+          {
+            icon: <Trash2 size={16} />,
+            onClick: () => deleteNode(id),
+          },
+          {
+            icon: <ListRestart size={16} />,
+            onClick: () => handleSendBackToSideBar(id, type),
+          },
+          {
+            icon: <PencilIcon size={16} />,
+            onClick: () => setJournalTarget({ type: "node", nodeId: id }),
+          },
+        ],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [detachImpressionFromPart, id]
+      ),
+    });
 
   const handleSendBackToSideBar = useCallback(
     (id: string, type: ImpressionType) => {
@@ -45,20 +58,6 @@ const ImpressionNode = ({
       });
     },
     [addImpression, deleteNode, label]
-  );
-
-  const menuItems = useMemo(
-    () => [
-      {
-        icon: <Trash2 size={16} />,
-        onClick: () => deleteNode(id),
-      },
-      {
-        icon: <ListRestart size={16} />,
-        onClick: () => handleSendBackToSideBar(id, type),
-      },
-    ],
-    [deleteNode, handleSendBackToSideBar, id, type]
   );
 
   return (
@@ -77,7 +76,7 @@ const ImpressionNode = ({
         </strong>
         {label || null}
       </div>
-      {contextMenuParentNodeId === id && <RightClickMenu items={menuItems} />}
+      {showContextMenu && <RightClickMenu items={menuItems} />}
     </div>
   );
 };

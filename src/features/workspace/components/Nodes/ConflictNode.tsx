@@ -1,15 +1,19 @@
+import RightClickMenu from "@/components/RightClickMenu";
 import {
   NodeBackgroundColors,
   NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
+import useContextMenu from "@/hooks/useContextMenu";
+import { useJournalStore } from "@/state/Journal";
 import {
   ConflictNode as ConflictNodeType,
   ConnectedNodeType,
 } from "@/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
-import { MessageCircleWarning } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { MessageCircleWarning, PencilIcon, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import detachImpressionFromPart from "../../state/updaters/detachImpressionFromPart";
 
 const ConflictNode = ({
   connectedNodes,
@@ -19,7 +23,32 @@ const ConflictNode = ({
   id: string;
 }) => {
   const { getNode } = useReactFlow();
-  const { updateConflictDescription } = useFlowNodesContext();
+  const { deleteEdges, deleteNode, updateConflictDescription } =
+    useFlowNodesContext();
+
+  const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
+    useContextMenu({
+      id,
+      menuItems: useMemo(
+        () => [
+          {
+            icon: <Trash2 size={16} />,
+            onClick: () => {
+              deleteNode(id);
+              deleteEdges(id);
+            },
+          },
+          {
+            icon: <PencilIcon size={16} />,
+            onClick: () => setJournalTarget({ type: "node", nodeId: id }),
+          },
+        ],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [detachImpressionFromPart, id]
+      ),
+    });
+
+  const { setJournalTarget } = useJournalStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -68,8 +97,10 @@ const ConflictNode = ({
   return (
     <>
       <div
-        className="node conflict-node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
+        className="node conflict-node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] text-left"
         style={{ backgroundColor: NodeBackgroundColors["conflict"] }}
+        onContextMenu={handleContextMenu}
+        ref={nodeRef}
       >
         <div className="flex flex-row justify-between">
           <strong
@@ -130,31 +161,32 @@ const ConflictNode = ({
             </p>
           )}
         </div>
+        <Handle
+          className="conflict-handle"
+          type="target"
+          position={Position.Top}
+          id="top"
+        />
+        <Handle
+          className="conflict-handle"
+          type="target"
+          position={Position.Bottom}
+          id="bottom"
+        />
+        <Handle
+          className="conflict-handle"
+          type="target"
+          position={Position.Left}
+          id="left"
+        />
+        <Handle
+          className="conflict-handle"
+          type="target"
+          position={Position.Right}
+          id="right"
+        />
       </div>
-      <Handle
-        className="conflict-handle"
-        type="target"
-        position={Position.Top}
-        id="top"
-      />
-      <Handle
-        className="conflict-handle"
-        type="target"
-        position={Position.Bottom}
-        id="bottom"
-      />
-      <Handle
-        className="conflict-handle"
-        type="target"
-        position={Position.Left}
-        id="left"
-      />
-      <Handle
-        className="conflict-handle"
-        type="target"
-        position={Position.Right}
-        id="right"
-      />
+      {showContextMenu && <RightClickMenu items={menuItems} />}
     </>
   );
 };
