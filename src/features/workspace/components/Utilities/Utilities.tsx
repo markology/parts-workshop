@@ -1,5 +1,10 @@
 import { useJournalStore } from "@/state/Journal";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { useState } from "react";
 
 import JournalToggle from "./JournalToggle";
@@ -11,11 +16,13 @@ import { WorkshopNode } from "@/types/Nodes";
 import { Edge } from "@xyflow/react";
 import { SidebarImpression } from "@/types/Sidebar";
 import { ImpressionType } from "@/types/Impressions";
+import SaveJournal from "./SaveJournal";
+import ToolTipWrapper from "@/components/ToolTipWrapper";
 
 export default function Utilities({
   saveMapData,
 }: {
-  saveMapData: {
+  saveMapData?: {
     mapId: string;
     nodes: WorkshopNode[];
     edges: Edge[];
@@ -26,22 +33,41 @@ export default function Utilities({
   };
 }) {
   const [visible, setVisible] = useState(true);
+  const [hoveringHide, setHoveringHide] = useState(false);
   const isOpen = useJournalStore((s) => s.isOpen);
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col items-end gap-2.5">
+    <div
+      className={`fixed top-4 right-4 z-50 flex flex-col items-end gap-2.5 ${
+        !saveMapData ? "z-[51]" : "z-[1]"
+      }`}
+    >
       {/* Toggle Button */}
-      <button
-        id="toggle-utilities"
-        className="w-15 h-8 flex items-center justify-center rounded shadow bg-black/25"
-        onClick={() => setVisible(!visible)}
-        aria-label="Toggle Utilities"
-      >
-        {visible ? (
-          <ChevronRight className="text-xl" />
-        ) : (
-          <ChevronLeft className="text-xl" />
-        )}
-      </button>
+      {saveMapData && (
+        <ToolTipWrapper
+          message={visible ? "Hide Utilities" : "Reveal Utilities"}
+        >
+          <button
+            id="toggle-utilities"
+            className="w-15 h-8 flex items-center justify-center rounded shadow bg-black/25"
+            onClick={() => setVisible(!visible)}
+            aria-label="Toggle Utilities"
+            onMouseOver={() => setHoveringHide(true)}
+            onMouseLeave={() => setHoveringHide(false)}
+          >
+            {visible ? (
+              hoveringHide ? (
+                <ChevronsRight className="text-xl" />
+              ) : (
+                <ChevronRight className="text-xl" />
+              )
+            ) : hoveringHide ? (
+              <ChevronsLeft className="text-xl" />
+            ) : (
+              <ChevronLeft className="text-xl" />
+            )}
+          </button>
+        </ToolTipWrapper>
+      )}
 
       {/* Animated Toolset Container */}
       <div
@@ -49,10 +75,11 @@ export default function Utilities({
           visible ? "translate-x-0" : "translate-x-20"
         }`}
       >
-        <Logout />
+        {saveMapData && <Logout />}
         <ThemeToggle />
+        {isOpen && <SaveJournal />}
         <JournalToggle />
-        {!isOpen && (
+        {!isOpen && saveMapData && (
           <>
             <SaveProgress saveMapData={saveMapData} />
             <TrashCan />

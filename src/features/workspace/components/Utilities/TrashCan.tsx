@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Trash, Trash2 } from "lucide-react";
 import { useSidebarStore } from "@/state/Sidebar";
+import ToolTipWrapper from "@/components/ToolTipWrapper";
 
 //handleNodeDragStop triggers deletes from useFlowNodes
 
@@ -39,23 +40,25 @@ const TrashCan: React.FC = () => {
   };
 
   return (
-    <div
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      onMouseOver={() => setIsHoveringTrash(true)}
-      onMouseLeave={() => setIsHoveringTrash(false)}
-      className="w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
-      title="Drop here to delete"
-      id="trash-bucket"
-    >
-      {!isHoveringTrash ? (
-        <Trash color="white" strokeWidth={2} size={30} />
-      ) : (
-        <Trash2 color="white" strokeWidth={2} size={30} />
-      )}
-    </div>
+    <ToolTipWrapper message="Drag Here to Delete">
+      <div
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onMouseOver={() => setIsHoveringTrash(true)}
+        onMouseLeave={() => setIsHoveringTrash(false)}
+        className="w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
+        title="Drop here to delete"
+        id="trash-bucket"
+      >
+        {!isHoveringTrash ? (
+          <Trash color="white" strokeWidth={2} size={30} />
+        ) : (
+          <Trash2 color="white" strokeWidth={2} size={30} />
+        )}
+      </div>
+    </ToolTipWrapper>
   );
 };
 

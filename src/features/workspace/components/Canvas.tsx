@@ -13,9 +13,11 @@ import {
 import { useSidebarStore } from "@/state/Sidebar";
 import Utilities from "./Utilities/Utilities";
 import { useAutosave } from "../state/useAutosave";
+import { useJournalStore } from "@/state/Journal";
 
 const Workspace = ({ map }: { map: Map }) => {
   const sidebarImpressions = useSidebarStore((s) => s.impressions);
+  const isOpen = useJournalStore((s) => s.isOpen);
   const {
     edges,
     handleNodeDragStop,
@@ -58,14 +60,16 @@ const Workspace = ({ map }: { map: Map }) => {
         <Background />
         <Controls className="absolute bottom-4 left-4" />
       </ReactFlow>
-      <Utilities
-        saveMapData={{
-          mapId: map.id,
-          nodes,
-          edges,
-          sidebarImpressions,
-        }}
-      />
+      {!isOpen && (
+        <Utilities
+          saveMapData={{
+            mapId: map.id,
+            nodes,
+            edges,
+            sidebarImpressions,
+          }}
+        />
+      )}
     </div>
   );
 };

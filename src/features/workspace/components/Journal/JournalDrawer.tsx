@@ -6,6 +6,7 @@ import JournalEditor from "./JournalEditor";
 import { useNodeJournalQuery } from "@/features/workspace/state/hooks/api/useNodeJournalQuery";
 import { useSaveJournalMutation } from "@/features/workspace/state/hooks/api/useSaveJournalMutation";
 import { useGlobalJournalQuery } from "@/features/workspace/state/hooks/api/useGlobalJourneyQuery";
+import Utilities from "../Utilities/Utilities";
 
 export default function JournalDrawer() {
   const { isOpen, closeJournal, journalTarget } = useJournalStore();
@@ -80,7 +81,7 @@ export default function JournalDrawer() {
       {/* Drawer Panel */}
       <div
         id="journal-drawer"
-        className={`absolute top-0 right-0 h-full w-full sm:w-[580px] bg-white shadow-lg z-50 transition-transform duration-300 pointer-events-auto pr-[100px] ${
+        className={`absolute top-0 right-0 h-full w-full sm:w-[580px] bg-white shadow-lg transition-transform duration-300 pointer-events-auto pr-[100px] z-50 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -92,7 +93,12 @@ export default function JournalDrawer() {
           onSave={handleSave}
           isLoading={isLoading || saveMutation.isPending}
         />
+        <Utilities />
       </div>
     </div>
   );
 }
+
+// journal editor has to be on top z index
+// the utilities sandwich meat
+// a container for the journal that extends seemingly like a drawer
