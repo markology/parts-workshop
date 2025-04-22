@@ -2,6 +2,7 @@
 
 import { useThemeContext } from "@/context/ThemeContext";
 import { useEffect, useRef, useState } from "react";
+import Utilities from "../Utilities/Utilities";
 
 interface JournalEditorProps {
   initialContent?: string;
@@ -242,6 +243,7 @@ export default function JournalEditor({
           </button>
         </div>
       )}
+      <Utilities journalContent={content} onSave={onSave} />
     </div>
   );
 }

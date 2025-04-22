@@ -27,7 +27,6 @@ export type HydratedMap = Omit<
 
 async function DesktopWorkspace() {
   const session = await getServerSession(authOptions);
-  console.log("SESSION:", session);
 
   if (!session?.user?.id) {
     throw new Error("User not logged in");
@@ -35,7 +34,6 @@ async function DesktopWorkspace() {
 
   const userId = session.user.id;
   let map = await prisma.map.findFirst({ where: { userId } });
-  console.log("MAP FOUND:", map?.id);
 
   const showTour = !map;
 

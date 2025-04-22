@@ -3,66 +3,41 @@
 import { useEffect, useState } from "react";
 import { useJournalStore } from "@/state/Journal";
 import JournalEditor from "./JournalEditor";
-import { useNodeJournalQuery } from "@/features/workspace/state/hooks/api/useNodeJournalQuery";
-import { useSaveJournalMutation } from "@/features/workspace/state/hooks/api/useSaveJournalMutation";
-import { useGlobalJournalQuery } from "@/features/workspace/state/hooks/api/useGlobalJourneyQuery";
-import Utilities from "../Utilities/Utilities";
+import { useSaveJournalEntry } from "../../state/hooks/useSaveJournalEntry";
+import { useAllJournalEntries } from "../../state/hooks/useAllJournalEntries";
+import { JournalEntry } from "@/types/Journal";
 
 export default function JournalDrawer() {
+  // Inside JournalDrawer
   const { isOpen, closeJournal, journalTarget } = useJournalStore();
+  const { data: allEntries = [], isLoading } = useAllJournalEntries();
 
-  const saveMutation = useSaveJournalMutation();
-
-  const nodeId = journalTarget?.type === "node" ? journalTarget.nodeId : null;
-  const { data: nodeData, isLoading: isNodeLoading } = useNodeJournalQuery(
-    nodeId ?? ""
-  );
-  const { data: globalData, isLoading: isGlobalLoading } =
-    useGlobalJournalQuery();
-
-  const content =
-    journalTarget?.type === "node"
-      ? nodeData?.content ?? ""
-      : globalData?.content ?? "";
+  const nodeId =
+    journalTarget?.type === "node" ? journalTarget.nodeId : undefined;
 
   const [editorContent, setEditorContent] = useState("");
 
-  // Sync content into local editor state
-  useEffect(() => {
-    setEditorContent(content);
-  }, [content]);
+  const entry = journalTarget
+    ? allEntries.find((e: JournalEntry) =>
+        journalTarget.type === "node" ? e.nodeId === nodeId : !e.nodeId
+      )
+    : null;
 
-  // Sync content into editor when drawer opens or query returns
   useEffect(() => {
     if (!isOpen) {
       setEditorContent("");
-      return;
+    } else if (!entry) {
+      setEditorContent(""); // new journal entry
+    } else {
+      setEditorContent(entry.content ?? "");
     }
+  }, [journalTarget, entry, isOpen]);
 
-    if (journalTarget?.type === "global" && globalData?.content) {
-      setEditorContent(globalData.content);
-    } else if (
-      journalTarget?.type === "node" &&
-      nodeData?.content !== undefined
-    ) {
-      setEditorContent(nodeData?.content ?? ""); // fallback to empty for new
-    }
-  }, [isOpen, journalTarget, globalData, nodeData]);
+  const saveMutation = useSaveJournalEntry();
 
   const handleSave = (html: string) => {
-    if (journalTarget?.type === "global") {
-      saveMutation.mutate({ type: "global", content: html });
-    } else if (journalTarget?.type === "node") {
-      saveMutation.mutate({
-        type: "node",
-        nodeId: journalTarget.nodeId,
-        content: html,
-      });
-    }
+    saveMutation.mutate({ nodeId, content: html }); // ✅ works for create + update
   };
-
-  const isLoading =
-    journalTarget?.type === "node" ? isNodeLoading : isGlobalLoading;
 
   return (
     <div
@@ -84,19 +59,13 @@ export default function JournalDrawer() {
         }`}
       >
         <JournalEditor
-          title={
-            journalTarget?.type === "node" ? journalTarget.nodeId : undefined
-          }
+          key={nodeId ?? "global"}
+          title={nodeId ?? "Global Journal"}
           initialContent={editorContent}
           onSave={handleSave}
           isLoading={isLoading || saveMutation.isPending}
         />
-        <Utilities />
       </div>
     </div>
   );
 }
-
-// journal editor has to be on top z index
-// the utilities sandwich meat
-// a container for the journal that extends seemingly like a drawer

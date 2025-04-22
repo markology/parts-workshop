@@ -34,7 +34,6 @@ export default async function handler(
   }
   if (req.method === "POST") {
     const { content } = req.body;
-
     const existing = await prisma.journalEntry.findFirst({
       where: { userId, nodeId },
     });

@@ -27,8 +27,6 @@ export default function CanvasClient({ mapId }: { mapId: string }) {
     }
   }, [data]);
 
-  console.log("first", isLoading, data, !hydrated);
-
   if (isLoading || !data || !hydrated) return <p>Loading workspace...</p>;
   if (error) return <p>Failed to load map.</p>;
 

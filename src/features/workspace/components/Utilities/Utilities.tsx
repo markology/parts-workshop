@@ -15,7 +15,15 @@ import TrashCan from "./TrashCan";
 import SaveJournal from "./SaveJournal";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
 
-export default function Utilities({ full }: { full?: boolean }) {
+export default function Utilities({
+  full,
+  journalContent,
+  onSave,
+}: {
+  full?: boolean;
+  journalContent?: string;
+  onSave?: (html: string) => void;
+}) {
   const [visible, setVisible] = useState(true);
   const [hoveringHide, setHoveringHide] = useState(false);
   const isOpen = useJournalStore((s) => s.isOpen);
@@ -61,7 +69,9 @@ export default function Utilities({ full }: { full?: boolean }) {
       >
         {full && <Logout />}
         <ThemeToggle />
-        {isOpen && <SaveJournal />}
+        {isOpen && onSave && journalContent !== undefined && (
+          <SaveJournal handleClick={() => onSave(journalContent)} />
+        )}
         <JournalToggle />
         {!isOpen && full && (
           <>

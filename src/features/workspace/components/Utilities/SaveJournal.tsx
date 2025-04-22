@@ -2,9 +2,8 @@ import ToolTipWrapper from "@/components/ToolTipWrapper";
 import { Save, SaveAll } from "lucide-react";
 import { useState } from "react";
 
-const SaveJournal = () => {
+const SaveJournal = ({ handleClick }: { handleClick: () => void }) => {
   const [isHovering, setIsHovering] = useState(false);
-
   return (
     <ToolTipWrapper message="Save Journal Entry">
       <button
@@ -12,6 +11,7 @@ const SaveJournal = () => {
         id="save-progress"
         onMouseOver={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
+        onClick={handleClick}
       >
         {isHovering ? (
           <SaveAll color="white" strokeWidth={2} size={30} />

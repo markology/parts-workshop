@@ -8,7 +8,6 @@ export const useSaveMap = () => {
     mutationFn: async () => {
       const { mapId, nodes, edges, sidebarImpressions, journalEntries } =
         useWorkingStore.getState(); // ✅ pull latest state snapshot
-      console.log("saving nodes", nodes);
       const res = await fetch(`/api/maps/${mapId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
