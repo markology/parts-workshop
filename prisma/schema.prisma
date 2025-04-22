@@ -16,6 +16,12 @@ model User {
   name      String?
   accounts  Account[]
   maps      Map[]
+  tags      Tag[]
+  parts     Part[]
+  conflicts Conflict[]
+  journalEntries JournalEntry[]
+  soothingTechniques SoothingTechnique[]
+  impressions Impression[]
 }
 
 model Account {
@@ -24,13 +30,13 @@ model Account {
   type               String
   provider           String
   providerAccountId  String
-  refresh_token      String?    // optional but common
-  access_token       String?    // optional but common
-  expires_at         Int?       // optional
-  token_type         String?    // optional
-  scope              String?    // optional
-  id_token           String?    // optional
-  session_state      String?    // optional
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
   user               User   @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
@@ -46,4 +52,81 @@ model Map {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   user               User     @relation(fields: [userId], references: [id])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  label     String
+
+  conflicts Conflict[]     @relation("ConflictTags")
+  journalEntries JournalEntry[] @relation("JournalTags")
+
+  @@unique([userId, label])
+  @@index([userId])
+}
+
+model Part {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  title       String
+  scratchpad  String?
+  soothingTechniques SoothingTechnique[] @relation("PartSoothing")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SoothingTechnique {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  label     String
+  parts     Part[]   @relation("PartSoothing")
+
+  createdAt DateTime @default(now())
+}
+
+model Conflict {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  title     String
+  journal   String?
+  partIds   String[]
+  tags      Tag[]     @relation("ConflictTags")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  content   String
+  tags      Tag[]     @relation("JournalTags")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Impression {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  label     String
+  type      String
+  isNode    Boolean  @default(false)
+  nodeId    String?
+  scratchpad String?
+
+  createdAt DateTime @default(now())
 }
