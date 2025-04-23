@@ -14,6 +14,7 @@ import ThemeToggle from "./ThemeToggle";
 import TrashCan from "./TrashCan";
 import SaveJournal from "./SaveJournal";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 export default function Utilities({
   full,
@@ -27,7 +28,7 @@ export default function Utilities({
   const [visible, setVisible] = useState(true);
   const [hoveringHide, setHoveringHide] = useState(false);
   const isOpen = useJournalStore((s) => s.isOpen);
-
+  const isMobile = useIsMobile();
   return (
     <div
       className={`fixed top-4 right-4 z-50 flex flex-col items-end gap-2.5 ${
@@ -68,16 +69,26 @@ export default function Utilities({
           visible ? "translate-x-0" : "translate-x-20"
         }`}
       >
-        {full && <Logout />}
-        <ThemeToggle />
-        {isOpen && onSave && journalContent !== undefined && (
-          <SaveJournal handleClick={() => onSave(journalContent)} />
-        )}
-        <JournalToggle />
-        {!isOpen && full && (
+        {isMobile ? (
           <>
-            <SaveProgress />
-            <TrashCan />
+            <Logout />
+            <ThemeToggle />
+            <JournalToggle />
+          </>
+        ) : (
+          <>
+            {full && <Logout />}
+            <ThemeToggle />
+            {isOpen && onSave && journalContent !== undefined && (
+              <SaveJournal handleClick={() => onSave(journalContent)} />
+            )}
+            <JournalToggle />
+            {!isOpen && full && (
+              <>
+                <SaveProgress />
+                <TrashCan />
+              </>
+            )}
           </>
         )}
       </div>

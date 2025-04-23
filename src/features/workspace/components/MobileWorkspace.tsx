@@ -1,18 +1,23 @@
-import { authOptions } from "@/lib/authOptions";
-import { prisma } from "@/lib/prisma";
-import { Map } from "@/types/api/map";
-import { ImpressionType } from "@/types/Impressions";
-import { WorkshopNode } from "@/types/Nodes";
-import { SidebarImpression } from "@/types/Sidebar";
-import { Map as PrismaMap } from "@prisma/client";
+// app/workspace/page.tsx (or pages/workspace/index.tsx if using Pages Router)
+
 import { ReactFlowProvider } from "@xyflow/react";
-import { Edge } from "@xyflow/react";
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import React from "react";
+import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/authOptions";
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate,
+} from "@tanstack/react-query";
+import CanvasClient from "@/features/workspace/components/CanvasClient";
+import TourOverlay from "@/features/workspace/components/TourOverlay";
+import { WorkshopNode } from "@/types/Nodes";
+import { Edge } from "@xyflow/react";
+import { Map } from "@/types/api/map";
+import { Map as PrismaMap } from "@prisma/client";
+import { ImpressionType } from "@/types/Impressions";
+import { SidebarImpression } from "@/types/Sidebar";
 import { createEmptyImpressionGroups } from "../state/useWorkingStore";
-import CanvasClient from "./CanvasClient";
-import { QueryClient } from "@tanstack/react-query";
 
 export type HydratedMap = Omit<
   PrismaMap,
@@ -20,20 +25,26 @@ export type HydratedMap = Omit<
 > &
   Map;
 
-const MobileWorkspace = async () => {
+async function DesktopWorkspace() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/");
 
+  if (!session?.user?.id) {
+    throw new Error("User not logged in");
+  }
+
+  const userId = session.user.id;
   let map = await prisma.map.findFirst({
-    where: { userId: session.user.id },
+    where: { userId },
     orderBy: { createdAt: "asc" },
   });
-  let clientMap: Map | undefined = undefined;
+
+  const showTour = !map;
 
   if (!map) {
+    console.log("❌ No map found — creating a new one");
     map = await prisma.map.create({
       data: {
-        userId: session.user.id,
+        userId,
         title: "Untitled Map",
         nodes: [],
         edges: [],
@@ -42,7 +53,7 @@ const MobileWorkspace = async () => {
     });
   }
 
-  clientMap = {
+  const clientMap: Map = {
     id: map.id,
     title: map.title || "Untitled Map",
     nodes: Array.isArray(map.nodes)
@@ -58,6 +69,7 @@ const MobileWorkspace = async () => {
           >)
         : ({} as Record<ImpressionType, Record<string, SidebarImpression>>),
   };
+
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
@@ -67,21 +79,25 @@ const MobileWorkspace = async () => {
   });
 
   console.log(clientMap);
-  return (
-    <ReactFlowProvider>
-      <div
-        className="PW"
-        style={{
-          height: "100vh",
-          width: "100vw",
-          overflow: "hidden",
-          display: "flex",
-        }}
-      >
-        <CanvasClient mapId={clientMap.id} />
-      </div>
-    </ReactFlowProvider>
-  );
-};
 
-export default MobileWorkspace;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <ReactFlowProvider>
+        {showTour && <TourOverlay />}
+        <div
+          className="PW"
+          style={{
+            height: "100vh",
+            width: "100vw",
+            overflow: "hidden",
+            display: "flex",
+          }}
+        >
+          <CanvasClient mapId={clientMap.id} />
+        </div>
+      </ReactFlowProvider>
+    </HydrationBoundary>
+  );
+}
+
+export default DesktopWorkspace;

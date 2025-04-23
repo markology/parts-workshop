@@ -7,11 +7,12 @@ import { useWorkingStore } from "../state/useWorkingStore";
 import { FlowNodesProvider } from "../state/FlowNodesContext";
 import SideBar from "./SideBar/SideBar";
 import { useAutoSave } from "../state/hooks/useAutoSave";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 export default function CanvasClient({ mapId }: { mapId: string }) {
   const { data, isLoading, error } = useLoadMap(mapId);
   const [hydrated, setHydrated] = useState(false);
-
+  const isMobile = useIsMobile();
   useEffect(() => {
     if (data) {
       console.log("💾 Hydrating Zustand from fetched map");
@@ -33,7 +34,7 @@ export default function CanvasClient({ mapId }: { mapId: string }) {
 
   return (
     <FlowNodesProvider>
-      <SideBar />
+      {!isMobile && <SideBar />}
       <Canvas />
     </FlowNodesProvider>
   ); // now fully local + Zustand-based
