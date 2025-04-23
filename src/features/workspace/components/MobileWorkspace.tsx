@@ -12,6 +12,7 @@ import { redirect } from "next/navigation";
 import React from "react";
 import { createEmptyImpressionGroups } from "../state/useWorkingStore";
 import CanvasClient from "./CanvasClient";
+import { QueryClient } from "@tanstack/react-query";
 
 export type HydratedMap = Omit<
   PrismaMap,
@@ -57,6 +58,15 @@ const MobileWorkspace = async () => {
           >)
         : ({} as Record<ImpressionType, Record<string, SidebarImpression>>),
   };
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ["map", map.id],
+    queryFn: () => Promise.resolve(clientMap),
+    staleTime: Infinity,
+  });
+
+  console.log(clientMap);
   return (
     <ReactFlowProvider>
       <div
