@@ -3,7 +3,6 @@
 import { useThemeContext } from "@/context/ThemeContext";
 import { useEffect, useRef, useState } from "react";
 import Utilities from "../Utilities/Utilities";
-import { useJournalStore } from "@/state/Journal";
 
 interface JournalEditorProps {
   initialContent?: string;
@@ -26,11 +25,6 @@ export default function JournalEditor({
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
-
-  const handleChange = (html: string) => {
-    useJournalStore.getState().setJournalData(html);
-    setContent(html);
-  };
 
   // Set initial content from prop on mount/update
   useEffect(() => {
@@ -211,7 +205,26 @@ export default function JournalEditor({
             suppressContentEditableWarning
             className="min-h-[250px] border rounded p-4 focus:outline-none"
             style={{ whiteSpace: "pre-wrap" }}
-            onInput={() => handleChange(editorRef.current?.innerHTML || "")}
+            onInput={() => {
+              const rawHTML = editorRef.current?.innerHTML || "";
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(rawHTML, "text/html");
+
+              doc.querySelectorAll("span").forEach((span) => {
+                const color = span.style.color?.toLowerCase();
+                if (
+                  color === "black" ||
+                  color === "#000000" ||
+                  color === "white" ||
+                  color === "#ffffff"
+                ) {
+                  span.classList.add("text-default");
+                }
+              });
+
+              const cleanedHTML = doc.body.innerHTML;
+              setContent(cleanedHTML);
+            }}
             dangerouslySetInnerHTML={readOnly ? { __html: content } : undefined}
           />
         )}

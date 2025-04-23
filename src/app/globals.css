@@ -170,6 +170,10 @@ button {
   background: var(--background);
 }
 
+#editor-text .text-default {
+  color: var(--text-color-alt);
+}
+
 .conflict-handle {
   width: 16px !important; /* Adjust size as needed */
   height: 16px !important;
