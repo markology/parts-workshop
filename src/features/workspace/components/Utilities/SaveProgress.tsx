@@ -1,29 +1,29 @@
 import { Check, LoaderCircle, Save, SaveAll } from "lucide-react";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
 import { useState } from "react";
-import { useSaveMap } from "../../state/hooks/useSaveMap";
+import { useAutoSave } from "../../state/hooks/useAutoSave";
 
 const SaveProgress = () => {
   const [isHovering, setIsHovering] = useState(false);
-  const { mutate, isPending, isSuccess } = useSaveMap();
+  const { saveNow, isSaving, saveCheck } = useAutoSave();
 
   return (
     <ToolTipWrapper message="Save Map">
       <button
         className="w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
         id="save-progress"
-        onClick={() => mutate()}
+        onClick={() => saveNow()}
         onMouseOver={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
-        {isPending && !isSuccess ? (
+        {isSaving && !saveCheck ? (
           <LoaderCircle
             className="animate-spin"
             color="white"
             strokeWidth={2}
             size={30}
           />
-        ) : isSuccess ? (
+        ) : saveCheck ? (
           <Check color="white" strokeWidth={2} size={30} />
         ) : isHovering ? (
           <SaveAll color="white" strokeWidth={2} size={30} />

@@ -2,16 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useLoadMap } from "../state/hooks/useLoadMap";
-// import { useSyncMap } from "../state/hooks/useSyncMap";
 import Canvas from "./Canvas";
 import { useWorkingStore } from "../state/useWorkingStore";
 import { FlowNodesProvider } from "../state/FlowNodesContext";
 import SideBar from "./SideBar/SideBar";
+import { useAutoSave } from "../state/hooks/useAutoSave";
 
 export default function CanvasClient({ mapId }: { mapId: string }) {
   const { data, isLoading, error } = useLoadMap(mapId);
   const [hydrated, setHydrated] = useState(false);
-  // useSyncMap();
 
   useEffect(() => {
     if (data) {
@@ -26,6 +25,8 @@ export default function CanvasClient({ mapId }: { mapId: string }) {
       setHydrated(true); // ✅ only now render FlowNodesProvider
     }
   }, [data]);
+
+  useAutoSave();
 
   if (isLoading || !data || !hydrated) return <p>Loading workspace...</p>;
   if (error) return <p>Failed to load map.</p>;

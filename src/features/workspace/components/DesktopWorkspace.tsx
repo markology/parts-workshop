@@ -33,7 +33,10 @@ async function DesktopWorkspace() {
   }
 
   const userId = session.user.id;
-  let map = await prisma.map.findFirst({ where: { userId } });
+  let map = await prisma.map.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+  });
 
   const showTour = !map;
 

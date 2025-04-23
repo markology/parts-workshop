@@ -27,6 +27,7 @@ export default function Utilities({
   const [visible, setVisible] = useState(true);
   const [hoveringHide, setHoveringHide] = useState(false);
   const isOpen = useJournalStore((s) => s.isOpen);
+
   return (
     <div
       className={`fixed top-4 right-4 z-50 flex flex-col items-end gap-2.5 ${

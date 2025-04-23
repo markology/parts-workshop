@@ -6,9 +6,12 @@ import JournalEditor from "./JournalEditor";
 import { useSaveJournalEntry } from "../../state/hooks/useSaveJournalEntry";
 import { useAllJournalEntries } from "../../state/hooks/useAllJournalEntries";
 import { JournalEntry } from "@/types/Journal";
+import { useDebouncedJournalSave } from "../../state/hooks/useDebouncedJournalSave";
 
 export default function JournalDrawer() {
   // Inside JournalDrawer
+  useDebouncedJournalSave(); // 👈 plug it in at top
+
   const { isOpen, closeJournal, journalTarget } = useJournalStore();
   const { data: allEntries = [], isLoading } = useAllJournalEntries();
 

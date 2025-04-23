@@ -13,7 +13,8 @@ type WorkingState = {
   edges: Edge[];
   sidebarImpressions: Record<ImpressionType, Record<string, SidebarImpression>>;
   journalEntries: JournalEntry[];
-  updateJournal: (nodeId: string, content: string) => void;
+  updateJournalEntry: (entry: JournalEntry) => void;
+  deleteJournalEntry: (nodeId: string) => void;
   addImpression: ({ id, label, type }: SidebarImpression) => void;
   removeImpression: ({
     type,
@@ -45,12 +46,6 @@ export const useWorkingStore = create<WorkingState>()(
       sidebarImpressions: createEmptyImpressionGroups(),
       journalEntries: [],
       setState: (partial) => set((state) => ({ ...state, ...partial })),
-      updateJournal: (nodeId, content) => {
-        const updated = get().journalEntries.map((j) =>
-          j.nodeId === nodeId ? { ...j, content } : j
-        );
-        set({ journalEntries: updated });
-      },
       addImpression: ({ id, label, type }) =>
         set((state) => {
           return {
@@ -74,6 +69,22 @@ export const useWorkingStore = create<WorkingState>()(
             },
           };
         }),
+
+      updateJournalEntry: (newEntry) => {
+        const current = get().journalEntries;
+        const rest = current.filter(
+          (e) =>
+            newEntry.nodeId ? e.nodeId !== newEntry.nodeId : e.nodeId !== null // Global entry has nodeId = null
+        );
+
+        set({ journalEntries: [...rest, newEntry] });
+      },
+
+      deleteJournalEntry: (nodeId) => {
+        const current = get().journalEntries;
+        const rest = current.filter((e) => e.nodeId !== nodeId);
+        set({ journalEntries: rest });
+      },
 
       hydrated: false,
     }),

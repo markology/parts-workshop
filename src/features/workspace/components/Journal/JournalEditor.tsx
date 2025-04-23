@@ -3,6 +3,7 @@
 import { useThemeContext } from "@/context/ThemeContext";
 import { useEffect, useRef, useState } from "react";
 import Utilities from "../Utilities/Utilities";
+import { useJournalStore } from "@/state/Journal";
 
 interface JournalEditorProps {
   initialContent?: string;
@@ -25,6 +26,11 @@ export default function JournalEditor({
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
+
+  const handleChange = (html: string) => {
+    useJournalStore.getState().setJournalData(html);
+    setContent(html);
+  };
 
   // Set initial content from prop on mount/update
   useEffect(() => {
@@ -205,7 +211,7 @@ export default function JournalEditor({
             suppressContentEditableWarning
             className="min-h-[250px] border rounded p-4 focus:outline-none"
             style={{ whiteSpace: "pre-wrap" }}
-            onInput={() => setContent(editorRef.current?.innerHTML || "")}
+            onInput={() => handleChange(editorRef.current?.innerHTML || "")}
             dangerouslySetInnerHTML={readOnly ? { __html: content } : undefined}
           />
         )}

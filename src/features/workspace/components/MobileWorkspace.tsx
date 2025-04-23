@@ -23,7 +23,10 @@ const MobileWorkspace = async () => {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/");
 
-  let map = await prisma.map.findFirst({ where: { userId: session.user.id } });
+  let map = await prisma.map.findFirst({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "asc" },
+  });
   let clientMap: Map | undefined = undefined;
 
   if (!map) {

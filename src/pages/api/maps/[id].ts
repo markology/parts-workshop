@@ -1,10 +1,32 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
+
+const streamToString = async (stream: ReadableStream<Uint8Array>) => {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value, { stream: true });
+  }
+
+  return result;
+};
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user?.id) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const userId = session.user.id;
   const { id } = req.query;
 
   if (!id || typeof id !== "string") {
@@ -13,13 +35,26 @@ export default async function handler(
 
   if (req.method === "POST" || req.method === "PUT") {
     try {
-      const body = req.body;
+      let body = req.body;
 
-      // In case sendBeacon sends plain Blob with no JSON parsing,
-      // you may need to add this (depending on your setup):
-      if (typeof body === "string") {
-        req.body = JSON.parse(body);
+      // Handle raw stream from sendBeacon
+      if (body instanceof ReadableStream) {
+        const raw = await streamToString(body);
+        body = JSON.parse(raw);
       }
+
+      const validNodeIds = body.nodes.map((n: { id: string }) => n.id);
+
+      // 🧹 Purge orphaned journal entries (excluding global)
+      await prisma.journalEntry.deleteMany({
+        where: {
+          userId,
+          nodeId: {
+            notIn: validNodeIds,
+            not: null,
+          },
+        },
+      });
 
       const updated = await prisma.map.update({
         where: { id },
@@ -32,7 +67,7 @@ export default async function handler(
 
       return res.status(200).json({ success: true, data: updated });
     } catch (error) {
-      console.error(error);
+      console.error("Map save failed:", error);
       return res.status(500).json({ error: "Update failed" });
     }
   }

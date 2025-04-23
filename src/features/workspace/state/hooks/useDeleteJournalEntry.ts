@@ -1,3 +1,4 @@
+import { JournalEntry } from "@/types/Journal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useDeleteJournalEntry = () => {
@@ -5,11 +6,21 @@ export const useDeleteJournalEntry = () => {
 
   return useMutation({
     mutationFn: async (nodeId: string) => {
-      const res = await fetch(`/api/journal/${nodeId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete journal entry");
+      const res = await fetch(`/api/journal/node/${nodeId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete journal entry");
+      }
     },
     onSuccess: (_, nodeId) => {
-      queryClient.invalidateQueries({ queryKey: ["journal", nodeId] });
+      queryClient.setQueryData(
+        ["journal", "all"],
+        (prev: JournalEntry[] = []) =>
+          prev.filter((entry) => entry.nodeId !== nodeId)
+      );
+      queryClient.removeQueries({ queryKey: ["journal", nodeId] });
     },
   });
 };

@@ -31,6 +31,7 @@ import {
 } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
 import { useWorkingStore } from "./useWorkingStore";
+import { useDeleteJournalEntry } from "@/features/workspace/state/hooks/useDeleteJournalEntry";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
 
@@ -71,6 +72,8 @@ export const useFlowNodes = () => {
   const { getViewport, setCenter, getEdge, getNode, screenToFlowPosition } =
     useReactFlow();
   const getNodes = useRef(() => nodes);
+  const { mutate: deleteJournalEntry } = useDeleteJournalEntry();
+
   const activeSidebarNode = useSidebarStore((s) => s.activeSidebarNode);
 
   const setContextMenuParentNodeId = useUIStore(
@@ -145,8 +148,9 @@ export const useFlowNodes = () => {
   const deleteNode = useCallback(
     (id: string) => {
       setNodes((prev) => prev.filter((n) => n.id !== id));
+      deleteJournalEntry(id);
     },
-    [setNodes]
+    [deleteJournalEntry, setNodes]
   );
 
   const updateNode = useCallback(
