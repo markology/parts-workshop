@@ -11,6 +11,7 @@ import ImpressionInput from "./Impressions/ImpressionInput";
 import PartInput from "./PartInput";
 import { NodeBackgroundColors } from "../../constants/Nodes";
 import React from "react";
+import FeedbackForm from "@/components/FeedbackForm";
 
 const SideBar = () => {
   const { createNode } = useFlowNodesContext();
@@ -18,6 +19,8 @@ const SideBar = () => {
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const showImpressionModal = useUIStore((s) => s.showImpressionModal);
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
+  const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
+  const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
 
   const CreateButtons = useMemo(
     () => (
@@ -75,6 +78,12 @@ const SideBar = () => {
         onClose={() => setShowImpressionModal(false)}
       >
         <ImpressionInput />
+      </Modal>
+      <Modal
+        show={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      >
+        <FeedbackForm />
       </Modal>
     </aside>
   );

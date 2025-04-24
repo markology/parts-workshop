@@ -14,6 +14,7 @@ import ThemeToggle from "./ThemeToggle";
 import TrashCan from "./TrashCan";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import Feedback from "./Feedback";
 
 export default function Utilities({ full }: { full?: boolean }) {
   const [visible, setVisible] = useState(true);
@@ -77,6 +78,7 @@ export default function Utilities({ full }: { full?: boolean }) {
                 <TrashCan />
               </>
             )}
+            <Feedback />
           </>
         )}
       </div>
