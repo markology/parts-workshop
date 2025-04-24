@@ -11,7 +11,7 @@ const Landing = () => {
       <ClientRedirect />
       <Image
         className="absolute top-0 bottom-0 left-0 right-0 h-full w-screen object-contain"
-        src="/parts-hero.png"
+        src="/parts-hero.jpg"
         alt="Parts Workshop Hero"
         priority
         fill
