@@ -35,6 +35,23 @@ import { useDeleteJournalEntry } from "@/features/workspace/state/hooks/useDelet
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
 
+const requestIdle = (cb: IdleRequestCallback): number => {
+  return typeof window !== "undefined" && "requestIdleCallback" in window
+    ? requestIdleCallback(cb)
+    : (setTimeout(
+        () => cb({ didTimeout: false, timeRemaining: () => 0 } as IdleDeadline),
+        1
+      ) as unknown as number);
+};
+
+const cancelIdle = (id: number) => {
+  if (typeof window !== "undefined" && "cancelIdleCallback" in window) {
+    cancelIdleCallback(id);
+  } else {
+    clearTimeout(id);
+  }
+};
+
 function isPointInsideNode(position: XYPosition, node: Node): boolean {
   if (node?.measured?.width == null || node?.measured?.height == null)
     return false;
@@ -86,19 +103,19 @@ export const useFlowNodes = () => {
   }, [nodes]);
 
   useEffect(() => {
-    const handle = requestIdleCallback(() => {
+    const handle = requestIdle(() => {
       useWorkingStore.getState().setState({ nodes });
     });
 
-    return () => cancelIdleCallback(handle);
+    return () => cancelIdle(handle);
   }, [nodes]);
 
   useEffect(() => {
-    const handle = requestIdleCallback(() => {
+    const handle = requestIdle(() => {
       useWorkingStore.getState().setState({ edges });
     });
 
-    return () => cancelIdleCallback(handle);
+    return () => cancelIdle(handle);
   }, [edges]);
 
   // GENERAL NODE MANAGENT
