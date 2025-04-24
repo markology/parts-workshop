@@ -110,10 +110,25 @@ JournalEditorProps) {
   //   return () => clearTimeout(timeout);
   // }, [content]);
 
+  const focusEditorToEnd = () => {
+    const el = editorRef.current;
+    if (!el) return;
+
+    el.focus();
+
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false); // move cursor to end
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  };
+
   // --- Initial DOM hydration ---
   useEffect(() => {
     if (editorRef.current && initialContent && !readOnly) {
       editorRef.current.innerHTML = initialContent;
+      focusEditorToEnd();
     }
   }, [initialContent, readOnly]);
 
