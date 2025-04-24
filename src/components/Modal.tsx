@@ -8,7 +8,7 @@ const Modal = ({
   onClose,
   children,
   width,
-  full,
+  full = false,
 }: {
   show: boolean;
   onClose: () => void;
@@ -31,7 +31,7 @@ const Modal = ({
       id="modal-overlay"
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: full ? "black" : "inherit" }}
+      style={{ background: full ? "black" : "" }}
     >
       <div
         ref={modalRef}
