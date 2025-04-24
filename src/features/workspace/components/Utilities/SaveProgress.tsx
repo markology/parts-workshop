@@ -2,17 +2,27 @@ import { Check, LoaderCircle, Save, SaveAll } from "lucide-react";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
 import { useState } from "react";
 import { useAutoSave } from "../../state/hooks/useAutoSave";
+import { cleanupOrphanedJournalEntriesFromMap } from "@/lib/cleanupOrphanedJournalEntriesFromMap";
+import { useWorkingStore } from "../../state/useWorkingStore";
+import { toast } from "react-hot-toast";
 
 const SaveProgress = () => {
   const [isHovering, setIsHovering] = useState(false);
   const { saveNow, isSaving, saveCheck } = useAutoSave();
+
+  const handleSaveAndCleanup = async () => {
+    await saveNow();
+    const nodeIds = useWorkingStore.getState().nodes.map((n) => n.id);
+    await cleanupOrphanedJournalEntriesFromMap(nodeIds);
+    toast.success("Orphaned journal entries cleaned up.");
+  };
 
   return (
     <ToolTipWrapper message="Save Map">
       <button
         className="w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
         id="save-progress"
-        onClick={() => saveNow()}
+        onClick={() => handleSaveAndCleanup()}
         onMouseOver={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >

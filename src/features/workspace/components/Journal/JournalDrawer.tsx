@@ -42,6 +42,7 @@ export default function JournalDrawer() {
   const saveMutation = useSaveJournalEntry();
 
   const handleSave = (html: string) => {
+    console.log("SAVING", journalTarget, nodeId);
     saveMutation.mutate({ nodeId, content: html }); // ✅ works for create + update
   };
 

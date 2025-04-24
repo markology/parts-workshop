@@ -529,7 +529,7 @@ export const useFlowNodes = () => {
         y: event.clientY,
       });
 
-      if (node.type === "impression") {
+      if (node.type !== "conflict" && node.type !== "part") {
         const partNodeToInsertImpression: PartNode | undefined = nodes
           .filter((n) => n.type === "part")
           .find(

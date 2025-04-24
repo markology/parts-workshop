@@ -50,16 +50,5 @@ export default async function handler(
     return res.json(entry);
   }
 
-  if (req.method === "DELETE") {
-    await prisma.journalEntry.deleteMany({
-      where: {
-        userId: session.user.id,
-        nodeId: nodeId as string,
-      },
-    });
-
-    return res.status(200).json({ ok: true });
-  }
-
   return res.status(405).end();
 }
