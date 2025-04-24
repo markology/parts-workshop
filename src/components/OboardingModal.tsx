@@ -1,9 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "./Modal"; // your modal component
 
 export default function OnboardingModal() {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
+
+  useEffect(() => {
+    const hasSeen = localStorage.getItem("seenTutorial");
+    if (!hasSeen) {
+      setShow(true);
+      localStorage.setItem("seenTutorial", "true");
+    }
+  }, []);
 
   return (
     <Modal show={show} onClose={() => setShow(false)} width="100vw" full>

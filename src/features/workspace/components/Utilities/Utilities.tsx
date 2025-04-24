@@ -78,7 +78,7 @@ export default function Utilities({ full }: { full?: boolean }) {
                 <TrashCan />
               </>
             )}
-            <Feedback />
+            {!isOpen && <Feedback />}
           </>
         )}
       </div>
