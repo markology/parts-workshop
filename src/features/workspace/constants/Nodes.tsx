@@ -15,7 +15,7 @@ export const NodeBackgroundColors = {
   sensation: "#F9B17A",
   behavior: "#8BCB8B",
   conflict: "#B19CD9",
-  part: "#F7E68F",
+  part: "#a1c7dd",
   self: "#80d7d1",
   other: "#EFA9C8",
 };

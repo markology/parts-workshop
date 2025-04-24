@@ -26,7 +26,7 @@ const SideBar = () => {
           <button
             id="create-part-button"
             onClick={() => setShowPartModal(true)}
-            className="flex-1 bg-white font-medium rounded shadow transition p-none flex justify-center items-center "
+            className="flex-1 bg-white font-medium rounded shadow-md transition p-none flex justify-center items-center "
             style={{
               color: "black",
             }}
@@ -40,7 +40,7 @@ const SideBar = () => {
               createNode("conflict", "Conflict");
             }}
             style={{ background: NodeBackgroundColors["conflict"] }}
-            className="flex-1 text-white font-medium rounded shadow transition p-none flex justify-center items-center items-center p-[5px]"
+            className="flex-1 text-white font-medium rounded shadow-md shadow-black transition p-none flex justify-center items-center items-center p-[5px]"
           >
             <MessageCircleWarning size={20} strokeWidth={2} />
             <Plus className="ml-1" size={20} strokeWidth={2} />
@@ -50,7 +50,7 @@ const SideBar = () => {
         <button
           id="create-impression-button"
           onClick={() => setShowImpressionModal(true)}
-          className="flex-1 w-full text-white font-medium rounded shadow transition p-none flex justify-center items-center bg-[#45618a] items-center p-[5px]"
+          className="flex-1 w-full text-white font-medium shadow-md  rounded transition p-none flex justify-center items-center bg-[#45618a] items-center p-[5px]"
         >
           Impression
           <Plus className="ml-1" size={20} strokeWidth={2} />

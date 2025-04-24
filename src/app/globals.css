@@ -211,7 +211,6 @@ button {
 }
 
 .light #sidebar-buttons button {
-  box-shadow: 0px 0px 6px 0px #656565;
   color: var(--text-color-alt);
 }
 
@@ -237,6 +236,14 @@ button {
 
 .light #create-conflict-button {
   background: #5a4784 !important;
+  box-shadow: 1px 2px 4px 0px black;
+}
+
+#create-part-button {
+  box-shadow: 0 4px 9px -4px #00000082;
+}
+#create-impression-button {
+  box-shadow: 1px 2px 4px 0px black;
 }
 
 /* .node {

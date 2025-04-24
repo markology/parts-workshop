@@ -203,14 +203,14 @@ JournalEditorProps) {
       className="max-w-2xl mx-auto space-y-6 p-4 shadow-md rounded h-full flex flex-col"
     >
       <div className="flex flex-row justify-between">
-        <p className="text-[20px] fit-content">{title}</p>
+        <p className="text-[20px] fit-content font-bold">{title}</p>
         <span
           className={`
             bg-white px-2.5 py-px rounded-lg text-sm flex items-center
-            ${nodeType ? "" : "bg-white"}
           `}
           style={{
             background: nodeType ? NodeBackgroundColors[nodeType] : "white",
+            color: nodeType ? "white" : "black",
           }}
         >
           {nodeType || "global"}
