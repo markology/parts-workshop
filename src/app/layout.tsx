@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
 
 import AuthAndThemeProvider from "./providers";
+import { PostHogProvider } from "../components/PostHogProvider";
 
 const interFont = Quicksand({
   variable: "--font-inter",
@@ -22,22 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Script
-        defer
-        data-domain="parts-workshop.vercel.app"
-        src="https://plausible.io/js/script.js"
-        strategy="afterInteractive"
-      />
-      <Script id="plausible-setup" strategy="afterInteractive">
-        {`
-          window.plausible = window.plausible || function() {
-            (window.plausible.q = window.plausible.q || []).push(arguments)
-          }
-        `}
-      </Script>
-
       <body className={`${interFont.variable} antialiased`}>
-        <AuthAndThemeProvider>{children}</AuthAndThemeProvider>
+        <PostHogProvider>
+          <AuthAndThemeProvider>{children}</AuthAndThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

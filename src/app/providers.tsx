@@ -5,6 +5,7 @@ import { ThemeContextProvider } from "@/context/ThemeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { PostHogProvider } from "@/components/PostHogProvider";
 
 export default function AuthAndThemeProvider({
   children,
@@ -14,11 +15,13 @@ export default function AuthAndThemeProvider({
   const [client] = useState(() => new QueryClient());
 
   return (
-    <QueryClientProvider client={client}>
-      <SessionProvider>
-        <ThemeContextProvider>{children}</ThemeContextProvider>
-      </SessionProvider>
-      <ReactQueryDevtools initialIsOpen={true} />
-    </QueryClientProvider>
+    <PostHogProvider>
+      <QueryClientProvider client={client}>
+        <SessionProvider>
+          <ThemeContextProvider>{children}</ThemeContextProvider>
+        </SessionProvider>
+        <ReactQueryDevtools initialIsOpen={true} />
+      </QueryClientProvider>
+    </PostHogProvider>
   );
 }

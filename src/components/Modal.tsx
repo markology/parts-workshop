@@ -7,10 +7,12 @@ const Modal = ({
   show,
   onClose,
   children,
+  width,
 }: {
   show: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  width?: string | number;
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -28,7 +30,11 @@ const Modal = ({
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center"
     >
-      <div ref={modalRef} className="rounded p-8 w-[650px] relative ml-[250px]">
+      <div
+        ref={modalRef}
+        className={`rounded p-8 relative ml-[250px]`}
+        style={{ width: width ? width : "650px" }}
+      >
         <button
           onClick={onClose}
           className="absolute top-0 right-2  hover:text-black"
