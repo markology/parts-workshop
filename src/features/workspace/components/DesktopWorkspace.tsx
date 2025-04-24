@@ -10,7 +10,6 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 import CanvasClient from "@/features/workspace/components/CanvasClient";
-import TourOverlay from "@/features/workspace/components/TourOverlay";
 import { WorkshopNode } from "@/types/Nodes";
 import { Edge } from "@xyflow/react";
 import { Map } from "@/types/api/map";
@@ -37,8 +36,6 @@ async function DesktopWorkspace() {
     where: { userId },
     orderBy: { createdAt: "asc" },
   });
-
-  const showTour = !map;
 
   if (!map) {
     console.log("❌ No map found — creating a new one");
@@ -78,12 +75,9 @@ async function DesktopWorkspace() {
     staleTime: Infinity,
   });
 
-  console.log(clientMap);
-
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ReactFlowProvider>
-        {showTour && <TourOverlay />}
         <div
           className="PW"
           style={{

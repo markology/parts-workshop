@@ -186,14 +186,19 @@ export default function TourOverlay() {
       exit();
       return;
     }
+    console.log("trying to get the elem", step?.target);
     if (!step?.target || step.videoModal) return;
     const el = document.querySelector(step.target) as HTMLElement | null;
     if (el) setTargetEl(el);
+
+    console.log("setting this el", el);
   }, [step.target, step.videoModal, stepIndex]);
 
   const next = () => setStepIndex((i) => i + 1);
   const prev = () => setStepIndex((i) => Math.max(i - 1, 0));
   const exit = () => setStepIndex(-1);
+
+  console.log("checking if go go", targetEl, step, stepIndex);
 
   if (!targetEl || stepIndex === -1 || !step) return null;
 
@@ -206,6 +211,8 @@ export default function TourOverlay() {
       </Modal>
     );
   }
+
+  console.log(step, targetEl);
 
   return (
     <div id="tour-modal" className="fixed inset-0 pointer-events-none z-[9999]">

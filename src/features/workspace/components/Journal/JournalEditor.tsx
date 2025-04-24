@@ -121,6 +121,7 @@ JournalEditorProps) {
     if (!hasEditorMounted && editorRef?.current) {
       setHasEditorMounted(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorRef?.current]);
 
   useEffect(() => {
@@ -145,7 +146,7 @@ JournalEditorProps) {
         document.removeEventListener("mouseup", handleCursorChange);
       });
     };
-  }, [hasEditorMounted, readOnly]);
+  }, [hasEditorMounted, readOnly, updateFormatState]);
 
   const ToolbarButton = ({
     label,

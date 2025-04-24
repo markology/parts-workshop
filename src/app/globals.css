@@ -172,6 +172,10 @@ button {
   background: var(--background);
 }
 
+#journal-drawer div.radix-tooltip-content {
+  color: black;
+}
+
 #editor-text .text-default {
   color: var(--text-color-alt);
 }

@@ -8,6 +8,7 @@ import { FlowNodesProvider } from "../state/FlowNodesContext";
 import SideBar from "./SideBar/SideBar";
 import { useAutoSave } from "../state/hooks/useAutoSave";
 import { useIsMobile } from "@/hooks/useIsMobile";
+// import TourOverlay from "./TourOverlay";
 
 export default function CanvasClient({ mapId }: { mapId: string }) {
   const { data, isLoading, error } = useLoadMap(mapId);
@@ -45,9 +46,11 @@ export default function CanvasClient({ mapId }: { mapId: string }) {
 
   if (isLoading || !data || !hydrated) return <p>Loading workspace...</p>;
   if (error) return <p>Failed to load map.</p>;
+  // const showTour = !map;
 
   return (
     <FlowNodesProvider>
+      {/* <TourOverlay /> */}
       {!isMobile && <SideBar />}
       <Canvas />
     </FlowNodesProvider>
