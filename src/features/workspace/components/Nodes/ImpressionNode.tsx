@@ -39,7 +39,13 @@ const ImpressionNode = ({
           },
           {
             icon: <PencilIcon size={16} />,
-            onClick: () => setJournalTarget({ type: "node", nodeId: id }),
+            onClick: () =>
+              setJournalTarget({
+                type: "node",
+                nodeId: id,
+                nodeType: type,
+                title: label,
+              }),
           },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps

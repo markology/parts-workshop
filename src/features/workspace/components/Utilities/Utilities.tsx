@@ -12,19 +12,10 @@ import Logout from "./Logout";
 import SaveProgress from "./SaveProgress";
 import ThemeToggle from "./ThemeToggle";
 import TrashCan from "./TrashCan";
-import SaveJournal from "./SaveJournal";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
-export default function Utilities({
-  full,
-  journalContent,
-  onSave,
-}: {
-  full?: boolean;
-  journalContent?: string;
-  onSave?: (html: string) => void;
-}) {
+export default function Utilities({ full }: { full?: boolean }) {
   const [visible, setVisible] = useState(true);
   const [hoveringHide, setHoveringHide] = useState(false);
   const isOpen = useJournalStore((s) => s.isOpen);
@@ -79,9 +70,6 @@ export default function Utilities({
           <>
             {full && <Logout />}
             <ThemeToggle />
-            {isOpen && onSave && journalContent !== undefined && (
-              <SaveJournal handleClick={() => onSave(journalContent)} />
-            )}
             <JournalToggle />
             {!isOpen && full && (
               <>

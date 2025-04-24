@@ -1,6 +1,14 @@
+import { ImpressionType } from "@/types/Impressions";
 import { create } from "zustand/react";
 
-type JournalTarget = { type: "global" } | { type: "node"; nodeId: string };
+type JournalTarget =
+  | { type: "global" }
+  | {
+      type: "node";
+      nodeId: string;
+      nodeType: ImpressionType | "part" | "conflict";
+      title: string;
+    };
 
 type JournalStore = {
   isOpen: boolean;

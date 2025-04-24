@@ -17,7 +17,10 @@ export default function JournalDrawer() {
 
   const nodeId =
     journalTarget?.type === "node" ? journalTarget.nodeId : undefined;
-
+  const nodeType =
+    journalTarget?.type === "node" ? journalTarget.nodeType : undefined;
+  const nodeLabel =
+    journalTarget?.type === "node" ? journalTarget.title : undefined;
   const [editorContent, setEditorContent] = useState("");
 
   const entry = journalTarget
@@ -63,7 +66,8 @@ export default function JournalDrawer() {
       >
         <JournalEditor
           key={nodeId ?? "global"}
-          title={nodeId ?? "Global Journal"}
+          title={nodeLabel ?? "Global Journal"}
+          nodeType={nodeType}
           initialContent={editorContent}
           onSave={handleSave}
           isLoading={isLoading || saveMutation.isPending}

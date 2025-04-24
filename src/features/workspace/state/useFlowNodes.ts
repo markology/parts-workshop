@@ -424,7 +424,7 @@ export const useFlowNodes = () => {
         style: {
           backgroundColor: "transparent",
           border: "none",
-          boxShadow: "none",
+          borderRadius: 5,
         },
       };
 
@@ -529,22 +529,22 @@ export const useFlowNodes = () => {
         y: event.clientY,
       });
 
-      if (node.type === "part") return;
+      if (node.type === "impression") {
+        const partNodeToInsertImpression: PartNode | undefined = nodes
+          .filter((n) => n.type === "part")
+          .find(
+            (n): n is PartNode =>
+              n.type === "part" && isPointInsideNode(position, n)
+          );
 
-      const partNodeToInsertImpression: PartNode | undefined = nodes
-        .filter((n) => n.type === "part")
-        .find(
-          (n): n is PartNode =>
-            n.type === "part" && isPointInsideNode(position, n)
-        );
-
-      if (partNodeToInsertImpression) {
-        insertImpressionToPart(
-          node as ImpressionNode,
-          node.id,
-          partNodeToInsertImpression.id,
-          node?.type as ImpressionType
-        );
+        if (partNodeToInsertImpression) {
+          insertImpressionToPart(
+            node as ImpressionNode,
+            node.id,
+            partNodeToInsertImpression.id,
+            node?.type as ImpressionType
+          );
+        }
       }
     },
     [

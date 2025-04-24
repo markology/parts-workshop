@@ -40,7 +40,17 @@ const ConflictNode = ({
           },
           {
             icon: <PencilIcon size={16} />,
-            onClick: () => setJournalTarget({ type: "node", nodeId: id }),
+            onClick: () =>
+              setJournalTarget({
+                type: "node",
+                nodeId: id,
+                nodeType: "conflict",
+                title: connectedNodes.reduce((acc, connectedNode) => {
+                  return acc === ""
+                    ? connectedNode.part.data.label
+                    : acc + " + " + connectedNode.part.data.label;
+                }, ""),
+              }),
           },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps

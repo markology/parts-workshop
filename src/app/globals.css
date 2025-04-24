@@ -19,13 +19,14 @@
 }
 
 :root:has(.light) {
-  --background: #f8f6f0;
+  --background: #e6f8ff;
   /* --aside-background: white; */
   --aside-background: linear-gradient(135deg, #fff, #e2ebff);
 
   --text-color: black;
   --text-against-part-node: #4e6176;
   --text-color-alt: white;
+  --box-shadow: #00000082 0px 9px 13px -4px;
 }
 
 @theme inline {
@@ -42,8 +43,10 @@
     --text-color: white;
     --text-color-alt: black;
     --text-against-part-node: var(--text-color);
+    --box-shadow: #000000a8 0px 7px 16px -4px;
   }
 }
+
 [contenteditable] font[size="1"] {
   font-size: 0.75rem;
 }
@@ -85,6 +88,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.react-flow__node {
+  box-shadow: var(--box-shadow);
+}
 .img-cropper {
   width: 100%;
   height: 400px;
@@ -158,10 +164,6 @@ button {
   background: var(--background);
 }
 
-.dark #journal-editor #save-entry:hover {
-  color: black;
-}
-
 #journal-drawer div {
   color: var(--text-color);
 }
@@ -204,6 +206,10 @@ button {
   flex: "0 0 250px";
 }
 
+#impression-dropdown-container {
+  height: calc(100vh - 100px);
+}
+
 .light #sidebar-buttons button {
   box-shadow: 0px 0px 6px 0px #656565;
   color: var(--text-color-alt);
@@ -233,9 +239,9 @@ button {
   background: #5a4784 !important;
 }
 
-.node {
+/* .node {
   box-shadow: 0px 9px 13px -4px black;
-}
+} */
 
 .PW {
   flex-direction: column;

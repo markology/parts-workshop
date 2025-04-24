@@ -12,6 +12,7 @@ const PartNeeds = ({ needs, partId }: { needs: string[]; partId: string }) => {
   const { getNode } = useReactFlow();
 
   const handleSave = useCallback(() => {
+    if (!need) return;
     const node = getNode(partId);
     if (node?.data)
       updateNode<PartNodeData>(partId, {

@@ -29,10 +29,10 @@ export default function createNodeFN({
     id,
     position,
     style: {
+      ...(typeof style === "object" ? style : {}),
       backgroundColor: "transparent",
       border: "none",
-      boxShadow: "none",
-      ...(typeof style === "object" ? style : {}),
+      borderRadius: 5,
     },
   };
 
@@ -57,8 +57,10 @@ export default function createNodeFN({
         ...baseNode,
         type: "part",
         style: {
+          ...baseNode.style,
           textAlign: "right",
           zIndex: -1,
+          borderRadius: 25,
         },
         data: {
           type: "partData",
@@ -79,6 +81,7 @@ export default function createNodeFN({
         ...baseNode,
         type: "conflict",
         style: {
+          ...baseNode.style,
           textAlign: "right",
         },
         data: {
@@ -87,6 +90,7 @@ export default function createNodeFN({
           connectedNodes: [],
         } as ConflictNodeData,
       } as ConflictNode;
+
       break;
 
     default:

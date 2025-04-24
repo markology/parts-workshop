@@ -45,7 +45,13 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
           },
           {
             icon: <PencilIcon size={16} />,
-            onClick: () => setJournalTarget({ type: "node", nodeId: partId }),
+            onClick: () =>
+              setJournalTarget({
+                type: "node",
+                nodeId: partId,
+                nodeType: "part",
+                title: data.label,
+              }),
           },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,7 +89,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
       <div
         onContextMenu={handleContextMenu}
         ref={nodeRef}
-        className="node part-node bg-[#a3c1e591] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl text-left"
+        className="node part-node bg-[linear-gradient(251deg,_#a0c9fd36_0%,_#8ad5f173_100%)] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl text-left"
       >
         {/* Title */}
         <div className="flex justify-between">
