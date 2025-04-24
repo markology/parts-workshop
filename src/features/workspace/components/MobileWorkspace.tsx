@@ -94,7 +94,7 @@ async function MobileWorkspace() {
             display: "flex",
           }}
         >
-          <CanvasClient mapId={clientMap.id} />
+          <CanvasClient mapId={clientMap.id} showOnboarding={false} />
         </div>
       </ReactFlowProvider>
     </HydrationBoundary>

@@ -36,6 +36,8 @@ async function DesktopWorkspace() {
     where: { userId },
     orderBy: { createdAt: "asc" },
   });
+  const showOnboarding = !map;
+  console.log(showOnboarding);
 
   if (!map) {
     console.log("❌ No map found — creating a new one");
@@ -87,7 +89,7 @@ async function DesktopWorkspace() {
             display: "flex",
           }}
         >
-          <CanvasClient mapId={clientMap.id} />
+          <CanvasClient mapId={clientMap.id} showOnboarding={showOnboarding} />
         </div>
       </ReactFlowProvider>
     </HydrationBoundary>

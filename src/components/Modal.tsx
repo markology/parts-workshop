@@ -8,11 +8,13 @@ const Modal = ({
   onClose,
   children,
   width,
+  full,
 }: {
   show: boolean;
   onClose: () => void;
   children: React.ReactNode;
   width?: string | number;
+  full?: boolean;
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -29,10 +31,11 @@ const Modal = ({
       id="modal-overlay"
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: full ? "black" : "inherit" }}
     >
       <div
         ref={modalRef}
-        className={`rounded p-8 relative ml-[250px]`}
+        className={`rounded p-8 relative ${full ? "" : "ml-[250px]"}`}
         style={{ width: width ? width : "650px" }}
       >
         <button

@@ -8,9 +8,16 @@ import { FlowNodesProvider } from "../state/FlowNodesContext";
 import SideBar from "./SideBar/SideBar";
 import { useAutoSave } from "../state/hooks/useAutoSave";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import OnboardingModal from "@/components/OboardingModal";
 // import TourOverlay from "./TourOverlay";
 
-export default function CanvasClient({ mapId }: { mapId: string }) {
+export default function CanvasClient({
+  mapId,
+  showOnboarding,
+}: {
+  mapId: string;
+  showOnboarding: boolean;
+}) {
   const { data, isLoading, error } = useLoadMap(mapId);
   const [hydrated, setHydrated] = useState(false);
   const isMobile = useIsMobile();
@@ -50,6 +57,7 @@ export default function CanvasClient({ mapId }: { mapId: string }) {
 
   return (
     <FlowNodesProvider>
+      {showOnboarding && <OnboardingModal />}
       {/* <TourOverlay /> */}
       {!isMobile && <SideBar />}
       <Canvas />
