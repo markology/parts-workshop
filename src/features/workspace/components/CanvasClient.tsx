@@ -27,6 +27,20 @@ export default function CanvasClient({ mapId }: { mapId: string }) {
     }
   }, [data]);
 
+  if (typeof window !== "undefined") {
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      document.body.innerHTML = `
+        <pre style="white-space: pre-wrap; font-size: 14px;">
+          ⚠️ JS Error:
+          ${msg}
+          At: ${url}:${lineNo}:${columnNo}
+          ${error?.stack || ""}
+        </pre>
+      `;
+      return false;
+    };
+  }
+
   useAutoSave();
 
   if (isLoading || !data || !hydrated) return <p>Loading workspace...</p>;

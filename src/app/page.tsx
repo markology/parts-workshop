@@ -7,6 +7,7 @@ export default async function Page() {
   const session = await getServerSession(authOptions);
 
   if (session?.user) {
+    console.log("SESSION FOUND - REDIRECTING TO WORKSPACE");
     redirect("/workspace");
   }
 

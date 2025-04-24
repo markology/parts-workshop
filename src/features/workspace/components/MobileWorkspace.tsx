@@ -10,14 +10,14 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 import CanvasClient from "@/features/workspace/components/CanvasClient";
-import TourOverlay from "@/features/workspace/components/TourOverlay";
+// import TourOverlay from "@/features/workspace/components/TourOverlay";
 import { WorkshopNode } from "@/types/Nodes";
 import { Edge } from "@xyflow/react";
 import { Map } from "@/types/api/map";
 import { Map as PrismaMap } from "@prisma/client";
 import { ImpressionType } from "@/types/Impressions";
 import { SidebarImpression } from "@/types/Sidebar";
-import { createEmptyImpressionGroups } from "../state/useWorkingStore";
+// import { createEmptyImpressionGroups } from "../state/useWorkingStore";
 
 export type HydratedMap = Omit<
   PrismaMap,
@@ -25,7 +25,7 @@ export type HydratedMap = Omit<
 > &
   Map;
 
-async function DesktopWorkspace() {
+async function MobileWorkspace() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -33,25 +33,27 @@ async function DesktopWorkspace() {
   }
 
   const userId = session.user.id;
-  let map = await prisma.map.findFirst({
+  const map = await prisma.map.findFirst({
     where: { userId },
     orderBy: { createdAt: "asc" },
   });
 
-  const showTour = !map;
+  // const showTour = !map;
 
   if (!map) {
     console.log("❌ No map found — creating a new one");
-    map = await prisma.map.create({
-      data: {
-        userId,
-        title: "Untitled Map",
-        nodes: [],
-        edges: [],
-        sidebarImpressions: createEmptyImpressionGroups(),
-      },
-    });
+    return <p>Please first create account on Desktop</p>;
   }
+  //   map = await prisma.map.create({
+  //     data: {
+  //       userId,
+  //       title: "Untitled Map",
+  //       nodes: [],
+  //       edges: [],
+  //       sidebarImpressions: createEmptyImpressionGroups(),
+  //     },
+  //   });
+  // }
 
   const clientMap: Map = {
     id: map.id,
@@ -78,12 +80,11 @@ async function DesktopWorkspace() {
     staleTime: Infinity,
   });
 
-  console.log(clientMap);
+  // console.log(clientMap);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ReactFlowProvider>
-        {showTour && <TourOverlay />}
         <div
           className="PW"
           style={{
@@ -100,4 +101,4 @@ async function DesktopWorkspace() {
   );
 }
 
-export default DesktopWorkspace;
+export default MobileWorkspace;
