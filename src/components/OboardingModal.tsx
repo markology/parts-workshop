@@ -3,7 +3,6 @@ import Modal from "./Modal"; // your modal component
 
 export default function OnboardingModal() {
   const [show, setShow] = useState(false);
-  const [hasPlayed, setHasPlayed] = useState(false);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem("seenTutorial");
@@ -25,7 +24,6 @@ export default function OnboardingModal() {
         <video
           src="/parts-workshop.mp4"
           controls
-          onPlay={() => setHasPlayed(true)}
           preload="metadata"
           className="w-full rounded-lg shadow-md mb-4"
         >
