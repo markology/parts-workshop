@@ -84,6 +84,7 @@ async function MobileWorkspace() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
+      <p>You can only use your scratchpad and view map on mobile</p>;
       <ReactFlowProvider>
         <div
           className="PW"
