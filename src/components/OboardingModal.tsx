@@ -20,7 +20,7 @@ export default function OnboardingModal() {
           className="text-lg text-black text-center font-semibold mb-4"
           style={{ color: "white" }}
         >
-          Welcome to Parts Workshop - Please watch this tutorial!
+          Welcome to Parts Workshop - Please watch the tutorial :)
         </h2>
         <video
           src="/parts-workshop.mp4"
@@ -33,11 +33,10 @@ export default function OnboardingModal() {
         </video>
         <div className="flex justify-end">
           <button
-            disabled={!hasPlayed}
             onClick={() => setShow(false)}
             className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
           >
-            {hasPlayed ? "Start Workshopping!" : "Watch Tutorial!"}
+            Proceed to workshop
           </button>
         </div>
       </div>
