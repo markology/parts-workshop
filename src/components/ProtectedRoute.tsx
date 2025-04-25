@@ -7,7 +7,7 @@ const ProtectedRoute = async ({ children }: { children: React.ReactNode }) => {
   console.log("CURRENT SESSION", session);
   if (!session?.user) {
     console.log("REDIRECTING TO LANDING");
-    redirect("/");
+    redirect("/login");
   }
 
   return children;
