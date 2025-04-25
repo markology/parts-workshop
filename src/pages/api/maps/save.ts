@@ -32,6 +32,12 @@ export default async function handler(
       const { mapId, nodes, edges, sidebarImpressions, journalEntries } =
         JSON.parse(body);
 
+      if (!Array.isArray(nodes) || !Array.isArray(edges)) {
+        return res
+          .status(400)
+          .json({ error: "Invalid payload: nodes or edges missing" });
+      }
+
       // ✅ Save Map visual state
       await prisma.map.update({
         where: { id: mapId },

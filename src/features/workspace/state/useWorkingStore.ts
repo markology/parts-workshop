@@ -1,10 +1,12 @@
+import { createIndexedDbStorage } from "@/state/indexedDbStorage";
+import { ImpressionType } from "@/types/Impressions";
+import { JournalEntry } from "@/types/Journal";
+import { WorkshopNode } from "@/types/Nodes";
+import { SidebarImpression } from "@/types/Sidebar";
+import { Edge } from "@xyflow/react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { WorkshopNode } from "@/types/Nodes";
-import { Edge } from "@xyflow/react";
-import { SidebarImpression } from "@/types/Sidebar";
-import { JournalEntry } from "@/types/Journal";
-import { ImpressionType } from "@/types/Impressions";
+
 import { ImpressionList } from "../constants/Impressions";
 
 type WorkingState = {
@@ -47,17 +49,15 @@ export const useWorkingStore = create<WorkingState>()(
       journalEntries: [],
       setState: (partial) => set((state) => ({ ...state, ...partial })),
       addImpression: ({ id, label, type }) =>
-        set((state) => {
-          return {
-            sidebarImpressions: {
-              ...state.sidebarImpressions,
-              [type]: {
-                ...state.sidebarImpressions[type],
-                [id]: { id, label, type },
-              },
+        set((state) => ({
+          sidebarImpressions: {
+            ...state.sidebarImpressions,
+            [type]: {
+              ...state.sidebarImpressions[type],
+              [id]: { id, label, type },
             },
-          };
-        }),
+          },
+        })),
       removeImpression: ({ type, id }) =>
         set((state) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -69,25 +69,23 @@ export const useWorkingStore = create<WorkingState>()(
             },
           };
         }),
-
       updateJournalEntry: (newEntry) => {
         const current = get().journalEntries;
-        const rest = current.filter(
-          (e) =>
-            newEntry.nodeId ? e.nodeId !== newEntry.nodeId : e.nodeId !== null // Global entry has nodeId = null
+        const rest = current.filter((e) =>
+          newEntry.nodeId ? e.nodeId !== newEntry.nodeId : e.nodeId !== null
         );
-
         set({ journalEntries: [...rest, newEntry] });
       },
-
       deleteJournalEntry: (nodeId) => {
         const current = get().journalEntries;
         const rest = current.filter((e) => e.nodeId !== nodeId);
         set({ journalEntries: rest });
       },
-
       hydrated: false,
     }),
-    { name: "working-map" }
+    {
+      name: "working-map",
+      storage: createIndexedDbStorage<WorkingState>(), // <- pass generic here!
+    }
   )
 );

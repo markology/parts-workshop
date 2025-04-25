@@ -23,6 +23,7 @@
     "@tanstack/react-query-devtools": "^5.74.4",
     "@xyflow/react": "^12.4.4",
     "emailjs-com": "^3.2.0",
+    "idb-keyval": "^6.2.1",
     "lexical": "^0.30.0",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.485.0",

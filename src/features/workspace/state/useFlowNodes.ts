@@ -436,7 +436,7 @@ export const useFlowNodes = () => {
         hidden: !!partNodeToInsertImpression,
         data: {
           label, // Ensure label is included
-          parentNode: partNodeToInsertImpression || null,
+          parentNodeId: partNodeToInsertImpression?.id || null,
         },
         style: {
           backgroundColor: "transparent",
