@@ -1,7 +1,7 @@
 "use client";
 
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import { useUIStore } from "@/state/UI";
+import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useRef } from "react";
 
 const PartInput = () => {

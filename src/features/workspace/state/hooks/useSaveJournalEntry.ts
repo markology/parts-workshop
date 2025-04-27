@@ -1,4 +1,4 @@
-import { JournalEntry } from "@/types/Journal";
+import { JournalEntry } from "@/features/workspace/types/Journal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useSaveJournalEntry = () => {

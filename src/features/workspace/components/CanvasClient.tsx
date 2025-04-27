@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLoadMap } from "../state/hooks/useLoadMap";
 import Canvas from "./Canvas";
-import { useWorkingStore } from "../state/useWorkingStore";
+import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { FlowNodesProvider } from "../state/FlowNodesContext";
 import SideBar from "./SideBar/SideBar";
 import { useAutoSave } from "../state/hooks/useAutoSave";

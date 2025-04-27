@@ -2,8 +2,8 @@ import { Check, LoaderCircle, Save, SaveAll } from "lucide-react";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
 import { useState } from "react";
 import { useAutoSave } from "../../state/hooks/useAutoSave";
-import { cleanupOrphanedJournalEntriesFromMap } from "@/lib/cleanupOrphanedJournalEntriesFromMap";
-import { useWorkingStore } from "../../state/useWorkingStore";
+import { cleanupOrphanedJournalEntriesFromMap } from "@/features/workspace/state/lib/cleanupOrphanedJournalEntriesFromMap";
+import { useWorkingStore } from "../../state/stores/useWorkingStore";
 import { toast } from "react-hot-toast";
 
 const SaveProgress = () => {

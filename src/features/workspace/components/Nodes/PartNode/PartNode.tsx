@@ -1,8 +1,8 @@
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import { useUIStore } from "@/state/UI";
-import { ImpressionTextType } from "@/types/Impressions";
-import { PartNodeData } from "@/types/Nodes";
+import { useUIStore } from "@/features/workspace/state/stores/UI";
+import { ImpressionTextType } from "@/features/workspace/types/Impressions";
+import { PartNodeData } from "@/features/workspace/types/Nodes";
 import { Handle, Position } from "@xyflow/react";
 import { Pencil, PencilIcon, SquareUserRound, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -10,8 +10,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
 import PartNeeds from "./PartNeeds";
 import RightClickMenu from "@/components/RightClickMenu";
-import { useJournalStore } from "@/state/Journal";
-import useContextMenu from "@/hooks/useContextMenu";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
+import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import detachImpressionFromPart from "@/features/workspace/state/updaters/detachImpressionFromPart";
 
 let index = 0;

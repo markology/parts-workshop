@@ -4,12 +4,12 @@ import {
   NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import useContextMenu from "@/hooks/useContextMenu";
-import { useJournalStore } from "@/state/Journal";
+import useContextMenu from "@/features/workspace/hooks/useContextMenu";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import {
   ConflictNode as ConflictNodeType,
   ConnectedNodeType,
-} from "@/types/Nodes";
+} from "@/features/workspace/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { MessageCircleWarning, PencilIcon, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

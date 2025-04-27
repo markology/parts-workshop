@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Trash, Trash2 } from "lucide-react";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
-import { useWorkingStore } from "../../state/useWorkingStore";
-import { SidebarImpression } from "@/types/Sidebar";
+import { useWorkingStore } from "../../state/stores/useWorkingStore";
+import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 
 const TrashCan: React.FC = () => {
   const [isHoveringTrash, setIsHoveringTrash] = useState(false);

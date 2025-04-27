@@ -1,4 +1,4 @@
-import { useSendFeedback } from "@/hooks/useSendFeedback";
+import { useSendFeedback } from "@/features/workspace/hooks/useSendFeedback";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";

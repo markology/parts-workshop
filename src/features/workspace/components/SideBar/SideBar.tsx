@@ -2,7 +2,7 @@
 
 import Modal from "@/components/Modal";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import { useUIStore } from "@/state/UI";
+import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { MessageCircleWarning, Plus, SquareUserRound } from "lucide-react";
 import { useMemo } from "react";
 

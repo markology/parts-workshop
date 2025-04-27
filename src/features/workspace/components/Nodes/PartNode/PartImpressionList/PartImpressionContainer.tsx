@@ -2,7 +2,10 @@ import {
   NodeBackgroundColors,
   NodeTextColors,
 } from "@/features/workspace/constants/Nodes";
-import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
+import {
+  ImpressionTextType,
+  ImpressionType,
+} from "@/features/workspace/types/Impressions";
 import { ReactElement } from "react";
 
 const PartImpressionContainer = ({

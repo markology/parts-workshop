@@ -1,7 +1,7 @@
-import { SidebarImpression } from "@/types/Sidebar";
-import { ImpressionType } from "@/types/Impressions";
+import { SidebarImpression } from "@/features/workspace/types/Sidebar";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { create } from "zustand";
-import { useWorkingStore } from "@/features/workspace/state/useWorkingStore";
+import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 
 type SidebarStore = {
   activeSidebarNode: SidebarImpression | null;

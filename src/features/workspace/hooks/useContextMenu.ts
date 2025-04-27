@@ -1,5 +1,5 @@
 import { ContextMenuItem } from "@/components/RightClickMenu";
-import { useUIStore } from "@/state/UI";
+import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useRef } from "react";
 
 export default function useContextMenu({

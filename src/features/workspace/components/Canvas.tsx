@@ -10,7 +10,7 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import Utilities from "./Utilities/Utilities";
-import { useJournalStore } from "@/state/Journal";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 const Workspace = () => {

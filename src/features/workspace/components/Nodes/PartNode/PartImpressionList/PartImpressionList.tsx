@@ -1,7 +1,7 @@
-import { ImpressionNode } from "@/types/Nodes";
+import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import PartImpressionContainer from "./PartImpressionContainer";
 import PartImpressionNode from "./PartImpressionNode";
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 
 const PartImpressionList = ({
   data,

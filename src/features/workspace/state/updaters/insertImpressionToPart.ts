@@ -3,8 +3,11 @@ import {
   PartNode,
   PartNodeData,
   WorkshopNode,
-} from "@/types/Nodes";
-import { ImpressionType, ImpressionTextType } from "@/types/Impressions";
+} from "@/features/workspace/types/Nodes";
+import {
+  ImpressionType,
+  ImpressionTextType,
+} from "@/features/workspace/types/Impressions";
 
 export default function insertImpressionToPartCB(
   nodes: WorkshopNode[],

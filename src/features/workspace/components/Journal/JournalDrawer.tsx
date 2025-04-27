@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useJournalStore } from "@/state/Journal";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import JournalEditor from "./JournalEditor";
 import { useSaveJournalEntry } from "../../state/hooks/useSaveJournalEntry";
 import { useAllJournalEntries } from "../../state/hooks/useAllJournalEntries";
-import { JournalEntry } from "@/types/Journal";
+import { JournalEntry } from "@/features/workspace/types/Journal";
 import { useDebouncedJournalSave } from "../../state/hooks/useDebouncedJournalSave";
 
 export default function JournalDrawer() {

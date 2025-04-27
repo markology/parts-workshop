@@ -2,8 +2,11 @@
 
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
-import { useWorkingStore } from "@/features/workspace/state/useWorkingStore";
-import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
+import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
+import {
+  ImpressionTextType,
+  ImpressionType,
+} from "@/features/workspace/types/Impressions";
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 

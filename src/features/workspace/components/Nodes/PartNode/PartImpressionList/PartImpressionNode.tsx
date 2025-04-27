@@ -2,12 +2,12 @@ import { NodeTextColors } from "@/features/workspace/constants/Nodes";
 import { useMemo } from "react";
 import { ListRestart, PencilIcon, Trash2 } from "lucide-react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import { ImpressionNode } from "@/types/Nodes";
+import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import RightClickMenu from "@/components/RightClickMenu";
-import { ImpressionType } from "@/types/Impressions";
-import useContextMenu from "@/hooks/useContextMenu";
-import { useJournalStore } from "@/state/Journal";
-import { useWorkingStore } from "@/features/workspace/state/useWorkingStore";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
+import useContextMenu from "@/features/workspace/hooks/useContextMenu";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
+import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 
 const PartImpressionNode = ({
   item,

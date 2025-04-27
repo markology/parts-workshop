@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Mail, MailPlus } from "lucide-react";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
-import { useUIStore } from "@/state/UI";
+import { useUIStore } from "@/features/workspace/state/stores/UI";
 const Logout: React.FC = () => {
   const [isHovering, setIsHovering] = useState(false);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);

@@ -1,4 +1,4 @@
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 import {
   ConflictNode,
   ConflictNodeData,
@@ -7,7 +7,7 @@ import {
   PartNode,
   PartNodeData,
   WorkshopNode,
-} from "@/types/Nodes";
+} from "@/features/workspace/types/Nodes";
 import { XYPosition } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/state/context/ThemeContext";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Utilities from "../Utilities/Utilities";
 import { Check, LoaderCircle, Save, SaveAll } from "lucide-react";
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { NodeBackgroundColors } from "../../constants/Nodes";
 
 interface JournalEditorProps {

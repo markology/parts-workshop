@@ -1,9 +1,9 @@
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import ImpressionDropdown from "./ImpressionDropdown";
 
-import { useSidebarStore } from "@/state/Sidebar";
-import { ImpressionType } from "@/types/Impressions";
-import { useWorkingStore } from "@/features/workspace/state/useWorkingStore";
+import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
+import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 
 const Impressions = () => {
   const { setActiveSidebarNode } = useSidebarStore();

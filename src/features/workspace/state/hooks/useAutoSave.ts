@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSaveMap } from "./useSaveMap";
-import { useWorkingStore } from "../useWorkingStore";
+import { useWorkingStore } from "../stores/useWorkingStore";
 
 export const useAutoSave = () => {
   const saveMap = useSaveMap();

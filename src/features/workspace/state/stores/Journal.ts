@@ -1,4 +1,4 @@
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { create } from "zustand/react";
 
 type JournalTarget =

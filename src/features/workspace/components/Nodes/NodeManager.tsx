@@ -3,12 +3,12 @@ import {
   ImpressionNodeData,
   NodeType,
   PartNodeData,
-} from "@/types/Nodes";
+} from "@/features/workspace/types/Nodes";
 
 import ConflictNode from "./ConflictNode";
 import ImpressionNode from "./ImpressionNode";
 import PartNode from "./PartNode/PartNode";
-import { ImpressionType } from "@/types/Impressions";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 
 const NodeComponent = ({
   type,

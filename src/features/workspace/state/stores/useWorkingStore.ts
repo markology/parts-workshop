@@ -1,13 +1,13 @@
-import { createIndexedDbStorage } from "@/state/indexedDbStorage";
-import { ImpressionType } from "@/types/Impressions";
-import { JournalEntry } from "@/types/Journal";
-import { WorkshopNode } from "@/types/Nodes";
-import { SidebarImpression } from "@/types/Sidebar";
+import { createIndexedDbStorage } from "@/features/workspace/state/lib/indexedDbStorage";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
+import { JournalEntry } from "@/features/workspace/types/Journal";
+import { WorkshopNode } from "@/features/workspace/types/Nodes";
+import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { Edge } from "@xyflow/react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { ImpressionList } from "../constants/Impressions";
+import { ImpressionList } from "../../constants/Impressions";
 
 type WorkingState = {
   mapId: string;

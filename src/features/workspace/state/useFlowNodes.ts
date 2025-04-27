@@ -1,14 +1,14 @@
 "use client";
 
-import { useUIStore } from "@/state/UI";
+import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useCallback, useEffect, useRef } from "react";
 import createNodeFN from "./updaters/createNode";
 import detachImpressionFromPartCB from "./updaters/detachImpressionFromPart";
 import insertImpressionToPartCB from "./updaters/insertImpressionToPart";
 import updateNodeCB from "./updaters/updateNode";
 
-import { useSidebarStore } from "@/state/Sidebar";
-import { ImpressionType } from "@/types/Impressions";
+import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 import {
   ConflictNode,
   ConnectedNodeType,
@@ -17,7 +17,7 @@ import {
   PartNode,
   PartNodeData,
   WorkshopNode,
-} from "@/types/Nodes";
+} from "@/features/workspace/types/Nodes";
 import {
   Connection,
   Edge,
@@ -30,7 +30,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
-import { useWorkingStore } from "./useWorkingStore";
+import { useWorkingStore } from "./stores/useWorkingStore";
 import { useDeleteJournalEntry } from "@/features/workspace/state/hooks/useDeleteJournalEntry";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;

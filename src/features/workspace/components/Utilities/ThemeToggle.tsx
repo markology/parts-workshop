@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Moon, MoonStar, Sun, SunMoon } from "lucide-react";
-import { useThemeContext } from "@/context/ThemeContext";
+import { useThemeContext } from "@/state/context/ThemeContext";
 import ToolTipWrapper from "@/components/ToolTipWrapper";
 
 const ThemeToggle: React.FC = () => {

@@ -11,12 +11,12 @@ import {
 } from "@tanstack/react-query";
 import CanvasClient from "@/features/workspace/components/CanvasClient";
 // import TourOverlay from "@/features/workspace/components/TourOverlay";
-import { WorkshopNode } from "@/types/Nodes";
+import { WorkshopNode } from "@/features/workspace/types/Nodes";
 import { Edge } from "@xyflow/react";
-import { Map } from "@/types/api/map";
+import { Map } from "@/features/workspace/types/api/map";
 import { Map as PrismaMap } from "@prisma/client";
-import { ImpressionType } from "@/types/Impressions";
-import { SidebarImpression } from "@/types/Sidebar";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
+import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 // import { createEmptyImpressionGroups } from "../state/useWorkingStore";
 
 export type HydratedMap = Omit<

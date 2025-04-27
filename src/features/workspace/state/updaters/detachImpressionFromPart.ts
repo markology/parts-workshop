@@ -1,5 +1,8 @@
-import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
-import { PartNode, WorkshopNode } from "@/types/Nodes";
+import {
+  ImpressionTextType,
+  ImpressionType,
+} from "@/features/workspace/types/Impressions";
+import { PartNode, WorkshopNode } from "@/features/workspace/types/Nodes";
 
 export default function detachImpressionFromPartCB({
   nodes,

@@ -23,9 +23,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/types/*": ["./src/types/*"],
+      "@/types/*": ["src/features/workspace/types/*"],
       "@/store/*": ["./src/state/*"],
-      "@/context/*": ["./src/context/*"],
+      "@/context/*": ["src/state/context/*"],
       "@/constants/*": ["./src/features/workspace/constants/*"],
       "@/components/*": ["./src/components/*"]
     }

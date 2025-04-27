@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useSaveJournalEntry } from "./useSaveJournalEntry";
-import { useJournalStore } from "@/state/Journal";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 
 export const useDebouncedJournalSave = () => {
   const journalData = useJournalStore((s) => s.journalData);

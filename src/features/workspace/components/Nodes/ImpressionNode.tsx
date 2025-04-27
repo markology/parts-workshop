@@ -6,11 +6,14 @@ import { useCallback, useMemo } from "react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { ListRestart, PencilIcon, Trash2 } from "lucide-react";
 import RightClickMenu from "@/components/RightClickMenu";
-import { ImpressionTextType, ImpressionType } from "@/types/Impressions";
-import useContextMenu from "@/hooks/useContextMenu";
+import {
+  ImpressionTextType,
+  ImpressionType,
+} from "@/features/workspace/types/Impressions";
+import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import detachImpressionFromPart from "../../state/updaters/detachImpressionFromPart";
-import { useJournalStore } from "@/state/Journal";
-import { useWorkingStore } from "../../state/useWorkingStore";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
+import { useWorkingStore } from "../../state/stores/useWorkingStore";
 
 const ImpressionNode = ({
   id,

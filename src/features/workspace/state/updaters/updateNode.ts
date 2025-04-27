@@ -1,4 +1,4 @@
-import { WorkshopNode } from "@/types/Nodes";
+import { WorkshopNode } from "@/features/workspace/types/Nodes";
 export default function updateNodeCB<NodeDataType>({
   nodes,
   id,

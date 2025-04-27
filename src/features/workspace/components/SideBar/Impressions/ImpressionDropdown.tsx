@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
 import { Minus, Plus } from "lucide-react"; // optional: use any icon library
-import { ImpressionType } from "@/types/Impressions";
-import { SidebarImpression } from "@/types/Sidebar";
-import { useWorkingStore } from "@/features/workspace/state/useWorkingStore";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
+import { SidebarImpression } from "@/features/workspace/types/Sidebar";
+import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 
 const ImpressionDropdown = ({
   type,
