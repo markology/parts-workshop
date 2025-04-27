@@ -16,12 +16,12 @@ export default function AuthAndThemeProvider({
 
   return (
     <PostHogProvider>
-      <QueryClientProvider client={client}>
-        <SessionProvider>
-          <ThemeContextProvider>{children}</ThemeContextProvider>
-        </SessionProvider>
-        <ReactQueryDevtools initialIsOpen={true} />
-      </QueryClientProvider>
+      <ThemeContextProvider>
+        <QueryClientProvider client={client}>
+          <SessionProvider>{children}</SessionProvider>
+          <ReactQueryDevtools initialIsOpen={true} />
+        </QueryClientProvider>
+      </ThemeContextProvider>
     </PostHogProvider>
   );
 }

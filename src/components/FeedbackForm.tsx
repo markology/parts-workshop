@@ -1,12 +1,14 @@
-import { useState } from "react";
 import { useSendFeedback } from "@/hooks/useSendFeedback";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { useThemeContext } from "@/context/ThemeContext";
 
 export default function FeedbackPopup() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const { data: session } = useSession();
+  const { darkMode } = useThemeContext();
 
   const { mutate: sendFeedback } = useSendFeedback();
 
@@ -37,34 +39,67 @@ export default function FeedbackPopup() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-xl w-full max-w-md">
-      <h2 className="text-lg font-semibold mb-4">
+    <div
+      id="feedback-form"
+      style={{ width: "60vw" }}
+      className={`p-6 rounded-lg shadow-xl w-full max-w-md transition-colors duration-200 ${
+        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+      }`}
+    >
+      <h2 className="text-xl font-semibold mb-4">
         We&apos;d love your feedback
       </h2>
 
-      <input
-        type="text"
-        placeholder="Your name (optional)"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full mb-3 border rounded p-2"
-      />
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium mb-1">
+            Your name (optional)
+          </label>
+          <input
+            id="name"
+            type="text"
+            placeholder="Enter your name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={`w-full px-3 py-2 rounded-md border ${
+              darkMode
+                ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          />
+        </div>
 
-      <textarea
-        placeholder="What’s working? What’s confusing? Suggestions welcome."
-        rows={5}
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        className="w-full mb-4 border rounded p-2 resize-none"
-      />
+        <div>
+          <label htmlFor="message" className="block text-sm font-medium mb-1">
+            Your feedback
+          </label>
+          <textarea
+            id="message"
+            placeholder="What's working? What's confusing? Suggestions welcome."
+            rows={5}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className={`w-full px-3 py-2 rounded-md border resize-none ${
+              darkMode
+                ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          />
+        </div>
 
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={handleSubmit}
-          className="px-4 py-2 border rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          Send
-        </button>
+        <div className="flex justify-end">
+          <button
+            onClick={handleSubmit}
+            style={{ color: "white" }}
+            className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+              darkMode
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+          >
+            Send Feedback
+          </button>
+        </div>
       </div>
     </div>
   );

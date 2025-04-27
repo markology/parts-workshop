@@ -21,9 +21,11 @@ export default function CanvasClient({
   const { data, isLoading, error } = useLoadMap(mapId);
   const [hydrated, setHydrated] = useState(false);
   const isMobile = useIsMobile();
+
   useEffect(() => {
     if (data) {
       console.log("💾 Hydrating Zustand from fetched map");
+
       useWorkingStore.getState().setState({
         mapId: data.id,
         nodes: data.nodes,
@@ -31,6 +33,7 @@ export default function CanvasClient({
         sidebarImpressions: data.sidebarImpressions,
         journalEntries: data.journalEntries ?? [],
       });
+
       setHydrated(true); // ✅ only now render FlowNodesProvider
     }
   }, [data]);

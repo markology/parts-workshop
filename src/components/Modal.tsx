@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import React, { useRef } from "react";
 
 const Modal = ({
+  black,
   show,
   onClose,
   children,
@@ -15,6 +16,7 @@ const Modal = ({
   children: React.ReactNode;
   width?: string | number;
   full?: boolean;
+  black?: boolean;
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -31,7 +33,7 @@ const Modal = ({
       id="modal-overlay"
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: full ? "black" : "" }}
+      style={{ background: black ? "black" : "" }}
     >
       <div
         ref={modalRef}

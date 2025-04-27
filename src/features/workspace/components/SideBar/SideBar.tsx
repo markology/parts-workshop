@@ -83,6 +83,7 @@ const SideBar = () => {
         show={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
         width="auto"
+        full
       >
         <FeedbackForm />
       </Modal>

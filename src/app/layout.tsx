@@ -3,7 +3,6 @@ import { Quicksand } from "next/font/google";
 import "./globals.css";
 
 import AuthAndThemeProvider from "./providers";
-import { PostHogProvider } from "../components/PostHogProvider";
 
 const interFont = Quicksand({
   variable: "--font-inter",
@@ -23,9 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${interFont.variable} antialiased`}>
-        <PostHogProvider>
-          <AuthAndThemeProvider>{children}</AuthAndThemeProvider>
-        </PostHogProvider>
+        <AuthAndThemeProvider>{children}</AuthAndThemeProvider>
       </body>
     </html>
   );
