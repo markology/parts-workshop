@@ -30,7 +30,7 @@ const Workspace = () => {
   } = useFlowNodesContext();
 
   return (
-    <div id="canvas" className="reactflow-wrapper">
+    <div id="canvas" className="h-full flex-grow">
       {!isMobile ? (
         <ReactFlow
           className="h-[4000px] w-[4000px]"

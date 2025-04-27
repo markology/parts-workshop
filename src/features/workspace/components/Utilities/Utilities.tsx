@@ -34,7 +34,7 @@ export default function Utilities({ full }: { full?: boolean }) {
         >
           <button
             id="toggle-utilities"
-            className="w-15 h-8 flex items-center justify-center rounded shadow bg-black/25"
+            className="w-15 h-8 flex items-center justify-center rounded shadow bg-black/25 text-white"
             onClick={() => setVisible(!visible)}
             aria-label="Toggle Utilities"
             onMouseOver={() => setHoveringHide(true)}

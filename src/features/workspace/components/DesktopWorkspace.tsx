@@ -80,15 +80,7 @@ async function DesktopWorkspace() {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ReactFlowProvider>
-        <div
-          className="PW"
-          style={{
-            height: "100vh",
-            width: "100vw",
-            overflow: "hidden",
-            display: "flex",
-          }}
-        >
+        <div className="PW flex flex-row flex-grow h-[100vh] w-[100vw] overflow-hidden">
           <CanvasClient mapId={clientMap.id} showOnboarding={showOnboarding} />
         </div>
       </ReactFlowProvider>

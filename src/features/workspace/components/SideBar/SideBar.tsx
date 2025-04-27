@@ -29,10 +29,7 @@ const SideBar = () => {
           <button
             id="create-part-button"
             onClick={() => setShowPartModal(true)}
-            className="flex-1 bg-white font-medium rounded shadow-md transition p-none flex justify-center items-center "
-            style={{
-              color: "black",
-            }}
+            className="flex-1 bg-white font-medium rounded shadow-md transition p-none flex justify-center items-center text-black"
           >
             <SquareUserRound size={21} strokeWidth={2} className="mr-1" />
             <Plus size={20} strokeWidth={2} />
@@ -64,7 +61,7 @@ const SideBar = () => {
   );
 
   return (
-    <aside id="sidebar">
+    <aside className="bg-aside flex-[0_0_230px] p-[15px_10px] shadow-[var(--aside-shadow)_0px_0px_10px_0px] z-[1]">
       {CreateButtons}
       <ImpressionDisplay />
 
@@ -83,7 +80,6 @@ const SideBar = () => {
         show={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
         width="auto"
-        full
       >
         <FeedbackForm />
       </Modal>

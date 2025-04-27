@@ -19,7 +19,9 @@ const Landing = () => {
       />
 
       <div className="absolute z-10 inset-0 flex items-center justify-center flex-col">
-        <h1 className="text-[9vw] text-center mb-3">Parts Workshop</h1>
+        <h1 className="text-[9vw] text-center mb-3 text-white">
+          Parts Workshop
+        </h1>
         <SignInButton />
       </div>
     </div>

@@ -34,7 +34,7 @@ const PartNeeds = ({ needs, partId }: { needs: string[]; partId: string }) => {
 
   return (
     <div className="soothing-techniques w-full bg-[#ffffff25] p-3 rounded-md">
-      <h3 className="text-xl font-bold">Soothing Techniques</h3>
+      <h3 className="text-xl font-bold text-node">Soothing Techniques</h3>
       <input
         className="text-sm h-[30px] w-full"
         ref={inputRef}
@@ -47,7 +47,9 @@ const PartNeeds = ({ needs, partId }: { needs: string[]; partId: string }) => {
       <ul className="list-disc list-inside">
         {needs.map(
           (need: string, index: number): React.ReactElement => (
-            <li key={`${partId}needs${index}`}>{need}</li>
+            <li className="text-node" key={`${partId}needs${index}`}>
+              {need}
+            </li>
           )
         )}
       </ul>

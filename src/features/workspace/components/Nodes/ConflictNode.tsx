@@ -107,7 +107,7 @@ const ConflictNode = ({
   return (
     <>
       <div
-        className="node conflict-node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[linear-gradient(348deg,#72609b,#c4b2e7);] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] text-left"
+        className="node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[linear-gradient(348deg,#72609b,#c4b2e7);] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] text-left"
         style={{ backgroundColor: NodeBackgroundColors["conflict"] }}
         onContextMenu={handleContextMenu}
         ref={nodeRef}
@@ -137,7 +137,7 @@ const ConflictNode = ({
                 key={`connectedNode ${part.id}`}
               >
                 <p
-                  className="text-xl pb-2 pl-1 mb-3 color-white border-b"
+                  className="text-xl pb-2 pl-1 mb-3 text-white border-b"
                   key={part.id}
                 >
                   {part.data.label}
@@ -154,21 +154,17 @@ const ConflictNode = ({
                       placeholder="Enter description"
                     />
                   ) : conflictDescription ? (
-                    <p className="max-w-[300px] text-sm break-words">
+                    <p className="max-w-[300px] text-sm break-words text-white">
                       {conflictDescription}
                     </p>
                   ) : (
-                    <p className="text-sm" style={{ color: "#c9b6f2" }}>
-                      Enter description
-                    </p>
+                    <p className="text-sm">Enter description</p>
                   )}
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-xl" style={{ color: "#c9b6f2" }}>
-              Connect Parts to Conflict
-            </p>
+            <p className="text-xl text-[#c9b6f2]">Connect Parts to Conflict</p>
           )}
         </div>
         <Handle

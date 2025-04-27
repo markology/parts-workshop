@@ -84,7 +84,9 @@ const ImpressionInput = () => {
               setIsSelectorOpen(false);
             }}
             className={`px-3 py-1 text-sm flex-1 rounded-t-xl ${
-              selectedType === type ? "font-bold z-[9999999]" : ""
+              selectedType === type
+                ? "font-bold z-[9999] bg-white"
+                : `text-white`
             }`}
             style={{
               backgroundColor:
@@ -97,13 +99,7 @@ const ImpressionInput = () => {
           </button>
         ))}
       </div>
-      <div
-        className="relative rounded-b"
-        style={{
-          background: "white",
-          boxShadow: "1px 4px 5px 2px black",
-        }}
-      >
+      <div className="relative rounded-b bg-white shadow-[1px_4px_5px_2px_black]">
         <textarea
           style={{
             visibility: !isSelectorOpen ? "visible" : "hidden",

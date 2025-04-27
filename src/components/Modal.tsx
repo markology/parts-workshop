@@ -30,15 +30,14 @@ const Modal = ({
 
   return (
     <div
-      id="modal-overlay"
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center modal-overlay"
       style={{ background: black ? "black" : "" }}
     >
       <div
         ref={modalRef}
-        className={`rounded p-8 relative ${full ? "" : "ml-[250px]"}`}
-        style={{ width: width ? width : "650px" }}
+        className={`rounded p-8 relative ${full ? "" : "ml-[150px]"}`}
+        style={{ width: width ?? "650px" }}
       >
         <button
           onClick={onClose}

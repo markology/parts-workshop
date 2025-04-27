@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  NodeBackgroundColors,
-  NodeTextColors,
-} from "@/features/workspace/constants/Nodes";
+import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
 import { Minus, Plus } from "lucide-react"; // optional: use any icon library
 import { ImpressionType } from "@/types/Impressions";
 import { SidebarImpression } from "@/types/Sidebar";
@@ -62,7 +59,7 @@ const ImpressionDropdown = ({
           />
         )}
       </button>
-      <hr className="pb-2" />
+      <hr className="pb-2 text-black" />
       <div className="flex flex-col gap-[6px]">
         {open &&
           Object.values(filteredImpressions).map((item) => (
@@ -77,8 +74,7 @@ const ImpressionDropdown = ({
             >
               <span>{item.label}</span>
               <button
-                className="px-1"
-                style={{ color: NodeTextColors[item.type] }}
+                className={`px-1`}
                 onClick={() =>
                   useWorkingStore
                     .getState()

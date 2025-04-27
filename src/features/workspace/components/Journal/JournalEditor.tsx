@@ -206,7 +206,6 @@ JournalEditorProps) {
       }}
       className={`
         w-6 h-6 rounded-full transition-transform duration-50 ease-in-out 
-         
         ${activeColor === color ? "scale-140" : "hover:scale-115 scale-100"}
       `}
       style={{ backgroundColor: color }}
@@ -261,7 +260,7 @@ JournalEditorProps) {
 
           <select
             onChange={(e) => exec("fontSize", e.target.value)}
-            className="border px-2 py-1 rounded text-sm"
+            className="bg-theme border px-2 py-1 rounded text-sm"
             title="Font Size"
             value={activeFontSize}
           >
@@ -286,12 +285,12 @@ JournalEditorProps) {
       )}
 
       {/* Editable Area */}
-      <div className="relative overflow-auto h-max-[calc(100vh-238px)]">
+      <div className="flex-grow overflow-auto relative">
         <div
           ref={editorRef}
           contentEditable={!readOnly}
           suppressContentEditableWarning
-          className="min-h-[250px] border rounded p-4 focus:outline-none"
+          className="min-h-[250px] border rounded p-4 focus:outline-none focus:ring-1 focus:ring-blue-300"
           style={{ whiteSpace: "pre-wrap" }}
           onInput={() => {
             const rawHTML = editorRef.current?.innerHTML || "";
@@ -335,7 +334,6 @@ JournalEditorProps) {
             onMouseOver={() => setIsHoveringSave(true)}
             onMouseLeave={() => setIsHoveringSave(false)}
             className="px-4 py-2 rounded shadow-[0px_2px_3px_0px_#0a2f57] text-white hover:text-white bg-[#1586fd] hover:bg-[#155aa3] flex gap-[12px] align-center"
-            style={{ color: "white" }}
             onClick={() => {
               setSaveStatus("saving");
               const spinTimeout = setTimeout(() => {

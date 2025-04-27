@@ -2,13 +2,11 @@ import { useSendFeedback } from "@/hooks/useSendFeedback";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { useThemeContext } from "@/context/ThemeContext";
 
 export default function FeedbackPopup() {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const { data: session } = useSession();
-  const { darkMode } = useThemeContext();
 
   const { mutate: sendFeedback } = useSendFeedback();
 
@@ -39,14 +37,8 @@ export default function FeedbackPopup() {
   };
 
   return (
-    <div
-      id="feedback-form"
-      style={{ width: "60vw" }}
-      className={`p-6 rounded-lg shadow-xl w-full max-w-md transition-colors duration-200 ${
-        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-      }`}
-    >
-      <h2 className="text-xl font-semibold mb-4">
+    <div className="p-6 rounded-lg shadow-xl max-w-120 w-[60vw] bg-theme text-theme">
+      <h2 className="text-xl font-semibold mb-4 text-theme">
         We&apos;d love your feedback
       </h2>
 
@@ -61,11 +53,7 @@ export default function FeedbackPopup() {
             placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={`w-full px-3 py-2 rounded-md border ${
-              darkMode
-                ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
         </div>
 
@@ -79,24 +67,14 @@ export default function FeedbackPopup() {
             rows={5}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className={`w-full px-3 py-2 rounded-md border resize-none ${
-              darkMode
-                ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-            style={{ color: darkMode ? "white" : "black" }}
+            className={`w-full px-3 py-2 rounded-md border resize-none `}
           />
         </div>
 
         <div className="flex justify-end">
           <button
             onClick={handleSubmit}
-            style={{ color: "white" }}
-            className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
-              darkMode
-                ? "bg-blue-600 hover:bg-blue-700 text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+            className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
           >
             Send Feedback
           </button>

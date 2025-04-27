@@ -86,15 +86,7 @@ async function MobileWorkspace() {
     <HydrationBoundary state={dehydrate(queryClient)}>
       <p>You can only use your scratchpad and view map on mobile</p>;
       <ReactFlowProvider>
-        <div
-          className="PW"
-          style={{
-            height: "100vh",
-            width: "100vw",
-            overflow: "hidden",
-            display: "flex",
-          }}
-        >
+        <div className="PW flex flex-row flex-grow h-[100vh] w-[100vw] overflow-hidden">
           <CanvasClient mapId={clientMap.id} showOnboarding={false} />
         </div>
       </ReactFlowProvider>

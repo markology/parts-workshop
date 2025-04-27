@@ -1,8 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @keyframes fadeIn {
   from {
@@ -26,6 +23,18 @@
   --text-against-part-node: #4e6176;
   --text-color-alt: white;
   --box-shadow: #00000082 0px 9px 13px -4px;
+  --font-inter: "Inter", sans-serif;
+  --tooltip-background: white;
+  --tooltip-text: black;
+  --overlay-background: #000000c9;
+  --conflict-handle-bg: #5a4784;
+  --part-handle-bg: #88b7fd;
+  --create-conflict-bg: #5a4784;
+  --toggle-utilities: white;
+  --aside-shadow: #171717;
+  --part-button-shadow: #00000082;
+  --impression-button-shadow: black;
+  --conflict-button-shadow: black;
 }
 
 .dark {
@@ -35,23 +44,85 @@
   --text-color-alt: black;
   --text-against-part-node: var(--text-color);
   --box-shadow: #000000a8 0px 7px 16px -4px;
+  --tooltip-background: #161616;
+  --tooltip-text: white;
+  --overlay-background: #000000b0;
+  --conflict-handle-bg: #5a4784;
+  --part-handle-bg: #baceec;
+  --create-conflict-bg: #5a4784;
+  --toggle-utilities: white;
+  --aside-shadow: #171717;
+  --part-button-shadow: #00000082;
+  --impression-button-shadow: black;
+  --conflict-button-shadow: black;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-aside-background: var(--aside-background);
-  --font-sans: var(--font-inter);
+@layer base {
+  body,
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    color: var(--text-color);
+  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:has(.dark) {
-    --background: #2a3545;
-    /* --aside-background: #242c36;*/
-    --aside-background: linear-gradient(135deg, #101418, #142235);
-    --text-color: white;
-    --text-color-alt: black;
-    --text-against-part-node: var(--text-color);
-    --box-shadow: #000000a8 0px 7px 16px -4px;
+@layer utilities {
+  .bg-theme {
+    background: var(--background);
+  }
+  .bg-aside {
+    background: var(--aside-background);
+  }
+  .text-theme {
+    color: var(--text-color);
+  }
+  .text-alt {
+    color: var(--text-color-alt);
+  }
+  .text-node {
+    color: var(--text-against-part-node);
+  }
+  .shadow-theme {
+    box-shadow: var(--box-shadow);
+  }
+  .bg-tooltip {
+    background: var(--tooltip-background);
+  }
+  .text-tooltip {
+    color: var(--tooltip-text);
+  }
+  .bg-overlay {
+    background: var(--overlay-background);
+  }
+  .bg-conflict-handle {
+    background-color: var(--conflict-handle-bg);
+  }
+  .bg-part-handle {
+    background-color: var(--part-handle-bg);
+  }
+  .bg-create-conflict {
+    background: var(--create-conflict-bg);
+  }
+  .text-toggle-utilities {
+    color: var(--toggle-utilities);
+  }
+  .shadow-aside {
+    box-shadow: var(--aside-shadow) 0px 0px 10px 0px;
+  }
+  .shadow-part-button {
+    box-shadow: 0 4px 9px -4px var(--part-button-shadow);
+  }
+  .shadow-impression-button {
+    box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
+  }
+  .shadow-conflict-button {
+    box-shadow: 1px 2px 4px 0px var(--conflict-button-shadow);
+  }
+  .modal-overlay {
+    background: var(--overlay-background);
   }
 }
 
@@ -91,7 +162,6 @@
 
 body {
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .react-flow__node {
@@ -111,199 +181,51 @@ body {
   object-position: center top;
 }
 
-#app {
-  width: 100vw;
-  height: 100vh;
-}
-
-/* Dark Mode */
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-input,
-select,
-button {
-  color: var(--text-color);
-}
-
-textarea {
-  color: white;
-}
-
 button {
   cursor: pointer;
 }
 
-#modal-overlay {
-  background: #000000b0;
+#tour-modal-tooltip {
+  background: var(--tooltip-background);
+  color: var(--tooltip-text);
 }
 
-.light #modal-overlay {
-  background: #000000c9;
-}
-
-#tour-modal-tooltip,
 #tour-modal-tooltip-arrow {
-  background: "white";
-}
-
-.light #tour-modal-tooltip {
-  background: #161616;
-}
-
-.light #tour-modal-tooltip-arrow {
-  border-right-color: #161616;
+  border-right-color: var(--tooltip-background);
 }
 
 #tour-modal p,
 #tour-modal button {
-  color: black;
-}
-
-#journal-editor div {
-  color: var(--text-color);
-}
-
-#journal-drawer {
-  background: var(--background);
-}
-
-#journal-drawer div {
-  color: var(--text-color);
-}
-
-#journal-editor select {
-  background: var(--background);
-}
-
-#journal-drawer div.radix-tooltip-content {
-  color: black;
-}
-
-#editor-text .text-default {
-  color: var(--text-color-alt);
+  color: var(--tooltip-text);
 }
 
 .conflict-handle {
-  width: 16px !important; /* Adjust size as needed */
+  width: 16px !important;
   height: 16px !important;
-  background-color: #5a4784 !important; /* Keep visible */
+  background-color: var(--conflict-handle-bg) !important;
   border: none !important;
 }
 
 .part-handle {
-  width: 20px !important; /* Adjust size as needed */
+  width: 20px !important;
   height: 20px !important;
+  background-color: var(--part-handle-bg) !important;
   border: none !important;
-}
-
-.light .part-handle {
-  background-color: #88b7fd !important;
-}
-
-.dark .part-handle {
-  background-color: #baceec !important; /* Keep visible */
-}
-
-.part-impression-container {
-  @apply rounded-[10px] p-4;
-}
-
-#sidebar {
-  background: var(--aside-background);
-  flex: "0 0 250px";
 }
 
 #impression-dropdown-container {
   height: calc(100vh - 100px);
 }
 
-.light #sidebar-buttons button {
-  color: var(--text-color-alt);
-}
-
-#toggle-utilities {
-  color: white;
-}
-
-.light .part-node {
-  border: none;
-}
-
-.light .soothing-techniques h3,
-.light .soothing-techniques li {
-  color: var(--text-against-part-node);
-}
-
-/* .light .part-impression-node li, */
-.light .conflict-node p,
-.light .conflict-node div,
-.light .conflict-node input {
-  color: white;
-}
-
 .light #create-conflict-button {
-  background: #5a4784 !important;
-  box-shadow: 1px 2px 4px 0px black;
+  background: var(--create-conflict-bg) !important;
+  box-shadow: 1px 2px 4px 0px var(--conflict-button-shadow);
 }
 
 #create-part-button {
-  box-shadow: 0 4px 9px -4px #00000082;
+  box-shadow: 0 4px 9px -4px var(--part-button-shadow);
 }
+
 #create-impression-button {
-  box-shadow: 1px 2px 4px 0px black;
-}
-
-/* .node {
-  box-shadow: 0px 9px 13px -4px black;
-} */
-
-#login-form {
-  background-color: var(--background);
-}
-
-#login-form h2,
-#login-form input,
-#login-form p {
-  color: black;
-}
-
-#login-form button {
-  color: var(--background);
-  font-weight: 600;
-}
-
-#login-form button[type="submit"] {
-  color: white;
-}
-
-.PW {
-  flex-direction: column;
-  display: flex;
-  flex-grow: 1;
-  height: 100%;
-}
-
-.PW aside {
-  padding: 15px 10px;
-  box-shadow: #171717 0px 0px 10px 0px;
-  z-index: 1;
-}
-
-.PW .reactflow-wrapper {
-  flex-grow: 1;
-  height: 100%;
-}
-
-@media screen and (min-width: 768px) {
-  .PW {
-    flex-direction: row;
-  }
-
-  .PW aside {
-    width: 200px;
-  }
+  box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
 }

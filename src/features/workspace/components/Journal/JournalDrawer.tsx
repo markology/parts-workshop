@@ -61,7 +61,7 @@ export default function JournalDrawer() {
       {/* Drawer Panel */}
       <div
         id="journal-drawer"
-        className={`absolute top-0 right-0 h-full w-full sm:w-[580px] bg-white shadow-lg transition-transform duration-300 pointer-events-auto pr-[100px] z-50 ${
+        className={`bg-theme absolute top-0 right-0 h-full w-full sm:w-[580px] bg-white shadow-lg transition-transform duration-300 pointer-events-auto pr-[100px] z-50 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

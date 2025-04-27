@@ -89,7 +89,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
       <div
         onContextMenu={handleContextMenu}
         ref={nodeRef}
-        className="node part-node bg-[linear-gradient(251deg,_#a0c9fd36_0%,_#8ad5f173_100%)] z-[-999] shadow-md rounded p-10 w-80 border border-color-[white] flex flex-col w-[1000px] h-auto rounded-3xl text-left"
+        className="node part-node bg-[linear-gradient(251deg,_#a0c9fd36_0%,_#8ad5f173_100%)] z-[-999] rounded p-10 w-80  flex flex-col w-[1000px] h-auto rounded-3xl text-left"
       >
         {/* Title */}
         <div className="flex justify-between">
@@ -108,7 +108,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                 setIsEditingTitle(true);
                 setIsEditing(true);
               }} // TODO
-              className="part-name font-semibold mb-2 text-gray-800 text-4xl pb-4 flex gap-[20px]"
+              className="part-name font-semibold mb-2 text-theme text-4xl pb-4 flex gap-[20px]"
             >
               {data.label}
               <button>

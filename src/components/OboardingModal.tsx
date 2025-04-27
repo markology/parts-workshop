@@ -15,10 +15,7 @@ export default function OnboardingModal() {
   return (
     <Modal show={show} onClose={() => setShow(false)} width="100vw" full black>
       <div className="p-20 bg-black rounded-lg shadow-xl w-full align-center justify-center">
-        <h2
-          className="text-lg text-black text-center font-semibold mb-4"
-          style={{ color: "white" }}
-        >
+        <h2 className="text-lg text-white text-center font-semibold mb-4">
           Welcome to Parts Workshop - Please watch the tutorial :)
         </h2>
         <video
