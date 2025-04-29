@@ -58,7 +58,7 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white">
-      <div className="w-full max-w-md p-8 bg-aside rounded-xl shadow-lg">
+      <div className="w-full max-w-md p-8 bg-theme rounded-xl shadow-lg">
         <h2 className="text-2xl font-bold mb-6 text-center">
           {isLogin ? "Sign in" : "Create account"}
         </h2>
@@ -117,7 +117,7 @@ export default function Auth() {
               setIsLogin(!isLogin);
               setError("");
             }}
-            className="text-blue-600 hover:underline font-bold"
+            className="text-theme hover:underline font-bold"
           >
             {isLogin ? "Sign up" : "Sign in"}
           </button>
