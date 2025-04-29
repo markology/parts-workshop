@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import Modal from "./Modal"; // your modal component
+
+import Modal from "./Modal";
+
+// your modal component
 
 export default function OnboardingModal() {
   const [show, setShow] = useState(false);
@@ -13,8 +16,8 @@ export default function OnboardingModal() {
   }, []);
 
   return (
-    <Modal show={show} onClose={() => setShow(false)} width="100vw" full black>
-      <div className="p-20 bg-black rounded-lg shadow-xl w-full align-center justify-center">
+    <Modal show={show} onClose={() => setShow(false)} width="100vw" full>
+      <div className="p-20 bg-black rounded-lg shadow-xl w-full align-center justify-center p-[100px]">
         <h2 className="text-lg text-white text-center font-semibold mb-4">
           Welcome to Parts Workshop - Please watch the tutorial :)
         </h2>
