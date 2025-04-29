@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Login from "@/features/login/Login";
+import Auth from "@/features/login/Auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,5 +19,5 @@ export default function LoginPage() {
     return <p className="text-center p-8">Checking session...</p>;
   }
 
-  return <Login />;
+  return <Auth />;
 }
