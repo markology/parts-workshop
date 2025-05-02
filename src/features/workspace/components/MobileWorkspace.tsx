@@ -1,9 +1,9 @@
+"use client";
+
 // app/workspace/page.tsx (or pages/workspace/index.tsx if using Pages Router)
 
 import { ReactFlowProvider } from "@xyflow/react";
-import { getServerSession } from "next-auth";
-import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/lib/authOptions";
+import { useSession } from "next-auth/react";
 import {
   HydrationBoundary,
   QueryClient,
@@ -17,6 +17,7 @@ import { Map } from "@/features/workspace/types/api/map";
 import { Map as PrismaMap } from "@prisma/client";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
+import { useEffect, useState } from "react";
 // import { createEmptyImpressionGroups } from "../state/useWorkingStore";
 
 export type HydratedMap = Omit<
@@ -25,35 +26,57 @@ export type HydratedMap = Omit<
 > &
   Map;
 
-async function MobileWorkspace() {
-  const session = await getServerSession(authOptions);
+export default function MobileWorkspace() {
+  const { data: session } = useSession();
+  const [map, setMap] = useState<Map | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!session?.user?.id) {
-    throw new Error("User not logged in");
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setError("Please log in to access your workspace");
+      setLoading(false);
+      return;
+    }
+
+    const fetchMap = async () => {
+      try {
+        const response = await fetch("/api/maps");
+        if (!response.ok) {
+          throw new Error("Failed to fetch map");
+        }
+        const maps = await response.json();
+        if (maps.length === 0) {
+          setError(
+            "Please create your first map on desktop before using mobile"
+          );
+          setLoading(false);
+          return;
+        }
+        const firstMap = maps[0];
+        setMap(firstMap);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load your workspace");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMap();
+  }, [session]);
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
-  const userId = session.user.id;
-  const map = await prisma.map.findFirst({
-    where: { userId },
-    orderBy: { createdAt: "asc" },
-  });
-
-  // const showTour = !map;
+  if (error) {
+    return <div className="p-4 text-center">{error}</div>;
+  }
 
   if (!map) {
-    console.log("❌ No map found — creating a new one");
-    return <p>Please first create account on Desktop</p>;
+    return <div className="p-4 text-center">No map found</div>;
   }
-  //   map = await prisma.map.create({
-  //     data: {
-  //       userId,
-  //       title: "Untitled Map",
-  //       nodes: [],
-  //       edges: [],
-  //       sidebarImpressions: createEmptyImpressionGroups(),
-  //     },
-  //   });
-  // }
 
   const clientMap: Map = {
     id: map.id,
@@ -74,17 +97,13 @@ async function MobileWorkspace() {
 
   const queryClient = new QueryClient();
 
-  await queryClient.prefetchQuery({
-    queryKey: ["map", map.id],
-    queryFn: () => Promise.resolve(clientMap),
-    staleTime: Infinity,
-  });
-
-  // console.log(clientMap);
+  queryClient.setQueryData(["map", map.id], clientMap);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <p>You can only use your scratchpad and view map on mobile</p>;
+      <p className="p-4 text-center">
+        You can only use your scratchpad and view map on mobile
+      </p>
       <ReactFlowProvider>
         <div className="PW flex flex-row flex-grow h-[100vh] w-[100vw] overflow-hidden">
           <CanvasClient mapId={clientMap.id} showOnboarding={false} />
@@ -93,5 +112,3 @@ async function MobileWorkspace() {
     </HydrationBoundary>
   );
 }
-
-export default MobileWorkspace;
