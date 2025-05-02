@@ -1,31 +1,14 @@
-"use client";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import WorkspaceClientEntry from "./WorkspaceClientEntry"; // ⬅️ This is the client-only wrapper
+import { authOptions } from "@/lib/authOptions";
 
-import JournalDrawer from "@/features/workspace/components/Journal/JournalDrawer";
-import ViewportSizeSwitch from "@/components/ViewportSizeSwitch";
-import dynamic from "next/dynamic";
+export default async function WorkspacePage() {
+  const session = await getServerSession(authOptions);
 
-const DesktopWorkspace = dynamic(
-  () => import("@/features/workspace/components/DesktopWorkspace"),
-  {
-    ssr: false,
+  if (!session) {
+    redirect("/login");
   }
-);
 
-const MobileWorkspace = dynamic(
-  () => import("@/features/workspace/components/MobileWorkspace"),
-  {
-    ssr: false,
-  }
-);
-
-export default function Page() {
-  return (
-    <>
-      <JournalDrawer />
-      <ViewportSizeSwitch
-        mobile={<MobileWorkspace />}
-        desktop={<DesktopWorkspace />}
-      />
-    </>
-  );
+  return <WorkspaceClientEntry />;
 }

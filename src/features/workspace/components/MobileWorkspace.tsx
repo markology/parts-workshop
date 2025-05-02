@@ -1,7 +1,4 @@
 "use client";
-
-// app/workspace/page.tsx (or pages/workspace/index.tsx if using Pages Router)
-
 import { ReactFlowProvider } from "@xyflow/react";
 import { useSession } from "next-auth/react";
 import {
@@ -10,7 +7,6 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 import CanvasClient from "@/features/workspace/components/CanvasClient";
-// import TourOverlay from "@/features/workspace/components/TourOverlay";
 import { WorkshopNode } from "@/features/workspace/types/Nodes";
 import { Edge } from "@xyflow/react";
 import { Map } from "@/features/workspace/types/api/map";
@@ -18,7 +14,7 @@ import { Map as PrismaMap } from "@prisma/client";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useEffect, useState } from "react";
-// import { createEmptyImpressionGroups } from "../state/useWorkingStore";
+import { useRouter } from "next/navigation";
 
 export type HydratedMap = Omit<
   PrismaMap,
@@ -27,10 +23,11 @@ export type HydratedMap = Omit<
   Map;
 
 export default function MobileWorkspace() {
-  const { data: session } = useSession();
+  const { status, data: session } = useSession();
   const [map, setMap] = useState<Map | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (!session?.user?.id) {
@@ -66,7 +63,12 @@ export default function MobileWorkspace() {
     fetchMap();
   }, [session]);
 
-  if (loading) {
+  if (status === "unauthenticated") {
+    router.push("/login");
+    return null;
+  }
+
+  if (loading || status === "loading") {
     return <div>Loading...</div>;
   }
 

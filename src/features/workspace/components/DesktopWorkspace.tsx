@@ -18,6 +18,7 @@ import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { createEmptyImpressionGroups } from "../state/stores/useWorkingStore";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export type HydratedMap = Omit<
   PrismaMap,
@@ -26,18 +27,14 @@ export type HydratedMap = Omit<
   Map;
 
 export default function DesktopWorkspace() {
-  const { data: session } = useSession();
+  const { status, data: session } = useSession();
   const [map, setMap] = useState<Map | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!session?.user?.id) {
-      setError("Please log in to access your workspace");
-      setLoading(false);
-      return;
-    }
+  const router = useRouter();
 
+  useEffect(() => {
     const fetchOrCreateMap = async () => {
       try {
         const response = await fetch("/api/maps");
@@ -81,7 +78,12 @@ export default function DesktopWorkspace() {
     fetchOrCreateMap();
   }, [session]);
 
-  if (loading) {
+  if (status === "unauthenticated") {
+    router.push("/login");
+    return null;
+  }
+
+  if (loading || status === "loading") {
     return <div>Loading...</div>;
   }
 
