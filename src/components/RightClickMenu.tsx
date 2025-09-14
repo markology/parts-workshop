@@ -21,7 +21,7 @@ const RightClickMenu = ({ items, style = "float" }: ContextMenuProps) => {
       {items.map((item, index) => (
         <div
           key={index}
-          className="cursor-pointer px-2 py-1 hover:bg-gray-100"
+          className="cursor-pointer text-black px-2 py-1 hover:bg-gray-100"
           onClick={() => {
             item.onClick();
           }}

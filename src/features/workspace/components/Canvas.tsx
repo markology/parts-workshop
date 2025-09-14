@@ -51,7 +51,7 @@ const Workspace = () => {
           maxZoom={2}
         >
           <Background />
-          <Controls className="absolute bottom-4 left-4" /> :
+          <Controls className="absolute bottom-4 left-4 text-black" />
         </ReactFlow>
       ) : (
         <ReactFlow
@@ -71,7 +71,7 @@ const Workspace = () => {
           maxZoom={2}
         >
           <Background />
-          <Controls className="absolute bottom-4 left-4" />
+          <Controls className="absolute bottom-4 left-4 text-black" />
         </ReactFlow>
       )}
       {!isOpen && <Utilities full />} {/* now Zustand-powered */}
