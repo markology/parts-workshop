@@ -71,7 +71,6 @@ export default function createNodeFN({
           Sensations: [],
           Behaviors: [],
           Others: [],
-          Self: [],
         } as PartNodeData,
       } as PartNode;
       break;

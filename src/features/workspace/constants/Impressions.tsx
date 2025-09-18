@@ -5,6 +5,5 @@ export const ImpressionList: ImpressionType[] = [
   "thought",
   "sensation",
   "behavior",
-  "self",
   "other",
 ];

@@ -5,7 +5,6 @@ export const NodeColors = {
   behavior: "#8bcb8bad",
   conflict: "#b19cd9ad",
   part: "#f7e68fad",
-  self: "#4ecdc4ad",
   other: "#efa9c8ad",
 };
 
@@ -16,7 +15,6 @@ export const NodeBackgroundColors = {
   behavior: "#8BCB8B",
   conflict: "#B19CD9",
   part: "#a1c7dd",
-  self: "#80d7d1",
   other: "#EFA9C8",
 };
 
@@ -27,7 +25,6 @@ export const NodeTextColors = {
   behavior: "#3f7142",
   conflict: "#5a4784",
   part: "#998f3a",
-  self: "#396c6d",
   other: "#934b6d",
 };
 
@@ -38,7 +35,6 @@ export const NodeTextColorsLight = {
   behavior: "#b5e8c1", // light mint green
   conflict: "#d5caf1", // lavender
   part: "#f4edb3", // pale yellow
-  self: "#b4e5e6", // light aqua
   other: "#f4bfd3", // rose
 };
 
@@ -48,5 +44,4 @@ export const NodeTextColorsLight = {
 // behavior	#8BCB8B	#8bcb8bad	#3f7142
 // conflict	#B19CD9	#b19cd9ad	#5a4784
 // part	#F7E68F	#f7e68fad	#998f3a
-// self	#4ECDC4	#4ecdc4ad	#396c6d ✅ (yours)
 // other	#EFA9C8	#efa9c8ad

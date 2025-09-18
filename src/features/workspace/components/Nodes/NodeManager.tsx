@@ -1,14 +1,9 @@
-import {
-  ConflictNodeData,
-  ImpressionNodeData,
-  NodeType,
-  PartNodeData,
-} from "@/features/workspace/types/Nodes";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
+import { ConflictNodeData, ImpressionNodeData, NodeType, PartNodeData } from "@/features/workspace/types/Nodes";
 
-import ConflictNode from "./ConflictNode";
 import ImpressionNode from "./ImpressionNode";
 import PartNode from "./PartNode/PartNode";
-import { ImpressionType } from "@/features/workspace/types/Impressions";
+import ConflictNode from "./RelationshipNode/ConflictNode";
 
 const NodeComponent = ({
   type,
@@ -48,6 +43,5 @@ export const nodeTypes = {
   behavior: NodeComponent,
   conflict: NodeComponent,
   part: NodeComponent,
-  self: NodeComponent,
   other: NodeComponent,
 };

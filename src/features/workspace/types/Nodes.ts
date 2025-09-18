@@ -16,7 +16,6 @@ export interface PartNodeData extends BaseNodeData {
   Sensations: ImpressionNode[];
   Behaviors: ImpressionNode[];
   Others: ImpressionNode[];
-  Self: ImpressionNode[];
 }
 
 export interface ConflictNodeData extends BaseNodeData {

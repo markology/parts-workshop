@@ -4,8 +4,7 @@ export type ImpressionType =
   | "thought"
   | "sensation"
   | "behavior"
-  | "other"
-  | "self";
+  | "other";
 
 export enum ImpressionTextType {
   emotion = "Emotions",
@@ -13,5 +12,4 @@ export enum ImpressionTextType {
   sensation = "Sensations",
   behavior = "Behaviors",
   other = "Others",
-  self = "Self",
 }
