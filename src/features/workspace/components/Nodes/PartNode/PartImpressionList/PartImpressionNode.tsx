@@ -1,6 +1,6 @@
 import { NodeTextColors } from "@/features/workspace/constants/Nodes";
 import { useMemo } from "react";
-import { ListRestart, PencilIcon, Trash2 } from "lucide-react";
+import { ListRestart, Trash2 } from "lucide-react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import RightClickMenu from "@/components/RightClickMenu";
@@ -33,16 +33,6 @@ const PartImpressionNode = ({
           {
             icon: <ListRestart size={16} />,
             onClick: () => handleSendBackToSideBar(item.id, partId, type),
-          },
-          {
-            icon: <PencilIcon size={16} />,
-            onClick: () =>
-              setJournalTarget({
-                type: "node",
-                nodeId: item.id,
-                nodeType: type,
-                title: item.data.label,
-              }),
           },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps

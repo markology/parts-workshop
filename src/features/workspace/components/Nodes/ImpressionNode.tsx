@@ -4,7 +4,7 @@ import {
 } from "@/features/workspace/constants/Nodes";
 import { useCallback, useMemo } from "react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import { ListRestart, PencilIcon, Trash2 } from "lucide-react";
+import { ListRestart, Trash2, BookOpen } from "lucide-react";
 import RightClickMenu from "@/components/RightClickMenu";
 import {
   ImpressionTextType,
@@ -40,16 +40,6 @@ const ImpressionNode = ({
             icon: <ListRestart size={16} />,
             onClick: () => handleSendBackToSideBar(id, type),
           },
-          {
-            icon: <PencilIcon size={16} />,
-            onClick: () =>
-              setJournalTarget({
-                type: "node",
-                nodeId: id,
-                nodeType: type,
-                title: label,
-              }),
-          },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [detachImpressionFromPart, id]
@@ -71,17 +61,33 @@ const ImpressionNode = ({
   return (
     <div className="node impression-node text-right">
       <div
-        className="text-white text-left bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px]"
+        className="text-white text-left bg-[#4ecdc4] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] relative"
         style={{ backgroundColor: NodeBackgroundColors[type] }}
         ref={nodeRef}
         onContextMenu={handleContextMenu}
       >
-        <strong
-          className="text-sm flex-1 justify-items-center"
-          style={{ color: NodeTextColors[type] }}
-        >
-          {`${ImpressionTextType[type]}:`}
-        </strong>
+        <div className="flex items-center justify-between">
+          <strong
+            className="text-sm flex-1 justify-items-center"
+            style={{ color: NodeTextColors[type] }}
+          >
+            {`${ImpressionTextType[type]}:`}
+          </strong>
+          <button
+            onClick={() =>
+              setJournalTarget({
+                type: "node",
+                nodeId: id,
+                nodeType: type,
+                title: label,
+              })
+            }
+            className="p-1 text-white hover:text-gray-200 hover:bg-white/20 rounded"
+            title="Open Journal"
+          >
+            <BookOpen size={16} />
+          </button>
+        </div>
         {label || null}
       </div>
       {showContextMenu && <RightClickMenu items={menuItems} />}

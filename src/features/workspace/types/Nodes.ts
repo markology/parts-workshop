@@ -7,15 +7,27 @@ export interface BaseNodeData {
   [key: string]: unknown; // ✅ add this line
 }
 
+export type PartType = "manager" | "firefighter" | "exile" | "custom";
+
 export interface PartNodeData extends BaseNodeData {
   type: "partData";
   label: string;
+  name: string;
+  image?: string;
+  partType: PartType;
+  customPartType?: string;
+  age?: number;
+  gender?: string;
+  scratchpad?: string;
   needs: string[];
+  fears: string[];
+  insights: string[];
   Emotions: ImpressionNode[];
   Thoughts: ImpressionNode[];
   Sensations: ImpressionNode[];
   Behaviors: ImpressionNode[];
   Others: ImpressionNode[];
+  customImpressionBuckets: { [key: string]: ImpressionNode[] };
 }
 
 export interface ConflictNodeData extends BaseNodeData {

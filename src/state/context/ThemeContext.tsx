@@ -77,6 +77,7 @@ export const ThemeContextProvider = ({
     applyTheme(darkMode ? "dark" : "light");
   }, [darkMode]);
 
+
   // Listen for system theme changes
   useEffect(() => {
     if (typeof window === "undefined") return;

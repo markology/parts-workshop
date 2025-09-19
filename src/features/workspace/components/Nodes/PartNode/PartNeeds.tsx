@@ -32,27 +32,47 @@ const PartNeeds = ({ needs, partId }: { needs: string[]; partId: string }) => {
     }
   };
 
+  const handleRemove = useCallback((index: number) => {
+    const node = getNode(partId);
+    if (node?.data) {
+      const newNeeds = needs.filter((_, i) => i !== index);
+      updateNode<PartNodeData>(partId, {
+        data: {
+          ...node.data,
+          needs: newNeeds,
+        },
+      });
+    }
+  }, [getNode, partId, updateNode, needs]);
+
   return (
-    <div className="soothing-techniques w-full bg-[#ffffff25] p-3 rounded-md">
-      <h3 className="text-xl font-bold text-node">Soothing Techniques</h3>
+    <div className="part-needs w-full bg-[#ffffff25] p-3 rounded-md">
+      <h3 className="text-sm font-bold text-gray-700 mb-2">Needs</h3>
       <input
-        className="text-sm h-[30px] w-full"
+        className="text-sm h-[30px] w-full mb-2"
         ref={inputRef}
         value={need}
         onFocus={() => setIsEditing(true)}
         onChange={(e) => setNeed(e.target.value)}
         onKeyDown={handleEnter}
-        placeholder="Enter Needs or Soothing Technique"
+        placeholder="Add a need..."
       />
-      <ul className="list-disc list-inside">
-        {needs.map(
-          (need: string, index: number): React.ReactElement => (
-            <li className="text-node" key={`${partId}needs${index}`}>
-              {need}
-            </li>
-          )
-        )}
-      </ul>
+      <div className="space-y-1">
+        {needs.map((needItem: string, index: number) => (
+          <div
+            key={`${partId}needs${index}`}
+            className="flex items-center justify-between bg-green-50 border border-green-200 rounded px-2 py-1 text-sm"
+          >
+            <span className="text-green-800">{needItem}</span>
+            <button
+              onClick={() => handleRemove(index)}
+              className="text-red-500 hover:text-red-700"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

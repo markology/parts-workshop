@@ -65,12 +65,17 @@ export default function createNodeFN({
         data: {
           type: "partData",
           label,
+          name: label,
+          partType: "custom",
           needs: [],
+          fears: [],
+          insights: [],
           Emotions: [],
           Thoughts: [],
           Sensations: [],
           Behaviors: [],
           Others: [],
+          customImpressionBuckets: {},
         } as PartNodeData,
       } as PartNode;
       break;

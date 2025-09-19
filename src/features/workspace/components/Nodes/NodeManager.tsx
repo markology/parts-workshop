@@ -2,7 +2,7 @@ import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { ConflictNodeData, ImpressionNodeData, NodeType, PartNodeData } from "@/features/workspace/types/Nodes";
 
 import ImpressionNode from "./ImpressionNode";
-import PartNode from "./PartNode/PartNode";
+import NewPartNode from "./PartNode/NewPartNode";
 import ConflictNode from "./RelationshipNode/ConflictNode";
 
 const NodeComponent = ({
@@ -15,7 +15,7 @@ const NodeComponent = ({
   id: string;
 }) => {
   if ("type" in data) {
-    if (data.type === "partData") return <PartNode partId={id} data={data} />;
+    if (data.type === "partData") return <NewPartNode partId={id} data={data} />;
 
     if (data.type === "conflictData") {
       return (

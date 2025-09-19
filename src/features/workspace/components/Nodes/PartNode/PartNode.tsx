@@ -8,7 +8,7 @@ import { Pencil, PencilIcon, SquareUserRound, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
-import PartNeeds from "./PartNeeds";
+// import PartNeeds from "./PartNeeds";
 import RightClickMenu from "@/components/RightClickMenu";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
@@ -140,7 +140,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
             />
           ))}
         </div>
-        <PartNeeds needs={data.needs} partId={partId} />
+        {/* <PartNeeds needs={data.needs} partId={partId} /> */}
         {/* Handles for edges */}
         <Handle
           className="part-handle"

@@ -21,7 +21,6 @@ model User {
   parts              Part[]
   conflicts          Conflict[]
   journalEntries     JournalEntry[]
-  soothingTechniques SoothingTechnique[]
   impressions        Impression[]
 }
 
@@ -74,24 +73,22 @@ model Part {
   user   User   @relation(fields: [userId], references: [id])
 
   title              String
+  name               String
+  image              String?
+  partType           String // "manager", "firefighter", "exile", "custom"
+  customPartType     String?
+  age                Int?
+  gender             String?
   scratchpad         String?
-  soothingTechniques SoothingTechnique[] @relation("PartSoothing")
+  needs              String[]
+  fears              String[]
+  customImpressionBuckets Json? // Store custom impression buckets as JSON
   impressions        Impression[]        @relation("PartImpressions")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model SoothingTechnique {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  label String
-  parts Part[] @relation("PartSoothing")
-
-  createdAt DateTime @default(now())
-}
 
 model Conflict {
   id     String @id @default(cuid())

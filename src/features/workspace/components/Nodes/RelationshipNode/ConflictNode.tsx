@@ -11,7 +11,7 @@ import {
   ConnectedNodeType,
 } from "@/features/workspace/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
-import { MessageCircleWarning, PencilIcon, Trash2 } from "lucide-react";
+import { MessageCircleWarning, Trash2, BookOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
 
@@ -37,20 +37,6 @@ const ConflictNode = ({
               deleteNode(id);
               deleteEdges(id);
             },
-          },
-          {
-            icon: <PencilIcon size={16} />,
-            onClick: () =>
-              setJournalTarget({
-                type: "node",
-                nodeId: id,
-                nodeType: "conflict",
-                title: connectedNodes.reduce((acc, connectedNode) => {
-                  return acc === ""
-                    ? connectedNode.part.data.label
-                    : acc + " + " + connectedNode.part.data.label;
-                }, ""),
-              }),
           },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,11 +105,31 @@ const ConflictNode = ({
           >
             Conflict
           </strong>
-          <MessageCircleWarning
-            className="color-[#705d93]"
-            size={20}
-            strokeWidth={2}
-          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() =>
+                setJournalTarget({
+                  type: "node",
+                  nodeId: id,
+                  nodeType: "conflict",
+                  title: connectedNodes.reduce((acc, connectedNode) => {
+                    return acc === ""
+                      ? connectedNode.part.data.label
+                      : acc + " + " + connectedNode.part.data.label;
+                  }, ""),
+                })
+              }
+              className="p-1 text-white hover:text-gray-200 hover:bg-white/20 rounded"
+              title="Open Journal"
+            >
+              <BookOpen size={16} />
+            </button>
+            <MessageCircleWarning
+              className="color-[#705d93]"
+              size={20}
+              strokeWidth={2}
+            />
+          </div>
         </div>
         <div className="flex gap-4 flex-col">
           {connectedNodes.length ? (
