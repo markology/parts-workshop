@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import ImpressionDisplay from "./Impressions/ImpressionDisplay";
 import ImpressionInput from "./Impressions/ImpressionInput";
 import PartInput from "./PartInput";
+import PartDetailPanel from "./PartDetailPanel";
 import { NodeBackgroundColors } from "../../constants/Nodes";
 import React from "react";
 import FeedbackForm from "@/components/FeedbackForm";
@@ -61,29 +62,34 @@ const SideBar = () => {
   );
 
   return (
-    <aside className="bg-aside flex-[0_0_230px] p-[15px_10px] shadow-[var(--aside-shadow)_0px_0px_10px_0px] z-[1]">
-      {CreateButtons}
-      <ImpressionDisplay />
+    <>
+      <aside className="bg-aside flex-[0_0_230px] p-[15px_10px] shadow-[var(--aside-shadow)_0px_0px_10px_0px] z-[1]">
+        {CreateButtons}
+        <ImpressionDisplay />
 
-      {/* Part Input Modal */}
-      <Modal show={showPartModal} onClose={() => setShowPartModal(false)}>
-        <PartInput />
-      </Modal>
-      {/* Impression Input Modal */}
-      <Modal
-        show={showImpressionModal}
-        onClose={() => setShowImpressionModal(false)}
-      >
-        <ImpressionInput />
-      </Modal>
-      <Modal
-        show={showFeedbackModal}
-        onClose={() => setShowFeedbackModal(false)}
-        width="auto"
-      >
-        <FeedbackForm />
-      </Modal>
-    </aside>
+        {/* Part Input Modal */}
+        <Modal show={showPartModal} onClose={() => setShowPartModal(false)}>
+          <PartInput />
+        </Modal>
+        {/* Impression Input Modal */}
+        <Modal
+          show={showImpressionModal}
+          onClose={() => setShowImpressionModal(false)}
+        >
+          <ImpressionInput />
+        </Modal>
+        <Modal
+          show={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+          width="auto"
+        >
+          <FeedbackForm />
+        </Modal>
+      </aside>
+      
+      {/* Part Detail Panel */}
+      <PartDetailPanel />
+    </>
   );
 };
 

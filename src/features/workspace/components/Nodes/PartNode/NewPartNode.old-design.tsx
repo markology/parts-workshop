@@ -187,77 +187,50 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
         ref={nodeRef}
         className="node part-node relative w-[400px]"
       >
+        {/* Name Fin - Translucent blue overlay */}
+        <div className="absolute top-0 left-0 z-10">
+          <div 
+            className="bg-blue-500/60 backdrop-blur-sm px-4 py-2 shadow-lg border border-blue-400/50"
+            style={{
+              borderTopLeftRadius: '13px',
+              background: 'transparent',
+              borderBottomRightRadius: '60px'
+            }}
+          >
+            {isEditingName ? (
+              <input
+                className="text-sm font-bold text-white bg-transparent text-left min-w-[120px]"
+                ref={inputRef}
+                onKeyDown={handleEnter}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+              />
+            ) : (
+              <h2
+                onClick={() => {
+                  setIsEditingName(true);
+                  setIsEditing(true);
+                }}
+                className="text-sm font-bold text-white cursor-pointer hover:text-blue-100 flex items-center gap-1"
+              >
+                {name}
+                <Pencil size={10} className="text-blue-200" />
+              </h2>
+            )}
+          </div>
+        </div>
 
         {/* Modern Card Design */}
-        <div className={`bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${
+        <div className={`bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${
           selectedPartId === partId 
             ? 'border-blue-500 shadow-blue-200 shadow-xl ring-2 ring-blue-200' 
-            : 'hover:shadow-xl hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100'
+            : 'hover:shadow-xl hover:border-gray-300'
         }`}>
           
           {/* Header Section */}
-          <div className="bg-white/60 backdrop-blur-sm p-4 border-b border-blue-200/30">
-            {/* Name - Top Left */}
-            <div className="mb-3">
-              {isEditingName ? (
-                <input
-                  className="font-bold text-black bg-transparent text-left min-w-[120px]"
-                  style={{ fontSize: '24px' }}
-                  ref={inputRef}
-                  onKeyDown={handleEnter}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  autoFocus
-                />
-              ) : (
-                <h2
-                  onClick={() => {
-                    setIsEditingName(true);
-                    setIsEditing(true);
-                  }}
-                  className="font-bold text-black cursor-pointer hover:text-gray-700 flex items-center gap-1"
-                  style={{ fontSize: '24px' }}
-                >
-                  {name}
-                  <Pencil size={12} className="text-gray-600" />
-                </h2>
-              )}
-            </div>
-
-            {/* Top Right Actions */}
-            <div className="flex items-center justify-end gap-2 mb-3">
-              {/* Conflict Status */}
-              <div className="flex items-center gap-1 bg-white/60 rounded-full px-2 py-1">
-                <div className="text-sm">
-                  {relationships.filter(rel => rel.nodeType === 'conflict').length > 0 ? '😰' : '😌'}
-                </div>
-                <span className="text-xs text-gray-600 font-medium">
-                  {relationships.filter(rel => rel.nodeType === 'conflict').length}
-                </span>
-              </div>
-              
-              {/* Journal Button with AI Sparkle */}
-              <button
-                onClick={() =>
-                  setJournalTarget({
-                    type: "node",
-                    nodeId: partId,
-                    nodeType: "part",
-                    title: data.name || data.label,
-                  })
-                }
-                className="relative p-2 bg-white/60 hover:bg-white/80 rounded-lg transition-colors group"
-                title="Open AI Journal"
-              >
-                <BookOpen size={14} className="text-gray-600 group-hover:text-blue-600 transition-colors" />
-                {/* AI Sparkle */}
-                <div className="absolute -top-1 -right-1 text-purple-500 animate-pulse text-xs font-bold">
-                  ✨
-                </div>
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-r from-slate-50 to-blue-50 p-4 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-3">
               {/* Part Type Badge */}
               {(data.partType && data.partType !== "custom") || data.customPartType ? (
                 <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${getPartTypeColor(data.partType || "custom")}`}>
@@ -270,7 +243,34 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                 <div></div>
               )}
 
-              <div></div>
+              {/* Actions */}
+              <div className="flex items-center gap-2">
+                {/* Conflict Status */}
+                <div className="flex items-center gap-1 bg-white/60 rounded-full px-2 py-1">
+                  <div className="text-sm">
+                    {relationships.filter(rel => rel.nodeType === 'conflict').length > 0 ? '😰' : '😌'}
+                  </div>
+                  <span className="text-xs text-gray-600 font-medium">
+                    {relationships.filter(rel => rel.nodeType === 'conflict').length}
+                  </span>
+                </div>
+                
+                {/* Journal Button */}
+                <button
+                  onClick={() =>
+                    setJournalTarget({
+                      type: "node",
+                      nodeId: partId,
+                      nodeType: "part",
+                      title: data.name || data.label,
+                    })
+                  }
+                  className="p-2 bg-white/60 hover:bg-white/80 rounded-lg transition-colors"
+                  title="Open Journal"
+                >
+                  <BookOpen size={14} className="text-gray-600" />
+                </button>
+              </div>
             </div>
 
             {/* Main Content Row */}
@@ -278,19 +278,19 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
               {/* Profile Image */}
               <div className="relative">
                 <div className="w-16 h-16 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                {imagePreview ? (
-                  <Image
-                    src={imagePreview}
-                    alt="Part"
+                  {imagePreview ? (
+                    <Image
+                      src={imagePreview}
+                      alt="Part"
                       width={64}
                       height={64}
                       className="w-full h-full object-cover"
-                  />
-                ) : (
+                    />
+                  ) : (
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                       <SquareUserRound size={24} className="text-gray-400" />
-                  </div>
-                )}
+                    </div>
+                  )}
                 </div>
                 
                 {/* Upload Button */}
@@ -307,7 +307,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                   onChange={handleImageUpload}
                   className="hidden"
                 />
-          </div>
+              </div>
 
               {/* Info Section */}
               <div className="flex-1 min-w-0">
@@ -316,38 +316,38 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                   <div className="text-center">
                     <div className="text-xs text-gray-500">Age</div>
                     <div className="text-sm font-semibold text-gray-800">{data.age || "?"}</div>
-                            </div>
+                  </div>
                   <div className="text-center">
                     <div className="text-xs text-gray-500">Gender</div>
                     <div className="text-sm font-semibold text-gray-800">{data.gender || "?"}</div>
-                        </div>
+                  </div>
                   <div className="text-center">
                     <div className="text-xs text-gray-500">Needs</div>
                     <div className="text-sm font-semibold text-gray-800">{(data.needs || []).length}</div>
-                      </div>
+                  </div>
                   <div className="text-center">
                     <div className="text-xs text-gray-500">Fears</div>
                     <div className="text-sm font-semibold text-gray-800">{(data.fears || []).length}</div>
-                </div>
-              </div>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
           {/* Observations Section */}
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-black flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                 <Eye className="w-4 h-4" />
                 Observations
               </h3>
-              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                 {allObservations.length}
               </span>
             </div>
-
+            
             <div 
-              className="relative h-32 overflow-hidden rounded-lg bg-white/80 backdrop-blur-sm border border-blue-200/50 cursor-pointer hover:border-blue-300 hover:bg-white/90 transition-colors p-3"
+              className="relative h-32 overflow-hidden rounded-lg bg-gray-50 border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors p-3"
               onClick={() => setSelectedPartId(partId)}
             >
               {allObservations.length > 0 ? (
@@ -365,23 +365,23 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                         }}
                       >
                         {obs.data?.label || obs.id}
-                  </div>
+                      </div>
                     );
                   })}
                   {allObservations.length > 12 && (
                     <div className="px-2 py-1 rounded text-xs font-medium bg-gray-200 text-gray-600">
                       +{allObservations.length - 12} more
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="text-gray-400 text-xs text-center py-4">
                   No observations yet
-            </div>
+                </div>
               )}
               
               {/* Fade gradient */}
-              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white/80 to-transparent pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none"></div>
             </div>
           </div>
         </div>

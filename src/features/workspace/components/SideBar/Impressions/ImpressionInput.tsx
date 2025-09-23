@@ -22,8 +22,13 @@ const isValidImpression = (text: string) => {
   return true;
 };
 
-const ImpressionInput = () => {
-  const [selectedType, setSelectedType] = useState<ImpressionType>("emotion");
+interface ImpressionInputProps {
+  onAddImpression?: (impressionData: { id: string; label: string; type: ImpressionType }) => void;
+  defaultType?: ImpressionType;
+}
+
+const ImpressionInput = ({ onAddImpression, defaultType = "emotion" }: ImpressionInputProps) => {
+  const [selectedType, setSelectedType] = useState<ImpressionType>(defaultType);
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,11 +44,17 @@ const ImpressionInput = () => {
       isValidImpression(textAreaRef.current!.value)
     ) {
       e.preventDefault();
-      useWorkingStore.getState().addImpression({
+      const impressionData = {
         id: uuidv4(),
         label: textAreaRef.current!.value,
         type: selectedType,
-      });
+      };
+      
+      if (onAddImpression) {
+        onAddImpression(impressionData);
+      } else {
+        useWorkingStore.getState().addImpression(impressionData);
+      }
       textAreaRef.current!.value = "";
     } else if (e.key === "Tab") {
       e.preventDefault();

@@ -1,6 +1,11 @@
+// import PartNeeds from "./PartNeeds";
+import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
+import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
+import detachImpressionFromPart from "@/features/workspace/state/updaters/detachImpressionFromPart";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
 import { PartNodeData } from "@/features/workspace/types/Nodes";
 import { Handle, Position } from "@xyflow/react";
@@ -8,11 +13,6 @@ import { Pencil, PencilIcon, SquareUserRound, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
-// import PartNeeds from "./PartNeeds";
-import RightClickMenu from "@/components/RightClickMenu";
-import { useJournalStore } from "@/features/workspace/state/stores/Journal";
-import useContextMenu from "@/features/workspace/hooks/useContextMenu";
-import detachImpressionFromPart from "@/features/workspace/state/updaters/detachImpressionFromPart";
 
 let index = 0;
 const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
@@ -89,7 +89,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
       <div
         onContextMenu={handleContextMenu}
         ref={nodeRef}
-        className="node part-node bg-[linear-gradient(251deg,_#a0c9fd36_0%,_#8ad5f173_100%)] z-[-999] rounded p-10 w-80  flex flex-col w-[1000px] h-auto rounded-3xl text-left"
+        className="node part-node bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 z-[-999] p-10 w-80 flex flex-col w-[1000px] h-auto text-left"
       >
         {/* Title */}
         <div className="flex justify-between">

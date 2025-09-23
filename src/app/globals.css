@@ -12,6 +12,19 @@
   }
 }
 
+@keyframes scrollUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(calc(-100% - 128px));
+  }
+}
+
+.animate-scroll {
+  animation: scrollUp 15s linear infinite;
+}
+
 .radix-tooltip-content {
   animation: fadeIn 150ms ease-out;
 }
@@ -228,4 +241,8 @@ button {
 
 #create-impression-button {
   box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
+}
+
+.animate-scroll {
+  animation: scroll 12s linear infinite;
 }
