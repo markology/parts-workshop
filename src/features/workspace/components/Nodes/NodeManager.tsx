@@ -4,6 +4,7 @@ import { ConflictNodeData, ImpressionNodeData, NodeType, PartNodeData } from "@/
 import ImpressionNode from "./ImpressionNode";
 import NewPartNode from "./PartNode/NewPartNode";
 import ConflictNode from "./RelationshipNode/ConflictNode";
+import AllyNode from "./RelationshipNode/AllyNode";
 
 const NodeComponent = ({
   type,
@@ -18,7 +19,11 @@ const NodeComponent = ({
     if (data.type === "partData") return <NewPartNode partId={id} data={data} />;
 
     if (data.type === "conflictData") {
-      return (
+      // Check if this is an ally node based on relationshipType
+      const isAlly = data.relationshipType === "ally";
+      return isAlly ? (
+        <AllyNode key={id} id={id} connectedNodes={data.connectedNodes} />
+      ) : (
         <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
       );
     }
@@ -42,6 +47,7 @@ export const nodeTypes = {
   sensation: NodeComponent,
   behavior: NodeComponent,
   conflict: NodeComponent,
+  ally: NodeComponent,
   part: NodeComponent,
   other: NodeComponent,
 };

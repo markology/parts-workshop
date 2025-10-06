@@ -128,9 +128,13 @@ export const useFlowNodes = () => {
     style?: unknown
   ) => {
     const viewport = getViewport();
+    const defaultPosition = viewport && typeof viewport.x === 'number' && typeof viewport.y === 'number' 
+      ? { x: viewport.x, y: viewport.y }
+      : { x: 0, y: 0 };
+    
     const newNode = createNodeFN({
       type,
-      position: position || { x: viewport.x, y: viewport.y },
+      position: position || defaultPosition,
       label,
       impressionType,
       style,
@@ -138,6 +142,10 @@ export const useFlowNodes = () => {
     setNodes((prev: WorkshopNode[]) => [...prev, newNode]);
     const offsets: Record<NodeType, Record<string, number>> = {
       conflict: {
+        x: 200,
+        y: 100,
+      },
+      ally: {
         x: 200,
         y: 100,
       },
@@ -509,6 +517,9 @@ export const useFlowNodes = () => {
         ...params,
         sourceHandle: params.sourceHandle,
         targetHandle: params.targetHandle,
+        data: {
+          relationshipType: conflictNode.data.relationshipType || "conflict",
+        },
       };
 
       setEdges((eds) => addEdge(newParams, eds));

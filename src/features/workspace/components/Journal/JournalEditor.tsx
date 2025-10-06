@@ -224,8 +224,9 @@ JournalEditorProps) {
             bg-white px-2.5 py-px rounded-lg text-sm flex items-center
           `}
           style={{
-            background: nodeType ? NodeBackgroundColors[nodeType] : "white",
-            color: nodeType ? "white" : "black",
+            background: "white",
+            color: "black",
+            border: nodeType ? `2px solid ${NodeBackgroundColors[nodeType]}` : "2px solid #e5e7eb",
           }}
         >
           {nodeType || "global"}

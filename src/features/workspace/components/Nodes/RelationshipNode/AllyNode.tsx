@@ -11,11 +11,11 @@ import {
   ConnectedNodeType,
 } from "@/features/workspace/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
-import { MessageCircleWarning, Trash2, BookOpen } from "lucide-react";
+import { Users, Trash2, BookOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-// import detachImpressionFromPart from "../../state/updaters/detachImpressionFromPart";
+import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
 
-const ConflictNode = ({
+const AllyNode = ({
   connectedNodes,
   id,
 }: {
@@ -40,7 +40,7 @@ const ConflictNode = ({
           },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [id]
+        [detachImpressionFromPart, id]
       ),
     });
 
@@ -93,17 +93,17 @@ const ConflictNode = ({
   return (
     <>
       <div
-        className="node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[linear-gradient(348deg,#72609b,#c4b2e7);] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] text-left"
-        style={{ backgroundColor: NodeBackgroundColors["conflict"] }}
+        className="node text-white min-w-[200px] max-w-[280px] min-h-[100px] bg-[linear-gradient(348deg,#87CEEB,#B0E0E6);] rounded break-words px-4 py-2 pb-4 min-w-[100px] flex flex-col gap-[8px] text-left"
+        style={{ backgroundColor: NodeBackgroundColors["ally"] }}
         onContextMenu={handleContextMenu}
         ref={nodeRef}
       >
         <div className="flex flex-row justify-between">
           <strong
-            className="text-base text-white justify-items-center semibold"
-            style={{ color: NodeTextColors["conflict"] }}
+            className="text-sm text-white justify-items-center semibold"
+            style={{ color: NodeTextColors["ally"] }}
           >
-            Conflict
+            Ally
           </strong>
           <div className="flex items-center gap-2">
             <button
@@ -111,7 +111,7 @@ const ConflictNode = ({
                 setJournalTarget({
                   type: "node",
                   nodeId: id,
-                  nodeType: "conflict",
+                  nodeType: "ally",
                   title: connectedNodes.reduce((acc, connectedNode) => {
                     return acc === ""
                       ? connectedNode.part.data.label
@@ -119,23 +119,22 @@ const ConflictNode = ({
                   }, ""),
                 })
               }
-              className="p-1 text-white hover:text-gray-200 hover:bg-white/20 rounded"
+              className="relative p-1 text-white hover:text-gray-200 hover:bg-white/20 rounded"
               title="Open Journal"
             >
               <BookOpen size={16} />
+              {/* AI Sparkle */}
+              <div className="absolute -top-1 -right-1 text-purple-500 animate-pulse text-xs font-bold">
+                ✨
+              </div>
             </button>
-            <MessageCircleWarning
-              className="color-[#705d93]"
-              size={20}
-              strokeWidth={2}
-            />
           </div>
         </div>
         <div className="flex gap-4 flex-col">
           {connectedNodes.length ? (
             connectedNodes.map(({ part, conflictDescription }) => (
               <div
-                className="bg-[#745da7] p-3 rounded"
+                className="bg-[#87CEEB] p-3 rounded"
                 onClick={() => {
                   setEditValue(conflictDescription);
                   setEditingId(part.id);
@@ -170,29 +169,29 @@ const ConflictNode = ({
               </div>
             ))
           ) : (
-            <p className="text-xl text-[#c9b6f2]">Connect Parts to Conflict</p>
+            <p className="text-xl text-[#B0E0E6]">Connect Parts to Ally</p>
           )}
         </div>
         <Handle
-          className="conflict-handle"
+          className="ally-handle"
           type="target"
           position={Position.Top}
           id="top"
         />
         <Handle
-          className="conflict-handle"
+          className="ally-handle"
           type="target"
           position={Position.Bottom}
           id="bottom"
         />
         <Handle
-          className="conflict-handle"
+          className="ally-handle"
           type="target"
           position={Position.Left}
           id="left"
         />
         <Handle
-          className="conflict-handle"
+          className="ally-handle"
           type="target"
           position={Position.Right}
           id="right"
@@ -203,4 +202,4 @@ const ConflictNode = ({
   );
 };
 
-export default ConflictNode;
+export default AllyNode;

@@ -82,7 +82,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
         nodeId: connectedNodeId,
         nodeType: connectedNode?.type || "unknown",
         nodeLabel: connectedNode?.data?.label || "Unknown",
-        relationshipType: edge.data?.relationshipType || "connected",
+        relationshipType: edge.data?.relationshipType || "conflict",
       };
     });
   }, [edges, nodes, partId]);
@@ -202,7 +202,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
               {isEditingName ? (
                 <input
                   className="font-bold text-black bg-transparent text-left min-w-[120px]"
-                  style={{ fontSize: '24px' }}
+                  style={{ fontSize: '30px' }}
                   ref={inputRef}
                   onKeyDown={handleEnter}
                   value={name}
@@ -216,7 +216,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                     setIsEditing(true);
                   }}
                   className="font-bold text-black cursor-pointer hover:text-gray-700 flex items-center gap-1"
-                  style={{ fontSize: '24px' }}
+                  style={{ fontSize: '30px' }}
                 >
                   {name}
                   <Pencil size={12} className="text-gray-600" />
@@ -227,11 +227,26 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
             {/* Top Right Actions */}
             <div className="flex items-center justify-end gap-2 mb-3">
               {/* Conflict Status */}
-              <div className="flex items-center gap-1 bg-white/60 rounded-full px-2 py-1">
+              <div className="flex items-center gap-1 rounded-full px-2 py-1 bg-white/60">
                 <div className="text-sm">
-                  {relationships.filter(rel => rel.nodeType === 'conflict').length > 0 ? '😰' : '😌'}
+                  {(() => {
+                    const conflictCount = relationships.filter(rel => rel.nodeType === 'conflict').length;
+                    const allyCount = relationships.filter(rel => rel.nodeType === 'conflict' && rel.relationshipType === 'ally').length;
+                    
+                    if (conflictCount === 0) {
+                      return '😊'; // Smiling warmly - no conflicts
+                    } else if (conflictCount === 1 && allyCount === 0) {
+                      return '😐'; // Neutral - 1 conflict but no allies
+                    } else if (conflictCount === 1) {
+                      return '😐'; // Neutral - 1 conflict but has allies
+                    } else if (conflictCount === 2) {
+                      return '😢'; // Sad - 2 conflicts
+                    } else {
+                      return '😰'; // Worried - 3 or more conflicts
+                    }
+                  })()}
                 </div>
-                <span className="text-xs text-gray-600 font-medium">
+                <span className="text-xs font-medium text-gray-600">
                   {relationships.filter(rel => rel.nodeType === 'conflict').length}
                 </span>
               </div>
@@ -347,7 +362,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
             </div>
 
             <div 
-              className="relative h-32 overflow-hidden rounded-lg bg-white/80 backdrop-blur-sm border border-blue-200/50 cursor-pointer hover:border-blue-300 hover:bg-white/90 transition-colors p-3"
+              className="relative h-56 overflow-hidden rounded-lg bg-white/80 backdrop-blur-sm border border-blue-200/50 cursor-pointer hover:border-blue-300 hover:bg-white/90 transition-colors p-3"
               onClick={() => setSelectedPartId(partId)}
             >
               {allObservations.length > 0 ? (
@@ -358,7 +373,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                     return (
                       <div
                         key={`${obs.impressionType}-${index}`}
-                        className="px-2 py-1 rounded text-xs font-medium"
+                        className="px-2 py-1 rounded text-base font-medium text-left"
                         style={{
                           backgroundColor: `${bgColor}20`,
                           color: bgColor,

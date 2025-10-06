@@ -14,6 +14,7 @@ export const NodeBackgroundColors = {
   sensation: "#F9B17A",
   behavior: "#8BCB8B",
   conflict: "#B19CD9",
+  ally: "#87CEEB", // Light blue for ally
   part: "#a1c7dd",
   other: "#EFA9C8",
 };
@@ -24,6 +25,7 @@ export const NodeTextColors = {
   sensation: "#9b6034",
   behavior: "#3f7142",
   conflict: "#5a4784",
+  ally: "#1e3a8a", // Dark blue text for ally
   part: "#998f3a",
   other: "#934b6d",
 };

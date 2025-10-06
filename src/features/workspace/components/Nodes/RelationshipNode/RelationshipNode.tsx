@@ -3,7 +3,7 @@ import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/const
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
-import { ConflictNode as ConflictNodeType, ConnectedNodeType } from "@/features/workspace/types/Nodes";
+import { ConflictNode as ConflictNodeType, ConnectedNodeType, RelationshipType } from "@/features/workspace/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { MessageCircleWarning, Trash2, BookOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -18,8 +18,21 @@ const RelationshipNode = ({
   id: string;
 }) => {
   const { getNode } = useReactFlow();
-  const { deleteEdges, deleteNode, updateConflictDescription } =
+  const { deleteEdges, deleteNode, updateConflictDescription, updateNode } =
     useFlowNodesContext();
+  
+  const node = getNode(id) as ConflictNodeType;
+  const relationshipType = node?.data?.relationshipType || "conflict";
+
+  const toggleRelationshipType = () => {
+    const newType: RelationshipType = relationshipType === "conflict" ? "ally" : "conflict";
+    updateNode(id, {
+      data: {
+        ...node.data,
+        relationshipType: newType,
+      },
+    });
+  };
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -88,18 +101,29 @@ const RelationshipNode = ({
   return (
     <>
       <div
-        className="node text-white min-w-[300px] max-w-[400px] min-h-[140px] bg-[linear-gradient(348deg,#72609b,#c4b2e7);] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] text-left"
-        style={{ backgroundColor: NodeBackgroundColors["conflict"] }}
+        className="node text-white min-w-[300px] max-w-[400px] min-h-[140px] rounded break-words px-5 py-2 pb-6 min-w-[100px] flex flex-col gap-[10px] text-left"
+        style={{ backgroundColor: NodeBackgroundColors[relationshipType] }}
         onContextMenu={handleContextMenu}
         ref={nodeRef}
       >
         <div className="flex flex-row justify-between">
-          <strong
-            className="text-base text-white justify-items-center semibold"
-            style={{ color: NodeTextColors["conflict"] }}
-          >
-            Conflict
-          </strong>
+          <div className="flex items-center gap-2">
+            <strong
+              className="text-base text-white justify-items-center semibold cursor-pointer hover:opacity-80"
+              style={{ color: NodeTextColors[relationshipType] }}
+              onClick={toggleRelationshipType}
+              title="Click to toggle between Conflict and Ally"
+            >
+              {relationshipType === "conflict" ? "Conflict" : "Ally"}
+            </strong>
+            <button
+              onClick={toggleRelationshipType}
+              className="p-1 text-white hover:text-gray-200 hover:bg-white/20 rounded text-xs"
+              title={`Switch to ${relationshipType === "conflict" ? "Ally" : "Conflict"}`}
+            >
+              {relationshipType === "conflict" ? "🤝" : "⚔️"}
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() =>
@@ -130,7 +154,10 @@ const RelationshipNode = ({
           {connectedNodes.length ? (
             connectedNodes.map(({ part, conflictDescription }) => (
               <div
-                className="bg-[#745da7] p-3 rounded"
+                className="p-3 rounded"
+                style={{ 
+                  backgroundColor: relationshipType === "conflict" ? "#745da7" : "#6b9b6b" 
+                }}
                 onClick={() => {
                   setEditValue(conflictDescription);
                   setEditingId(part.id);
@@ -165,7 +192,9 @@ const RelationshipNode = ({
               </div>
             ))
           ) : (
-            <p className="text-xl text-[#c9b6f2]">Connect Parts to Conflict</p>
+            <p className="text-xl text-[#c9b6f2]">
+              Connect Parts to {relationshipType === "conflict" ? "Conflict" : "Ally"}
+            </p>
           )}
         </div>
         <Handle

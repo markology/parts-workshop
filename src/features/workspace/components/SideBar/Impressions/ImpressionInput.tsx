@@ -24,10 +24,11 @@ const isValidImpression = (text: string) => {
 
 interface ImpressionInputProps {
   onAddImpression?: (impressionData: { id: string; label: string; type: ImpressionType }) => void;
+  onTypeChange?: (type: ImpressionType) => void;
   defaultType?: ImpressionType;
 }
 
-const ImpressionInput = ({ onAddImpression, defaultType = "emotion" }: ImpressionInputProps) => {
+const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion" }: ImpressionInputProps) => {
   const [selectedType, setSelectedType] = useState<ImpressionType>(defaultType);
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
 
@@ -58,13 +59,18 @@ const ImpressionInput = ({ onAddImpression, defaultType = "emotion" }: Impressio
       textAreaRef.current!.value = "";
     } else if (e.key === "Tab") {
       e.preventDefault();
-      setSelectedType(
-        ImpressionList[
-          ImpressionList.indexOf(selectedType) < ImpressionList.length - 1
-            ? ImpressionList.indexOf(selectedType) + 1
-            : 0
-        ]
-      );
+      const currentIndex = ImpressionList.indexOf(selectedType);
+      let newIndex;
+      
+      if (e.shiftKey) {
+        // Shift+Tab: go backwards
+        newIndex = currentIndex > 0 ? currentIndex - 1 : ImpressionList.length - 1;
+      } else {
+        // Tab: go forwards
+        newIndex = currentIndex < ImpressionList.length - 1 ? currentIndex + 1 : 0;
+      }
+      
+      setSelectedType(ImpressionList[newIndex]);
     }
   };
 
@@ -72,7 +78,10 @@ const ImpressionInput = ({ onAddImpression, defaultType = "emotion" }: Impressio
     if (textAreaRef.current) {
       textAreaRef.current.focus();
     }
-  }, [selectedType]);
+    if (onTypeChange) {
+      onTypeChange(selectedType);
+    }
+  }, [selectedType, onTypeChange]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -88,8 +97,8 @@ const ImpressionInput = ({ onAddImpression, defaultType = "emotion" }: Impressio
   }, []);
 
   return (
-    <div ref={containerRef} className="relative space-y-2">
-      <div className="flex flex-wrap m-0">
+    <div ref={containerRef} className="relative space-y-0">
+      <div className="flex flex-wrap m-0 bg-gray-100 rounded-t-xl overflow-hidden">
         {ImpressionList.map((type) => (
           <button
             key={type}
@@ -97,30 +106,29 @@ const ImpressionInput = ({ onAddImpression, defaultType = "emotion" }: Impressio
               setSelectedType(type);
               setIsSelectorOpen(false);
             }}
-            className={`px-3 py-1 text-sm flex-1 rounded-t-xl ${
+            className={`px-4 py-3 text-sm flex-1 transition-all duration-200 ${
               selectedType === type
-                ? "font-bold z-[9999] bg-white"
-                : `text-white`
+                ? "font-semibold bg-white text-gray-800 shadow-sm"
+                : `text-gray-600 hover:text-gray-800 hover:bg-gray-50`
             }`}
             style={{
-              backgroundColor:
-                selectedType === type ? "white" : NodeBackgroundColors[type],
-              color:
-                selectedType === type ? NodeBackgroundColors[type] : "white",
+              color: selectedType === type ? NodeBackgroundColors[type] : undefined,
             }}
           >
             {ImpressionTextType[type]}
           </button>
         ))}
       </div>
-      <div className="relative rounded-b bg-white shadow-[1px_4px_5px_2px_black]">
+      <div className="relative bg-white border border-gray-200 rounded-b-xl shadow-sm">
         <textarea
           style={{
             visibility: !isSelectorOpen ? "visible" : "hidden",
             color: NodeBackgroundColors[selectedType],
-          }}
+            backgroundColor: `${NodeBackgroundColors[selectedType]}10`,
+            '--tw-placeholder-color': `${NodeBackgroundColors[selectedType]}90`,
+          } as React.CSSProperties}
           ref={textAreaRef}
-          className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none font-semibold"
+          className="w-full p-4 pt-6 px-5 rounded-b-xl resize-y focus:outline-none font-medium placeholder:opacity-90"
           rows={3}
           autoFocus
           onKeyDown={handleTextAreaKeyDown}

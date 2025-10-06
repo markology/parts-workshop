@@ -1,22 +1,25 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
+import { useThemeContext } from "@/state/context/ThemeContext";
 import { 
   Eye, 
-  Heart, 
-  Brain, 
+  Heart,
+  Brain,
   Shield, 
   Users, 
   X, 
   Plus, 
-  Trash2,
-  SquareUserRound
+  SquareUserRound,
+  BookOpen,
+  Calendar,
+  User
 } from "lucide-react";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
-import { ImpressionTextType } from "@/features/workspace/types/Impressions";
+import { ImpressionTextType, ImpressionType } from "@/features/workspace/types/Impressions";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
 import ImpressionInput from "./Impressions/ImpressionInput";
@@ -25,7 +28,57 @@ const PartDetailPanel = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
   const { nodes, edges, updateNode } = useFlowNodesContext();
+  const { darkMode } = useThemeContext();
   const [addingImpressionType, setAddingImpressionType] = useState<string | null>(null);
+  const [currentImpressionType, setCurrentImpressionType] = useState<string>("emotion");
+  const [editingAge, setEditingAge] = useState(false);
+  const [editingGender, setEditingGender] = useState(false);
+  const [editingPartType, setEditingPartType] = useState(false);
+  const [tempAge, setTempAge] = useState("");
+  const [tempGender, setTempGender] = useState("");
+  const [tempPartType, setTempPartType] = useState("");
+
+  // Handle Escape key to close impression modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && addingImpressionType) {
+        setAddingImpressionType(null);
+      }
+    };
+
+    if (addingImpressionType) {
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }
+  }, [addingImpressionType]);
+
+  const handleRemoveImpression = (impressionType: string, impressionId: string) => {
+    if (!selectedPartId || !partNode) return;
+
+    const currentImpressions = (partNode.data[ImpressionTextType[impressionType as keyof typeof ImpressionTextType]] as ImpressionNode[]) || [];
+    const filteredImpressions = currentImpressions.filter(imp => imp.id !== impressionId);
+
+    updateNode(selectedPartId, {
+      data: {
+        ...partNode.data,
+        [ImpressionTextType[impressionType as keyof typeof ImpressionTextType]]: filteredImpressions,
+      },
+    });
+  };
+
+  const getXButtonColor = (impressionType: string) => {
+    const colorMap: { [key: string]: string } = {
+      emotion: "#ed9f9f",
+      thought: "#9fc7e8", 
+      sensation: "#f5c99a",
+      behavior: "#a8d4a8",
+      conflict: "#c4a8e0",
+      ally: "#a8d4a8",
+      part: "#c4d4e8",
+      other: "#f0b8d0"
+    };
+    return colorMap[impressionType] || "#ed9f9f";
+  };
 
   const partNode = useMemo(() => {
     if (!selectedPartId) return null;
@@ -47,19 +100,11 @@ const PartDetailPanel = () => {
         nodeId: connectedNodeId,
         nodeType: connectedNode?.type || "unknown",
         nodeLabel: connectedNode?.data?.label || "Unknown",
-        relationshipType: edge.data?.relationshipType || "connected",
+        relationshipType: edge.data?.relationshipType || "conflict",
       };
     });
   }, [edges, nodes, selectedPartId]);
 
-  const getRelationshipColor = (nodeType: string) => {
-    switch (nodeType) {
-      case "conflict": return "bg-red-100 text-red-800 border-red-200";
-      case "impression": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "part": return "bg-green-100 text-green-800 border-green-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
 
   const addListItem = (field: string, newItem: string) => {
     if (!selectedPartId || !partNode || newItem.trim() === "") return;
@@ -87,6 +132,42 @@ const PartDetailPanel = () => {
     });
   };
 
+  const saveAge = () => {
+    if (!selectedPartId || !partNode) return;
+    updateNode(selectedPartId, {
+      data: {
+        ...partNode.data,
+        age: tempAge.trim() || "Unknown",
+      },
+    });
+    setEditingAge(false);
+    setTempAge("");
+  };
+
+  const saveGender = () => {
+    if (!selectedPartId || !partNode) return;
+    updateNode(selectedPartId, {
+      data: {
+        ...partNode.data,
+        gender: tempGender.trim() || "Unknown",
+      },
+    });
+    setEditingGender(false);
+    setTempGender("");
+  };
+
+  const savePartType = () => {
+    if (!selectedPartId || !partNode) return;
+    updateNode(selectedPartId, {
+      data: {
+        ...partNode.data,
+        customPartType: tempPartType || "manager",
+      },
+    });
+    setEditingPartType(false);
+    setTempPartType("");
+  };
+
   if (!selectedPartId || !partNode) return null;
 
   const data = partNode.data;
@@ -97,62 +178,229 @@ const PartDetailPanel = () => {
       onClick={() => setSelectedPartId(undefined)}
     >
       <div 
-        className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50 rounded-xl shadow-lg overflow-hidden w-full max-w-5xl max-h-[85vh] transition-all duration-300"
+        className={`${
+          darkMode 
+            ? "bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border border-gray-600/50" 
+            : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50"
+        } rounded-xl shadow-lg overflow-hidden w-full max-w-5xl max-h-[85vh] transition-all duration-300`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-white/60 backdrop-blur-sm p-4 border-b border-blue-200/30">
+        <div className={`${
+          darkMode 
+            ? "bg-gray-800/80 backdrop-blur-sm border-b border-gray-600/30" 
+            : "bg-white/60 backdrop-blur-sm border-b border-blue-200/30"
+        } p-4`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className={`w-12 h-12 ${
+                darkMode 
+                  ? "bg-gray-700 border border-gray-600" 
+                  : "bg-white border border-gray-200"
+              } rounded-lg shadow-sm overflow-hidden`}>
                 {data.image ? (
                   <Image
                     src={data.image as string}
                     alt="Part"
-                    width={40}
-                    height={40}
+                    width={48}
+                    height={48}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                    <SquareUserRound size={20} className="text-gray-400" />
+                  <div className={`w-full h-full ${
+                    darkMode ? "bg-gray-600" : "bg-gray-100"
+                  } flex items-center justify-center`}>
+                    <SquareUserRound size={24} className={darkMode ? "text-gray-300" : "text-gray-400"} />
                   </div>
                 )}
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-black">{(data.name as string) || (data.label as string) || "Untitled"}</h2>
-                <p className="text-gray-600 text-xs">
-                  {(data.customPartType as string) || (data.partType as string) || "Custom"} Part
-                </p>
+              <div className="flex-1">
+                <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-black"}`}>
+                  {(data.name as string) || (data.label as string) || "Untitled"}
+                </h2>
+                {editingPartType ? (
+                  <select
+                    value={tempPartType}
+                    onChange={(e) => setTempPartType(e.target.value)}
+                    onBlur={savePartType}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") savePartType();
+                      if (e.key === "Escape") {
+                        setEditingPartType(false);
+                        setTempPartType("");
+                      }
+                    }}
+                    className={`text-sm mb-2 bg-transparent border-b ${
+                      darkMode 
+                        ? "border-gray-500 focus:border-blue-400 text-white" 
+                        : "border-gray-300 focus:border-blue-500 text-gray-900"
+                    } focus:outline-none min-w-[100px]`}
+                    autoFocus
+                  >
+                    <option value="exile">Exile</option>
+                    <option value="manager">Manager</option>
+                    <option value="protector">Protector</option>
+                    <option value="firefighter">Firefighter</option>
+                  </select>
+                ) : (
+                  <p 
+                    className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm mb-2 cursor-pointer transition-colors ${
+                      darkMode 
+                        ? "hover:text-blue-400" 
+                        : "hover:text-blue-600"
+                    }`}
+                    onClick={() => {
+                      setTempPartType((data.customPartType as string) || (data.partType as string) || "manager");
+                      setEditingPartType(true);
+                    }}
+                  >
+                    {(data.customPartType as string) || (data.partType as string) || "Manager"} Part
+                  </p>
+                )}
+                
+                {/* Stats Row */}
+                <div className={`flex items-center gap-4 text-xs ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                  {/* Age */}
+                  <div className="flex items-center gap-1">
+                    <Calendar size={12} />
+                    {editingAge ? (
+                      <input
+                        type="text"
+                        value={tempAge}
+                        onChange={(e) => setTempAge(e.target.value)}
+                        onBlur={saveAge}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveAge();
+                          if (e.key === "Escape") {
+                            setEditingAge(false);
+                            setTempAge("");
+                          }
+                        }}
+                        className={`text-xs bg-transparent border-b ${
+                          darkMode 
+                            ? "border-gray-500 focus:border-blue-400 text-white" 
+                            : "border-gray-300 focus:border-blue-500"
+                        } focus:outline-none min-w-[60px]`}
+                        placeholder={(data.age as string) || "Unknown"}
+                        autoFocus
+                      />
+                    ) : (
+                      <span 
+                        className={`cursor-pointer transition-colors ${
+                          darkMode 
+                            ? "hover:text-blue-400" 
+                            : "hover:text-blue-600"
+                        }`}
+                        onClick={() => {
+                          setTempAge((data.age as string) || "");
+                          setEditingAge(true);
+                        }}
+                      >
+                        {(data.age as string) || "Unknown"}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Gender */}
+                  <div className="flex items-center gap-1">
+                    <User size={12} />
+                    {editingGender ? (
+                      <input
+                        type="text"
+                        value={tempGender}
+                        onChange={(e) => setTempGender(e.target.value)}
+                        onBlur={saveGender}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveGender();
+                          if (e.key === "Escape") {
+                            setEditingGender(false);
+                            setTempGender("");
+                          }
+                        }}
+                        className={`text-xs bg-transparent border-b ${
+                          darkMode 
+                            ? "border-gray-500 focus:border-blue-400 text-white" 
+                            : "border-gray-300 focus:border-blue-500"
+                        } focus:outline-none min-w-[60px]`}
+                        placeholder={(data.gender as string) || "Unknown"}
+                        autoFocus
+                      />
+                    ) : (
+                      <span 
+                        className={`cursor-pointer transition-colors ${
+                          darkMode 
+                            ? "hover:text-blue-400" 
+                            : "hover:text-blue-600"
+                        }`}
+                        onClick={() => {
+                          setTempGender((data.gender as string) || "");
+                          setEditingGender(true);
+                        }}
+                      >
+                        {(data.gender as string) || "Unknown"}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Journal Button */}
+                  <button
+                    onClick={() => {
+                      // Add journal functionality here
+                      console.log("Open journal for part:", data.name);
+                    }}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors ${
+                      darkMode 
+                        ? "bg-blue-900/50 hover:bg-blue-800/50" 
+                        : "bg-blue-100 hover:bg-blue-200"
+                    }`}
+                  >
+                    <BookOpen size={12} />
+                    <span>Journal</span>
+                  </button>
+                </div>
               </div>
             </div>
             <button
               onClick={() => setSelectedPartId(undefined)}
-              className="p-2 hover:bg-white/80 rounded-lg transition-colors bg-white/60"
+              className={`p-2 rounded-lg transition-colors ${
+                darkMode 
+                  ? "bg-gray-700/60 hover:bg-gray-600/80" 
+                  : "bg-white/60 hover:bg-white/80"
+              }`}
             >
-              <X size={18} className="text-gray-600" />
+              <X size={18} className={darkMode ? "text-gray-300" : "text-gray-600"} />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-4 overflow-y-auto max-h-[calc(85vh-100px)] bg-white/80 backdrop-blur-sm">
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className={`p-6 overflow-y-auto max-h-[calc(85vh-100px)] backdrop-blur-sm ${
+          darkMode 
+            ? "bg-gray-800/80" 
+            : "bg-white/80"
+        }`}>
+          
+          {/* Observations Section - Top */}
+          <div className="mb-8">
+            <h3 className={`text-lg font-bold flex items-center gap-2 mb-4 ${
+              darkMode ? "text-white" : "text-black"
+            }`}>
+              <Eye className="w-5 h-5 text-indigo-600" />
+              Observations
+            </h3>
             
-            {/* Left Column - Observations */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-black flex items-center gap-2 mb-3">
-                <Eye className="w-4 h-4" />
-                Observations
-              </h3>
-              
+            {/* Flexible Layout for Observations and Fears */}
+            <div className="columns-1 lg:columns-2 gap-4 space-y-4">
               {ImpressionList.map((impression) => {
                 const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
                 
                 return (
-                  <div key={impression} className="bg-white/40 rounded-lg p-3 border border-blue-200/50">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={impression} className={`break-inside-avoid rounded-lg p-4 border mb-4 ${
+                    darkMode 
+                      ? "bg-gray-700/40 border-gray-600/50" 
+                      : "bg-white/40 border-blue-200/50"
+                  }`}>
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <h4 
                           className="font-semibold capitalize text-sm"
@@ -161,8 +409,15 @@ const PartDetailPanel = () => {
                           {impression}
                         </h4>
                         <button
-                          onClick={() => setAddingImpressionType(impression)}
-                          className="p-1 rounded-full hover:bg-white/60 transition-colors"
+                          onClick={() => {
+                            setAddingImpressionType(impression);
+                            setCurrentImpressionType(impression);
+                          }}
+                          className={`p-1 rounded-full transition-colors ${
+                            darkMode 
+                              ? "hover:bg-gray-600/60" 
+                              : "hover:bg-white/60"
+                          }`}
                           style={{ color: NodeBackgroundColors[impression] }}
                         >
                           <Plus size={14} />
@@ -186,15 +441,30 @@ const PartDetailPanel = () => {
                         return (
                           <div 
                             key={index} 
-                            className="rounded border border-blue-200/30 p-2 flex items-center justify-between"
+                            className={`group rounded border p-2 flex items-center justify-between ${
+                              darkMode 
+                                ? "border-gray-600/30" 
+                                : "border-blue-200/30"
+                            }`}
                             style={{
                               backgroundColor: `${bgColor}20`,
-                              color: bgColor,
+                              color: `${bgColor}FF`, // Much darker version for better readability
                             }}
                           >
                             <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
-                            <button className="text-red-500 hover:text-red-700 p-1">
-                              <Trash2 size={12} />
+                            <button 
+                              onClick={() => handleRemoveImpression(impression, imp.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
+                              style={{
+                                color: getXButtonColor(impression),
+                                height: "28px",
+                                width: "24px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                              }}
+                            >
+                              <X size={20} />
                             </button>
                           </div>
                         );
@@ -204,165 +474,249 @@ const PartDetailPanel = () => {
                   </div>
                 );
               })}
+            
             </div>
+          </div>
 
-            {/* Right Column - Needs, Fears, Insights, Relationships */}
-            <div className="space-y-3">
+          {/* Details Section - Bottom */}
+          <div>
+            <h3 className={`text-lg font-bold flex items-center gap-2 mb-4 ${
+              darkMode ? "text-white" : "text-black"
+            }`}>
+              <SquareUserRound className="w-5 h-5 text-blue-600" />
+              Details
+            </h3>
+            
+            {/* Two Column Grid for Details */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               
-              {/* Needs */}
-              <div className="bg-white/40 rounded-lg p-3 border border-blue-200/50">
-                <h4 className="font-semibold text-black mb-2 flex items-center gap-2 text-sm">
-                  <Heart className="w-4 h-4" />
-                  Needs
-                </h4>
-                <div className="space-y-1 mb-2">
-                  {((data.needs as string[]) || []).map((need: string, index: number) => (
-                    <div key={index} className="bg-white/40 rounded border border-blue-200/30 p-2 flex items-center justify-between">
-                      <span className="text-xs text-black">{need}</span>
-                      <button 
-                        onClick={() => removeListItem("needs", index)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                      >
-                        <Trash2 size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    placeholder="Add need..."
-                    className="flex-1 px-2 py-1 border border-blue-200/50 rounded text-xs bg-white/60 backdrop-blur-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        addListItem("needs", e.currentTarget.value);
-                        e.currentTarget.value = "";
-                      }
-                    }}
-                  />
-                  <button 
-                    onClick={(e) => {
-                      const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                      addListItem("needs", input.value);
-                      input.value = "";
-                    }}
-                    className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                  >
-                    <Plus size={10} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Fears */}
-              <div className="bg-white/40 rounded-lg p-3 border border-blue-200/50">
-                <h4 className="font-semibold text-black mb-2 flex items-center gap-2 text-sm">
-                  <Shield className="w-4 h-4" />
-                  Fears
-                </h4>
-                <div className="space-y-1 mb-2">
-                  {((data.fears as string[]) || []).map((fear: string, index: number) => (
-                    <div key={index} className="bg-white/40 rounded border border-blue-200/30 p-2 flex items-center justify-between">
-                      <span className="text-xs text-black">{fear}</span>
-                      <button 
-                        onClick={() => removeListItem("fears", index)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                      >
-                        <Trash2 size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    placeholder="Add fear..."
-                    className="flex-1 px-2 py-1 border border-blue-200/50 rounded text-xs bg-white/60 backdrop-blur-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        addListItem("fears", e.currentTarget.value);
-                        e.currentTarget.value = "";
-                      }
-                    }}
-                  />
-                  <button 
-                    onClick={(e) => {
-                      const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                      addListItem("fears", input.value);
-                      input.value = "";
-                    }}
-                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    <Plus size={10} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Insights */}
-              <div className="bg-white/40 rounded-lg p-3 border border-blue-200/50">
-                <h4 className="font-semibold text-black mb-2 flex items-center gap-2 text-sm">
-                  <Brain className="w-4 h-4" />
-                  Insights
-                </h4>
-                <div className="space-y-1 mb-2">
-                  {((data.insights as string[]) || []).map((insight: string, index: number) => (
-                    <div key={index} className="bg-white/40 rounded border border-blue-200/30 p-2 flex items-center justify-between">
-                      <span className="text-xs text-black">{insight}</span>
-                      <button 
-                        onClick={() => removeListItem("insights", index)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                      >
-                        <Trash2 size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    placeholder="Add insight..."
-                    className="flex-1 px-2 py-1 border border-blue-200/50 rounded text-xs bg-white/60 backdrop-blur-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        addListItem("insights", e.currentTarget.value);
-                        e.currentTarget.value = "";
-                      }
-                    }}
-                  />
-                  <button 
-                    onClick={(e) => {
-                      const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                      addListItem("insights", input.value);
-                      input.value = "";
-                    }}
-                    className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                  >
-                    <Plus size={10} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Relationships */}
-              <div className="bg-white/40 rounded-lg p-3 border border-blue-200/50">
-                <h4 className="font-semibold text-black mb-2 flex items-center gap-2 text-sm">
-                  <Users className="w-4 h-4" />
-                  Relationships
-                </h4>
-                <div className="space-y-1">
-                  {relationships.length > 0 ? (
-                    relationships.map((rel) => (
-                      <div
-                        key={rel.id}
-                        className="px-2 py-1 rounded border border-blue-200/30 bg-white/40"
-                      >
-                        <div className="font-medium text-black text-xs">{rel.nodeLabel}</div>
-                        <div className="text-xs opacity-75 capitalize text-gray-600">{rel.nodeType}</div>
+              {/* Left Column - Needs, Fears, Insights */}
+              <div className="space-y-4">
+                {/* Needs */}
+                <div className={`rounded-lg p-4 border ${
+                  darkMode 
+                    ? "bg-gray-700/40 border-gray-600/50" 
+                    : "bg-white/40 border-blue-200/50"
+                }`}>
+                  <h4 className={`font-semibold mb-3 flex items-center gap-2 text-sm ${
+                    darkMode ? "text-white" : "text-black"
+                  }`}>
+                    <Heart className="w-4 h-4 text-red-500" />
+                    Needs
+                  </h4>
+                  <div className="space-y-1 mb-2">
+                    {((data.needs as string[]) || []).map((need: string, index: number) => (
+                      <div key={index} className={`group rounded border p-2 flex items-center justify-between ${
+                        darkMode 
+                          ? "bg-gray-600/40 border-gray-500/30" 
+                          : "bg-white/40 border-blue-200/30"
+                      }`}>
+                        <span className={`text-xs ${darkMode ? "text-white" : "text-black"}`}>{need}</span>
+                        <button 
+                          onClick={() => removeListItem("needs", index)}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
+                          style={{
+                            color: "#ed9f9f",
+                            height: "28px",
+                            width: "24px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <X size={20} />
+                        </button>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-gray-500 italic bg-white/40 rounded px-2 py-1 border border-blue-200/30 text-xs">
-                      No relationships yet
-                    </div>
-                  )}
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      placeholder="Add need..."
+                      className="flex-1 text-xs px-2 py-1 bg-white/60 backdrop-blur-sm border border-blue-200/50 rounded focus:outline-none focus:ring-1 focus:ring-blue-300"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          addListItem("needs", e.currentTarget.value);
+                          e.currentTarget.value = "";
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const input = document.querySelector('input[placeholder="Add need..."]') as HTMLInputElement;
+                        if (input?.value) {
+                          addListItem("needs", input.value);
+                          input.value = "";
+                        }
+                      }}
+                      className="p-1 bg-blue-100 hover:bg-blue-200 rounded transition-colors"
+                    >
+                      <Plus size={10} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Fears */}
+                <div className="bg-white/40 rounded-lg p-4 border border-blue-200/50">
+                  <h4 className="font-semibold text-black mb-3 flex items-center gap-2 text-sm">
+                    <Shield className="w-4 h-4 text-orange-500" />
+                    Fears
+                  </h4>
+                  <div className="space-y-1 mb-2">
+                    {((data.fears as string[]) || []).map((fear: string, index: number) => (
+                      <div key={index} className="group bg-white/40 rounded border border-blue-200/30 p-2 flex items-center justify-between">
+                        <span className="text-xs text-black">{fear}</span>
+                        <button 
+                          onClick={() => removeListItem("fears", index)}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
+                          style={{
+                            color: "#ed9f9f",
+                            height: "28px",
+                            width: "24px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      placeholder="Add fear..."
+                      className="flex-1 text-xs px-2 py-1 bg-white/60 backdrop-blur-sm border border-blue-200/50 rounded focus:outline-none focus:ring-1 focus:ring-blue-300"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          addListItem("fears", e.currentTarget.value);
+                          e.currentTarget.value = "";
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const input = document.querySelector('input[placeholder="Add fear..."]') as HTMLInputElement;
+                        if (input?.value) {
+                          addListItem("fears", input.value);
+                          input.value = "";
+                        }
+                      }}
+                      className="p-1 bg-blue-100 hover:bg-blue-200 rounded transition-colors"
+                    >
+                      <Plus size={10} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Insights */}
+                <div className="bg-white/40 rounded-lg p-4 border border-blue-200/50">
+                  <h4 className="font-semibold text-black mb-3 flex items-center gap-2 text-sm">
+                    <Brain className="w-4 h-4 text-purple-500" />
+                    Insights
+                  </h4>
+                  <div className="space-y-1 mb-2">
+                    {((data.insights as string[]) || []).map((insight: string, index: number) => (
+                      <div key={index} className="group bg-white/40 rounded border border-blue-200/30 p-2 flex items-center justify-between">
+                        <span className="text-xs text-black">{insight}</span>
+                        <button 
+                          onClick={() => removeListItem("insights", index)}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
+                          style={{
+                            color: "#ed9f9f",
+                            height: "28px",
+                            width: "24px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      placeholder="Add insight..."
+                      className="flex-1 text-xs px-2 py-1 bg-white/60 backdrop-blur-sm border border-blue-200/50 rounded focus:outline-none focus:ring-1 focus:ring-blue-300"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          addListItem("insights", e.currentTarget.value);
+                          e.currentTarget.value = "";
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const input = document.querySelector('input[placeholder="Add insight..."]') as HTMLInputElement;
+                        if (input?.value) {
+                          addListItem("insights", input.value);
+                          input.value = "";
+                        }
+                      }}
+                      className="p-1 bg-blue-100 hover:bg-blue-200 rounded transition-colors"
+                    >
+                      <Plus size={10} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Relationships */}
+              <div className="space-y-4">
+                <div className="bg-white/40 rounded-lg p-4 border border-blue-200/50">
+                  <h4 className="font-semibold text-black mb-3 flex items-center gap-2 text-sm">
+                    <Users className="w-4 h-4 text-green-500" />
+                    Relationships
+                  </h4>
+                  <div className="space-y-1">
+                    {relationships.length > 0 ? (
+                      relationships.map((rel) => {
+                        console.log(rel)
+                        const isConflict = rel.relationshipType === "conflict";
+                        const isAlly = rel.relationshipType === "ally";
+                        
+                        return (
+                          <div
+                            key={rel.id}
+                            className={`px-3 py-2 rounded-lg border-2 ${
+                              isConflict 
+                                ? "border-purple-400 bg-purple-100 shadow-sm" 
+                                : isAlly 
+                                  ? "border-sky-400 bg-sky-100 shadow-sm"
+                                  : "border-blue-200/30 bg-white/40"
+                            }`}
+                          >
+                            <div className={`font-semibold text-sm ${
+                              isConflict 
+                                ? "text-purple-900" 
+                                : isAlly 
+                                  ? "text-sky-900"
+                                  : "text-black"
+                            }`}>
+                              {rel.nodeLabel}
+                            </div>
+                            <div className={`text-xs font-medium capitalize ${
+                              isConflict 
+                                ? "text-purple-700" 
+                                : isAlly 
+                                  ? "text-sky-700"
+                                  : "text-gray-600"
+                            }`}>
+                              {isConflict ? "⚔️ Conflict" : isAlly ? "🤝 Ally" : rel.nodeType}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-gray-500 italic bg-white/40 rounded px-2 py-1 border border-blue-200/30 text-xs">
+                        No relationships yet
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -372,44 +726,62 @@ const PartDetailPanel = () => {
         
         {/* Impression Input Modal */}
         {addingImpressionType && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-            <div className="bg-white rounded-lg p-4 w-full max-w-md mx-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-black">
-                  Add {addingImpressionType} to {(data.name as string) || (data.label as string) || "Untitled"}
-                </h3>
+          <div 
+            className="absolute inset-0 bg-black/40 flex items-center justify-center z-10"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setAddingImpressionType(null);
+              }
+            }}
+          >
+            <div className="bg-white rounded-2xl p-6 w-full max-w-3xl mx-4 shadow-2xl border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: NodeBackgroundColors[currentImpressionType as keyof typeof NodeBackgroundColors] }}
+                  ></div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Add {currentImpressionType} to {(data.name as string) || (data.label as string) || "Untitled"}
+                  </h3>
+                </div>
                 <button
                   onClick={() => setAddingImpressionType(null)}
-                  className="p-1 hover:bg-gray-100 rounded"
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <X size={18} />
+                  <X size={20} className="text-gray-500" />
                 </button>
               </div>
-              <ImpressionInput 
-                onAddImpression={(impressionData) => {
-                  // Add impression directly to the part
-                  const currentImpressions = (data[ImpressionTextType[addingImpressionType as keyof typeof ImpressionTextType]] as ImpressionNode[]) || [];
-                  const newImpression: ImpressionNode = {
-                    id: impressionData.id,
-                    type: impressionData.type,
-                    data: {
-                      label: impressionData.label,
-                      addedAt: Date.now()
-                    },
-                    position: { x: 0, y: 0 }
-                  };
-                  
-                  updateNode(selectedPartId!, {
-                    data: {
-                      ...data,
-                      [ImpressionTextType[addingImpressionType as keyof typeof ImpressionTextType]]: [...currentImpressions, newImpression],
-                    },
-                  });
-                  
-                  setAddingImpressionType(null);
-                }}
-                defaultType={addingImpressionType as any}
-              />
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <ImpressionInput 
+                  onAddImpression={(impressionData) => {
+                    // Add impression directly to the part using the actual selected type
+                    const impressionTypeKey = ImpressionTextType[impressionData.type as keyof typeof ImpressionTextType];
+                    const currentImpressions = (data[impressionTypeKey] as ImpressionNode[]) || [];
+                    const newImpression: ImpressionNode = {
+                      id: impressionData.id,
+                      type: impressionData.type,
+                      data: {
+                        label: impressionData.label,
+                        addedAt: Date.now()
+                      },
+                      position: { x: 0, y: 0 }
+                    };
+                    
+                    updateNode(selectedPartId!, {
+                      data: {
+                        ...data,
+                        [impressionTypeKey]: [...currentImpressions, newImpression],
+                      },
+                    });
+                    
+                    // Don't close the modal, just clear the input
+                    // setAddingImpressionType(null);
+                  }}
+                  onTypeChange={(type) => setCurrentImpressionType(type)}
+                  defaultType={addingImpressionType as ImpressionType}
+                />
+              </div>
             </div>
           </div>
         )}

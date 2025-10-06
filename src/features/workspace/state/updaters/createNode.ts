@@ -91,6 +91,25 @@ export default function createNodeFN({
         data: {
           type: "conflictData",
           label,
+          relationshipType: "conflict" as const,
+          connectedNodes: [],
+        } as ConflictNodeData,
+      } as ConflictNode;
+
+      break;
+
+    case "ally":
+      newNode = {
+        ...baseNode,
+        type: "ally",
+        style: {
+          ...baseNode.style,
+          textAlign: "right",
+        },
+        data: {
+          type: "conflictData",
+          label,
+          relationshipType: "ally" as const,
           connectedNodes: [],
         } as ConflictNodeData,
       } as ConflictNode;

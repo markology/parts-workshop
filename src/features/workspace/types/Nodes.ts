@@ -30,8 +30,11 @@ export interface PartNodeData extends BaseNodeData {
   customImpressionBuckets: { [key: string]: ImpressionNode[] };
 }
 
+export type RelationshipType = "conflict" | "ally";
+
 export interface ConflictNodeData extends BaseNodeData {
   type: "conflictData";
+  relationshipType: RelationshipType;
   connectedNodes: ConnectedNodeType[];
 }
 
@@ -58,4 +61,4 @@ export type ConflictNode = Node<ConflictNodeData> & {
 
 export type WorkshopNode = ImpressionNode | PartNode | ConflictNode;
 
-export type NodeType = "impression" | "part" | "conflict";
+export type NodeType = "impression" | "part" | "conflict" | "ally";

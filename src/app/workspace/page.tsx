@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import WorkspaceClientEntry from "./WorkspaceClientEntry"; // ⬅️ This is the client-only wrapper
+import WorkspaceNavigation from "./WorkspaceNavigation";
 import { authOptions } from "@/lib/authOptions";
 
 export default async function WorkspacePage() {
@@ -10,5 +10,5 @@ export default async function WorkspacePage() {
     redirect("/login");
   }
 
-  return <WorkspaceClientEntry />;
+  return <WorkspaceNavigation />;
 }
