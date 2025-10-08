@@ -168,7 +168,7 @@ export default function JournalAnalysisPage() {
                           Continue Conversation
                         </button>
                         <button
-                          onClick={() => router.push("/workspace/map")}
+                          onClick={() => router.push("/workspace/maps")}
                           className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors text-sm"
                         >
                           Create Map

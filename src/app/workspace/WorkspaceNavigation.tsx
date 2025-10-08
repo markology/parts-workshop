@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle, Heart, Map, BookOpen, ArrowLeft } from "lucide-react";
+import { MessageCircle, Heart, Map, BookOpen, Palette, ArrowLeft, Box } from "lucide-react";
 
 export default function WorkspaceNavigation() {
   const router = useRouter();
@@ -26,12 +26,28 @@ export default function WorkspaceNavigation() {
       route: "/workspace/affirmations"
     },
     {
-      id: "map",
-      title: "Parts Map",
+      id: "body-mapping",
+      title: "Body Mapping",
+      description: "Create visual avatars for your parts by painting different colors on a body outline",
+      icon: Palette,
+      color: "from-purple-500 to-violet-500",
+      route: "/workspace/body-mapping"
+    },
+    {
+      id: "body-3d-mapping",
+      title: "3D Body Mapping",
+      description: "Draw on a rotatable 3D body to create immersive part avatars with depth and perspective",
+      icon: Box,
+      color: "from-indigo-500 to-purple-500",
+      route: "/workspace/body-3d-mapping"
+    },
+    {
+      id: "maps",
+      title: "My Maps",
       description: "Open an existing map or create a new one to visualize and explore your internal parts",
       icon: Map,
       color: "from-green-500 to-emerald-500",
-      route: "/workspace/map"
+      route: "/workspace/maps"
     },
     {
       id: "journal",
@@ -57,7 +73,7 @@ export default function WorkspaceNavigation() {
         </div>
 
         {/* Path Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-8xl mx-auto">
           {paths.map((path) => {
             const IconComponent = path.icon;
             return (
