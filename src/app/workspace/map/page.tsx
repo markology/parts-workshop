@@ -1,12 +1,15 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-// Dynamic import of the actual workspace shell
-const WorkspaceShell = dynamic(() => import("../WorkspaceShell"), {
-  ssr: false,
-});
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function MapPage() {
-  return <WorkspaceShell />;
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to maps selection page since /map should not exist in the new multi-map system
+    router.push("/workspace/maps");
+  }, [router]);
+
+  return <div>Redirecting to maps...</div>;
 }

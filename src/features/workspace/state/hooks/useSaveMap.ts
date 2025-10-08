@@ -7,40 +7,16 @@ export const useSaveMap = () => {
   return useMutation({
     mutationFn: async () => {
       const { mapId, nodes, edges, sidebarImpressions } =
-        useWorkingStore.getState(); // ✅ pull latest state snapshot\
-      // console.log({ mapId, nodes, edges, sidebarImpressions });
-      // console.log(JSON.stringify({ mapId, nodes, edges, sidebarImpressions }));
-      // console.log(
-      //   "🧠 Map payload size (MB):",
-      //   (
-      //     new Blob([
-      //       JSON.stringify({ mapId, nodes, edges, sidebarImpressions }),
-      //     ]).size /
-      //     1024 /
-      //     1024
-      //   ).toFixed(2)
-      // );
-      // console.log(
-      //   "🔍 Nodes size (MB):",
-      //   new Blob([JSON.stringify(nodes)]).size / 1024 / 1024
-      // );
-      // console.log(
-      //   "🔍 Nodes lenght and description",
-      //   nodes.length,
-      //   JSON.stringify(nodes[2])
-      // );
-      // console.log(
-      //   "🧩 Edges size (MB):",
-      //   new Blob([JSON.stringify(edges)]).size / 1024 / 1024
-      // );
-      // console.log(
-      //   "📎 Sidebar size (MB):",
-      //   new Blob([JSON.stringify(sidebarImpressions)]).size / 1024 / 1024
-      // );
-      // console.log(
-      //   "📎 Journal Entries size (MB):",
-      //   new Blob([JSON.stringify(journalEntries)]).size / 1024 / 1024
-      // );
+        useWorkingStore.getState(); // ✅ pull latest state snapshot
+      
+      console.log("💾 Saving map data:", {
+        mapId,
+        nodesCount: nodes?.length || 0,
+        edgesCount: edges?.length || 0,
+        nodes: nodes,
+        edges: edges
+      });
+      
       const res = await fetch(`/api/maps/${mapId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

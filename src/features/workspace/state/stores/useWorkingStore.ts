@@ -33,6 +33,11 @@ export const createEmptyImpressionGroups = (): Record<
   ImpressionType,
   Record<string, SidebarImpression>
 > => {
+  if (!ImpressionList || !Array.isArray(ImpressionList)) {
+    console.error("ImpressionList is not defined or not an array:", ImpressionList);
+    return {} as Record<ImpressionType, Record<string, SidebarImpression>>;
+  }
+  
   return Object.fromEntries(ImpressionList.map((type) => [type, {}])) as Record<
     ImpressionType,
     Record<string, SidebarImpression>
@@ -82,10 +87,11 @@ export const useWorkingStore = create<WorkingState>()(
         set({ journalEntries: rest });
       },
       hydrated: false,
-    }),
-    {
-      name: "working-map",
-      storage: createIndexedDbStorage<WorkingState>(), // <- pass generic here!
-    }
+    })
+    // Temporarily disable persistence to prevent cross-map contamination
+    // {
+    //   name: "working-map",
+    //   storage: createIndexedDbStorage<WorkingState>(),
+    // }
   )
 );

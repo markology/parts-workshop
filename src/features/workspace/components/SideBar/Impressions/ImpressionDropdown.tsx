@@ -21,7 +21,7 @@ const ImpressionDropdown = ({
   ) => void;
 }) => {
   const [open, toggleOpen] = useState(true);
-  const isImpressionsEmpty = !Object.keys(filteredImpressions).length;
+  const isImpressionsEmpty = !filteredImpressions || !Object.keys(filteredImpressions).length;
   const emptyOpacityStyle = isImpressionsEmpty ? 0.4 : 1;
   return (
     <div className="mb-2">
@@ -62,6 +62,7 @@ const ImpressionDropdown = ({
       <hr className="pb-2 text-black" />
       <div className="flex flex-col gap-[6px]">
         {open &&
+          filteredImpressions &&
           Object.values(filteredImpressions).map((item) => (
             <div
               key={item.id}

@@ -21,8 +21,8 @@ const Impressions = () => {
     );
 
     // set ActiveSideBarNode
-    const activeSideBarNode = impressions[type][draggableId];
-    setActiveSidebarNode(activeSideBarNode.id || null, type);
+    const activeSideBarNode = impressions[type]?.[draggableId];
+    setActiveSidebarNode(activeSideBarNode?.id || null, type);
     event.dataTransfer.effectAllowed = "move";
   };
 
@@ -36,7 +36,7 @@ const Impressions = () => {
           <ImpressionDropdown
             key={type}
             type={type}
-            filteredImpressions={impressions[type]}
+            filteredImpressions={impressions[type] || {}}
             onDragStart={onDragStart}
           />
         ))}

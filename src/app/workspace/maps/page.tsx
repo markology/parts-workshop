@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Map, Calendar, Trash2, Edit3, Play } from "lucide-react";
+import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 
 interface MapData {
   id: string;
@@ -14,57 +15,90 @@ interface MapData {
   thumbnail?: string;
 }
 
-// Mock data - in real app, this would come from your database
-const MOCK_MAPS: MapData[] = [
-  {
-    id: "1",
-    name: "My First Parts Map",
-    description: "Initial exploration of my internal parts",
-    createdAt: new Date("2024-01-15"),
-    lastModified: new Date("2024-01-20"),
-    partCount: 5
-  },
-  {
-    id: "2", 
-    name: "Work Stress Parts",
-    description: "Parts that emerge during work situations",
-    createdAt: new Date("2024-01-10"),
-    lastModified: new Date("2024-01-18"),
-    partCount: 3
-  },
-  {
-    id: "3",
-    name: "Relationship Dynamics",
-    description: "Parts that show up in my relationships",
-    createdAt: new Date("2024-01-05"),
-    lastModified: new Date("2024-01-12"),
-    partCount: 7
-  }
-];
 
 export default function MapSelectionPage() {
   const router = useRouter();
-  const [maps, setMaps] = useState<MapData[]>(MOCK_MAPS);
+  const [maps, setMaps] = useState<MapData[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newMapName, setNewMapName] = useState("");
   const [newMapDescription, setNewMapDescription] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCreateMap = () => {
-    if (!newMapName.trim()) return;
-
-    const newMap: MapData = {
-      id: Date.now().toString(),
-      name: newMapName.trim(),
-      description: newMapDescription.trim() || undefined,
-      createdAt: new Date(),
-      lastModified: new Date(),
-      partCount: 0
+  // Load maps from API
+  useEffect(() => {
+    const loadMaps = async () => {
+      try {
+        const response = await fetch("/api/maps");
+        if (!response.ok) {
+          throw new Error("Failed to fetch maps");
+        }
+        const apiMaps = await response.json();
+        
+        // Convert API maps to MapData format
+        const formattedMaps: MapData[] = apiMaps.map((map: any) => ({
+          id: map.id,
+          name: map.title,
+          description: map.description || undefined,
+          createdAt: new Date(map.createdAt),
+          lastModified: new Date(map.updatedAt),
+          partCount: map.nodes?.length || 0
+        }));
+        
+        setMaps(formattedMaps);
+      } catch (err) {
+        console.error("Failed to load maps:", err);
+        setError("Failed to load maps");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setMaps(prev => [newMap, ...prev]);
-    setNewMapName("");
-    setNewMapDescription("");
-    setShowCreateForm(false);
+    loadMaps();
+  }, []);
+
+  const handleCreateMap = async () => {
+    if (!newMapName.trim()) return;
+
+    try {
+      const response = await fetch("/api/maps", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: newMapName.trim(),
+          description: newMapDescription.trim() || undefined,
+          nodes: [],
+          edges: [],
+          sidebarImpressions: createEmptyImpressionGroups()
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create map");
+      }
+
+      const newMap = await response.json();
+      
+      // Add the new map to the list
+      const formattedMap: MapData = {
+        id: newMap.id,
+        name: newMap.title,
+        description: newMap.description || undefined,
+        createdAt: new Date(newMap.createdAt),
+        lastModified: new Date(newMap.updatedAt),
+        partCount: 0
+      };
+      
+      setMaps(prev => [formattedMap, ...prev]);
+      setNewMapName("");
+      setNewMapDescription("");
+      setShowCreateForm(false);
+    } catch (err) {
+      console.error("Failed to create map:", err);
+      setError("Failed to create map");
+    }
   };
 
   const handleOpenMap = (mapId: string) => {
@@ -119,8 +153,28 @@ export default function MapSelectionPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="text-gray-400">Loading maps...</div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <div className="text-red-400 mb-4">{error}</div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Create Map Form */}
-        {showCreateForm && (
+        {!loading && !error && showCreateForm && (
           <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700/50 mb-8">
             <h2 className="text-xl font-semibold mb-4">Create New Map</h2>
             <div className="space-y-4">
@@ -164,7 +218,9 @@ export default function MapSelectionPage() {
         )}
 
         {/* Maps Grid */}
-        {maps.length === 0 ? (
+        {!loading && !error && (
+          <>
+            {maps.length === 0 ? (
           <div className="text-center py-16">
             <div className="p-4 bg-gray-800/50 rounded-xl inline-block mb-4">
               <Map className="w-12 h-12 text-gray-400" />
@@ -247,6 +303,8 @@ export default function MapSelectionPage() {
               </div>
             ))}
           </div>
+        )}
+          </>
         )}
 
         {/* Quick Actions */}
