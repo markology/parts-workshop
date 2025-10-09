@@ -9,20 +9,23 @@ import detachImpressionFromPart from "@/features/workspace/state/updaters/detach
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
 import { PartNodeData } from "@/features/workspace/types/Nodes";
 import { Handle, Position } from "@xyflow/react";
-import { Pencil, PencilIcon, SquareUserRound, Trash2 } from "lucide-react";
+import { Pencil, PencilIcon, SquareUserRound, Trash2, Palette } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
+import Part3DMappingModal from "../../Part3DMapping/Part3DMappingModal";
 
 let index = 0;
 const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(data.label);
+  const [show3DMapping, setShow3DMapping] = useState(false);
   const {
     deleteEdges,
     deleteNode,
     removePartFromAllConflicts,
     updatePartName,
+    updateNode,
   } = useFlowNodesContext();
   const { setJournalTarget } = useJournalStore();
 
@@ -73,6 +76,20 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
     setIsEditingTitle(false);
   }, [title, data, updatePartName, partId, setIsEditing]);
 
+  const handleSave3DMapping = useCallback((imageData: string, paintPoints: any[]) => {
+    // Update the part node with the 3D mapping data
+    updateNode<PartNodeData>(partId, {
+      data: {
+        ...data,
+        image: imageData,
+        // Store paint points as a custom property for potential future use
+        scratchpad: data.scratchpad ? 
+          `${data.scratchpad}\n\n3D Mapping Data: ${JSON.stringify(paintPoints)}` : 
+          `3D Mapping Data: ${JSON.stringify(paintPoints)}`
+      }
+    });
+  }, [updateNode, partId, data]);
+
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSave();
@@ -92,39 +109,51 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
         className="node part-node bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 z-[-999] p-10 w-80 flex flex-col w-[1000px] h-auto text-left"
       >
         {/* Title */}
-        <div className="flex justify-between">
-          {isEditingTitle ? (
-            <input
-              className="part-name font-semibold mb-2 text-gray-800 text-4xl pb-4 flex gap-[20px]"
-              ref={inputRef}
-              onKeyDown={handleEnter}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              autoFocus
-            />
-          ) : (
-            <h3
-              onClick={() => {
-                setIsEditingTitle(true);
-                setIsEditing(true);
-              }} // TODO
-              className="part-name font-semibold mb-2 text-theme text-4xl pb-4 flex gap-[20px]"
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            {isEditingTitle ? (
+              <input
+                className="part-name font-semibold mb-2 text-gray-800 text-4xl pb-4 flex gap-[20px]"
+                ref={inputRef}
+                onKeyDown={handleEnter}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                autoFocus
+              />
+            ) : (
+              <h3
+                onClick={() => {
+                  setIsEditingTitle(true);
+                  setIsEditing(true);
+                }} // TODO
+                className="part-name font-semibold mb-2 text-theme text-4xl pb-4 flex gap-[20px]"
+              >
+                {data.label}
+                <button>
+                  <Pencil
+                    className="text-[#3d4f6a] cursor-default"
+                    strokeWidth={3}
+                    size={20}
+                  />
+                </button>
+              </h3>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {/* 3D Mapping Button */}
+            <button
+              onClick={() => setShow3DMapping(true)}
+              className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
+              title="3D Body Mapping"
             >
-              {data.label}
-              <button>
-                <Pencil
-                  className="text-[#3d4f6a] cursor-default"
-                  strokeWidth={3}
-                  size={20}
-                />
-              </button>
-            </h3>
-          )}
-          <SquareUserRound
-            className="text-[#a7c0dd]"
-            strokeWidth={2}
-            size={40}
-          />
+              <Palette className="w-5 h-5 text-purple-600" />
+            </button>
+            <SquareUserRound
+              className="text-[#a7c0dd]"
+              strokeWidth={2}
+              size={40}
+            />
+          </div>
         </div>
         <div
           className={
@@ -168,6 +197,16 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
         />
       </div>
       {showContextMenu && <RightClickMenu items={menuItems} />}
+      
+      {/* 3D Mapping Modal */}
+      <Part3DMappingModal
+        isOpen={show3DMapping}
+        onClose={() => setShow3DMapping(false)}
+        partName={data.label}
+        partId={partId}
+        currentImage={data.image}
+        onSave={handleSave3DMapping}
+      />
     </>
   );
 };

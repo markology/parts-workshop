@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Send, ArrowLeft, Bot, User } from "lucide-react";
 
 interface Message {
@@ -13,6 +13,9 @@ interface Message {
 
 export default function AIChatPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialMessage = searchParams?.get('message');
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -21,9 +24,10 @@ export default function AIChatPage() {
       timestamp: new Date()
     }
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialMessage || "");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,18 +37,19 @@ export default function AIChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSendMessage = async (messageText?: string) => {
+    const messageToSend = messageText || input.trim();
+    if (!messageToSend || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input.trim(),
+      content: messageToSend,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInput("");
+    if (!messageText) setInput("");
     setIsLoading(true);
 
     try {
@@ -87,6 +92,13 @@ export default function AIChatPage() {
       setIsLoading(false);
     }
   };
+
+  // Auto-send initial message if provided
+  useEffect(() => {
+    if (initialMessage && initialMessage.trim()) {
+      handleSendMessage(initialMessage);
+    }
+  }, [initialMessage]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -192,7 +204,7 @@ export default function AIChatPage() {
               style={{ minHeight: "48px", maxHeight: "120px" }}
             />
             <button
-              onClick={handleSendMessage}
+              onClick={() => handleSendMessage()}
               disabled={!input.trim() || isLoading}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-colors"
             >
