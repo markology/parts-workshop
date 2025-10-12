@@ -31,3 +31,34 @@ export async function runIfsTurn(params: {
     // map_patch: patch
   };
 }
+
+export async function runIfsTurnStream(params: {
+  userMessage: string;
+  mapContext?: any;
+}) {
+  const { userMessage, mapContext } = params;
+  
+  // Load instructions from markdown file (cached for performance)
+  const instructions = await getIfsInstructions();
+
+  console.log('CREATING STREAMING RESPONSE')
+  
+  // Use Chat Completions API for streaming instead of Responses API
+  const stream = await openai.chat.completions.create({
+    model: "gpt-4o-mini", // Use a streaming-capable model
+    messages: [
+      {
+        role: "system",
+        content: instructions
+      },
+      {
+        role: "user", 
+        content: userMessage
+      }
+    ],
+    max_tokens: 500,
+    stream: true
+  });
+
+  return stream;
+}

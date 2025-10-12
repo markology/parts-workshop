@@ -1,20 +1,36 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { runIfsTurn } from "@/lib/aiSession";
+import { runIfsTurnStream } from "@/lib/aiSession";
 // import { applyPatch } from "@/server/applyPatch"; // we'll stub first
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
+  
   try {
     const { userMessage, mapContext } = req.body;
-    // might want to pass map patch here
-    const { response_text } = await runIfsTurn({ userMessage, mapContext });
-
-    // 1) For first run, do NOT mutate DB yet:
-    // const neighborhood = await applyPatch({ patch: map_patch, userId: req.user.id, mapId: req.body.mapId });
-
-    res.status(200).json({ response_text /*, neighborhood*/ });
+    
+    // Set up streaming response
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    
+    // Create a readable stream
+    const stream = await runIfsTurnStream({ userMessage, mapContext });
+    
+    // Stream the response chunks
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        res.write(content);
+        // Force flush the response to prevent buffering
+        if (res.flush) {
+          res.flush();
+        }
+      }
+    }
+    
+    res.end();
   } catch (e: any) {
-    console.error(e);
+    console.error("API Error:", e);
     res.status(500).json({ error: e.message });
   }
 }

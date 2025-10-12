@@ -34,41 +34,44 @@ export default function AIChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const scrollToLatestUserMessage = () => {
-    console.log("🔍 scrollToLatestUserMessage called");
-    console.log("📝 Messages:", messages.length);
+  const scrollToUserMessage = (messageId: string) => {
+    const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
     
+    if (messageElement) {
+      const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
+      
+      if (scrollContainer) {
+        const messageOffsetTop = messageElement.offsetTop;
+        const headerHeight = 105;
+        const adjustedScrollTop = messageOffsetTop - headerHeight;
+        
+        // Smooth scroll animation
+        scrollContainer.scrollTo({
+          top: Math.max(0, adjustedScrollTop),
+          behavior: 'smooth'
+        });
+      }
+    }
+  };
+
+  const scrollToLatestUserMessage = () => {
     // Find the last user message
     const userMessages = messages.filter(msg => msg.role === "user");
-    console.log("👤 User messages:", userMessages.length);
     
     if (userMessages.length > 0) {
       const lastUserMessageId = userMessages[userMessages.length - 1].id;
-      console.log("🎯 Last user message ID:", lastUserMessageId);
       
       const messageElement = document.querySelector(`[data-message-id="${lastUserMessageId}"]`);
-      console.log("📍 Message element found:", !!messageElement);
       
       if (messageElement) {
-        // Get the scrollable container
         const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
-        console.log("📦 Scroll container found:", !!scrollContainer);
         
         if (scrollContainer) {
-          // Get the offset of the message from the top of its container
           const messageOffsetTop = messageElement.offsetTop;
-          
-          // Account for the header height + some extra padding (approximately 105px total)
           const headerHeight = 105;
           const adjustedScrollTop = messageOffsetTop - headerHeight;
           
-          console.log("📏 Message offset top:", messageOffsetTop);
-          console.log("📏 Adjusted scroll top:", adjustedScrollTop);
-          console.log("📏 Current scroll top:", scrollContainer.scrollTop);
-          
-          // Scroll to position the message at the top of the chat area (below header)
           scrollContainer.scrollTop = Math.max(0, adjustedScrollTop);
-          console.log("✅ Scrolled to:", scrollContainer.scrollTop);
         }
       }
     }
@@ -104,18 +107,9 @@ export default function AIChatPage() {
   };
 
   useEffect(() => {
-    // Only scroll to latest user message when a user sends a message
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === "user") {
-        // Small delay to ensure DOM is updated
-        setTimeout(() => {
-          scrollToLatestUserMessage();
-        }, 100);
-      }
-      // Don't scroll for assistant messages - let them appear naturally
-    }
-  }, [messages]);
+    // This useEffect is now mainly for debugging
+    // The actual scrolling happens in handleSendMessage
+  }, [messages, isLoading]);
 
   const handleSendMessage = useCallback(async (messageText?: string) => {
     const messageToSend = messageText || input.trim();
@@ -128,9 +122,27 @@ export default function AIChatPage() {
       timestamp: new Date()
     };
 
+    const assistantMessageId = (Date.now() + 1).toString();
+
     setMessages(prev => [...prev, userMessage]);
     if (!messageText) setInput("");
     setIsLoading(true);
+
+    // Scroll to user message immediately after DOM updates
+    setTimeout(() => {
+      scrollToUserMessage(userMessage.id);
+    }, 50); // Much faster scroll
+
+    // Create a placeholder for the assistant message with typing indicator after scroll
+    setTimeout(() => {
+      const assistantMessage: Message = {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "...",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    }, 100); // Delay loading dots until after scroll
 
     try {
       const response = await fetch("/api/ai/ifs-session", {
@@ -139,35 +151,61 @@ export default function AIChatPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userMessage: input.trim(),
+          userMessage: messageToSend,
           mapContext: {} // We'll add context later
         }),
       });
-      console.log(response);
+
+      console.log("Response status:", response.status);
 
       if (!response.ok) {
         throw new Error("Failed to get response");
       }
 
-      const data = await response.json();
-      console.log({data});
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.response_text || "I'm sorry, I couldn't process that. Could you try rephrasing your question?",
-        timestamp: new Date()
-      };
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
 
-      setMessages(prev => [...prev, assistantMessage]);
+      const decoder = new TextDecoder();
+      let fullContent = "";
+      let displayedContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        fullContent += chunk;
+
+        // Replace the dots with the actual content as it streams
+        const newChars = fullContent.slice(displayedContent.length);
+        for (let i = 0; i < newChars.length; i++) {
+          displayedContent += newChars[i];
+          
+          // Update the assistant message with the new content
+          setMessages(prev => prev.map(msg => 
+            msg.id === assistantMessageId 
+              ? { ...msg, content: displayedContent }
+              : msg
+          ));
+          
+          // Faster typing speed (8ms delay)
+          await new Promise(resolve => setTimeout(resolve, 8));
+        }
+      }
+
     } catch (error) {
       console.error("Error sending message:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      // Update the assistant message with error content
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId 
+          ? { ...msg, content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." }
+          : msg
+      ));
     } finally {
       setIsLoading(false);
     }
@@ -191,6 +229,16 @@ export default function AIChatPage() {
         setMessages(prev => [...prev, userMessage]);
         setIsLoading(true);
 
+        // Create a placeholder for the assistant message with typing indicator
+        const assistantMessageId = (Date.now() + 1).toString();
+        const assistantMessage: Message = {
+          id: assistantMessageId,
+          role: "assistant",
+          content: "...",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+
         try {
           console.log("Sending to API:", { userMessage: initialMessage.trim() });
           const response = await fetch("/api/ai/ifs-session", {
@@ -209,26 +257,50 @@ export default function AIChatPage() {
             throw new Error(`Failed to send message: ${response.status} - ${errorText}`);
           }
 
-          const data = await response.json();
-          console.log("API response data:", data);
-          
-          const assistantMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: "assistant",
-            content: data.response_text || "I'm here to help you explore your internal world.",
-            timestamp: new Date()
-          };
+          // Handle streaming response
+          const reader = response.body?.getReader();
+          if (!reader) {
+            throw new Error("No response body");
+          }
 
-          setMessages(prev => [...prev, assistantMessage]);
+          const decoder = new TextDecoder();
+          let fullContent = "";
+          let displayedContent = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              break;
+            }
+
+            const chunk = decoder.decode(value, { stream: true });
+            fullContent += chunk;
+
+            // Replace the dots with the actual content as it streams
+            const newChars = fullContent.slice(displayedContent.length);
+            for (let i = 0; i < newChars.length; i++) {
+              displayedContent += newChars[i];
+              
+              // Update the assistant message with the new content
+              setMessages(prev => prev.map(msg => 
+                msg.id === assistantMessageId 
+                  ? { ...msg, content: displayedContent }
+                  : msg
+              ));
+              
+              // Faster typing speed (8ms delay)
+              await new Promise(resolve => setTimeout(resolve, 8));
+            }
+          }
+
         } catch (error) {
           console.error("Error sending message:", error);
-          const errorMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: "assistant",
-            content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, errorMessage]);
+          // Update the assistant message with error content
+          setMessages(prev => prev.map(msg => 
+            msg.id === assistantMessageId 
+              ? { ...msg, content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." }
+              : msg
+          ));
         } finally {
           setIsLoading(false);
         }
@@ -304,7 +376,17 @@ export default function AIChatPage() {
                   )}
                   <div className="flex-1">
                     <p className="whitespace-pre-wrap leading-relaxed">
-                      {message.content}
+                      {message.content === "..." ? (
+                        <div className="flex items-center pt-3">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                            <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                            <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                          </div>
+                        </div>
+                      ) : (
+                        message.content
+                      )}
                     </p>
                   </div>
                 </div>
@@ -313,22 +395,6 @@ export default function AIChatPage() {
             </div>
           ))}
           
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-800 text-gray-100 rounded-2xl px-6 py-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-1 bg-blue-600 rounded-full">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           
           <div ref={messagesEndRef} />
         </div>
