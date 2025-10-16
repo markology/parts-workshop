@@ -7,7 +7,7 @@ import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import detachImpressionFromPart from "@/features/workspace/state/updaters/detachImpressionFromPart";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
-import { PartNodeData } from "@/features/workspace/types/Nodes";
+import { ImpressionNode, PartNodeData } from "@/features/workspace/types/Nodes";
 import { Handle, Position } from "@xyflow/react";
 import { Pencil, PencilIcon, SquareUserRound, Trash2, Palette } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -163,7 +163,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
           {ImpressionList.map((impression) => (
             <PartImpressionList
               key={`PartImpressionList ${index++}`}
-              data={data[ImpressionTextType[impression]]}
+              data={(data[ImpressionTextType[impression]] as ImpressionNode[]) || []}
               type={impression}
               partId={partId}
             />

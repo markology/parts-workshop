@@ -1,5 +1,6 @@
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import {
+  AllyNode,
   ConflictNode,
   ConflictNodeData,
   ImpressionNode,
@@ -112,7 +113,7 @@ export default function createNodeFN({
           relationshipType: "ally" as const,
           connectedNodes: [],
         } as ConflictNodeData,
-      } as ConflictNode;
+      } as AllyNode;
 
       break;
 

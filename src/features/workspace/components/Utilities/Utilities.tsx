@@ -6,9 +6,11 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 import JournalToggle from "./JournalToggle";
 import Logout from "./Logout";
+import MapsButton from "./MapsButton";
 import SaveProgress from "./SaveProgress";
 import ThemeToggle from "./ThemeToggle";
 import TrashCan from "./TrashCan";
@@ -20,6 +22,11 @@ export default function Utilities({ full }: { full?: boolean }) {
   const [visible, setVisible] = useState(true);
   const [hoveringHide, setHoveringHide] = useState(false);
   const isOpen = useJournalStore((s) => s.isOpen);
+  const pathname = usePathname();
+  
+  // Check if we're on a map page (not the maps selection page)
+  const isOnMapPage = pathname?.includes('/workspace/map/') && !pathname?.includes('/workspace/maps');
+
   const isMobile = useIsMobile();
   return (
     <div
@@ -63,13 +70,13 @@ export default function Utilities({ full }: { full?: boolean }) {
       >
         {isMobile ? (
           <>
-            <Logout />
+            {isOnMapPage ? <MapsButton /> : <Logout />}
             <ThemeToggle />
             <JournalToggle />
           </>
         ) : (
           <>
-            {full && <Logout />}
+            {full && (isOnMapPage ? <MapsButton /> : <Logout />)}
             <ThemeToggle />
             <JournalToggle />
             {!isOpen && full && (

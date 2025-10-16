@@ -1,35 +1,121 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, Sparkles, Send } from "lucide-react";
-import JournalEditor from "@/features/workspace/components/Journal/JournalEditor";
+import { ArrowLeft, BookOpen, Sparkles } from "lucide-react";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 export default function JournalAnalysisPage() {
   const router = useRouter();
+  const { darkMode } = useThemeContext();
+  const editorRef = useRef<HTMLDivElement>(null);
+  
   const [journalContent, setJournalContent] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [hasContent, setHasContent] = useState(false);
+  const [hasEditorMounted, setHasEditorMounted] = useState(false);
+  
+  const [formats, setFormats] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    unorderedList: false,
+  });
 
-  const handleSave = (content: string) => {
-    setJournalContent(content);
-    setHasContent(content.trim().length > 0);
-  };
+  const updateFormatState = useCallback(() => {
+    const selection = document.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      setFormats({
+        bold: document.queryCommandState("bold"),
+        italic: document.queryCommandState("italic"),
+        underline: document.queryCommandState("underline"),
+        unorderedList: document.queryCommandState("insertUnorderedList"),
+      });
+    }
+  }, []);
+
+  const exec = useCallback(
+    (command: string, value?: string) => {
+      editorRef.current?.focus();
+      document.execCommand(command, false, value);
+      setJournalContent(editorRef.current?.innerHTML || "");
+      updateFormatState();
+    },
+    [updateFormatState]
+  );
+
+  const ToolbarButton = ({
+    label,
+    command,
+    active,
+    children,
+  }: {
+    label: string;
+    command: string;
+    children?: React.ReactNode;
+    active?: boolean;
+  }) => (
+    <button
+      type="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        exec(command);
+      }}
+      className={`px-3 py-2 rounded text-sm transition ${
+        active
+          ? darkMode
+            ? "bg-gray-100 text-black"
+            : "bg-black text-white"
+          : "hover:bg-gray-300 text-gray-700"
+      }`}
+      title={label}
+    >
+      {children || label}
+    </button>
+  );
+
+  useEffect(() => {
+    if (!hasEditorMounted && editorRef?.current) {
+      setHasEditorMounted(true);
+    }
+  }, [editorRef?.current]);
+
+  useEffect(() => {
+    if (!editorRef.current) return;
+
+    const editor = editorRef.current;
+    const handleCursorChange = () => {
+      requestAnimationFrame(updateFormatState);
+    };
+
+    editor.addEventListener("keyup", handleCursorChange);
+    editor.addEventListener("mousedown", () => {
+      document.addEventListener("mouseup", handleCursorChange, { once: true });
+    });
+
+    return () => {
+      editor.removeEventListener("keyup", handleCursorChange);
+      editor.removeEventListener("mousedown", () => {
+        document.removeEventListener("mouseup", handleCursorChange);
+      });
+    };
+  }, [hasEditorMounted, updateFormatState]);
 
   const handleAnalyze = async () => {
     if (!journalContent.trim()) return;
 
     setIsAnalyzing(true);
+    setAnalysis(""); // Clear previous analysis
+    
     try {
-      const response = await fetch("/api/ai/ifs-session", {
+      const response = await fetch("/api/ai/journal-analysis", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userMessage: `Please analyze this journal entry for parts work and IFS insights. Here's the entry:\n\n${journalContent}`,
-          mapContext: {}
+          journalContent: journalContent
         }),
       });
 
@@ -37,8 +123,25 @@ export default function JournalAnalysisPage() {
         throw new Error("Failed to get analysis");
       }
 
-      const data = await response.json();
-      setAnalysis(data.response_text);
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      const decoder = new TextDecoder();
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        fullContent += chunk;
+        
+        // Update analysis in real-time as it streams
+        setAnalysis(fullContent);
+      }
     } catch (error) {
       console.error("Error analyzing journal:", error);
       setAnalysis("I'm sorry, I couldn't analyze your journal entry right now. Please try again in a moment.");
@@ -54,7 +157,7 @@ export default function JournalAnalysisPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push("/workspace")}
               className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -85,36 +188,70 @@ export default function JournalAnalysisPage() {
               </p>
             </div>
 
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50">
-              <JournalEditor
-                initialContent=""
-                onSave={handleSave}
-                title="Journal Entry"
-                isLoading={false}
-              />
-            </div>
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
+              {/* Custom Journal Editor */}
+              <div className="space-y-4">
+                {/* Toolbar */}
+                <div className="flex flex-wrap items-center gap-2 border-b border-gray-600 pb-3">
+                  <ToolbarButton label="Bold" command="bold" active={formats.bold}>
+                    <b>B</b>
+                  </ToolbarButton>
+                  <ToolbarButton label="Italic" command="italic" active={formats.italic}>
+                    <i>I</i>
+                  </ToolbarButton>
+                  <ToolbarButton label="Underline" command="underline" active={formats.underline}>
+                    <u>U</u>
+                  </ToolbarButton>
+                  <ToolbarButton label="List" command="insertUnorderedList" active={formats.unorderedList}>
+                    • List
+                  </ToolbarButton>
+                </div>
 
-            {hasContent && (
-              <div className="text-center">
-                <button
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing}
-                  className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Analyzing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Analyze Entry</span>
-                    </>
+                {/* Editor Area */}
+                <div className="relative">
+                  <div
+                    ref={editorRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    className="min-h-[400px] border border-gray-600 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-900/50 text-white"
+                    style={{ whiteSpace: "pre-wrap" }}
+                    onInput={() => {
+                      const content = editorRef.current?.innerHTML || "";
+                      setJournalContent(content);
+                      setHasContent(content.trim().length > 0);
+                    }}
+                  />
+                  {journalContent === "" && (
+                    <div className="absolute top-4 left-4 text-gray-400 pointer-events-none">
+                      Start writing your journal entry...
+                    </div>
                   )}
-                </button>
+                </div>
+
+                {/* Analysis Button */}
+                {hasContent && (
+                  <div className="text-center pt-4">
+                    <button
+                      onClick={handleAnalyze}
+                      disabled={isAnalyzing}
+                      className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Analyzing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          <span>Analyze Entry</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Analysis Results */}
@@ -129,7 +266,7 @@ export default function JournalAnalysisPage() {
             </div>
 
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 min-h-[400px]">
-              {!analysis ? (
+              {!analysis && !isAnalyzing ? (
                 <div className="p-8 text-center">
                   <div className="p-4 bg-gray-700/50 rounded-xl inline-block mb-4">
                     <Sparkles className="w-8 h-8 text-gray-400" />
@@ -142,6 +279,22 @@ export default function JournalAnalysisPage() {
                       ? "Click 'Analyze Entry' to discover insights about your writing"
                       : "Start writing in the journal to unlock AI analysis"
                     }
+                  </p>
+                </div>
+              ) : isAnalyzing && !analysis ? (
+                <div className="p-8 text-center">
+                  <div className="p-4 bg-gray-700/50 rounded-xl inline-block mb-4">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                      <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                      <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-300">
+                    Analyzing Your Entry...
+                  </h3>
+                  <p className="text-gray-400">
+                    Discovering insights and patterns in your writing
                   </p>
                 </div>
               ) : (
@@ -158,7 +311,7 @@ export default function JournalAnalysisPage() {
                     </p>
                   </div>
                   
-                  {analysis && (
+                  {analysis && !isAnalyzing && (
                     <div className="mt-6 pt-6 border-t border-gray-700">
                       <div className="flex justify-center space-x-4">
                         <button

@@ -87,11 +87,11 @@ export const useWorkingStore = create<WorkingState>()(
         set({ journalEntries: rest });
       },
       hydrated: false,
-    })
-    // Temporarily disable persistence to prevent cross-map contamination
-    // {
-    //   name: "working-map",
-    //   storage: createIndexedDbStorage<WorkingState>(),
-    // }
+    }),
+    {
+      name: "working-map-temp",
+      // Temporarily disable persistence to prevent cross-map contamination
+      // storage: createIndexedDbStorage<WorkingState>(),
+    }
   )
 );

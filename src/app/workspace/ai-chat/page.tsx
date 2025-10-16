@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Send, ArrowLeft, Bot, User } from "lucide-react";
 
@@ -9,21 +9,27 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  revealProgress?: number; // For smooth text reveal animation
 }
 
-export default function AIChatPage() {
+function AIChatContent({ initialMessage }: { initialMessage: string | null }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialMessage = searchParams?.get('message');
   
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      content: "Hello! I'm here to help you explore your internal world through Internal Family Systems (IFS) therapy. I'll guide you gently as we discover and understand the different parts of yourself. \n\nWhat brings you here today? What's on your mind or heart that you'd like to explore?",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Check if coming from workspace navigation
+    const isFromWorkspace = initialMessage?.trim() === "whats on your mind?";
+    
+    return [
+      {
+        id: "1",
+        role: "assistant",
+        content: initialMessage 
+          ? "What's on your mind?"
+          : "Hello! I'm here to help you explore your internal world through Internal Family Systems (IFS) therapy. I'll guide you gently as we discover and understand the different parts of yourself. \n\nWhat brings you here today? What's on your mind or heart that you'd like to explore?",
+        timestamp: new Date()
+      }
+    ];
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -41,7 +47,7 @@ export default function AIChatPage() {
       const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
       
       if (scrollContainer) {
-        const messageOffsetTop = messageElement.offsetTop;
+        const messageOffsetTop = (messageElement as HTMLElement).offsetTop;
         const headerHeight = 105;
         const adjustedScrollTop = messageOffsetTop - headerHeight;
         
@@ -67,7 +73,7 @@ export default function AIChatPage() {
         const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
         
         if (scrollContainer) {
-          const messageOffsetTop = messageElement.offsetTop;
+          const messageOffsetTop = (messageElement as HTMLElement).offsetTop;
           const headerHeight = 105;
           const adjustedScrollTop = messageOffsetTop - headerHeight;
           
@@ -156,8 +162,6 @@ export default function AIChatPage() {
         }),
       });
 
-      console.log("Response status:", response.status);
-
       if (!response.ok) {
         throw new Error("Failed to get response");
       }
@@ -167,6 +171,9 @@ export default function AIChatPage() {
       if (!reader) {
         throw new Error("No response body");
       }
+
+      // Additional delay before streaming starts
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const decoder = new TextDecoder();
       let fullContent = "";
@@ -181,21 +188,18 @@ export default function AIChatPage() {
         const chunk = decoder.decode(value, { stream: true });
         fullContent += chunk;
 
-        // Replace the dots with the actual content as it streams
-        const newChars = fullContent.slice(displayedContent.length);
-        for (let i = 0; i < newChars.length; i++) {
-          displayedContent += newChars[i];
-          
-          // Update the assistant message with the new content
-          setMessages(prev => prev.map(msg => 
-            msg.id === assistantMessageId 
-              ? { ...msg, content: displayedContent }
-              : msg
-          ));
-          
-          // Faster typing speed (8ms delay)
-          await new Promise(resolve => setTimeout(resolve, 8));
-        }
+        // Update content with smooth reveal effect
+        displayedContent = fullContent;
+        
+        // Update the assistant message with the new content
+        setMessages(prev => prev.map(msg => 
+          msg.id === assistantMessageId 
+            ? { ...msg, content: displayedContent, revealProgress: Math.min(displayedContent.length / 50, 1) }
+            : msg
+        ));
+        
+        // Smooth reveal timing
+        await new Promise(resolve => setTimeout(resolve, 40));
       }
 
     } catch (error) {
@@ -215,7 +219,6 @@ export default function AIChatPage() {
   useEffect(() => {
     if (initialMessage && initialMessage.trim() && !hasAutoSentRef.current) {
       hasAutoSentRef.current = true;
-      console.log("Auto-sending initial message:", initialMessage);
       
       // Send the message directly without using handleSendMessage to avoid dependency issues
       const sendInitialMessage = async () => {
@@ -239,8 +242,31 @@ export default function AIChatPage() {
         };
         setMessages(prev => [...prev, assistantMessage]);
 
+        // For workspace navigation, show custom message instead of API call
+        if (initialMessage.trim() === "whats on your mind?") {
+          // Simulate typing effect for the custom message
+          const customMessage = "What's on your mind?";
+          let displayedContent = "";
+          
+          for (let i = 0; i < customMessage.length; i++) {
+            displayedContent += customMessage[i];
+            
+            // Update the assistant message with the new content
+            setMessages(prev => prev.map(msg => 
+              msg.id === assistantMessageId 
+                ? { ...msg, content: displayedContent, revealProgress: Math.min(displayedContent.length / 50, 1) }
+                : msg
+            ));
+            
+            // Smooth reveal timing
+            await new Promise(resolve => setTimeout(resolve, 40));
+          }
+          
+          setIsLoading(false);
+          return;
+        }
+
         try {
-          console.log("Sending to API:", { userMessage: initialMessage.trim() });
           const response = await fetch("/api/ai/ifs-session", {
             method: "POST",
             headers: {
@@ -249,11 +275,8 @@ export default function AIChatPage() {
             body: JSON.stringify({ userMessage: initialMessage.trim() }),
           });
 
-          console.log("API response status:", response.status);
-
           if (!response.ok) {
             const errorText = await response.text();
-            console.error("API Error:", errorText);
             throw new Error(`Failed to send message: ${response.status} - ${errorText}`);
           }
 
@@ -262,6 +285,9 @@ export default function AIChatPage() {
           if (!reader) {
             throw new Error("No response body");
           }
+
+          // Additional delay before streaming starts
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
           const decoder = new TextDecoder();
           let fullContent = "";
@@ -276,21 +302,18 @@ export default function AIChatPage() {
             const chunk = decoder.decode(value, { stream: true });
             fullContent += chunk;
 
-            // Replace the dots with the actual content as it streams
-            const newChars = fullContent.slice(displayedContent.length);
-            for (let i = 0; i < newChars.length; i++) {
-              displayedContent += newChars[i];
-              
-              // Update the assistant message with the new content
-              setMessages(prev => prev.map(msg => 
-                msg.id === assistantMessageId 
-                  ? { ...msg, content: displayedContent }
-                  : msg
-              ));
-              
-              // Faster typing speed (8ms delay)
-              await new Promise(resolve => setTimeout(resolve, 8));
-            }
+            // Update content with smooth reveal effect
+            displayedContent = fullContent;
+            
+            // Update the assistant message with the new content
+            setMessages(prev => prev.map(msg => 
+              msg.id === assistantMessageId 
+                ? { ...msg, content: displayedContent, revealProgress: Math.min(displayedContent.length / 50, 1) }
+                : msg
+            ));
+            
+            // Smooth reveal timing
+            await new Promise(resolve => setTimeout(resolve, 40));
           }
 
         } catch (error) {
@@ -323,7 +346,7 @@ export default function AIChatPage() {
       <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/workspace")}
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -374,21 +397,30 @@ export default function AIChatPage() {
                       <Bot className="w-4 h-4" />
                     </div>
                   )}
-                  <div className="flex-1">
-                    <p className="whitespace-pre-wrap leading-relaxed">
-                      {message.content === "..." ? (
-                        <div className="flex items-center pt-3">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                            <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                            <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
-                          </div>
-                        </div>
-                      ) : (
-                        message.content
-                      )}
-                    </p>
-                  </div>
+                       <div className="flex-1">
+                         <p className="whitespace-pre-wrap leading-relaxed">
+                           {message.content === "..." ? (
+                             <div className="flex items-center pt-3">
+                               <div className="flex space-x-1">
+                                 <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                                 <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                                 <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                               </div>
+                             </div>
+                           ) : (
+                             <div 
+                               className="relative"
+                               style={{
+                                 background: message.revealProgress && message.revealProgress < 1 
+                                   ? `linear-gradient(90deg, transparent 0%, transparent ${(message.revealProgress * 100)}%, rgba(24, 24, 24, 0.8) ${(message.revealProgress * 100)}%, rgba(24, 24, 24, 0.8) 100%)`
+                                   : 'none'
+                               }}
+                             >
+                               {message.content}
+                             </div>
+                           )}
+                         </p>
+                       </div>
                 </div>
               </div>
               </div>
@@ -427,5 +459,29 @@ export default function AIChatPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function SearchParamsWrapper() {
+  const searchParams = useSearchParams();
+  const initialMessage = searchParams?.get('message') || null;
+  
+  return <AIChatContent initialMessage={initialMessage} />;
+}
+
+export default function AIChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen text-white flex flex-col items-center justify-center" style={{ background: "#181818" }}>
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-blue-600 rounded-lg">
+            <Bot className="w-5 h-5" />
+          </div>
+          <div className="text-lg font-semibold">Loading chat...</div>
+        </div>
+      </div>
+    }>
+      <SearchParamsWrapper />
+    </Suspense>
   );
 }

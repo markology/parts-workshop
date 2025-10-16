@@ -35,10 +35,7 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
   const containerRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleTextAreaKeyDown = (e: {
-    preventDefault(): unknown;
-    key: string;
-  }) => {
+  const handleTextAreaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (
       e.key === "Enter" &&
       selectedType !== null &&

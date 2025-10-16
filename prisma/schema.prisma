@@ -84,6 +84,7 @@ model Part {
   fears              String[]
   customImpressionBuckets Json? // Store custom impression buckets as JSON
   impressions        Impression[]        @relation("PartImpressions")
+  journalEntries     JournalEntry[]      @relation("PartJournalEntries")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -118,11 +119,15 @@ model JournalEntry {
   conflict   Conflict? @relation(fields: [conflictId], references: [id])
 
   nodeId    String? // Optional: linked to a node if not global
+  partId    String? // Optional: linked to a specific part
+  part      Part?   @relation("PartJournalEntries", fields: [partId], references: [id])
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([nodeId])
+  @@index([partId])
   @@unique([userId, nodeId]) // ✅ ensures only one journal per node per user (nodeId=null for global)
 }
 

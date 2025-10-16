@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (content) {
         res.write(content);
         // Force flush the response to prevent buffering
-        if (res.flush) {
+        if ('flush' in res && typeof res.flush === 'function') {
           res.flush();
         }
       }

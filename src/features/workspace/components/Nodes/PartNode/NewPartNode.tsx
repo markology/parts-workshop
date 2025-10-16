@@ -250,6 +250,16 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                   {relationships.filter(rel => rel.nodeType === 'conflict').length}
                 </span>
               </div>
+
+              {/* Part Type Indicator */}
+              {(data.partType || data.customPartType) && (
+                <div className={`flex items-center gap-1 rounded-full px-2 py-1 ${getPartTypeColor(data.partType || data.customPartType)}`}>
+                  {getPartTypeIcon(data.partType || data.customPartType)}
+                  <span className="text-xs font-medium capitalize">
+                    {data.partType || data.customPartType}
+                  </span>
+                </div>
+              )}
               
               {/* Journal Button with AI Sparkle */}
               <button

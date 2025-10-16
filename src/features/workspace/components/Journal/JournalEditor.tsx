@@ -12,7 +12,7 @@ interface JournalEditorProps {
   onSave?: (html: string) => void;
   readOnly?: boolean;
   title?: string;
-  nodeType?: ImpressionType | "part" | "conflict";
+  nodeType?: ImpressionType | "part" | "conflict" | "ally";
   isLoading: boolean; // ✅ renamed for clarity
 }
 

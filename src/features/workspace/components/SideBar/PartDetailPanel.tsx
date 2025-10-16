@@ -14,10 +14,15 @@ import {
   SquareUserRound,
   BookOpen,
   Calendar,
-  User
+  User,
+  ListRestart,
+  FileText,
+  Sparkles,
+  Clock
 } from "lucide-react";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
+import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType, ImpressionType } from "@/features/workspace/types/Impressions";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
@@ -37,6 +42,110 @@ const PartDetailPanel = () => {
   const [tempAge, setTempAge] = useState("");
   const [tempGender, setTempGender] = useState("");
   const [tempPartType, setTempPartType] = useState("");
+  
+  // Journal state
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [showJournalHistory, setShowJournalHistory] = useState(false);
+  const [isLoadingJournal, setIsLoadingJournal] = useState(false);
+  const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
+
+  // Load journal entries when part is selected
+  useEffect(() => {
+    if (selectedPartId) {
+      loadJournalEntries();
+    }
+  }, [selectedPartId]);
+
+  const loadJournalEntries = async () => {
+    if (!selectedPartId) return;
+    
+    setIsLoadingJournal(true);
+    try {
+      // Use the existing journal API that works with nodeId
+      const response = await fetch(`/api/journal/node/${selectedPartId}`);
+      if (response.ok) {
+        const entry = await response.json();
+        // Convert single entry to array format for consistency
+        // Only show entries that have actual content
+        if (entry && entry.content && entry.content.trim().length > 0) {
+          setJournalEntries([entry]);
+        } else {
+          setJournalEntries([]);
+        }
+      } else if (response.status === 404) {
+        // No journal entry exists yet
+        setJournalEntries([]);
+      }
+    } catch (error) {
+      console.error("Failed to load journal entries:", error);
+      setJournalEntries([]);
+    } finally {
+      setIsLoadingJournal(false);
+    }
+  };
+
+  const extractImpressionsFromEntry = async (entryId: string) => {
+    if (!selectedPartId) return;
+    
+    setIsExtractingImpressions(true);
+    try {
+      const response = await fetch(`/api/journal/node/${selectedPartId}/extract-impressions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nodeId: selectedPartId,
+          journalEntryId: entryId,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Impressions extracted:", result);
+        
+        // Add the extracted impressions to the part node's data
+        if (result.impressions && result.impressions.length > 0 && partNode) {
+          const updatedData = { ...partNode.data };
+          
+          // Group impressions by type and add them to the appropriate buckets
+          result.impressions.forEach((impression: any) => {
+            const type = impression.type;
+            const impressionTypeKey = ImpressionTextType[type as keyof typeof ImpressionTextType];
+            
+            if (impressionTypeKey) {
+              const currentImpressions = (updatedData[impressionTypeKey] as ImpressionNode[]) || [];
+              const newImpression: ImpressionNode = {
+                id: impression.id,
+                type: type,
+                data: {
+                  label: impression.label,
+                  addedAt: Date.now()
+                },
+                position: { x: 0, y: 0 }
+              };
+              
+              updatedData[impressionTypeKey] = [...currentImpressions, newImpression];
+            }
+          });
+          
+          // Update the part node with the new impressions
+          updateNode(selectedPartId, {
+            data: updatedData
+          });
+          
+          console.log(`Successfully added ${result.impressions.length} impressions to the part!`);
+        }
+        
+        // Refresh the journal entries to show updated content
+        await loadJournalEntries();
+      }
+    } catch (error) {
+      console.error("Failed to extract impressions:", error);
+    } finally {
+      setIsExtractingImpressions(false);
+    }
+  };
 
   // Handle Escape key to close impression modal
   useEffect(() => {
@@ -64,6 +173,31 @@ const PartDetailPanel = () => {
         [ImpressionTextType[impressionType as keyof typeof ImpressionTextType]]: filteredImpressions,
       },
     });
+  };
+
+  const handleReturnToSidebar = (impressionType: string, impressionId: string) => {
+    if (!selectedPartId || !partNode) return;
+
+    const currentImpressions = (partNode.data[ImpressionTextType[impressionType as keyof typeof ImpressionTextType]] as ImpressionNode[]) || [];
+    const impressionToReturn = currentImpressions.find(imp => imp.id === impressionId);
+    const filteredImpressions = currentImpressions.filter(imp => imp.id !== impressionId);
+
+    // Remove from part
+    updateNode(selectedPartId, {
+      data: {
+        ...partNode.data,
+        [ImpressionTextType[impressionType as keyof typeof ImpressionTextType]]: filteredImpressions,
+      },
+    });
+
+    // Return to sidebar
+    if (impressionToReturn) {
+      useWorkingStore.getState().addImpression({
+        id: impressionToReturn.id,
+        type: impressionToReturn.type,
+        label: impressionToReturn.data.label,
+      });
+    }
   };
 
   const getXButtonColor = (impressionType: string) => {
@@ -345,8 +479,7 @@ const PartDetailPanel = () => {
                   {/* Journal Button */}
                   <button
                     onClick={() => {
-                      // Add journal functionality here
-                      console.log("Open journal for part:", data.name);
+                      setShowJournalHistory(!showJournalHistory);
                     }}
                     className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors ${
                       darkMode 
@@ -356,6 +489,11 @@ const PartDetailPanel = () => {
                   >
                     <BookOpen size={12} />
                     <span>Journal</span>
+                    {journalEntries.length > 0 && (
+                      <span className="text-xs bg-blue-600 text-white rounded-full px-1.5 py-0.5">
+                        {journalEntries.length}
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -452,20 +590,38 @@ const PartDetailPanel = () => {
                             }}
                           >
                             <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
-                            <button 
-                              onClick={() => handleRemoveImpression(impression, imp.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
-                              style={{
-                                color: getXButtonColor(impression),
-                                height: "28px",
-                                width: "24px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center"
-                              }}
-                            >
-                              <X size={20} />
-                            </button>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                              <button 
+                                onClick={() => handleReturnToSidebar(impression, imp.id)}
+                                className="p-1 hover:opacity-70"
+                                style={{
+                                  color: getXButtonColor(impression),
+                                  height: "28px",
+                                  width: "24px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center"
+                                }}
+                                title="Return to sidebar"
+                              >
+                                <ListRestart size={16} />
+                              </button>
+                              <button 
+                                onClick={() => handleRemoveImpression(impression, imp.id)}
+                                className="p-1 hover:opacity-70"
+                                style={{
+                                  color: getXButtonColor(impression),
+                                  height: "28px",
+                                  width: "24px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center"
+                                }}
+                                title="Delete"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -723,6 +879,107 @@ const PartDetailPanel = () => {
             </div>
           </div>
         </div>
+        
+        {/* Journal History Section */}
+        {showJournalHistory && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div 
+              className={`${
+                darkMode 
+                  ? "bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border border-gray-600/50" 
+                  : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50"
+              } rounded-xl shadow-lg overflow-hidden w-full max-w-4xl max-h-[85vh] transition-all duration-300`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Journal Header */}
+              <div className={`${
+                darkMode 
+                  ? "bg-gray-800/80 backdrop-blur-sm border-b border-gray-600/30" 
+                  : "bg-white/60 backdrop-blur-sm border-b border-blue-200/30"
+              } p-4`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-600 rounded-lg">
+                      <BookOpen className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-800">
+                        Journal History - {(data.name as string) || (data.label as string) || "Untitled"}
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        {journalEntries.length} entries
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowJournalHistory(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X size={20} className="text-gray-500" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Journal Content */}
+              <div className="p-6 overflow-y-auto max-h-[calc(85vh-120px)]">
+                {isLoadingJournal ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-gray-600">Loading journal entries...</span>
+                  </div>
+                ) : journalEntries.length === 0 ? (
+                  <div className="text-center py-8">
+                    <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">No Journal Entries Yet</h3>
+                    <p className="text-gray-500">Start writing about this part to see entries here.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {journalEntries.map((entry) => (
+                      <div key={entry.id} className={`${
+                        darkMode 
+                          ? "bg-gray-800/50 border border-gray-600/30" 
+                          : "bg-white border border-gray-200"
+                      } rounded-lg p-4`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600">
+                              {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString()}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => extractImpressionsFromEntry(entry.id)}
+                            disabled={isExtractingImpressions}
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
+                          >
+                            {isExtractingImpressions ? (
+                              <>
+                                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                                <span>Extracting...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-3 h-3" />
+                                <span>Extract Impressions</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        {entry.title && (
+                          <h4 className="font-semibold text-gray-800 mb-2">{entry.title}</h4>
+                        )}
+                        <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                          {entry.content}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Impression Input Modal */}
         {addingImpressionType && (

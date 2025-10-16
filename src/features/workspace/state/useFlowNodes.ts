@@ -8,6 +8,7 @@ import insertImpressionToPartCB from "./updaters/insertImpressionToPart";
 import updateNodeCB from "./updaters/updateNode";
 
 import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
+import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import {
   ConflictNode,
@@ -30,7 +31,6 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
-import { useWorkingStore } from "./stores/useWorkingStore";
 import { useDeleteJournalEntry } from "@/features/workspace/state/hooks/useDeleteJournalEntry";
 
 export type NodeActions = ReturnType<typeof useFlowNodes>;
@@ -463,6 +463,9 @@ export const useFlowNodes = () => {
       } else {
         setNodes((prev) => [...prev, newNode]);
       }
+
+      // Remove the impression from sidebar after successful drop
+      useWorkingStore.getState().removeImpression({ type, id });
     },
     [
       activeSidebarNode,

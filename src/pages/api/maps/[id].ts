@@ -43,8 +43,6 @@ export default async function handler(
 
   if (req.method === "GET") {
     try {
-      console.log("🔍 API GET request for mapId:", id, "userId:", session.user.id);
-      
       const map = await prisma.map.findFirst({
         where: { 
           id,
@@ -52,10 +50,7 @@ export default async function handler(
         }
       });
 
-      console.log("🔍 Database query result:", map ? "Found map" : "Map not found");
-
       if (!map) {
-        console.log("❌ Map not found for id:", id, "userId:", session.user.id);
         return res.status(404).json({ error: "Map not found" });
       }
 
@@ -67,33 +62,14 @@ export default async function handler(
         }
       });
 
-      console.log("📝 Found journal entries:", journalEntries.length);
-
-      console.log("🗺️ Fetched map data:", {
-        id: map.id,
-        title: map.title,
-        nodesCount: Array.isArray(map.nodes) ? map.nodes.length : 0,
-        edgesCount: Array.isArray(map.edges) ? map.edges.length : 0,
-        sidebarImpressionsType: typeof map.sidebarImpressions,
-        sidebarImpressionsKeys: map.sidebarImpressions ? Object.keys(map.sidebarImpressions) : 'null/undefined',
-        journalEntriesCount: journalEntries?.length || 0,
-        nodes: map.nodes,
-        edges: map.edges
-      });
+      // Map data fetched successfully
 
       return res.status(200).json({
         ...map,
         journalEntries
       });
     } catch (error: any) {
-      console.error("❌ Map fetch failed:", error);
-      console.error("❌ Error details:", {
-        message: error?.message || 'Unknown error',
-        stack: error?.stack,
-        mapId: id,
-        userId: session.user.id
-      });
-      return res.status(500).json({ error: "Failed to fetch map", details: error?.message || 'Unknown error' });
+      return res.status(500).json({ error: "Failed to fetch map" });
     }
   }
 
@@ -101,13 +77,7 @@ export default async function handler(
     try {
       let body = req.body;
       
-      console.log("💾 Saving map data to database:", {
-        mapId: id,
-        nodesCount: body.nodes?.length || 0,
-        edgesCount: body.edges?.length || 0,
-        nodes: body.nodes,
-        edges: body.edges
-      });
+      // Saving map data to database
       
       if (!Array.isArray(body.nodes) || !Array.isArray(body.edges)) {
         return res
@@ -119,7 +89,6 @@ export default async function handler(
       if (body instanceof ReadableStream) {
         const raw = await streamToString(body);
         body = JSON.parse(raw);
-        console.log("READABLE STREAM", body);
       }
 
       const validNodeIds = body.nodes.map((n: { id: string }) => n.id);
@@ -146,7 +115,6 @@ export default async function handler(
 
       return res.status(200).json({ success: true });
     } catch (error) {
-      console.error("Map save failed:", error);
       return res.status(500).json({ error: "Update failed" });
     }
   }

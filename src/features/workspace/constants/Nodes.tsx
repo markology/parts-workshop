@@ -17,6 +17,7 @@ export const NodeBackgroundColors = {
   ally: "#87CEEB", // Light blue for ally
   part: "#a1c7dd",
   other: "#EFA9C8",
+  default: "#9CA3AF", // Gray for default
 };
 
 export const NodeTextColors = {
@@ -28,6 +29,7 @@ export const NodeTextColors = {
   ally: "#1e3a8a", // Dark blue text for ally
   part: "#998f3a",
   other: "#934b6d",
+  default: "#374151", // Dark gray for default
 };
 
 export const NodeTextColorsLight = {

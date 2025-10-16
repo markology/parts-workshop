@@ -20,8 +20,6 @@ export default function MapPage() {
   const { status } = useSession();
   const router = useRouter();
 
-  console.log("🗺️ MapPage received mapId:", mapId, "type:", typeof mapId, "length:", mapId?.length);
-
   if (status === "loading") return null;
   if (status === "unauthenticated") {
     router.push("/login");

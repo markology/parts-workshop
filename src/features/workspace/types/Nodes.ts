@@ -59,6 +59,10 @@ export type ConflictNode = Node<ConflictNodeData> & {
   type: "conflict";
 };
 
-export type WorkshopNode = ImpressionNode | PartNode | ConflictNode;
+export type AllyNode = Node<ConflictNodeData> & {
+  type: "ally";
+};
+
+export type WorkshopNode = ImpressionNode | PartNode | ConflictNode | AllyNode;
 
 export type NodeType = "impression" | "part" | "conflict" | "ally";

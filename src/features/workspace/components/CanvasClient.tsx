@@ -15,7 +15,6 @@ import { createEmptyImpressionGroups } from "../state/stores/useWorkingStore";
 // Function to normalize sidebarImpressions data structure
 const normalizeSidebarImpressions = (sidebarImpressions: any) => {
   if (!sidebarImpressions || typeof sidebarImpressions !== 'object') {
-    console.log("🔄 Normalizing sidebarImpressions: creating empty structure");
     return createEmptyImpressionGroups();
   }
 
@@ -24,12 +23,10 @@ const normalizeSidebarImpressions = (sidebarImpressions: any) => {
   const hasExpectedKeys = expectedKeys.every(key => key in sidebarImpressions);
   
   if (hasExpectedKeys) {
-    console.log("✅ sidebarImpressions already in correct format");
     return sidebarImpressions;
   }
 
   // If it's an array or different structure, create empty structure
-  console.log("🔄 sidebarImpressions has unexpected structure, creating empty structure");
   return createEmptyImpressionGroups();
 };
 
@@ -40,30 +37,15 @@ export default function CanvasClient({
   mapId: string;
   showOnboarding: boolean;
 }) {
-  console.log("🔄 CanvasClient mapId:", mapId);
   const { data, isLoading, error } = useLoadMap(mapId);
   const [hydrated, setHydrated] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    console.log("🔄 CanvasClient mapId changed to:", mapId);
-    
     if (data && typeof data === 'object' && 'id' in data) {
-      console.log("💾 Hydrating Zustand from fetched map", {
-        mapId: data.id,
-        title: data.title,
-        nodesCount: data.nodes?.length || 0,
-        edgesCount: data.edges?.length || 0,
-        sidebarImpressionsType: typeof data.sidebarImpressions,
-        sidebarImpressionsKeys: data.sidebarImpressions ? Object.keys(data.sidebarImpressions) : 'null/undefined',
-        journalEntriesCount: data.journalEntries?.length || 0,
-        fullData: data
-      });
-
       const normalizedSidebarImpressions = normalizeSidebarImpressions(data.sidebarImpressions);
 
       // Clear the store completely before setting new data to prevent cross-map contamination
-      console.log("🧹 Clearing store before loading new map data");
       useWorkingStore.getState().setState({
         mapId: "",
         nodes: [],
@@ -74,7 +56,6 @@ export default function CanvasClient({
       });
 
       // Then set the new map data
-      console.log("📝 Setting new map data for mapId:", data.id);
       useWorkingStore.getState().setState({
         mapId: data.id,
         nodes: data.nodes || [],
@@ -92,7 +73,6 @@ export default function CanvasClient({
   useEffect(() => {
     return () => {
       // Clear the store when leaving this map to prevent data leakage
-      console.log("🧹 Cleaning up store for mapId:", mapId);
       useWorkingStore.getState().setState({
         mapId: "",
         nodes: [],
@@ -120,24 +100,10 @@ export default function CanvasClient({
 
   useAutoSave();
 
-  console.log("🔍 Loading state check:", {
-    isLoading,
-    hasData: !!data,
-    hydrated,
-    mapId,
-    error
-  });
-
   if (isLoading || !data || !hydrated) {
-    console.log("⏳ Still loading because:", {
-      isLoading,
-      hasData: !!data,
-      hydrated
-    });
     return <p>Loading workspace...</p>;
   }
   if (error) {
-    console.log("❌ Error loading map:", error);
     return <p>Failed to load map.</p>;
   }
   // const showTour = !map;

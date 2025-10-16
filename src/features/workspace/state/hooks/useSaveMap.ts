@@ -9,13 +9,7 @@ export const useSaveMap = () => {
       const { mapId, nodes, edges, sidebarImpressions } =
         useWorkingStore.getState(); // ✅ pull latest state snapshot
       
-      console.log("💾 Saving map data:", {
-        mapId,
-        nodesCount: nodes?.length || 0,
-        edgesCount: edges?.length || 0,
-        nodes: nodes,
-        edges: edges
-      });
+      // Saving map data
       
       const res = await fetch(`/api/maps/${mapId}`, {
         method: "PUT",
