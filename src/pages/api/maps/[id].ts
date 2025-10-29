@@ -119,6 +119,19 @@ export default async function handler(
     }
   }
 
-  res.setHeader("Allow", ["GET", "POST", "PUT"]);
+  if (req.method === "DELETE") {
+    try {
+      // Delete the map
+      await prisma.map.delete({
+        where: { id },
+      });
+
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      return res.status(500).json({ error: "Delete failed" });
+    }
+  }
+
+  res.setHeader("Allow", ["GET", "POST", "PUT", "DELETE"]);
   return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

@@ -133,9 +133,23 @@ export default function WorkspacePage() {
     router.push(`/workspace/${workspaceId}`);
   };
 
-  const handleDeleteWorkspace = (workspaceId: string) => {
+  const handleDeleteWorkspace = async (workspaceId: string) => {
     if (confirm("Are you sure you want to delete this workspace? This action cannot be undone.")) {
-      setWorkspaces(prev => prev.filter(workspace => workspace.id !== workspaceId));
+      try {
+        const response = await fetch(`/api/maps/${workspaceId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete workspace");
+        }
+
+        // Remove from local state
+        setWorkspaces(prev => prev.filter(workspace => workspace.id !== workspaceId));
+      } catch (err) {
+        console.error("Failed to delete workspace:", err);
+        alert("Failed to delete workspace. Please try again.");
+      }
     }
   };
 
