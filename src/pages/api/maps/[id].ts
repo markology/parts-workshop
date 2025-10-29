@@ -66,7 +66,7 @@ export default async function handler(
 
       return res.status(200).json({
         ...map,
-        journalEntries
+        journalEntries,
       });
     } catch (error: any) {
       return res.status(500).json({ error: "Failed to fetch map" });

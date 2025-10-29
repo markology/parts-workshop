@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Map, Calendar, Trash2, Edit3, Play } from "lucide-react";
+import { Plus, Map, Calendar, Trash2, Edit3, Play } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 
 interface MapData {
@@ -47,8 +47,8 @@ export default function MapSelectionPage() {
         
         setMaps(formattedMaps);
       } catch (err) {
-        console.error("Failed to load maps:", err);
-        setError("Failed to load maps");
+        console.error("Failed to load workspaces:", err);
+        setError("Failed to load workspaces");
       } finally {
         setLoading(false);
       }
@@ -76,12 +76,12 @@ export default function MapSelectionPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create map");
+        throw new Error("Failed to create workspace");
       }
 
       const newMap = await response.json();
       
-      // Add the new map to the list
+      // Add the new workspace to the list
       const formattedMap: MapData = {
         id: newMap.id,
         name: newMap.title,
@@ -96,17 +96,17 @@ export default function MapSelectionPage() {
       setNewMapDescription("");
       setShowCreateForm(false);
     } catch (err) {
-      console.error("Failed to create map:", err);
-      setError("Failed to create map");
+      console.error("Failed to create workspace:", err);
+      setError("Failed to create workspace");
     }
   };
 
   const handleOpenMap = (mapId: string) => {
-    router.push(`/workspace/map/${mapId}`);
+    router.push(`/workspace/${mapId}`);
   };
 
   const handleDeleteMap = (mapId: string) => {
-    if (confirm("Are you sure you want to delete this map? This action cannot be undone.")) {
+    if (confirm("Are you sure you want to delete this workspace? This action cannot be undone.")) {
       setMaps(prev => prev.filter(map => map.id !== mapId));
     }
   };
@@ -124,31 +124,15 @@ export default function MapSelectionPage() {
       {/* Header */}
       <div className="bg-gray-900/50 backdrop-blur-sm border-b border-gray-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push("/workspace")}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-600 rounded-lg">
-                <Map className="w-5 h-5" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold">My Maps</h1>
-                <p className="text-sm text-gray-400">Manage your parts maps</p>
-              </div>
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-green-600 rounded-lg">
+              <Map className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold">My Workspaces</h1>
+              <p className="text-sm text-gray-400">Select or create a workspace</p>
             </div>
           </div>
-          
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Map</span>
-          </button>
         </div>
       </div>
 
@@ -156,7 +140,7 @@ export default function MapSelectionPage() {
         {/* Loading State */}
         {loading && (
           <div className="text-center py-12">
-            <div className="text-gray-400">Loading maps...</div>
+            <div className="text-gray-400">Loading workspaces...</div>
           </div>
         )}
 
@@ -173,18 +157,18 @@ export default function MapSelectionPage() {
           </div>
         )}
 
-        {/* Create Map Form */}
+        {/* Create Workspace Form */}
         {!loading && !error && showCreateForm && (
           <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700/50 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Create New Map</h2>
+            <h2 className="text-xl font-semibold mb-4">Create New Workspace</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Map Name</label>
+                <label className="block text-sm font-medium mb-2">Workspace Name</label>
                 <input
                   type="text"
                   value={newMapName}
                   onChange={(e) => setNewMapName(e.target.value)}
-                  placeholder="Enter a name for your map"
+                  placeholder="Enter a name for your workspace"
                   className="w-full bg-gray-700 text-white placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
@@ -193,7 +177,7 @@ export default function MapSelectionPage() {
                 <textarea
                   value={newMapDescription}
                   onChange={(e) => setNewMapDescription(e.target.value)}
-                  placeholder="Describe what this map will explore"
+                  placeholder="Describe what this workspace will explore"
                   rows={3}
                   className="w-full bg-gray-700 text-white placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
                 />
@@ -210,39 +194,35 @@ export default function MapSelectionPage() {
                   disabled={!newMapName.trim()}
                   className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
-                  Create Map
+                  Create Workspace
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Maps Grid */}
+        {/* Workspaces Grid */}
         {!loading && !error && (
-          <>
-            {maps.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="p-4 bg-gray-800/50 rounded-xl inline-block mb-4">
-              <Map className="w-12 h-12 text-gray-400" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-gray-300">No Maps Yet</h3>
-            <p className="text-gray-400 mb-6">Create your first map to start exploring your internal parts</p>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Create Your First Map</span>
-            </button>
-          </div>
-        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* New Workspace Card */}
+            <div
+              onClick={() => setShowCreateForm(true)}
+              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-dashed border-green-500/50 hover:border-green-500 hover:bg-gray-800/70 transition-all duration-300 cursor-pointer group flex flex-col items-center justify-center min-h-[280px]"
+            >
+              <div className="p-4 bg-green-600/20 rounded-xl mb-4 group-hover:bg-green-600/30 transition-colors">
+                <Plus className="w-12 h-12 text-green-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">New Workspace</h3>
+              <p className="text-sm text-gray-400 text-center">Create a new workspace to start exploring</p>
+            </div>
+
+            {/* Existing Workspaces */}
             {maps.map((map) => (
               <div
                 key={map.id}
                 className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 group"
               >
-                {/* Map Header */}
+                {/* Workspace Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-white group-hover:text-green-300 transition-colors mb-1">
@@ -258,14 +238,14 @@ export default function MapSelectionPage() {
                     <button
                       onClick={() => handleDeleteMap(map.id)}
                       className="p-1 hover:bg-red-600/20 rounded transition-colors"
-                      title="Delete map"
+                      title="Delete workspace"
                     >
                       <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-400" />
                     </button>
                   </div>
                 </div>
 
-                {/* Map Stats */}
+                {/* Workspace Stats */}
                 <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
                   <div className="flex items-center space-x-4">
                     <span className="flex items-center space-x-1">
@@ -279,7 +259,7 @@ export default function MapSelectionPage() {
                   </div>
                 </div>
 
-                {/* Map Thumbnail Placeholder */}
+                {/* Workspace Thumbnail Placeholder */}
                 <div className="bg-gray-700/50 rounded-lg h-24 mb-4 flex items-center justify-center">
                   <Map className="w-8 h-8 text-gray-500" />
                 </div>
@@ -295,7 +275,7 @@ export default function MapSelectionPage() {
                   </button>
                   <button
                     className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-                    title="Edit map details"
+                    title="Edit workspace details"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
@@ -303,8 +283,6 @@ export default function MapSelectionPage() {
               </div>
             ))}
           </div>
-        )}
-          </>
         )}
 
         {/* Quick Actions */}

@@ -8,11 +8,11 @@ const MapsButton: React.FC = () => {
   const router = useRouter();
 
   return (
-    <ToolTipWrapper message="Back to Maps">
+    <ToolTipWrapper message="Back to Workspaces">
       <button
         className=" w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
         id="maps-button"
-        onClick={() => router.push("/workspace/maps")}
+        onClick={() => router.push("/workspace")}
         onMouseOver={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >

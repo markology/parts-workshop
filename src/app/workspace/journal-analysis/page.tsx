@@ -321,10 +321,10 @@ export default function JournalAnalysisPage() {
                           Continue Conversation
                         </button>
                         <button
-                          onClick={() => router.push("/workspace/maps")}
+                          onClick={() => router.push("/workspace")}
                           className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors text-sm"
                         >
-                          Create Map
+                          Back to Workspaces
                         </button>
                       </div>
                     </div>

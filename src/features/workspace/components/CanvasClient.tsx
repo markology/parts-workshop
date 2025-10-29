@@ -6,7 +6,6 @@ import Canvas from "./Canvas";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { FlowNodesProvider } from "../state/FlowNodesContext";
 import SideBar from "./SideBar/SideBar";
-import { useAutoSave } from "../state/hooks/useAutoSave";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import OnboardingModal from "@/components/OboardingModal";
 import { createEmptyImpressionGroups } from "../state/stores/useWorkingStore";
@@ -97,8 +96,6 @@ export default function CanvasClient({
       return false;
     };
   }
-
-  useAutoSave();
 
   if (isLoading || !data || !hydrated) {
     return <p>Loading workspace...</p>;

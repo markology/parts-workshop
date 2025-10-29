@@ -300,7 +300,7 @@ export default function BodyMappingPage() {
 
   const handleSaveBodyMap = () => {
     console.log('Saving body map:', colorSegments);
-    router.push('/workspace/maps');
+    router.push('/workspace');
   };
 
   const handleDownloadCanvas = () => {

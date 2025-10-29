@@ -58,12 +58,12 @@ export default function WorkspaceNavigation() {
       route: "/workspace/body-3d-mapping"
     },
     {
-      id: "maps",
-      title: "My Maps",
-      description: "Open an existing map or create a new one to visualize and explore your internal parts",
+      id: "workspaces",
+      title: "My Workspaces",
+      description: "Open an existing workspace or create a new one to visualize and explore your internal parts",
       icon: Map,
       color: "from-green-500 to-emerald-500",
-      route: "/workspace/maps"
+      route: "/workspace"
     },
     {
       id: "journal",

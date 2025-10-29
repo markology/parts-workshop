@@ -24,8 +24,8 @@ export default function Utilities({ full }: { full?: boolean }) {
   const isOpen = useJournalStore((s) => s.isOpen);
   const pathname = usePathname();
   
-  // Check if we're on a map page (not the maps selection page)
-  const isOnMapPage = pathname?.includes('/workspace/map/') && !pathname?.includes('/workspace/maps');
+  // Check if we're on a workspace page (individual workspace, not the workspace list)
+  const isOnMapPage = pathname?.includes('/workspace/') && !pathname?.includes('/workspace/maps') && pathname !== '/workspace';
 
   const isMobile = useIsMobile();
   return (

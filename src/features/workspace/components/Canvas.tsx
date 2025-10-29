@@ -12,10 +12,14 @@ import {
 import Utilities from "./Utilities/Utilities";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useAutoSave } from "../state/hooks/useAutoSave";
 
 const Workspace = () => {
   const isOpen = useJournalStore((s) => s.isOpen);
   const isMobile = useIsMobile();
+  
+  // Call auto-save inside ReactFlow context
+  useAutoSave();
 
   const {
     edges,

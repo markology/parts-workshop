@@ -294,7 +294,7 @@ export default function Body3DMappingPage() {
 
   const handleSaveBodyMap = () => {
     console.log('Saving 3D body map:', paintPoints);
-    router.push('/workspace/maps');
+    router.push('/workspace');
   };
 
   return (

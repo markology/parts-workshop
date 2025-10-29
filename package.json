@@ -28,6 +28,7 @@
     "@xyflow/react": "^12.4.4",
     "bcryptjs": "^3.0.2",
     "emailjs-com": "^3.2.0",
+    "html-to-image": "1.11.11",
     "idb-keyval": "^6.2.1",
     "lexical": "^0.30.0",
     "lodash.debounce": "^4.0.8",

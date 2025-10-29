@@ -14,9 +14,9 @@ const CanvasClient = dynamic(() => import("@/features/workspace/components/Canva
   ssr: false,
 });
 
-export default function MapPage() {
+export default function WorkspacePage() {
   const params = useParams();
-  const mapId = params?.mapId as string;
+  const workspaceId = params?.workspaceId as string;
   const { status } = useSession();
   const router = useRouter();
 
@@ -26,8 +26,8 @@ export default function MapPage() {
     return null;
   }
 
-  if (!mapId) {
-    return <div className="h-screen flex items-center justify-center">No map ID provided</div>;
+  if (!workspaceId) {
+    return <div className="h-screen flex items-center justify-center">No workspace ID provided</div>;
   }
 
   // Create a query client for React Query
@@ -39,11 +39,12 @@ export default function MapPage() {
         <div className="PW flex flex-row flex-grow h-[100vh] w-[100vw] overflow-hidden">
           <JournalDrawer />
           <ViewportSizeSwitch
-            mobile={<CanvasClient mapId={mapId} showOnboarding={false} />}
-            desktop={<CanvasClient mapId={mapId} showOnboarding={false} />}
+            mobile={<CanvasClient mapId={workspaceId} showOnboarding={false} />}
+            desktop={<CanvasClient mapId={workspaceId} showOnboarding={false} />}
           />
         </div>
       </ReactFlowProvider>
     </HydrationBoundary>
   );
 }
+
