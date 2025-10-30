@@ -7,6 +7,8 @@ import {
   NodeType,
   PartNode,
   PartNodeData,
+  RelationshipSelectionNode,
+  RelationshipSelectionNodeData,
   WorkshopNode,
 } from "@/features/workspace/types/Nodes";
 import { XYPosition } from "@xyflow/react";
@@ -114,6 +116,22 @@ export default function createNodeFN({
           connectedNodes: [],
         } as ConflictNodeData,
       } as AllyNode;
+
+      break;
+
+    case "relationship":
+      newNode = {
+        ...baseNode,
+        type: "relationship",
+        style: {
+          ...baseNode.style,
+          textAlign: "center",
+        },
+        data: {
+          type: "relationshipSelectionData",
+          label: "Choose Relationship Type",
+        } as RelationshipSelectionNodeData,
+      } as RelationshipSelectionNode;
 
       break;
 

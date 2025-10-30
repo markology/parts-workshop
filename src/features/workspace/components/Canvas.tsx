@@ -9,13 +9,10 @@ import {
   OnNodesChange,
   ReactFlow,
 } from "@xyflow/react";
-import Utilities from "./Utilities/Utilities";
-import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAutoSave } from "../state/hooks/useAutoSave";
 
 const Workspace = () => {
-  const isOpen = useJournalStore((s) => s.isOpen);
   const isMobile = useIsMobile();
   
   // Call auto-save inside ReactFlow context
@@ -33,6 +30,9 @@ const Workspace = () => {
     onNodesChange,
   } = useFlowNodesContext();
 
+  // Sidebar width: w-64 = 256px, plus button area (~80px) = ~336px total
+  const SIDEBAR_WIDTH = 336;
+
   return (
     <div id="canvas" className="h-full flex-grow">
       {!isMobile ? (
@@ -47,6 +47,12 @@ const Workspace = () => {
           onDrop={onDrop}
           onDragOver={onDragOver}
           fitView
+          fitViewOptions={{
+            padding: { left: SIDEBAR_WIDTH, right: 20, top: 20, bottom: 20 },
+            minZoom: 0.8,
+            maxZoom: 2,
+            duration: 0,
+          }}
           onPaneClick={handlePaneClick}
           nodeTypes={nodeTypes}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
@@ -55,7 +61,12 @@ const Workspace = () => {
           maxZoom={2}
         >
           <Background />
-          <Controls className="absolute bottom-4 left-4 text-black" />
+          <Controls
+            className="absolute bottom-4 left-4 text-black"
+            orientation="horizontal"
+            showInteractive={false}
+            style={{ flexDirection: 'row-reverse' }}
+          />
         </ReactFlow>
       ) : (
         <ReactFlow
@@ -70,15 +81,25 @@ const Workspace = () => {
           elementsSelectable={false}
           nodeTypes={nodeTypes}
           fitView
+          fitViewOptions={{
+            padding: { left: 20, right: 20, top: 20, bottom: 20 },
+            minZoom: 0.8,
+            maxZoom: 2,
+            duration: 0,
+          }}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           minZoom={0}
           maxZoom={2}
         >
           <Background />
-          <Controls className="absolute bottom-4 left-4 text-black" />
+          <Controls
+            className="absolute bottom-4 left-4 text-black"
+            orientation="horizontal"
+            showInteractive={false}
+            style={{ flexDirection: 'row-reverse' }}
+          />
         </ReactFlow>
       )}
-      {!isOpen && <Utilities full />} {/* now Zustand-powered */}
     </div>
   );
 };

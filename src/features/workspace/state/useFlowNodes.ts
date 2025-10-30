@@ -149,6 +149,10 @@ export const useFlowNodes = () => {
         x: 200,
         y: 100,
       },
+      relationship: {
+        x: 200,
+        y: 100,
+      },
       part: {
         x: 500,
         y: 300,
@@ -163,7 +167,7 @@ export const useFlowNodes = () => {
         newNode.position.x + offsets[type].x,
         newNode.position.y + offsets[type].y,
         {
-          zoom: 0.6,
+          zoom: type === "relationship" ? 1.0 : 0.6,
           duration: 500,
         }
       );

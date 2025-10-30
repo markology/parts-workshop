@@ -1,10 +1,11 @@
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import { ConflictNodeData, ImpressionNodeData, NodeType, PartNodeData } from "@/features/workspace/types/Nodes";
+import { ConflictNodeData, ImpressionNodeData, NodeType, PartNodeData, RelationshipSelectionNodeData } from "@/features/workspace/types/Nodes";
 
 import ImpressionNode from "./ImpressionNode";
 import NewPartNode from "./PartNode/NewPartNode";
 import ConflictNode from "./RelationshipNode/ConflictNode";
 import AllyNode from "./RelationshipNode/AllyNode";
+import RelationshipSelectionNode from "./RelationshipNode/RelationshipSelectionNode";
 
 const NodeComponent = ({
   type,
@@ -12,7 +13,7 @@ const NodeComponent = ({
   id,
 }: {
   type: NodeType;
-  data: ImpressionNodeData | ConflictNodeData | PartNodeData;
+  data: ImpressionNodeData | ConflictNodeData | PartNodeData | RelationshipSelectionNodeData;
   id: string;
 }) => {
   if ("type" in data) {
@@ -26,6 +27,10 @@ const NodeComponent = ({
       ) : (
         <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
       );
+    }
+
+    if (data.type === "relationshipSelectionData") {
+      return <RelationshipSelectionNode key={id} id={id} />;
     }
   }
 
@@ -50,4 +55,5 @@ export const nodeTypes = {
   ally: NodeComponent,
   part: NodeComponent,
   other: NodeComponent,
+  relationship: NodeComponent,
 };

@@ -76,11 +76,13 @@ const ImpressionDropdown = ({
               <span>{item.label}</span>
               <button
                 className={`px-1`}
-                onClick={() =>
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
                   useWorkingStore
                     .getState()
-                    .removeImpression({ type: item.type, id: item.id })
-                }
+                    .removeImpression({ type: item.type, id: item.id });
+                }}
               >
                 x
               </button>

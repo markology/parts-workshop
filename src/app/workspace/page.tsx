@@ -2,11 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Sparkles, Loader2, MailPlus, HelpCircle } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
+import { useUIStore } from "@/features/workspace/state/stores/UI";
+import { useThemeContext } from "@/state/context/ThemeContext";
+import Modal from "@/components/Modal";
+import FeedbackForm from "@/components/FeedbackForm";
 
 interface PartNode {
   id: string;
@@ -33,6 +37,9 @@ type SortOption = 'edited' | 'created' | 'name';
 export default function WorkspacePage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { darkMode } = useThemeContext();
+  const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
+  const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -42,6 +49,8 @@ export default function WorkspacePage() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [navigatingToWorkspace, setNavigatingToWorkspace] = useState<string | null>(null);
+  const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const [isHoveringContact, setIsHoveringContact] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -109,19 +118,8 @@ export default function WorkspacePage() {
 
       const newWorkspace = await response.json();
       
-      // Add the new workspace to the list
-      const formattedWorkspace: WorkspaceData = {
-        id: newWorkspace.id,
-        name: newWorkspace.title,
-        description: newWorkspace.description || undefined,
-        createdAt: new Date(newWorkspace.createdAt),
-        lastModified: new Date(newWorkspace.updatedAt),
-        partCount: 0,
-        nodes: []
-      };
-      
-      setWorkspaces(prev => [formattedWorkspace, ...prev]);
-      setNewWorkspaceName("");
+      // Navigate directly to the newly created workspace
+      router.push(`/workspace/${newWorkspace.id}`);
     } catch (err) {
       console.error("Failed to create workspace:", err);
       setError("Failed to create workspace");
@@ -161,6 +159,19 @@ export default function WorkspacePage() {
     });
   };
 
+  // Update dropdown position when it opens
+  useEffect(() => {
+    if (profileDropdownOpen && profileDropdownRef.current) {
+      const rect = profileDropdownRef.current.getBoundingClientRect();
+      setProfileDropdownPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right
+      });
+    } else {
+      setProfileDropdownPosition(null);
+    }
+  }, [profileDropdownOpen]);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -188,12 +199,19 @@ export default function WorkspacePage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div className={`min-h-screen ${darkMode 
+      ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white' 
+      : 'bg-[#e6f8ff] text-gray-900'
+    }`}>
       {/* Header */}
-      <div className="bg-gray-900/50 backdrop-blur-sm border-b border-gray-800 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+      <div className={`relative z-40 ${
+        darkMode 
+          ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black' 
+          : 'bg-[#e6f8ff]'
+      }`}>
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="inline-block">
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Parts Workshop
             </h1>
           </Link>
@@ -206,15 +224,43 @@ export default function WorkspacePage() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Ask me anything..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className={`w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                darkMode 
+                  ? 'bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400' 
+                  : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
+              }`}
             />
           </div>
           
-          {/* Profile Dropdown */}
-          <div className="relative" ref={profileDropdownRef}>
+          {/* Contact Button and Profile Dropdown */}
+          <div className="flex items-center gap-2">
+            <button
+              onMouseOver={() => setIsHoveringContact(true)}
+              onMouseLeave={() => setIsHoveringContact(false)}
+              onClick={() => setShowFeedbackModal(true)}
+              className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+                darkMode 
+                  ? 'bg-gray-700 hover:bg-gray-600' 
+                  : 'bg-gray-200 hover:bg-gray-300'
+              }`}
+              title="Contact"
+            >
+              {isHoveringContact ? (
+                <MailPlus className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+              ) : (
+                <Mail className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+              )}
+            </button>
+            
+            {/* Profile Dropdown */}
+            <div className="relative" ref={profileDropdownRef}>
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors overflow-hidden"
+              className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors overflow-hidden ${
+                darkMode 
+                  ? 'bg-gray-700 hover:bg-gray-600' 
+                  : 'bg-gray-200 hover:bg-gray-300'
+              }`}
             >
               {session?.user?.image ? (
                 <Image
@@ -225,21 +271,33 @@ export default function WorkspacePage() {
                   className="rounded-full"
                 />
               ) : (
-                <User className="w-5 h-5 text-gray-300" />
+                <User className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} />
               )}
             </button>
             
-            {profileDropdownOpen && (
+            {profileDropdownOpen && profileDropdownPosition && (
               <div 
-                className="absolute right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10"
-                style={{ minWidth: '150px' }}
+                className={`fixed rounded-lg shadow-lg z-[100] ${
+                  darkMode 
+                    ? 'bg-gray-800 border border-gray-700' 
+                    : 'bg-white border border-gray-200'
+                }`}
+                style={{ 
+                  minWidth: '150px',
+                  top: `${profileDropdownPosition.top}px`,
+                  right: `${profileDropdownPosition.right}px`
+                }}
               >
                 <button
                   onClick={() => {
                     // Navigate to account settings
                     setProfileDropdownOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors text-white flex items-center gap-2 first:rounded-t-lg"
+                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg ${
+                    darkMode 
+                      ? 'hover:bg-gray-700 text-white' 
+                      : 'hover:bg-gray-100 text-gray-900'
+                  }`}
                 >
                   <Settings className="w-4 h-4" />
                   Account
@@ -249,33 +307,46 @@ export default function WorkspacePage() {
                     // Toggle dark mode (implementation needed)
                     setProfileDropdownOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors text-white flex items-center gap-2"
+                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                    darkMode 
+                      ? 'hover:bg-gray-700 text-white' 
+                      : 'hover:bg-gray-100 text-gray-900'
+                  }`}
                 >
                   <Moon className="w-4 h-4" />
                   Dark Mode
                 </button>
                 <button
                   onClick={() => {
-                    // Handle contact
+                    setShowFeedbackModal(true);
                     setProfileDropdownOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors text-white flex items-center gap-2"
+                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                    darkMode 
+                      ? 'hover:bg-gray-700 text-white' 
+                      : 'hover:bg-gray-100 text-gray-900'
+                  }`}
                 >
-                  <Mail className="w-4 h-4" />
-                  Contact
+                  <HelpCircle className="w-4 h-4" />
+                  Help
                 </button>
                 <button
                   onClick={async () => {
                     await signOut({ callbackUrl: '/login' });
                     setProfileDropdownOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors text-white flex items-center gap-2 last:rounded-b-lg"
+                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg ${
+                    darkMode 
+                      ? 'hover:bg-gray-700 text-white' 
+                      : 'hover:bg-gray-100 text-gray-900'
+                  }`}
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
                 </button>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
@@ -284,17 +355,21 @@ export default function WorkspacePage() {
         {/* Loading State */}
         {loading && (
           <div className="text-center py-12">
-            <div className="text-gray-400">Loading workspaces...</div>
+            <div className={darkMode ? "text-gray-400" : "text-gray-600"}>Loading workspaces...</div>
           </div>
         )}
 
         {/* Error State */}
         {error && (
           <div className="text-center py-12">
-            <div className="text-red-400 mb-4">{error}</div>
+            <div className={`mb-4 ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{error}</div>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                darkMode 
+                  ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+              }`}
             >
               Retry
             </button>
@@ -304,41 +379,32 @@ export default function WorkspacePage() {
         {/* Start Session Section */}
         {!loading && !error && (
           <div className="mb-8">
-            {/* Informational Text */}
-            <div className="bg-blue-600/10 border border-blue-600/30 rounded-xl p-5 mb-6">
-              <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                Ready to start a session?
-              </h2>
-              <p className="text-sm text-gray-300 leading-relaxed">
-                Starting a session creates a safe space for you to explore and map your internal parts. 
-                You can name your session anything that feels right to you, or simply click Start to begin. 
-                There's no pressure—you can take your time and explore at your own pace.
-              </p>
-            </div>
-
-            {/* Start Form */}
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={newWorkspaceName}
-                  onChange={(e) => setNewWorkspaceName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleStartSession()}
-                  placeholder="Name your session (optional)"
-                  className="w-full bg-gray-800 text-white placeholder-gray-500 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1 ml-1">
-                  You can always change this later
-                </p>
+            <div className={`border rounded-2xl p-6 backdrop-blur-sm ${
+              darkMode 
+                ? 'bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 border-blue-500/30' 
+                : 'bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 border-blue-300 shadow-sm'
+            }`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
+                    <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      Ready to start a session?
+                    </h2>
+                  </div>
+                  <p className={`text-sm leading-relaxed mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Starting a session creates a safe space for you to explore and map your internal parts.
+                    There's no pressure—you can take your time and explore at your own pace.
+                  </p>
+                </div>
+                <button
+                  onClick={handleStartSession}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all duration-200 font-semibold flex items-center gap-2 text-base hover:scale-105 disabled:opacity-50 disabled:cursor-wait shrink-0 text-white"
+                >
+                  <Play className="w-5 h-5" />
+                  <span>Start</span>
+                </button>
               </div>
-              <button
-                onClick={handleStartSession}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors font-medium flex items-center gap-2 text-base disabled:opacity-50 disabled:cursor-wait"
-              >
-                <Play className="w-5 h-5" />
-                <span>Start</span>
-              </button>
             </div>
           </div>
         )}
@@ -346,11 +412,13 @@ export default function WorkspacePage() {
         {/* Empty State */}
         {!loading && !error && workspaces.length === 0 && (
           <div className="text-center py-12">
-            <div className="inline-flex p-6 bg-gray-800/30 rounded-2xl mb-4">
-              <Map className="w-16 h-16 text-gray-600" />
+            <div className={`inline-flex p-6 rounded-2xl mb-4 ${
+              darkMode ? 'bg-gray-800/30' : 'bg-gray-100'
+            }`}>
+              <Map className={`w-16 h-16 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Ready when you are</h3>
-            <p className="text-gray-400">Click Start above to begin your first session</p>
+            <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Ready when you are</h3>
+            <p className={darkMode ? "text-gray-400" : "text-gray-600"}>Click Start above to begin your first session</p>
           </div>
         )}
 
@@ -359,13 +427,15 @@ export default function WorkspacePage() {
           <>
             {/* Sort Controls */}
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm text-gray-400">{workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}</h3>
+              <h3 className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}</h3>
               <div className="flex items-center gap-2">
-                <ArrowUpDown className="w-4 h-4 text-gray-400" />
+                <ArrowUpDown className={`w-4 h-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="text-white text-sm focus:outline-none cursor-pointer flex items-center gap-1"
+                    className={`text-sm focus:outline-none cursor-pointer flex items-center gap-1 ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}
                   >
                     {sortBy === 'edited' && 'Recently Edited'}
                     {sortBy === 'created' && 'Recently Created'}
@@ -375,7 +445,11 @@ export default function WorkspacePage() {
                   
                   {dropdownOpen && (
                     <div 
-                      className="absolute right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10"
+                      className={`absolute right-0 mt-2 rounded-lg shadow-lg z-50 ${
+                        darkMode 
+                          ? 'bg-gray-800 border border-gray-700' 
+                          : 'bg-white border border-gray-200'
+                      }`}
                       style={{ minWidth: 0, width: '157px' }}
                     >
                       {sortBy !== 'edited' && (
@@ -384,7 +458,11 @@ export default function WorkspacePage() {
                             setSortBy('edited');
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors text-white first:rounded-t-lg"
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-lg ${
+                            darkMode 
+                              ? 'hover:bg-gray-700 text-white' 
+                              : 'hover:bg-gray-100 text-gray-900'
+                          }`}
                         >
                           Recently Edited
                         </button>
@@ -395,7 +473,11 @@ export default function WorkspacePage() {
                             setSortBy('created');
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors text-white"
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                            darkMode 
+                              ? 'hover:bg-gray-700 text-white' 
+                              : 'hover:bg-gray-100 text-gray-900'
+                          }`}
                         >
                           Recently Created
                         </button>
@@ -406,7 +488,11 @@ export default function WorkspacePage() {
                             setSortBy('name');
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors text-white last:rounded-b-lg"
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-lg ${
+                            darkMode 
+                              ? 'hover:bg-gray-700 text-white' 
+                              : 'hover:bg-gray-100 text-gray-900'
+                          }`}
                         >
                           Name
                         </button>
@@ -422,17 +508,27 @@ export default function WorkspacePage() {
               {sortedWorkspaces.map((workspace) => (
               <div
                 key={workspace.id}
-                className={`bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700/50 hover:border-blue-500 transition-all duration-200 cursor-pointer relative ${navigatingToWorkspace === workspace.id ? 'opacity-50 pointer-events-none' : ''}`}
+                className={`relative group rounded-xl overflow-hidden border-2 backdrop-blur-sm cursor-pointer ${navigatingToWorkspace === workspace.id ? 'opacity-50 pointer-events-none' : ''} ${
+                  darkMode 
+                    ? 'border-gray-700/50 hover:border-blue-500 bg-gray-800/50' 
+                    : 'border-gray-300 hover:border-blue-400 bg-white/80'
+                }`}
                 onClick={() => handleOpenWorkspace(workspace.id)}
               >
                 {/* Workspace Preview - Grid of Parts */}
-                <div className="h-40 bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden p-3">
+                <div className={`h-40 bg-gradient-to-br relative overflow-hidden p-3 ${
+                  darkMode 
+                    ? 'from-gray-700 to-gray-800' 
+                    : 'from-blue-50 to-indigo-50'
+                }`}>
                   {workspace.nodes && workspace.nodes.length > 0 ? (
                     <div className="grid grid-cols-3 gap-2 h-full">
                       {workspace.nodes.slice(0, 6).map((node: any) => (
                         <div
                           key={node.id}
-                          className="bg-gray-800/50 rounded-lg overflow-hidden flex items-center justify-center"
+                          className={`rounded-lg overflow-hidden flex items-center justify-center ${
+                            darkMode ? 'bg-gray-800/50' : 'bg-white'
+                          }`}
                         >
                           {node.data?.image ? (
                             <img 
@@ -441,30 +537,40 @@ export default function WorkspacePage() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="text-xs text-gray-400 p-1 text-center truncate w-full">
+                            <div className={`text-xs p-1 text-center truncate w-full ${
+                              darkMode ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
                               {node.data?.label || 'Part'}
                             </div>
                           )}
                         </div>
                       ))}
                       {workspace.nodes.length > 6 && (
-                        <div className="bg-gray-800/50 rounded-lg flex items-center justify-center text-gray-400 text-xs">
+                        <div className={`rounded-lg flex items-center justify-center text-xs ${
+                          darkMode 
+                            ? 'bg-gray-800/50 text-gray-400' 
+                            : 'bg-white text-gray-600'
+                        }`}>
                           +{workspace.nodes.length - 6}
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                      <div className="p-3 bg-gray-800/30 rounded-full">
-                        <Map className="w-8 h-8 text-gray-500" />
+                      <div className={`p-3 rounded-full ${
+                        darkMode ? 'bg-gray-800/30' : 'bg-white/70'
+                      }`}>
+                        <Map className={`w-8 h-8 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
                       </div>
-                      <span className="text-gray-400 text-sm font-medium">Empty workspace</span>
+                      <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Empty workspace</span>
                     </div>
                   )}
                   
                   {/* Loading Overlay */}
                   {navigatingToWorkspace === workspace.id && (
-                    <div className="absolute inset-0 bg-gray-900/80 flex items-center justify-center">
+                    <div className={`absolute inset-0 flex items-center justify-center ${
+                      darkMode ? 'bg-gray-900/80' : 'bg-white/80'
+                    }`}>
                       <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
                     </div>
                   )}
@@ -472,34 +578,40 @@ export default function WorkspacePage() {
 
                 <div className="p-5">
                   {/* Workspace Title */}
-                  <h3 className="text-xl font-semibold text-white mb-1 line-clamp-1">
+                  <h3 className={`text-xl font-semibold mb-1 line-clamp-1 ${
+                    darkMode ? 'text-white' : 'text-gray-900'
+                  }`}>
                     {workspace.name}
                   </h3>
 
                   {/* Workspace Description */}
                   {workspace.description && (
-                    <p className="text-sm text-gray-400 line-clamp-2 mb-3">
+                    <p className={`text-sm line-clamp-2 mb-3 ${
+                      darkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
                       {workspace.description}
                     </p>
                   )}
 
                   {/* Dates */}
-                  <div className="flex flex-col gap-2 text-xs text-gray-500 mb-4">
+                  <div className={`flex flex-col gap-2 text-xs mb-4 ${
+                    darkMode ? 'text-gray-500' : 'text-gray-500'
+                  }`}>
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5" />
                       <span>Created {formatDate(workspace.createdAt)}</span>
                     </div>
-                    {workspace.createdAt.getTime() !== workspace.lastModified.getTime() && (
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>Edited {formatDate(workspace.lastModified)}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Edited {formatDate(workspace.createdAt.getTime() === workspace.lastModified.getTime() ? workspace.createdAt : workspace.lastModified)}</span>
+                    </div>
                   </div>
 
                   {/* Action Button */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
-                    <span className="text-sm text-gray-500">
+                  <div className={`flex items-center justify-between pt-3 border-t ${
+                    darkMode ? 'border-gray-700/50' : 'border-gray-200'
+                  }`}>
+                    <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>
                       {workspace.partCount} {workspace.partCount === 1 ? 'part' : 'parts'}
                     </span>
                     <div className="flex items-center gap-2">
@@ -526,6 +638,15 @@ export default function WorkspacePage() {
         )}
 
       </div>
+
+      {/* Feedback Modal */}
+      <Modal
+        show={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        width="auto"
+      >
+        <FeedbackForm />
+      </Modal>
     </div>
   );
 }

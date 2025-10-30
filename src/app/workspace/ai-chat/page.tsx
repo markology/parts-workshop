@@ -383,13 +383,14 @@ function AIChatContent({ initialMessage }: { initialMessage: string | null }) {
               <div
                 className={`max-w-[80%] rounded-2xl ${
                   message.role === "user"
-                    ? "text-white"
-                    : "text-gray-200"
+                    ? "text-white bg-amber-600"
+                    : "text-gray-200 bg-gray-800"
                 }`}
                 style={message.role === "user" ? {
-                  background: "darkgoldenrod",
                   padding: "12px 20px"
-                } : {}}
+                } : {
+                  padding: "12px 20px"
+                }}
               >
                 <div className="flex items-start space-x-3">
                   {message.role === "assistant" && (

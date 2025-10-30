@@ -1,14 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLoadMap } from "../state/hooks/useLoadMap";
 import Canvas from "./Canvas";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { FlowNodesProvider } from "../state/FlowNodesContext";
-import SideBar from "./SideBar/SideBar";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import OnboardingModal from "@/components/OboardingModal";
 import { createEmptyImpressionGroups } from "../state/stores/useWorkingStore";
+import FloatingActionButtons from "./FloatingActionButtons";
+import PartInput from "./SideBar/PartInput";
+import ImpressionInput from "./SideBar/Impressions/ImpressionInput";
+import FeedbackForm from "@/components/FeedbackForm";
+import Modal from "@/components/Modal";
+import { useUIStore } from "../state/stores/UI";
+import PartDetailPanel from "./SideBar/PartDetailPanel";
+import { useSession, signOut } from "next-auth/react";
+import { User, Settings, Moon, Mail, LogOut, Sparkles, HelpCircle } from "lucide-react";
+import Image from "next/image";
 // import TourOverlay from "./TourOverlay";
 
 // Function to normalize sidebarImpressions data structure
@@ -39,6 +48,43 @@ export default function CanvasClient({
   const { data, isLoading, error } = useLoadMap(mapId);
   const [hydrated, setHydrated] = useState(false);
   const isMobile = useIsMobile();
+  const { data: session } = useSession();
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  
+  const showPartModal = useUIStore((s) => s.showPartModal);
+  const setShowPartModal = useUIStore((s) => s.setShowPartModal);
+  const showImpressionModal = useUIStore((s) => s.showImpressionModal);
+  const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
+  const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
+  const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
+
+  // Update dropdown position when it opens
+  useEffect(() => {
+    if (profileDropdownOpen && profileDropdownRef.current) {
+      const rect = profileDropdownRef.current.getBoundingClientRect();
+      setProfileDropdownPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right
+      });
+    } else {
+      setProfileDropdownPosition(null);
+    }
+  }, [profileDropdownOpen]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (data && typeof data === 'object' && 'id' in data) {
@@ -107,10 +153,46 @@ export default function CanvasClient({
 
   return (
     <FlowNodesProvider>
+      {/* Header */}
+      <div className="absolute top-4 left-0 right-0 flex items-center justify-center z-40 pointer-events-none" style={{ paddingLeft: '280px' }}>
+        {/* Search Input */}
+        <div className="relative pointer-events-auto" style={{ width: '448px' }}>
+          <Sparkles className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-400" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Ask me anything..."
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
       {showOnboarding && <OnboardingModal />}
       {/* <TourOverlay /> */}
-      {!isMobile && <SideBar />}
+      <FloatingActionButtons />
       <Canvas />
+      <PartDetailPanel />
+      
+      {/* Modals for actions */}
+      <Modal show={showPartModal} onClose={() => setShowPartModal(false)}>
+        <PartInput />
+      </Modal>
+      
+      <Modal
+        show={showImpressionModal}
+        onClose={() => setShowImpressionModal(false)}
+      >
+        <ImpressionInput />
+      </Modal>
+      
+      <Modal
+        show={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        width="auto"
+      >
+        <FeedbackForm />
+      </Modal>
     </FlowNodesProvider>
   ); // now fully local + Zustand-based
 }

@@ -42,6 +42,10 @@ export interface ImpressionNodeData extends BaseNodeData {
   type: "impressionData";
 }
 
+export interface RelationshipSelectionNodeData extends BaseNodeData {
+  type: "relationshipSelectionData";
+}
+
 export type ConnectedNodeType = {
   part: PartNode;
   conflictDescription: string;
@@ -63,6 +67,10 @@ export type AllyNode = Node<ConflictNodeData> & {
   type: "ally";
 };
 
-export type WorkshopNode = ImpressionNode | PartNode | ConflictNode | AllyNode;
+export type RelationshipSelectionNode = Node<RelationshipSelectionNodeData> & {
+  type: "relationship";
+};
 
-export type NodeType = "impression" | "part" | "conflict" | "ally";
+export type WorkshopNode = ImpressionNode | PartNode | ConflictNode | AllyNode | RelationshipSelectionNode;
+
+export type NodeType = "impression" | "part" | "conflict" | "ally" | "relationship";
