@@ -82,16 +82,6 @@ const PartMetadata = ({ data, partId }: PartMetadataProps) => {
                 : data.partType}
             </span>
           </div>
-          {data.age && (
-            <div>
-              <span className="font-medium">Age:</span> {data.age}
-            </div>
-          )}
-          {data.gender && (
-            <div>
-              <span className="font-medium">Gender:</span> {data.gender}
-            </div>
-          )}
         </div>
       </div>
     );
@@ -147,30 +137,6 @@ const PartMetadata = ({ data, partId }: PartMetadataProps) => {
             />
           </div>
         )}
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
-            Age
-          </label>
-          <input
-            type="number"
-            value={formData.age}
-            onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-            placeholder="Age"
-            className="w-full text-sm border border-gray-300 rounded px-2 py-1"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
-            Gender
-          </label>
-          <input
-            type="text"
-            value={formData.gender}
-            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-            placeholder="Gender"
-            className="w-full text-sm border border-gray-300 rounded px-2 py-1"
-          />
-        </div>
       </div>
     </div>
   );

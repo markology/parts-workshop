@@ -1,7 +1,8 @@
 "use client";
 
-import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail } from "lucide-react";
+import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
 import { useFlowNodesContext } from "../state/FlowNodesContext";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
@@ -20,6 +21,7 @@ import { useThemeContext } from "@/state/context/ThemeContext";
 import { HelpCircle } from "lucide-react";
 
 const FloatingActionButtons = () => {
+  const router = useRouter();
   const [activeButton, setActiveButton] = useState<string | null>('action');
   const [hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [impressionDropdownStates, setImpressionDropdownStates] = useState<Partial<Record<ImpressionType, boolean>>>({
@@ -150,9 +152,8 @@ const FloatingActionButtons = () => {
     }
     
     if (action === 'settings') {
-      // Toggle profile dropdown
+      // Toggle profile dropdown - don't change activeButton state
       setProfileDropdownOpen(!profileDropdownOpen);
-      setActiveButton('action'); // Keep action button active
       return;
     }
 
@@ -415,6 +416,20 @@ const FloatingActionButtons = () => {
             >
               <Settings className="w-4 h-4" />
               Account
+            </button>
+            <button
+              onClick={() => {
+                router.push('/workspace');
+                setProfileDropdownOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                darkMode 
+                  ? 'hover:bg-gray-700 text-white' 
+                  : 'hover:bg-gray-100 text-gray-900'
+              }`}
+            >
+              <Map className="w-4 h-4" />
+              Workspaces
             </button>
             <button
               onClick={() => {
