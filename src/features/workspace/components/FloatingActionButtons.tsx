@@ -596,7 +596,13 @@ const FloatingActionButtons = () => {
           <div 
             ref={impressionsRef} 
             className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col pointer-events-auto" 
-            style={{ zIndex: 40, width: '313px' }}
+            style={{ 
+              zIndex: 40, 
+              width: '313px',
+              transform: 'scaleX(0)',
+              transformOrigin: 'left center',
+              animation: 'expandMenu 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards'
+            }}
           >
             <div className="pt-[10px] pb-[15px] px-[10px] h-full flex flex-col">
               <ImpressionDisplay />
