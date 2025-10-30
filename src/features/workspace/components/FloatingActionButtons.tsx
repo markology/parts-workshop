@@ -4,7 +4,7 @@ import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
-import { useFlowNodesContext } from "../state/FlowNodesContext";
+import { useFlowNodesActions } from "../state/FlowNodesContext";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
@@ -31,7 +31,8 @@ const FloatingActionButtons = () => {
     behavior: true,
     other: true,
   });
-  const { createNode } = useFlowNodesContext();
+  // Use actions-only hook to prevent re-renders when nodes/edges change
+  const { createNode } = useFlowNodesActions();
   const menuRef = useRef<HTMLDivElement>(null);
   const impressionsRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);

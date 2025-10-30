@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, memo } from "react";
 import Image from "next/image";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { 
@@ -32,7 +32,25 @@ import ImpressionInput from "./Impressions/ImpressionInput";
 const PartDetailPanel = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
-  const { nodes, edges, updateNode } = useFlowNodesContext();
+  // Use selective subscriptions - only subscribe to updateNode function, not nodes/edges arrays
+  const { updateNode } = useFlowNodesContext();
+  
+  // Get nodes and edges from store - Zustand handles this efficiently
+  const nodes = useWorkingStore((s) => s.nodes);
+  const edges = useWorkingStore((s) => s.edges);
+  
+  // Use useMemo to compute derived values to prevent infinite loops
+  const partNode = useMemo(() => {
+    if (!selectedPartId) return null;
+    return nodes.find(node => node.id === selectedPartId) || null;
+  }, [selectedPartId, nodes]);
+  
+  const relatedEdges = useMemo(() => {
+    if (!selectedPartId) return [];
+    return edges.filter(
+      (edge) => edge.source === selectedPartId || edge.target === selectedPartId
+    );
+  }, [selectedPartId, edges]);
   const { darkMode } = useThemeContext();
   const [addingImpressionType, setAddingImpressionType] = useState<string | null>(null);
   const [currentImpressionType, setCurrentImpressionType] = useState<string>("emotion");
@@ -214,18 +232,11 @@ const PartDetailPanel = () => {
     return colorMap[impressionType] || "#ed9f9f";
   };
 
-  const partNode = useMemo(() => {
-    if (!selectedPartId) return null;
-    return nodes.find(node => node.id === selectedPartId);
-  }, [selectedPartId, nodes]);
-
+  // Calculate relationships from the related edges and nodes
   const relationships = useMemo(() => {
-    if (!selectedPartId) return [];
-    const connectedEdges = edges.filter(
-      (edge) => edge.source === selectedPartId || edge.target === selectedPartId
-    );
-
-    return connectedEdges.map((edge) => {
+    if (!selectedPartId || !relatedEdges.length) return [];
+    
+    return relatedEdges.map((edge) => {
       const connectedNodeId = edge.source === selectedPartId ? edge.target : edge.source;
       const connectedNode = nodes.find((node) => node.id === connectedNodeId);
       
@@ -237,7 +248,7 @@ const PartDetailPanel = () => {
         relationshipType: edge.data?.relationshipType || "conflict",
       };
     });
-  }, [edges, nodes, selectedPartId]);
+  }, [relatedEdges, nodes, selectedPartId]);
 
 
   const addListItem = (field: string, newItem: string) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, memo } from "react";
 import Image from "next/image";
 import { Handle, Position } from "@xyflow/react";
 import { 
@@ -322,4 +322,9 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
   );
 };
 
-export default NewPartNode;
+// Memoize to prevent re-renders when other nodes move
+// Only re-renders when this node's data changes or related edges change
+export default memo(NewPartNode, (prevProps, nextProps) => {
+  // Only re-render if the node's data actually changed
+  return prevProps.data === nextProps.data && prevProps.partId === nextProps.partId;
+});

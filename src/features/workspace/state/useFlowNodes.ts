@@ -120,7 +120,8 @@ export const useFlowNodes = () => {
 
   // GENERAL NODE MANAGENT
 
-  const createNode = (
+  // Memoize createNode to prevent unnecessary re-renders in components that only need this function
+  const createNode = useCallback((
     type: NodeType,
     label: string,
     impressionType?: ImpressionType,
@@ -172,7 +173,7 @@ export const useFlowNodes = () => {
         }
       );
     }, 0);
-  };
+  }, [setNodes, getViewport, setCenter]);
 
   const deleteNode = useCallback(
     (id: string) => {

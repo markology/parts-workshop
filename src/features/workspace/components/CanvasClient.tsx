@@ -54,6 +54,7 @@ export default function CanvasClient({
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   
+  // Use individual selectors - Zustand handles this efficiently with shallow comparison
   const showPartModal = useUIStore((s) => s.showPartModal);
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const showImpressionModal = useUIStore((s) => s.showImpressionModal);
