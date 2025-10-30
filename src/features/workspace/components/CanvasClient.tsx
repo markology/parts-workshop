@@ -16,7 +16,7 @@ import Modal from "@/components/Modal";
 import { useUIStore } from "../state/stores/UI";
 import PartDetailPanel from "./SideBar/PartDetailPanel";
 import { useSession, signOut } from "next-auth/react";
-import { User, Settings, Moon, Mail, LogOut, Sparkles, HelpCircle } from "lucide-react";
+import { User, Settings, Moon, Mail, LogOut, HelpCircle } from "lucide-react";
 import Image from "next/image";
 // import TourOverlay from "./TourOverlay";
 
@@ -50,7 +50,6 @@ export default function CanvasClient({
   const isMobile = useIsMobile();
   const { data: session } = useSession();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   
@@ -154,21 +153,6 @@ export default function CanvasClient({
 
   return (
     <FlowNodesProvider>
-      {/* Header */}
-      <div className="absolute top-4 left-0 right-0 flex items-center justify-center z-40 pointer-events-none" style={{ paddingLeft: '280px' }}>
-        {/* Search Input */}
-        <div className="relative pointer-events-auto" style={{ width: '448px' }}>
-          <Sparkles className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-400" />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Ask me anything..."
-            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-
       {showOnboarding && <OnboardingModal />}
       {/* <TourOverlay /> */}
       <FloatingActionButtons />

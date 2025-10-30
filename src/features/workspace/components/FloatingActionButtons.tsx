@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map } from "lucide-react";
+import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
@@ -31,6 +31,11 @@ const FloatingActionButtons = () => {
     behavior: true,
     other: true,
   });
+  const [isSearchExpanded, setIsSearchExpanded] = useState(true);
+  const [searchInput, setSearchInput] = useState("");
+  const [isCollapsing, setIsCollapsing] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const menuWidthRef = useRef<number>(0);
   // Use actions-only hook to prevent re-renders when nodes/edges change
   const { createNode } = useFlowNodesActions();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -52,6 +57,40 @@ const FloatingActionButtons = () => {
   
   const impressions = useWorkingStore((s) => s.sidebarImpressions);
   const { setActiveSidebarNode } = useSidebarStore();
+  
+  // Focus input when expanded
+  useEffect(() => {
+    if (isSearchExpanded && searchInputRef.current && !isCollapsing) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    }
+  }, [isSearchExpanded, isCollapsing]);
+
+  // Measure menu width when it opens
+  useEffect(() => {
+    if (showRelationshipTypeModal && menuRef.current) {
+      // Small delay to ensure menu is rendered
+      setTimeout(() => {
+        const menuElement = menuRef.current?.querySelector('div') as HTMLElement;
+        if (menuElement) {
+          menuWidthRef.current = menuElement.offsetWidth;
+        }
+      }, 10);
+    }
+  }, [showRelationshipTypeModal]);
+
+  const handleSearchClose = () => {
+    // Start the collapse animation
+    setIsCollapsing(true);
+    setIsSearchExpanded(false);
+    
+    // Clear the input and reset state after the animation completes (300ms)
+    setTimeout(() => {
+      setIsCollapsing(false);
+      setSearchInput("");
+    }, 300);
+  };
   
   const handleSaveAndCleanup = async () => {
     setLocalIsSaving(true);
@@ -491,9 +530,23 @@ const FloatingActionButtons = () => {
 
   return (
     <>
-      {/* Plus button on the left */}
-      <div className="absolute top-4 left-4 z-50">
+      {/* Plus button and 9 dots on the left */}
+      <div className="absolute top-4 left-4 z-50 flex flex-row gap-3 items-center">
         <ButtonComponent icon={Plus} action="action" label="Add" />
+        
+        {/* 9 dots button - slides to end of options pill when menu opens */}
+        <div
+          className="relative"
+          style={{
+            transform: showRelationshipTypeModal 
+              ? `translateX(calc(${menuWidthRef.current || 380}px + 16px))` 
+              : 'translateX(0)',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+            zIndex: showRelationshipTypeModal ? 60 : 50
+          }}
+        >
+          <ButtonComponent icon="dots" action="options" label="Options" />
+        </div>
         
         {/* Impressions window underneath the + button */}
         {activeButton === 'action' && (
@@ -516,17 +569,104 @@ const FloatingActionButtons = () => {
         )}
       </div>
 
-      {/* Other 3 buttons on the right */}
-      <div className="absolute top-4 right-4 z-50 flex flex-row gap-3">
-        {buttons.filter(b => b.action !== 'action').map(({ icon, action, label }) => (
+      {/* Search button and other buttons on the right */}
+      <div className="absolute top-4 right-4 z-50 flex flex-row gap-3 items-center">
+        {/* Search Button */}
+        <div 
+          className="relative pointer-events-auto h-12"
+          style={{ 
+            width: (isSearchExpanded || isCollapsing) ? '448px' : '48px',
+            transition: 'width 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+            overflow: 'visible',
+            willChange: 'width',
+            padding: '2px'
+          }}
+        >
+          {/* Collapsed Button */}
+          <button
+            onClick={() => {
+              if (!isSearchExpanded) {
+                setIsCollapsing(false);
+                setIsSearchExpanded(true);
+              }
+            }}
+            className="absolute left-0 top-0 w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center hover:shadow-md z-10"
+            style={{
+              opacity: isSearchExpanded ? 0 : 1,
+              transform: isSearchExpanded ? 'scale(0.8)' : 'scale(1)',
+              pointerEvents: isSearchExpanded ? 'none' : 'auto',
+              transition: 'opacity 0.15s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1)'
+            }}
+            title="Ask me anything..."
+          >
+            <Sparkles className="w-6 h-6 text-purple-400" />
+          </button>
+          
+          {/* Expanded Input */}
+          <div 
+            className="absolute inset-0 flex items-center"
+            style={{ 
+              opacity: (isSearchExpanded || isCollapsing) ? 1 : 0,
+              pointerEvents: (isSearchExpanded || isCollapsing) ? 'auto' : 'none',
+              transform: (isSearchExpanded || isCollapsing) ? 'translateX(0)' : 'translateX(12px)',
+              transition: isSearchExpanded 
+                ? 'opacity 0.15s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1)'
+                : 'opacity 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) 0.1s, transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) 0.1s'
+            }}
+          >
+            <Sparkles className="absolute left-3 w-4 h-4 text-purple-400 z-10 pointer-events-none" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  handleSearchClose();
+                }
+              }}
+              placeholder="Ask me anything..."
+              className="w-full h-12 pl-10 pr-10 bg-white border border-gray-300 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:border-transparent"
+              style={{ margin: '-2px' }}
+              disabled={isCollapsing}
+            />
+            {!isCollapsing && (
+              <button
+                onClick={handleSearchClose}
+                className="absolute right-3 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors duration-200 z-10"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Other action buttons */}
+        {buttons.filter(b => b.action !== 'action' && b.action !== 'options').map(({ icon, action, label }) => (
           <ButtonComponent key={action} icon={icon} action={action} label={label} />
         ))}
       </div>
 
       {/* Quick Action Menu (shown when "Add" is clicked) */}
       {showRelationshipTypeModal && (
-        <div ref={menuRef} className="absolute top-4 left-20 z-50">
-          <div className="bg-white rounded-full shadow-xl flex items-center overflow-hidden">
+        <div 
+          ref={menuRef} 
+          className="absolute top-4 z-50"
+          style={{
+            left: '80px', // 48px (button) + 16px (gap) + 16px (extra space)
+            overflow: 'visible'
+          }}
+        >
+          <div 
+            className="bg-white rounded-full shadow-xl flex items-center overflow-hidden"
+            style={{
+              width: 'max-content',
+              transform: 'scaleX(0)',
+              transformOrigin: 'left center',
+              animation: 'expandMenu 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards'
+            }}
+          >
             {/* Part option */}
             <button
               onMouseEnter={() => setHoveredOption('part')}
