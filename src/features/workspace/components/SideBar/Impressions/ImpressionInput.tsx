@@ -125,8 +125,8 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
             '--tw-placeholder-color': `${NodeBackgroundColors[selectedType]}90`,
           } as React.CSSProperties}
           ref={textAreaRef}
-          className="w-full p-4 pt-6 px-5 rounded-b-xl resize-y focus:outline-none font-medium placeholder:opacity-90"
-          rows={3}
+          className="w-full p-5 pt-7 px-6 rounded-b-xl resize-y focus:outline-none font-medium placeholder:opacity-90 text-base"
+          rows={5}
           autoFocus
           onKeyDown={handleTextAreaKeyDown}
           placeholder="Add Impression and Press Enter ↵ + (Tab switches types)"

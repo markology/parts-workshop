@@ -360,6 +360,8 @@ const FloatingActionButtons = () => {
     const isSettingsAction = action === 'settings';
     const isSaveAction = action === 'save';
     const isContactAction = action === 'contact';
+    const isActionButton = action === 'action';
+    const showXForAction = isActionButton && showRelationshipTypeModal;
     
     return (
       <div className="relative" ref={isSettingsAction ? profileDropdownRef : null}>
@@ -368,8 +370,10 @@ const FloatingActionButtons = () => {
           className={`
             group
             w-12 h-12 rounded-full 
-            ${isActive && !isSaveAction && !isContactAction
+            ${isActive && !isSaveAction && !isContactAction && !isActionButton
               ? 'bg-gray-800 text-white' 
+              : showXForAction
+              ? 'bg-gray-800 text-white'
               : 'bg-white text-gray-700'
             }
             shadow-sm
@@ -380,7 +384,7 @@ const FloatingActionButtons = () => {
           `}
           title={label}
         >
-          {isActive && !isSettingsAction && !isSaveAction && !isContactAction ? (
+          {showXForAction ? (
             <X className="w-6 h-6" />
           ) : icon === 'dots' ? (
             <div className="group-hover:rotate-90 transition-transform">
@@ -532,9 +536,21 @@ const FloatingActionButtons = () => {
     <>
       {/* Plus button and 9 dots on the left */}
       <div className="absolute top-4 left-4 z-50 flex flex-row gap-3 items-center">
-        <ButtonComponent icon={Plus} action="action" label="Add" />
+        {/* Plus/X button - slides to end of options pill when menu opens */}
+        <div
+          className="relative"
+          style={{
+            transform: showRelationshipTypeModal 
+              ? `translateX(calc(${menuWidthRef.current || 380}px + 16px))` 
+              : 'translateX(0)',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+            zIndex: showRelationshipTypeModal ? 60 : 50
+          }}
+        >
+          <ButtonComponent icon={Plus} action="action" label="Add" />
+        </div>
         
-        {/* 9 dots button - slides to end of options pill when menu opens */}
+        {/* 9 dots button - stays to the right of +/X */}
         <div
           className="relative"
           style={{
@@ -552,18 +568,33 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl p-4 w-64 h-[calc(100vh-160px)] overflow-auto" 
-            style={{ zIndex: 40 }}
+            className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col" 
+            style={{ zIndex: 40, width: '313px' }}
           >
-            <div className="space-y-2">
-              {ImpressionList.filter(type => type !== 'default').map((type) => (
-                <ImpressionDropdown
-                  key={type}
-                  type={type}
-                  filteredImpressions={impressions[type] || {}}
-                  onDragStart={onDragStart}
-                />
-              ))}
+            {/* Header with title and + button */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-800">Impressions</h2>
+              <button
+                onClick={() => {
+                  setShowImpressionModal(true);
+                }}
+                className="h-8 px-3 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-sm font-medium text-gray-700"
+                title="Add Impression"
+              >
+                Add
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              <div className="space-y-2">
+                {ImpressionList.filter(type => type !== 'default').map((type) => (
+                  <ImpressionDropdown
+                    key={type}
+                    type={type}
+                    filteredImpressions={impressions[type] || {}}
+                    onDragStart={onDragStart}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -648,13 +679,13 @@ const FloatingActionButtons = () => {
         ))}
       </div>
 
-      {/* Quick Action Menu (shown when "Add" is clicked) */}
+      {/* Quick Action Menu (shown when "Add" is clicked) - aligned with impression sidebar */}
       {showRelationshipTypeModal && (
         <div 
           ref={menuRef} 
           className="absolute top-4 z-50"
           style={{
-            left: '80px', // 48px (button) + 16px (gap) + 16px (extra space)
+            left: '16px', // Aligned with impression sidebar (left-4 = 16px)
             overflow: 'visible'
           }}
         >
@@ -679,8 +710,8 @@ const FloatingActionButtons = () => {
               className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
             >
               Part
-              <span className="w-4 h-4 flex items-center justify-center">
-                <Plus className={`w-4 h-4 transition-colors ${hoveredOption === 'part' ? 'text-gray-700' : 'text-gray-400'}`} />
+              <span className="h-6 px-2 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-700">
+                Add
               </span>
             </button>
             
@@ -698,27 +729,8 @@ const FloatingActionButtons = () => {
               className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
             >
               Relationship
-              <span className="w-4 h-4 flex items-center justify-center">
-                <Plus className={`w-4 h-4 transition-colors ${hoveredOption === 'relationship' ? 'text-gray-700' : 'text-gray-400'}`} />
-              </span>
-            </button>
-            
-            <div className="w-px h-6 bg-gray-200" />
-            
-            {/* Impressions option */}
-            <button
-              onMouseEnter={() => setHoveredOption('impressions')}
-              onMouseLeave={() => setHoveredOption(null)}
-              onClick={() => {
-                setShowImpressionModal(true);
-                // Keep options menu open - don't close it
-                // Keep action button active so impressions sidebar stays open
-              }}
-              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
-            >
-              Impressions
-              <span className="w-4 h-4 flex items-center justify-center">
-                <Plus className={`w-4 h-4 transition-colors ${hoveredOption === 'impressions' ? 'text-gray-700' : 'text-gray-400'}`} />
+              <span className="h-6 px-2 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-700">
+                Add
               </span>
             </button>
           </div>

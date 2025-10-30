@@ -27,7 +27,15 @@ const SideBar = () => {
   const CreateButtons = useMemo(
     () => (
       <div id="sidebar-buttons" className="mb-4">
-        <div className="flex gap-2 mb-[8px]">
+        <button
+          id="create-impression-button"
+          onClick={() => setShowImpressionModal(true)}
+          className="flex-1 w-full text-white font-medium shadow-md  rounded transition p-none flex justify-center items-center bg-[#45618a] items-center p-[5px] mb-[8px]"
+        >
+          Impression
+          <Plus className="ml-1" size={20} strokeWidth={2} />
+        </button>
+        <div className="flex gap-2">
           <button
             id="create-part-button"
             onClick={() => setShowPartModal(true)}
@@ -46,15 +54,6 @@ const SideBar = () => {
             <Plus className="ml-1" size={20} strokeWidth={2} />
           </button>
         </div>
-
-        <button
-          id="create-impression-button"
-          onClick={() => setShowImpressionModal(true)}
-          className="flex-1 w-full text-white font-medium shadow-md  rounded transition p-none flex justify-center items-center bg-[#45618a] items-center p-[5px]"
-        >
-          Impression
-          <Plus className="ml-1" size={20} strokeWidth={2} />
-        </button>
       </div>
     ),
     [createNode, setShowImpressionModal, setShowPartModal]
