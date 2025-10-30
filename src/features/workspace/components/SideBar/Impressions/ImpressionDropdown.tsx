@@ -59,7 +59,7 @@ const ImpressionDropdown = ({
           />
         )}
       </button>
-      <hr className="pb-2 text-black" />
+      <hr className="pb-2 border-gray-200" />
       <div className="flex flex-col gap-[6px]">
         {open &&
           filteredImpressions &&

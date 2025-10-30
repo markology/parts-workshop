@@ -31,8 +31,8 @@ const Impressions = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Header with title and + button */}
-      <div className="flex items-center justify-between px-3 py-2 mb-2 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800">Impressions</h2>
+      <div className="flex items-center justify-between px-3 py-3 mb-2 border-b border-gray-100">
+        <h2 className="text-lg font-semibold" style={{ color: '#555555' }}>Impressions</h2>
         <button
           onClick={() => {
             setShowImpressionModal(true);

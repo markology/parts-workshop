@@ -406,10 +406,7 @@ export const useFlowNodes = () => {
   // REACT FLOW USER INTERACTIVITY
 
   const onDragOver = useCallback(
-    (event: {
-      preventDefault: () => void;
-      dataTransfer: { dropEffect: string };
-    }) => {
+    (event: React.DragEvent) => {
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
     },
@@ -417,15 +414,53 @@ export const useFlowNodes = () => {
   );
 
   const onDrop = useCallback(
-    (event: {
-      preventDefault: () => void;
-      clientX: number;
-      clientY: number;
-    }) => {
+    (event: React.DragEvent) => {
       event.preventDefault();
 
+      console.log('Drop event fired', { 
+        activeSidebarNode, 
+        dataTransferTypes: Array.from(event.dataTransfer.types),
+        clientX: event.clientX,
+        clientY: event.clientY
+      });
+
+      // Try to get impression data from activeSidebarNode first, then fallback to dataTransfer
+      let impressionData: { id: string; type: ImpressionType; label: string } | null = null;
+
+      if (activeSidebarNode?.type) {
+        console.log('Using activeSidebarNode:', activeSidebarNode);
+        impressionData = {
+          id: activeSidebarNode.id,
+          type: activeSidebarNode.type,
+          label: activeSidebarNode.label,
+        };
+      } else {
+        // Fallback: read from dataTransfer
+        const data = event.dataTransfer.getData("parts-workshop/sidebar-impression");
+        console.log('Trying dataTransfer fallback:', data);
+        if (data) {
+          try {
+            const parsed = JSON.parse(data);
+            const impressions = useWorkingStore.getState().sidebarImpressions;
+            const impression = impressions[parsed.type]?.[parsed.id];
+            if (impression) {
+              impressionData = {
+                id: impression.id,
+                type: impression.type,
+                label: impression.label,
+              };
+              console.log('Found impression from dataTransfer:', impressionData);
+            }
+          } catch (e) {
+            console.error("Failed to parse drag data:", e);
+            return;
+          }
+        }
+      }
+
       // check if the dropped element is valid
-      if (!activeSidebarNode?.type) {
+      if (!impressionData) {
+        console.warn('No impression data found, drop cancelled');
         return;
       }
 
@@ -440,7 +475,7 @@ export const useFlowNodes = () => {
           (node): node is PartNode =>
             node.type === "part" && isPointInsideNode(position, node)
         );
-      const { id, type, label } = activeSidebarNode;
+      const { id, type, label } = impressionData;
 
       const newNode: ImpressionNode = {
         id: uuidv4(),

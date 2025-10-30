@@ -7,6 +7,7 @@ import { useUIStore } from "../state/stores/UI";
 import { useFlowNodesActions } from "../state/FlowNodesContext";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
+import ImpressionDisplay from "./SideBar/Impressions/ImpressionDisplay";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { NodeBackgroundColors } from "../constants/Nodes";
@@ -115,25 +116,51 @@ const FloatingActionButtons = () => {
     draggableId: string,
     type: ImpressionType
   ) => {
-    event.stopPropagation(); // critical if React Flow is interfering
-    
     // Get the impression data
     const impression = impressions[type]?.[draggableId];
     
     if (!impression) {
       console.error('Impression not found:', type, draggableId);
+      event.preventDefault();
       return;
     }
 
-    // Set data for drop handling
+    // Set data for drop handling - same as ImpressionDisplay
     event.dataTransfer.setData(
       "parts-workshop/sidebar-impression",
       JSON.stringify({ type, id: draggableId })
     );
 
-    // set ActiveSideBarNode - pass the full impression with label
-    setActiveSidebarNode(draggableId, type);
+    // set ActiveSideBarNode - same pattern as ImpressionDisplay
+    const activeSideBarNode = impressions[type]?.[draggableId];
+    setActiveSidebarNode(activeSideBarNode?.id || null, type);
     event.dataTransfer.effectAllowed = "move";
+    
+    // Create a custom drag image from the element itself to ensure it appears
+    const dragElement = event.currentTarget as HTMLElement;
+    const rect = dragElement.getBoundingClientRect();
+    
+    // Create a temporary element for the drag image
+    const dragImage = document.createElement('div');
+    dragImage.innerHTML = dragElement.innerHTML;
+    dragImage.style.cssText = window.getComputedStyle(dragElement).cssText;
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-9999px';
+    dragImage.style.opacity = '0.8';
+    dragImage.style.pointerEvents = 'none';
+    document.body.appendChild(dragImage);
+    
+    // Calculate offset to maintain cursor position
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    event.dataTransfer.setDragImage(dragImage, offsetX, offsetY);
+    
+    // Clean up after a short delay
+    setTimeout(() => {
+      if (document.body.contains(dragImage)) {
+        document.body.removeChild(dragImage);
+      }
+    }, 0);
     
     console.log('Drag started:', { type, id: draggableId, label: impression.label });
   };
@@ -307,7 +334,7 @@ const FloatingActionButtons = () => {
                 key={item.id}
                 className="sidebar-impression text-white rounded-lg px-3 py-2 cursor-grab flex justify-between items-center shadow-sm transition-transform hover:scale-[1.02] active:cursor-grabbing"
                 onDragStart={(event) => onDragStart(event, item.id, item.type)}
-                draggable="true"
+                draggable
                 style={{
                   background: NodeBackgroundColors[item.type],
                   userSelect: 'none',
@@ -568,33 +595,11 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col" 
+            className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col pointer-events-auto" 
             style={{ zIndex: 40, width: '313px' }}
           >
-            {/* Header with title and + button */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800">Impressions</h2>
-              <button
-                onClick={() => {
-                  setShowImpressionModal(true);
-                }}
-                className="h-8 px-3 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-sm font-medium text-gray-700"
-                title="Add Impression"
-              >
-                Add
-              </button>
-            </div>
-            <div className="flex-1 overflow-auto p-4">
-              <div className="space-y-2">
-                {ImpressionList.filter(type => type !== 'default').map((type) => (
-                  <ImpressionDropdown
-                    key={type}
-                    type={type}
-                    filteredImpressions={impressions[type] || {}}
-                    onDragStart={onDragStart}
-                  />
-                ))}
-              </div>
+            <div className="pt-[10px] pb-[15px] px-[10px] h-full flex flex-col">
+              <ImpressionDisplay />
             </div>
           </div>
         )}
