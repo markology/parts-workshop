@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]";
+import { getServerSession, type Session } from "next-auth";
+import authOptions from "../../auth/[...nextauth]";
+import type { Impression } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -25,7 +26,7 @@ interface ExtractedImpressions {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const session = await getServerSession(req, res, authOptions);
+  const session: Session | null = await getServerSession(req, res, authOptions);
   
   if (!session?.user?.id) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -82,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const extractedImpressions: ExtractedImpressions = await extractionResponse.json();
 
     // Create impressions in the database
-    const createdImpressions = [];
+    const createdImpressions: Impression[] = [];
 
     // Helper function to create impressions
     const createImpressions = async (impressions: ImpressionItem[], type: string) => {

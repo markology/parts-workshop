@@ -37,7 +37,7 @@ type SortOption = 'edited' | 'created' | 'name';
 export default function WorkspacePage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { darkMode } = useThemeContext();
+  const { darkMode, toggleDarkMode } = useThemeContext();
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
@@ -50,7 +50,6 @@ export default function WorkspacePage() {
   const [searchInput, setSearchInput] = useState("");
   const [navigatingToWorkspace, setNavigatingToWorkspace] = useState<string | null>(null);
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
-  const [isHoveringContact, setIsHoveringContact] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -178,14 +177,21 @@ export default function WorkspacePage() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
-        setProfileDropdownOpen(false);
+      if (profileDropdownOpen && profileDropdownRef.current) {
+        const dropdownMenu = (profileDropdownRef.current as any).dropdownMenu;
+        const clickedInsideButton = profileDropdownRef.current.contains(event.target as Node);
+        const clickedInsideMenu = dropdownMenu && dropdownMenu.contains(event.target as Node);
+        if (!clickedInsideButton && !clickedInsideMenu) {
+          setProfileDropdownOpen(false);
+        }
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    if (profileDropdownOpen || dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [profileDropdownOpen, dropdownOpen]);
 
   // Sort workspaces
   const sortedWorkspaces = [...workspaces].sort((a, b) => {
@@ -235,21 +241,16 @@ export default function WorkspacePage() {
           {/* Contact Button and Profile Dropdown */}
           <div className="flex items-center gap-2">
             <button
-              onMouseOver={() => setIsHoveringContact(true)}
-              onMouseLeave={() => setIsHoveringContact(false)}
               onClick={() => setShowFeedbackModal(true)}
-              className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+              className={`group relative flex items-center justify-center w-10 h-10 rounded-full ${
                 darkMode 
-                  ? 'bg-gray-700 hover:bg-gray-600' 
-                  : 'bg-gray-200 hover:bg-gray-300'
+                  ? 'bg-gray-700' 
+                  : 'bg-white'
               }`}
               title="Contact"
             >
-              {isHoveringContact ? (
-                <MailPlus className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} />
-              ) : (
-                <Mail className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} />
-              )}
+              <MailPlus className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'} opacity-0 group-hover:opacity-100 absolute`} />
+              <Mail className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'} opacity-100 group-hover:opacity-0`} />
             </button>
             
             {/* Profile Dropdown */}
@@ -277,6 +278,12 @@ export default function WorkspacePage() {
             
             {profileDropdownOpen && profileDropdownPosition && (
               <div 
+                ref={(el) => {
+                  if (el && profileDropdownRef.current) {
+                    // Store reference to dropdown menu for click-outside detection
+                    (profileDropdownRef.current as any).dropdownMenu = el;
+                  }
+                }}
                 className={`fixed rounded-lg shadow-lg z-[100] ${
                   darkMode 
                     ? 'bg-gray-800 border border-gray-700' 
@@ -302,20 +309,29 @@ export default function WorkspacePage() {
                   <Settings className="w-4 h-4" />
                   Account
                 </button>
-                <button
-                  onClick={() => {
-                    // Toggle dark mode (implementation needed)
-                    setProfileDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                    darkMode 
-                      ? 'hover:bg-gray-700 text-white' 
-                      : 'hover:bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  <Moon className="w-4 h-4" />
-                  Dark Mode
-                </button>
+                    <button
+                      onClick={() => {
+                        toggleDarkMode(!darkMode);
+                        setProfileDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                        darkMode 
+                          ? 'hover:bg-gray-700 text-white' 
+                          : 'hover:bg-gray-100 text-gray-900'
+                      }`}
+                    >
+                      {darkMode ? (
+                        <>
+                          <Sun className="w-4 h-4" />
+                          Light Mode
+                        </>
+                      ) : (
+                        <>
+                          <Moon className="w-4 h-4" />
+                          Dark Mode
+                        </>
+                      )}
+                    </button>
                 <button
                   onClick={() => {
                     setShowFeedbackModal(true);

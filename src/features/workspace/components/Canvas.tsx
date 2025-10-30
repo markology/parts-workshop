@@ -49,8 +49,8 @@ const Workspace = () => {
           fitView
           fitViewOptions={{
             padding: { left: SIDEBAR_WIDTH, right: 20, top: 20, bottom: 20 },
-            minZoom: 0.8,
-            maxZoom: 2,
+            minZoom: 0.5,
+            maxZoom: 1.5,
             duration: 0,
           }}
           onPaneClick={handlePaneClick}
@@ -83,8 +83,8 @@ const Workspace = () => {
           fitView
           fitViewOptions={{
             padding: { left: 20, right: 20, top: 20, bottom: 20 },
-            minZoom: 0.8,
-            maxZoom: 2,
+            minZoom: 0.5,
+            maxZoom: 1.5,
             duration: 0,
           }}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}

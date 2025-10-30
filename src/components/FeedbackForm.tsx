@@ -1,15 +1,26 @@
 import { useSendFeedback } from "@/features/workspace/hooks/useSendFeedback";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
+import { useThemeContext } from "@/state/context/ThemeContext";
+import { Loader2 } from "lucide-react";
 
 export default function FeedbackPopup() {
-  const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+  const [sendAnonymously, setSendAnonymously] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: session } = useSession();
+  const { darkMode } = useThemeContext();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { mutate: sendFeedback } = useSendFeedback();
+
+  // Autofocus message input when form opens
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = () => {
     if (!message.trim()) {
@@ -20,16 +31,16 @@ export default function FeedbackPopup() {
     setIsSubmitting(true);
     sendFeedback(
       {
-        name,
+        name: sendAnonymously ? "" : (session?.user?.name || ""),
         message,
-        userEmail: session?.user?.email || undefined,
-        userId: session?.user?.id,
+        userEmail: sendAnonymously ? undefined : (session?.user?.email || undefined),
+        userId: sendAnonymously ? undefined : session?.user?.id,
       },
       {
         onSuccess: () => {
           toast.success("Feedback sent. Thank you!");
           setMessage("");
-          setName("");
+          setSendAnonymously(false);
           setIsSubmitting(false);
         },
         onError: () => {
@@ -41,70 +52,64 @@ export default function FeedbackPopup() {
   };
 
   return (
-    <div className="p-6 rounded-lg shadow-xl max-w-120 w-[60vw] bg-theme text-theme">
-      <h2 className="text-xl font-semibold mb-4 text-theme">
+    <div className={`p-6 rounded-2xl shadow-xl w-[500px] ${
+      darkMode 
+        ? 'bg-gray-800 border border-gray-700' 
+        : 'bg-white border border-gray-200'
+    }`}>
+      <h2 className={`text-xl font-semibold mb-4 ${
+        darkMode ? 'text-white' : 'text-gray-900'
+      }`}>
         We&apos;d love your feedback
       </h2>
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium mb-1">
-            Your name (optional)
-          </label>
-          <input
-            id="name"
-            type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500`}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="message" className="block text-sm font-medium mb-1">
-            Your feedback
-          </label>
           <textarea
             id="message"
+            ref={textareaRef}
             placeholder="What's working? What's confusing? Suggestions welcome."
             rows={5}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className={`w-full px-3 py-2 rounded-md border resize-none `}
+            className={`w-full px-4 py-2 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              darkMode 
+                ? 'bg-gray-700 border border-gray-600 text-white placeholder-gray-400' 
+                : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
+            }`}
           />
+        </div>
+
+        <div className="flex items-center">
+          <input
+            id="sendAnonymously"
+            type="checkbox"
+            checked={sendAnonymously}
+            onChange={(e) => setSendAnonymously(e.target.checked)}
+            className={`w-4 h-4 rounded focus:ring-2 focus:ring-blue-500 ${
+              darkMode 
+                ? 'bg-gray-700 border-gray-600 text-blue-500' 
+                : 'bg-white border-gray-300 text-blue-600'
+            }`}
+          />
+          <label htmlFor="sendAnonymously" className={`ml-2 text-sm ${
+            darkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}>
+            Send anonymously
+          </label>
         </div>
 
         <div className="flex justify-end">
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2 ${
-              isSubmitting ? "opacity-75 cursor-not-allowed" : ""
+            className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 ${
+              isSubmitting ? "opacity-75 cursor-not-allowed" : "hover:scale-105"
             }`}
           >
             {isSubmitting ? (
               <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
+                <Loader2 className="h-5 w-5 animate-spin" />
                 Sending...
               </>
             ) : (

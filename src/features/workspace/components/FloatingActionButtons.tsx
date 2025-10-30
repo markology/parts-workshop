@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Settings, X, Minus, User, Moon, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail } from "lucide-react";
+import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useUIStore } from "../state/stores/UI";
 import { useFlowNodesContext } from "../state/FlowNodesContext";
@@ -21,12 +21,20 @@ import { HelpCircle } from "lucide-react";
 
 const FloatingActionButtons = () => {
   const [activeButton, setActiveButton] = useState<string | null>('action');
+  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
+  const [impressionDropdownStates, setImpressionDropdownStates] = useState<Partial<Record<ImpressionType, boolean>>>({
+    emotion: true,
+    thought: true,
+    sensation: true,
+    behavior: true,
+    other: true,
+  });
   const { createNode } = useFlowNodesContext();
   const menuRef = useRef<HTMLDivElement>(null);
   const impressionsRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
-  const { darkMode } = useThemeContext();
+  const { darkMode, toggleDarkMode } = useThemeContext();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   
@@ -36,8 +44,6 @@ const FloatingActionButtons = () => {
   const [showRelationshipTypeModal, setShowRelationshipTypeModal] = useState(true);
   const { isSaving, saveCheck } = useAutoSave();
   const saveMap = useSaveMap();
-  const [isHoveringSave, setIsHoveringSave] = useState(false);
-  const [isHoveringContact, setIsHoveringContact] = useState(false);
   const [localIsSaving, setLocalIsSaving] = useState(false);
   const [localSaveCheck, setLocalSaveCheck] = useState(false);
   
@@ -108,15 +114,22 @@ const FloatingActionButtons = () => {
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
+    if (!profileDropdownOpen) return;
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
-        setProfileDropdownOpen(false);
+      if (profileDropdownRef.current) {
+        const dropdownMenu = (profileDropdownRef.current as any).dropdownMenu;
+        const clickedInsideButton = profileDropdownRef.current.contains(event.target as Node);
+        const clickedInsideMenu = dropdownMenu && dropdownMenu.contains(event.target as Node);
+        if (!clickedInsideButton && !clickedInsideMenu) {
+          setProfileDropdownOpen(false);
+        }
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [profileDropdownOpen]);
 
   const handleActionClick = (action: string, event?: React.MouseEvent) => {
     if (event) {
@@ -197,16 +210,23 @@ const FloatingActionButtons = () => {
       type: ImpressionType
     ) => void;
   }) => {
-    const [open, toggleOpen] = useState(true);
+    const open = impressionDropdownStates[type] ?? true;
     const isImpressionsEmpty = !filteredImpressions || !Object.keys(filteredImpressions).length;
     const emptyOpacityStyle = isImpressionsEmpty ? 0.4 : 1;
+    
+    const toggleOpen = () => {
+      setImpressionDropdownStates(prev => ({
+        ...prev,
+        [type]: !prev[type]
+      }));
+    };
     
     return (
       <div className="mb-3">
         <button
           className="capitalize flex items-center justify-between w-full p-2 text-left font-semibold rounded transition-colors"
           disabled={isImpressionsEmpty}
-          onClick={() => toggleOpen(!open)}
+          onClick={toggleOpen}
           style={{
             color: NodeBackgroundColors[type],
             opacity: emptyOpacityStyle,
@@ -304,15 +324,8 @@ const FloatingActionButtons = () => {
       <div className="relative" ref={isSettingsAction ? profileDropdownRef : null}>
         <button
           onClick={(e) => handleActionClick(action, e)}
-          onMouseOver={() => {
-            if (isSaveAction) setIsHoveringSave(true);
-            if (isContactAction) setIsHoveringContact(true);
-          }}
-          onMouseLeave={() => {
-            if (isSaveAction) setIsHoveringSave(false);
-            if (isContactAction) setIsHoveringContact(false);
-          }}
           className={`
+            group
             w-12 h-12 rounded-full 
             ${isActive && !isSaveAction && !isContactAction
               ? 'bg-gray-800 text-white' 
@@ -322,31 +335,38 @@ const FloatingActionButtons = () => {
             flex items-center justify-center
             transition-all duration-200
             ${isSettingsAction ? 'overflow-hidden' : ''}
+            ${isSaveAction || isContactAction ? 'relative' : ''}
           `}
           title={label}
         >
           {isActive && !isSettingsAction && !isSaveAction && !isContactAction ? (
             <X className="w-6 h-6" />
           ) : icon === 'dots' ? (
-            <DotsIcon />
+            <div className="group-hover:rotate-90 transition-transform">
+              <DotsIcon />
+            </div>
           ) : icon === Plus ? (
-            <Plus className="w-6 h-6" />
+            <div className="group-hover:rotate-90 transition-transform">
+              <Plus className="w-6 h-6" />
+            </div>
           ) : isSaveAction ? (
-            (localIsSaving || isSaving) && !(localSaveCheck || saveCheck) ? (
-              <LoaderCircle className="w-6 h-6 animate-spin" />
-            ) : (localSaveCheck || saveCheck) ? (
-              <Check className="w-6 h-6" />
-            ) : isHoveringSave ? (
-              <SaveAll className="w-6 h-6" />
-            ) : (
-              <Save className="w-6 h-6" />
-            )
+            <>
+              {(localIsSaving || isSaving) && !(localSaveCheck || saveCheck) ? (
+                <LoaderCircle className="w-6 h-6 animate-spin" />
+              ) : (localSaveCheck || saveCheck) ? (
+                <Check className="w-6 h-6" />
+              ) : (
+                <>
+                  <SaveAll className="w-6 h-6 opacity-0 group-hover:opacity-100 absolute" />
+                  <Save className="w-6 h-6 opacity-100 group-hover:opacity-0" />
+                </>
+              )}
+            </>
           ) : isContactAction ? (
-            isHoveringContact ? (
-              <MailPlus className="w-6 h-6" />
-            ) : (
-              <Mail className="w-6 h-6" />
-            )
+            <>
+              <MailPlus className="w-6 h-6 opacity-0 group-hover:opacity-100 absolute" />
+              <Mail className="w-6 h-6 opacity-100 group-hover:opacity-0" />
+            </>
           ) : isSettingsAction ? (
             session?.user?.image ? (
               <Image
@@ -365,6 +385,12 @@ const FloatingActionButtons = () => {
         {/* Profile Dropdown */}
         {isSettingsAction && profileDropdownOpen && profileDropdownPosition && (
           <div 
+            ref={(el) => {
+              if (el && profileDropdownRef.current) {
+                // Store reference to dropdown menu for click-outside detection
+                (profileDropdownRef.current as any).dropdownMenu = el;
+              }
+            }}
             className={`fixed rounded-lg shadow-lg z-[100] ${
               darkMode 
                 ? 'bg-gray-800 border border-gray-700' 
@@ -392,7 +418,7 @@ const FloatingActionButtons = () => {
             </button>
             <button
               onClick={() => {
-                // Toggle dark mode (implementation needed)
+                toggleDarkMode(!darkMode);
                 setProfileDropdownOpen(false);
               }}
               className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
@@ -401,8 +427,17 @@ const FloatingActionButtons = () => {
                   : 'hover:bg-gray-100 text-gray-900'
               }`}
             >
-              <Moon className="w-4 h-4" />
-              Dark Mode
+              {darkMode ? (
+                <>
+                  <Sun className="w-4 h-4" />
+                  Light Mode
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4" />
+                  Dark Mode
+                </>
+              )}
             </button>
             <button
               onClick={() => {
@@ -478,42 +513,57 @@ const FloatingActionButtons = () => {
           <div className="bg-white rounded-full shadow-xl flex items-center overflow-hidden">
             {/* Part option */}
             <button
+              onMouseEnter={() => setHoveredOption('part')}
+              onMouseLeave={() => setHoveredOption(null)}
               onClick={() => {
                 setShowPartModal(true);
                 setShowRelationshipTypeModal(false);
                 // Keep action button active so impressions sidebar stays open
               }}
-              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium"
+              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
             >
               Part
+              <span className="w-4 h-4 flex items-center justify-center">
+                <Plus className={`w-4 h-4 transition-colors ${hoveredOption === 'part' ? 'text-gray-700' : 'text-gray-400'}`} />
+              </span>
             </button>
             
             <div className="w-px h-6 bg-gray-200" />
             
             {/* Relationship option */}
             <button
+              onMouseEnter={() => setHoveredOption('relationship')}
+              onMouseLeave={() => setHoveredOption(null)}
               onClick={() => {
                 createNode("relationship", "Choose Relationship Type");
                 // Keep action button active so impressions sidebar stays open
                 // Keep options menu open
               }}
-              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium"
+              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
             >
               Relationship
+              <span className="w-4 h-4 flex items-center justify-center">
+                <Plus className={`w-4 h-4 transition-colors ${hoveredOption === 'relationship' ? 'text-gray-700' : 'text-gray-400'}`} />
+              </span>
             </button>
             
             <div className="w-px h-6 bg-gray-200" />
             
             {/* Impressions option */}
             <button
+              onMouseEnter={() => setHoveredOption('impressions')}
+              onMouseLeave={() => setHoveredOption(null)}
               onClick={() => {
                 setShowImpressionModal(true);
-                setShowRelationshipTypeModal(false);
+                // Keep options menu open - don't close it
                 // Keep action button active so impressions sidebar stays open
               }}
-              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium"
+              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
             >
               Impressions
+              <span className="w-4 h-4 flex items-center justify-center">
+                <Plus className={`w-4 h-4 transition-colors ${hoveredOption === 'impressions' ? 'text-gray-700' : 'text-gray-400'}`} />
+              </span>
             </button>
           </div>
         </div>
