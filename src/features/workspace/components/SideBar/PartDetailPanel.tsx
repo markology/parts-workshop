@@ -463,14 +463,53 @@ const PartDetailPanel = () => {
   if (!selectedPartId || !partNode) return null;
 
   const data = partNode.data;
-  const containerBase = darkMode
-    ? "bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border border-gray-600/50"
-    : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50";
-  const containerClasses = containerBase + " rounded-xl shadow-lg overflow-y-auto w-full max-w-5xl max-h-[85vh] flex flex-col transition-all duration-300";
+  const containerClasses = `${
+    darkMode
+      ? "bg-slate-950/95 border border-slate-800 text-slate-100"
+      : "bg-white border border-slate-200 text-slate-900"
+  } relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col transition-all duration-300`;
+
+  const navContainerClasses = darkMode
+    ? "bg-slate-950/75 border-r border-slate-800/70"
+    : "bg-white/90 border-r border-slate-200/80";
+
+  const navButtonClasses = darkMode
+    ? "text-slate-300 hover:bg-slate-900/40 hover:text-white"
+    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+
+  const sectionCardClasses = darkMode
+    ? "bg-slate-950/70 border border-slate-800/70 shadow-[0_16px_48px_rgba(8,15,30,0.36)] rounded-[22px]"
+    : "bg-white border border-slate-200 shadow-[0_20px_55px_rgba(15,23,42,0.12)] rounded-[22px]";
+
+  const subCardClasses = darkMode
+    ? "bg-slate-950/60 border border-slate-800/70 rounded-xl"
+    : "bg-slate-50 border border-slate-200 rounded-xl";
+
+  const listItemClasses = darkMode
+    ? "bg-slate-950/50 border border-slate-800/60 text-slate-200"
+    : "bg-white border border-slate-200 text-slate-700";
+
+  const modalContainerClasses = darkMode
+    ? "bg-slate-950/95 border border-slate-800 text-slate-100"
+    : "bg-white border border-slate-200 text-slate-900";
+
+  const modalFieldCardClasses = darkMode
+    ? "bg-slate-950/75 border border-slate-800/70 rounded-2xl"
+    : "bg-slate-50 border border-slate-200 rounded-2xl";
+
+  const modalInputClasses = darkMode
+    ? "bg-slate-900/60 border border-slate-700 text-slate-100 placeholder-slate-500"
+    : "bg-white border border-slate-200 text-slate-900 placeholder-slate-400";
+
+  const modalTextareaClasses = darkMode
+    ? "bg-slate-900/60 border border-slate-700 text-slate-100 placeholder-slate-500"
+    : "bg-white border border-slate-200 text-slate-900 placeholder-slate-400";
+
+  const modalLabelClasses = darkMode ? "text-slate-200" : "text-slate-700";
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-slate-950/65 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
       onClick={() => setSelectedPartId(undefined)}
     >
       <div
@@ -480,31 +519,23 @@ const PartDetailPanel = () => {
         {/* Close Button - Top Right */}
         <button
           onClick={handleClose}
-          className={`absolute top-4 right-4 z-10 p-2 rounded-lg ${
-            darkMode 
-              ? "bg-gray-700/60 hover:bg-gray-600/80" 
-              : "bg-white/60 hover:bg-white/80"
+          className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2.5 rounded-full border transition-colors ${
+            darkMode
+              ? "bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-900"
+              : "bg-white border-slate-200 text-slate-500 shadow-sm hover:bg-slate-50"
           }`}
         >
-          <X size={18} className={darkMode ? "text-gray-300" : "text-gray-600"} />
+          <X size={16} className="pointer-events-none" />
         </button>
 
         {/* Content with TOC */}
         <div className="flex flex-row flex-1 overflow-hidden min-h-0">
           {/* Table of Contents - Left Column */}
-          <div className={`w-48 flex-shrink-0 border-r flex flex-col ${
-            darkMode 
-              ? "bg-gray-800/90 border-gray-700/50" 
-              : "bg-gray-50/90 border-gray-200/50"
-          }`}>
-            <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+          <div className={`w-52 flex-shrink-0 flex flex-col ${navContainerClasses}`}>
+            <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2">
               <button
                 onClick={() => scrollToSection(infoRef, 'info')}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
-                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
-                }`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-emerald-600" />
@@ -513,11 +544,7 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(insightsRef, 'insights')}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
-                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
-                }`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
                   <Brain className="w-4 h-4 text-sky-600" />
@@ -526,11 +553,7 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(impressionsRef, 'impressions')}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
-                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
-                }`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4 text-purple-600" />
@@ -539,11 +562,7 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(journalRef, 'journal')}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
-                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
-                }`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-amber-600" />
@@ -552,11 +571,7 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(relationshipsRef, 'relationships')}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
-                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
-                }`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-rose-600" />
@@ -567,67 +582,59 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Main Content - Right Column */}
-          <div ref={scrollableContentRef} className={`flex-1 p-8 backdrop-blur-sm overflow-y-auto ${
-            darkMode 
-              ? "bg-gray-800/80" 
-              : "bg-white/80"
-          }`}>
-          
+          <div ref={scrollableContentRef} className="flex-1 p-8 overflow-y-auto space-y-12 bg-transparent">
+
           {/* Info Section */}
-          <div ref={infoRef} className="mb-6 transition-all duration-300 relative">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className={`text-xs font-semibold uppercase tracking-wide flex items-center gap-2 ${
-                darkMode ? "text-gray-400" : "text-gray-500"
-              }`}>
-                <User className="w-3 h-3 text-emerald-600" />
-                Info
-              </h3>
+          <div ref={infoRef} className="transition-all duration-300 relative space-y-4">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    if (selectedPartId && partNode) {
-                      setJournalTarget({
-                        type: "node",
-                        nodeId: selectedPartId,
-                        nodeType: "part",
-                        title: partNode.data?.label || "Part",
-                      });
-                    }
-                  }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border-2 ${
-                    darkMode
-                      ? "bg-gray-800 border-purple-600 text-purple-400 hover:bg-gray-700"
-                      : "bg-white border-purple-600 text-purple-600 hover:bg-purple-50"
-                  } shadow-md`}
-                >
-                  <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-400" : "text-purple-600"}`} />
-                  <span>Deepen</span>
-                </button>
+                <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+                  darkMode ? "text-slate-400" : "text-slate-500"
+                }`}>
+                  <User className="w-3 h-3 text-emerald-600" />
+                  Info
+                </h3>
                 <button
                   onClick={() => setShowInfoEditModal(true)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
+                  className={`p-2 rounded-full border transition-colors ${
                     darkMode
-                      ? "bg-blue-800 hover:bg-blue-900 text-white"
-                      : "bg-blue-800 hover:bg-blue-900 text-white"
-                  } shadow-md`}
+                      ? "border-slate-700 text-slate-300 hover:bg-slate-900/60"
+                      : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                  }`}
+                  aria-label="Edit info"
                 >
                   <Pencil className="w-4 h-4" />
-                  <span>Edit</span>
                 </button>
               </div>
+              <button
+                onClick={() => {
+                  if (selectedPartId && partNode) {
+                    setJournalTarget({
+                      type: "node",
+                      nodeId: selectedPartId,
+                      nodeType: "part",
+                      title: partNode.data?.label || "Part",
+                    });
+                  }
+                }}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  darkMode
+                    ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
+                    : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
+                }`}
+              >
+                <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
+                <span>Deepen</span>
+              </button>
             </div>
             
             {/* Main Info Grid */}
-            <div className="space-y-6">
+            <div className={`${sectionCardClasses} p-6 space-y-6`}>
               {/* First Row: Image and Info */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Image - Left Column */}
                 <div className="lg:col-span-1">
-                  <div className={`w-full aspect-square relative ${
-                    darkMode 
-                      ? "bg-gray-700 border border-gray-600" 
-                      : "bg-white border border-gray-200"
-                  } rounded-lg shadow-sm overflow-hidden group`}>
+                  <div className={`${subCardClasses} w-full aspect-square relative shadow-sm overflow-hidden group`}>
                     {data.image ? (
                       <>
                         <Image
@@ -739,24 +746,19 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Insights Section */}
-          <div ref={insightsRef} className="mb-6 transition-all duration-300 relative">
-                <h4 className={`text-xs font-semibold uppercase tracking-wide flex items-center gap-2 ${
-                  darkMode ? "text-gray-400" : "text-gray-500"
-                }`}>
-                  <Brain className="w-3 h-3 text-sky-600" />
-                  Insights
-                </h4>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Needs */}
-                <div className={`rounded-lg p-4 border ${
-                  darkMode 
-                    ? "bg-gray-700/40 border-gray-600/50" 
-                    : "bg-white border-gray-300"
-                }`}>
+          <div ref={insightsRef} className="transition-all duration-300 relative space-y-4">
+            <h4 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+              darkMode ? "text-slate-400" : "text-slate-500"
+            }`}>
+              <Brain className="w-3 h-3 text-sky-600" />
+              Insights
+            </h4>
+            <div className={`${sectionCardClasses} p-6`}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Needs */}
+                <div className={`${subCardClasses} p-4 shadow-sm`}>
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className={`font-semibold capitalize text-sm ${
-                      darkMode ? "text-white" : "text-black"
-                    }`}>
+                    <h4 className={`font-semibold capitalize text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                       Needs
                     </h4>
                     <button
@@ -766,41 +768,33 @@ const PartDetailPanel = () => {
                           addListItem("needs", input.trim());
                         }
                       }}
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
                         darkMode
-                          ? "bg-gray-700/50 hover:bg-gray-700 text-gray-300"
-                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                          ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
+                          : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
                       }`}
                     >
                       Add
                     </button>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {((data.needs as string[]) || []).map((need: string, index: number) => (
-                      <div key={index} className={`group rounded border p-2 flex items-center justify-between ${
-                        darkMode 
-                          ? "bg-gray-600/40 border-gray-500/30" 
-                          : "bg-white/40 border-blue-200/30"
-                      }`}>
-                        <span className={`text-xs ${darkMode ? "text-white" : "text-black"}`}>{need}</span>
-                        <button 
+                      <div
+                        key={index}
+                        className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
+                      >
+                        <span className="text-xs font-medium leading-relaxed">{need}</span>
+                        <button
                           onClick={() => removeListItem("needs", index)}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
-                          style={{
-                            color: "#ed9f9f",
-                            height: "28px",
-                            width: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                          aria-label="Remove need"
                         >
-                          <X size={16} />
+                          <X size={14} />
                         </button>
                       </div>
                     ))}
                     {((data.needs as string[]) || []).length === 0 && (
-                      <div className={`text-center py-4 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} italic`}>
+                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                         No needs added yet
                       </div>
                     )}
@@ -808,15 +802,9 @@ const PartDetailPanel = () => {
                 </div>
 
                 {/* Fears */}
-                <div className={`rounded-lg p-4 border ${
-                  darkMode 
-                    ? "bg-gray-700/40 border-gray-600/50" 
-                    : "bg-white border-gray-300"
-                }`}>
+                <div className={`${subCardClasses} p-4 shadow-sm`}>
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className={`font-semibold capitalize text-sm ${
-                      darkMode ? "text-white" : "text-black"
-                    }`}>
+                    <h4 className={`font-semibold capitalize text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                       Fears
                     </h4>
                     <button
@@ -826,262 +814,238 @@ const PartDetailPanel = () => {
                           addListItem("fears", input.trim());
                         }
                       }}
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
                         darkMode
-                          ? "bg-gray-700/50 hover:bg-gray-700 text-gray-300"
-                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                          ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
+                          : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
                       }`}
                     >
                       Add
                     </button>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {((data.fears as string[]) || []).map((fear: string, index: number) => (
-                      <div key={index} className={`group rounded border p-2 flex items-center justify-between ${
-                        darkMode 
-                          ? "bg-gray-600/40 border-gray-500/30" 
-                          : "bg-white/40 border-blue-200/30"
-                      }`}>
-                        <span className={`text-xs ${darkMode ? "text-white" : "text-black"}`}>{fear}</span>
-                        <button 
+                      <div
+                        key={index}
+                        className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
+                      >
+                        <span className="text-xs font-medium leading-relaxed">{fear}</span>
+                        <button
                           onClick={() => removeListItem("fears", index)}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
-                          style={{
-                            color: "#ed9f9f",
-                            height: "28px",
-                            width: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                          aria-label="Remove fear"
                         >
-                          <X size={16} />
+                          <X size={14} />
                         </button>
                       </div>
                     ))}
                     {((data.fears as string[]) || []).length === 0 && (
-                      <div className={`text-center py-4 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} italic`}>
+                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                         No fears added yet
                       </div>
                     )}
                   </div>
                 </div>
-                </div>
+              </div>
+            </div>
           </div>
 
           {/* Impressions Section */}
-          <div ref={impressionsRef} className="mb-6 transition-all duration-300 relative">
-                <h3 className={`text-xs font-semibold uppercase tracking-wide mb-4 flex items-center gap-2 ${
-                  darkMode ? "text-gray-400" : "text-gray-500"
-                }`}>
-                  <Eye className="w-3 h-3 text-purple-600" />
-                  Impressions
-                </h3>
-                
-                {/* Flexible Layout for Impressions */}
-                <div className="space-y-4">
-                  {/* All Impressions: emotion, thought, sensation, behavior, other */}
-                  <div className="columns-1 lg:columns-2 gap-4 space-y-4">
-                    {ImpressionList.map((impression) => {
-                      const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
-                      
-                      return (
-                        <div key={impression} className={`break-inside-avoid rounded-lg p-4 border mb-4 ${
-                          darkMode 
-                            ? "bg-gray-700/40 border-gray-600/50" 
-                            : "bg-white border-gray-300"
-                        }`}>
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <h4 
-                                className="font-semibold capitalize text-sm"
-                                style={{ color: NodeBackgroundColors[impression] }}
-                              >
-                                {impression}
-                              </h4>
-                              <span 
-                                className="px-2 py-1 rounded-full text-xs font-medium"
-                                style={{
-                                  backgroundColor: `${NodeBackgroundColors[impression]}20`,
-                                  color: NodeBackgroundColors[impression],
-                                }}
-                              >
-                                {impressions.length}
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setAddingImpressionType(impression);
-                                setCurrentImpressionType(impression);
-                              }}
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                darkMode 
-                                  ? "bg-gray-700/50 hover:bg-gray-700 text-gray-300" 
-                                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                              }`}
+          <div ref={impressionsRef} className="transition-all duration-300 relative space-y-4">
+            <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+              darkMode ? "text-slate-400" : "text-slate-500"
+            }`}>
+              <Eye className="w-3 h-3 text-purple-600" />
+              Impressions
+            </h3>
+
+            {/* Flexible Layout for Impressions */}
+            <div className={`${sectionCardClasses} p-6`}>
+              <div className="space-y-4">
+                {/* All Impressions: emotion, thought, sensation, behavior, other */}
+                <div className="columns-1 lg:columns-2 gap-4 space-y-4">
+                  {ImpressionList.map((impression) => {
+                    const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
+
+                    return (
+                      <div key={impression} className={`break-inside-avoid ${subCardClasses} p-4 shadow-sm mb-4`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <h4
+                              className="font-semibold capitalize text-sm"
+                              style={{ color: NodeBackgroundColors[impression] }}
+                            >
+                              {impression}
+                            </h4>
+                            <span
+                              className="px-2 py-1 rounded-full text-xs font-medium"
                               style={{
-                                border: `1px solid ${NodeBackgroundColors[impression]}40`,
+                                backgroundColor: `${NodeBackgroundColors[impression]}20`,
+                                color: NodeBackgroundColors[impression],
                               }}
                             >
-                              Add
-                            </button>
+                              {impressions.length}
+                            </span>
                           </div>
-                          
-                          <div className="space-y-1 mb-2">
-                            {impressions.map((imp, index) => {
-                              const bgColor = NodeBackgroundColors[impression];
-                              
-                              return (
-                                <div 
-                                  key={index} 
-                                  className={`group rounded border p-2 flex items-center justify-between ${
-                                    darkMode 
-                                      ? "border-gray-600/30" 
-                                      : "border-blue-200/30"
-                                  }`}
-                                  style={{
-                                    backgroundColor: `${bgColor}20`,
-                                    color: `${bgColor}FF`,
-                                  }}
-                                >
-                                  <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
-                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                                    <button 
-                                      onClick={() => handleReturnToSidebar(impression, imp.id)}
-                                      className="p-1 hover:opacity-70"
-                                      style={{
-                                        color: getXButtonColor(impression),
-                                        height: "28px",
-                                        width: "24px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center"
-                                      }}
-                                      title="Return to sidebar"
-                                    >
-                                      <ListRestart size={16} />
-                                    </button>
-                                    <button 
-                                      onClick={() => handleRemoveImpression(impression, imp.id)}
-                                      className="p-1 hover:opacity-70"
-                                      style={{
-                                        color: getXButtonColor(impression),
-                                        height: "28px",
-                                        width: "24px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center"
-                                      }}
-                                      title="Delete"
-                                    >
-                                      <X size={16} />
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
+                          <button
+                            onClick={() => {
+                              setAddingImpressionType(impression);
+                              setCurrentImpressionType(impression);
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                              darkMode
+                                ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
+                                : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
+                            }`}
+                            style={{
+                              borderColor: `${NodeBackgroundColors[impression]}40`,
+                            }}
+                          >
+                            Add
+                          </button>
                         </div>
-                      );
-                    })}
-                  </div>
+
+                        <div className="space-y-2 mb-2">
+                          {impressions.map((imp, index) => {
+                            const bgColor = NodeBackgroundColors[impression];
+
+                            return (
+                              <div
+                                key={index}
+                                className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
+                                style={{
+                                  backgroundColor: `${bgColor}18`,
+                                  color: `${bgColor}FF`,
+                                }}
+                              >
+                                <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => handleReturnToSidebar(impression, imp.id)}
+                                    className="p-1"
+                                    style={{
+                                      color: getXButtonColor(impression),
+                                    }}
+                                    title="Return to sidebar"
+                                  >
+                                    <ListRestart size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveImpression(impression, imp.id)}
+                                    className="p-1"
+                                    style={{
+                                      color: getXButtonColor(impression),
+                                    }}
+                                    title="Delete"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
+            </div>
           </div>
 
-           {/* Journal History Section */}
-             <div ref={journalRef} className="mt-6 transition-all duration-300 relative">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-xs font-semibold uppercase tracking-wide flex items-center gap-2 ${
-                  darkMode ? "text-gray-400" : "text-gray-500"
-                }`}>
-                  <BookOpen className="w-3 h-3 text-amber-600" />
-                  Journal
-                </h3>
-                <button
-                  onClick={() => {
-                    if (selectedPartId && partNode) {
-                      setJournalTarget({
-                        type: "node",
-                        nodeId: selectedPartId,
-                        nodeType: "part",
-                        title: partNode.data?.label || "Part",
-                      });
-                    }
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border-2 ${
-                    darkMode
-                      ? "bg-gray-800 border-purple-600 text-purple-400 hover:bg-gray-700"
-                      : "bg-white border-purple-600 text-purple-600 hover:bg-purple-50"
-                  } shadow-md`}
-                >
-                  <Sparkles className={`w-3 h-3 ${darkMode ? "text-purple-400" : "text-purple-600"}`} />
-                  <span>New Entry</span>
-                </button>
-              </div>
-              
+          {/* Journal History Section */}
+          <div ref={journalRef} className="transition-all duration-300 relative space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+                darkMode ? "text-slate-400" : "text-slate-500"
+              }`}>
+                <BookOpen className="w-3 h-3 text-amber-600" />
+                Journal
+              </h3>
+              <button
+                onClick={() => {
+                  if (selectedPartId && partNode) {
+                    setJournalTarget({
+                      type: "node",
+                      nodeId: selectedPartId,
+                      nodeType: "part",
+                      title: partNode.data?.label || "Part",
+                    });
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition-colors border ${
+                  darkMode
+                    ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
+                    : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
+                }`}
+              >
+                <Sparkles className={`w-3 h-3 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
+                <span>New Entry</span>
+              </button>
+            </div>
+
+            <div className={`${sectionCardClasses} p-6`}>
               {isLoadingJournal ? (
-                <div className={`flex items-center justify-center py-8 rounded-lg ${
-                  darkMode 
-                    ? "bg-gray-700/40 border border-gray-600/50" 
-                    : "bg-white/40 border border-blue-200/50"
-                }`}>
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className={`ml-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>Loading journal entries...</span>
+                <div className={`${subCardClasses} flex items-center justify-center py-6`}> 
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <span className={`ml-3 text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
+                    Loading journal entries...
+                  </span>
                 </div>
               ) : journalEntries.length === 0 ? (
-                <div className={`text-center py-8 rounded-lg ${
-                  darkMode 
-                    ? "bg-gray-700/40 border border-gray-600/50" 
-                    : "bg-white/40 border border-blue-200/50"
-                }`}>
-                  <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
-                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>No Journal Entries Yet</h3>
-                  <p className={darkMode ? "text-gray-400" : "text-gray-500"}>Start writing about this part to see entries here.</p>
+                <div className={`${subCardClasses} text-center py-8 px-4`}> 
+                  <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
+                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
+                    No journal entries yet
+                  </h3>
+                  <p className={darkMode ? "text-slate-400" : "text-slate-500"}>
+                    Start writing about this part to see entries here.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {journalEntries.map((entry) => (
-                    <div key={entry.id} className={`${
-                      darkMode 
-                        ? "bg-gray-700/40 border border-gray-600/50" 
-                        : "bg-white/40 border border-blue-200/50"
-                    } rounded-lg p-5`}>
+                    <div key={entry.id} className={`${subCardClasses} p-5 shadow-sm`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <Clock className={`w-4 h-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
-                          <span className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                          <Clock className={`w-4 h-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                          <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
                             {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString()}
                           </span>
                         </div>
                         <button
                           onClick={() => extractImpressionsFromEntry(entry.id)}
                           disabled={isExtractingImpressions}
-                          className={`flex items-center gap-1 px-3 py-1 text-white text-sm rounded-lg ${
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                             isExtractingImpressions
-                              ? "bg-gray-400"
+                              ? darkMode
+                                ? "bg-slate-800 text-slate-400"
+                                : "bg-slate-200 text-slate-500"
                               : darkMode
-                                ? "bg-blue-600 hover:bg-blue-700"
-                                : "bg-blue-600 hover:bg-blue-700"
+                                ? "bg-slate-100/10 text-white hover:bg-slate-100/20"
+                                : "bg-slate-900 text-white hover:bg-slate-800"
                           }`}
                         >
                           {isExtractingImpressions ? (
                             <>
-                              <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
                               <span>Extracting...</span>
                             </>
                           ) : (
                             <>
                               <Sparkles className="w-3 h-3" />
-                              <span>Extract Impressions</span>
+                              <span>Extract impressions</span>
                             </>
                           )}
                         </button>
                       </div>
                       {entry.title && (
-                        <h4 className={`font-semibold mb-2 ${darkMode ? "text-white" : "text-gray-800"}`}>{entry.title}</h4>
+                        <h4 className={`font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-800"}`}>
+                          {entry.title}
+                        </h4>
                       )}
                       <div className={`whitespace-pre-wrap text-sm leading-relaxed ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
+                        darkMode ? "text-slate-300" : "text-slate-700"
                       }`}>
                         {entry.content}
                       </div>
@@ -1090,88 +1054,85 @@ const PartDetailPanel = () => {
                 </div>
               )}
             </div>
+          </div>
 
-             {/* Relationships Section */}
-             <div ref={relationshipsRef} className="mt-6 transition-all duration-300 relative">
-              <h3 className={`text-xs font-semibold uppercase tracking-wide mb-4 flex items-center gap-2 ${
-                darkMode ? "text-gray-400" : "text-gray-500"
-              }`}>
-                <Users className="w-3 h-3 text-rose-600" />
-                Relationships
-              </h3>
-              
+          {/* Relationships Section */}
+          <div ref={relationshipsRef} className="transition-all duration-300 relative space-y-4">
+            <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+              darkMode ? "text-slate-400" : "text-slate-500"
+            }`}>
+              <Users className="w-3 h-3 text-rose-600" />
+              Relationships
+            </h3>
+
+            <div className={`${sectionCardClasses} p-6`}>
               {relationships.length > 0 ? (
                 <div className="space-y-4">
                   {relationships.map((rel) => {
                     const isConflict = rel.relationshipType === "conflict";
                     const isAlly = rel.relationshipType === "ally";
-                    
+
                     return (
-                      <div
-                        key={rel.id}
-                        className={`rounded-lg p-5 ${
-                          darkMode 
-                            ? "bg-gray-700/40 border border-gray-600/50" 
-                            : "bg-white/40 border border-blue-200/50"
-                        }`}
-                      >
-                        <div className={`px-3 py-2 rounded-lg border-2 ${
-                          isConflict 
-                            ? darkMode
-                              ? "border-purple-400 bg-purple-900/40 shadow-sm"
-                              : "border-purple-400 bg-purple-100 shadow-sm"
-                            : isAlly 
+                      <div key={rel.id} className={`${subCardClasses} p-5 shadow-sm`}>
+                        <div
+                          className={`px-3 py-3 rounded-xl border ${
+                            isConflict
                               ? darkMode
-                                ? "border-sky-400 bg-sky-900/40 shadow-sm"
-                                : "border-sky-400 bg-sky-100 shadow-sm"
-                              : darkMode
-                                ? "border-gray-600/50 bg-gray-600/40"
-                                : "border-blue-200/30 bg-white/40"
-                        }`}>
+                                ? "border-purple-400/70 bg-purple-900/40"
+                                : "border-purple-300/80 bg-purple-50"
+                              : isAlly
+                                ? darkMode
+                                  ? "border-sky-400/70 bg-sky-900/35"
+                                  : "border-sky-300/80 bg-sky-50"
+                                : darkMode
+                                  ? "border-slate-700 bg-slate-900/50"
+                                  : "border-slate-200 bg-white"
+                          }`}
+                        >
                           <div className={`font-semibold text-sm mb-2 ${
-                            isConflict 
+                            isConflict
                               ? darkMode
                                 ? "text-purple-200"
                                 : "text-purple-900"
-                              : isAlly 
+                              : isAlly
                                 ? darkMode
                                   ? "text-sky-200"
                                   : "text-sky-900"
                                 : darkMode
-                                  ? "text-white"
-                                  : "text-black"
+                                  ? "text-slate-100"
+                                  : "text-slate-900"
                           }`}>
                             {rel.nodeLabel}
                           </div>
                           {rel.nodeDescription && String(rel.nodeDescription).trim() ? (
                             <div className={`text-xs mb-2 leading-relaxed whitespace-pre-wrap ${
-                              isConflict 
+                              isConflict
                                 ? darkMode
                                   ? "text-purple-300"
                                   : "text-purple-700"
-                                : isAlly 
+                                : isAlly
                                   ? darkMode
                                     ? "text-sky-300"
                                     : "text-sky-700"
                                   : darkMode
-                                    ? "text-gray-300"
-                                    : "text-gray-700"
+                                    ? "text-slate-300"
+                                    : "text-slate-700"
                             }`}>
                               {String(rel.nodeDescription)}
                             </div>
                           ) : null}
-                          <div className={`text-xs font-medium capitalize mt-1 ${
-                            isConflict 
+                          <div className={`text-xs font-medium capitalize mt-2 ${
+                            isConflict
                               ? darkMode
                                 ? "text-purple-300"
                                 : "text-purple-700"
-                              : isAlly 
+                              : isAlly
                                 ? darkMode
                                   ? "text-sky-300"
                                   : "text-sky-700"
                                 : darkMode
-                                  ? "text-gray-400"
-                                  : "text-gray-600"
+                                  ? "text-slate-400"
+                                  : "text-slate-600"
                           }`}>
                             {isConflict ? "⚔️ Conflict" : isAlly ? "🤝 Ally" : rel.nodeType}
                           </div>
@@ -1181,17 +1142,18 @@ const PartDetailPanel = () => {
                   })}
                 </div>
               ) : (
-                <div className={`text-center py-8 rounded-lg ${
-                  darkMode 
-                    ? "bg-gray-700/40 border border-gray-600/50" 
-                    : "bg-white/40 border border-blue-200/50"
-                }`}>
-                  <Users className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
-                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>No Relationships Yet</h3>
-                  <p className={darkMode ? "text-gray-400" : "text-gray-500"}>No relationships have been created for this part.</p>
+                <div className={`${subCardClasses} text-center py-8`}> 
+                  <Users className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
+                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
+                    No relationships yet
+                  </h3>
+                  <p className={darkMode ? "text-slate-400" : "text-slate-500"}>
+                    No relationships have been created for this part.
+                  </p>
                 </div>
               )}
             </div>
+          </div>
           </div>
         </div>
         
@@ -1260,219 +1222,170 @@ const PartDetailPanel = () => {
         {/* Info Edit Modal */}
         {showInfoEditModal && (
           <div
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4"
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-[2px] flex items-center justify-center z-[60] p-4"
             onClick={() => setShowInfoEditModal(false)}
           >
             <div
-              className={`rounded-2xl p-8 w-full max-w-2xl mx-4 shadow-2xl border ${
-                darkMode
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-200"
-              }`}
+              className={`${modalContainerClasses} rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-2xl max-h-[80vh] mx-4 overflow-hidden flex flex-col`}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className={`text-xl font-bold ${
-                  darkMode ? "text-white" : "text-gray-800"
-                }`}>
-                  Edit Info
-                </h3>
-                <button
-                  onClick={() => setShowInfoEditModal(false)}
-                  className={`p-2 rounded-full ${
-                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-                  }`}
-                >
-                  <X size={20} className={darkMode ? "text-gray-300" : "text-gray-500"} />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {/* First Row: Name/Pills on left, Image on right */}
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Left Column: Name and Part Type Pills */}
-                  <div className="space-y-4">
-                    {/* Name Input */}
-                    <div>
-                      <label className={`text-sm font-semibold mb-2 block ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}>
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        value={tempName}
-                        onChange={(e) => setTempName(e.target.value)}
-                        className={`w-full text-lg font-bold ${
-                          darkMode 
-                            ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500" 
-                            : "bg-white border-gray-300 text-black placeholder-gray-400"
-                        } border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                        placeholder="Part name..."
-                      />
-                    </div>
-
-                    {/* Part Type Pills */}
-                    <div>
-                      <label className={`text-sm font-semibold mb-3 block ${
-                        darkMode ? "text-gray-300" : "text-gray-700"
-                      }`}>
-                        Part Type
-                      </label>
-                      <div className="flex gap-2">
-                        {['manager', 'firefighter', 'exile'].map((type) => {
-                          const currentType = tempPartType || (data.customPartType as string) || (data.partType as string) || "";
-                          const isSelected = currentType === type;
-                          return (
-                            <button
-                              key={type}
-                              onClick={() => {
-                                setTempPartType(type);
-                              }}
-                              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                                isSelected
-                                  ? type === "manager"
-                                    ? "bg-blue-600 text-white shadow-md"
-                                    : type === "firefighter"
-                                      ? "bg-red-600 text-white shadow-md"
-                                      : "bg-purple-600 text-white shadow-md"
-                                  : darkMode
-                                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                              }`}
-                            >
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Age and Gender - Side by Side */}
-                    <div className="grid grid-cols-[1fr_2fr] gap-4">
-                      {/* Age Number Picker */}
-                      <div>
-                        <label className={`text-sm font-semibold mb-2 block ${
-                          darkMode ? "text-gray-300" : "text-gray-700"
-                        }`}>
-                          Age
-                        </label>
-                        <input
-                          type="number"
-                          value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
-                          onChange={(e) => setTempAge(e.target.value || "Unknown")}
-                          className={`w-full text-sm ${
-                            darkMode 
-                              ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500" 
-                              : "bg-white border-gray-300 text-black placeholder-gray-400"
-                          } border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                          placeholder="Unknown"
-                          min="0"
-                        />
-                      </div>
-
-                      {/* Gender Input */}
-                      <div>
-                        <label className={`text-sm font-semibold mb-2 block ${
-                          darkMode ? "text-gray-300" : "text-gray-700"
-                        }`}>
-                          Gender
-                        </label>
-                        <input
-                          type="text"
-                          value={tempGender}
-                          onChange={(e) => setTempGender(e.target.value)}
-                          className={`w-full text-sm ${
-                            darkMode 
-                              ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500" 
-                              : "bg-white border-gray-300 text-black placeholder-gray-400"
-                          } border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                          placeholder="Gender..."
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Image Upload */}
+              <div className="px-6 py-5 space-y-6 overflow-y-auto">
+                <div className="flex items-start justify-between">
                   <div>
-                    <label className={`text-sm font-semibold mb-3 block ${
-                      darkMode ? "text-gray-300" : "text-gray-700"
-                    }`}>
-                      Image
-                    </label>
-                    <div className={`w-full aspect-square relative ${
-                      darkMode 
-                        ? "bg-gray-700 border border-gray-600" 
-                        : "bg-white border border-gray-200"
-                    } rounded-lg shadow-sm overflow-hidden group`}>
-                      {data.image ? (
-                        <>
-                          <Image
-                            src={data.image as string}
-                            alt="Part"
-                            width={256}
-                            height={256}
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            onClick={() => modalFileInputRef.current?.click()}
-                            className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100"
-                          >
-                            <Upload className="w-8 h-8 text-white" />
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => modalFileInputRef.current?.click()}
-                          className={`w-full h-full ${
-                            darkMode ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-100 hover:bg-gray-200"
-                          } flex flex-col items-center justify-center cursor-pointer`}
-                        >
-                          <SquareUserRound size={64} className={darkMode ? "text-gray-300" : "text-gray-400"} />
-                          <span className={`text-xs mt-2 ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
-                            Click to upload
-                          </span>
-                        </button>
-                      )}
-                      <input
-                        ref={modalFileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleModalImageUpload}
-                        className="hidden"
-                      />
-                    </div>
+                    <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                      Info
+                    </p>
+                    <h3 className="text-2xl font-semibold mt-2">Edit details</h3>
+                    <p className={`text-sm mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                      Update the basics for {(data.name as string) || (data.label as string) || "your part"}.
+                    </p>
                   </div>
-                </div>
-
-                {/* Description - Full Width */}
-                <div>
-                  <label className={`text-sm font-semibold mb-2 block ${
-                    darkMode ? "text-gray-300" : "text-gray-700"
-                  }`}>
-                    Description
-                  </label>
-                  <textarea
-                    value={tempScratchpad}
-                    onChange={(e) => setTempScratchpad(e.target.value)}
-                    className={`w-full text-sm ${
-                      darkMode 
-                        ? "bg-gray-700 border-gray-600 text-gray-300 placeholder-gray-500" 
-                        : "bg-white border-gray-300 text-gray-700 placeholder-gray-400"
-                    } border rounded-lg px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                    placeholder="Add a description..."
-                    rows={6}
-                  />
-                </div>
-
-                {/* Save Button */}
-                <div className="flex justify-end gap-3 pt-4">
                   <button
                     onClick={() => setShowInfoEditModal(false)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                    className={`p-2 rounded-full border transition-colors ${
+                      darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-900/60" : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                    }`}
+                    aria-label="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-5">
+                    <div className={`${modalFieldCardClasses} p-5 space-y-5`}>
+                      <div className="space-y-2">
+                        <label className={`text-sm font-medium ${modalLabelClasses}`}>Name</label>
+                        <input
+                          type="text"
+                          value={tempName}
+                          onChange={(e) => setTempName(e.target.value)}
+                          className={`w-full text-base rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent ${modalInputClasses}`}
+                          placeholder="Part name"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className={`text-sm font-medium ${modalLabelClasses}`}>Part type</label>
+                        <div className="flex flex-wrap gap-2">
+                          {['manager', 'firefighter', 'exile'].map((type) => {
+                            const currentType = tempPartType || (data.customPartType as string) || (data.partType as string) || "";
+                            const isSelected = currentType === type;
+                            return (
+                              <button
+                                key={type}
+                                onClick={() => {
+                                  setTempPartType(type);
+                                }}
+                                className={`px-3.5 py-2 rounded-full text-xs font-semibold transition-colors ${
+                                  isSelected
+                                    ? type === "manager"
+                                      ? "bg-blue-600 text-white shadow-sm"
+                                      : type === "firefighter"
+                                        ? "bg-red-500 text-white shadow-sm"
+                                        : "bg-purple-500 text-white shadow-sm"
+                                    : darkMode
+                                      ? "bg-slate-900/50 border border-slate-700 text-slate-200 hover:bg-slate-900"
+                                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                                }`}
+                              >
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-[0.9fr_1.1fr] gap-4">
+                        <div className="space-y-2">
+                          <label className={`text-sm font-medium ${modalLabelClasses}`}>Age</label>
+                          <input
+                            type="number"
+                            value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
+                            onChange={(e) => setTempAge(e.target.value || "Unknown")}
+                            className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent ${modalInputClasses}`}
+                            placeholder="Unknown"
+                            min="0"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className={`text-sm font-medium ${modalLabelClasses}`}>Gender</label>
+                          <input
+                            type="text"
+                            value={tempGender}
+                            onChange={(e) => setTempGender(e.target.value)}
+                            className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent ${modalInputClasses}`}
+                            placeholder="Gender"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={`${modalFieldCardClasses} p-5 space-y-4`}>
+                      <div className="space-y-2">
+                        <label className={`text-sm font-medium ${modalLabelClasses}`}>Image</label>
+                        <div
+                          className={`relative aspect-square rounded-2xl overflow-hidden flex items-center justify-center ${
+                            darkMode ? "bg-slate-900/60 border border-slate-700" : "bg-white border border-slate-200"
+                          }`}
+                        >
+                          {data.image ? (
+                            <>
+                              <Image
+                                src={data.image as string}
+                                alt="Part"
+                                width={320}
+                                height={320}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                onClick={() => modalFileInputRef.current?.click()}
+                                className="absolute inset-0 bg-slate-950/0 hover:bg-slate-950/50 transition-colors flex items-center justify-center"
+                              >
+                                <Upload className="w-7 h-7 text-white" />
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => modalFileInputRef.current?.click()}
+                              className={`w-full h-full flex flex-col items-center justify-center gap-3 ${
+                                darkMode ? "text-slate-300 hover:bg-slate-900/40" : "text-slate-500 hover:bg-slate-100"
+                              }`}
+                            >
+                              <SquareUserRound size={60} />
+                              <span className="text-xs font-medium">Upload image</span>
+                            </button>
+                          )}
+                          <input
+                            ref={modalFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleModalImageUpload}
+                            className="hidden"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={`${modalFieldCardClasses} p-5 space-y-3`}>
+                    <label className={`text-sm font-medium ${modalLabelClasses}`}>Description</label>
+                    <textarea
+                      value={tempScratchpad}
+                      onChange={(e) => setTempScratchpad(e.target.value)}
+                      className={`w-full rounded-xl px-4 py-3 min-h-[160px] resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent ${modalTextareaClasses}`}
+                      placeholder="Add a description..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    onClick={() => setShowInfoEditModal(false)}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
                       darkMode
-                        ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
-                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                        ? "border-slate-700 text-slate-300 hover:bg-slate-900/60"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-100"
                     }`}
                   >
                     Cancel
@@ -1480,12 +1393,15 @@ const PartDetailPanel = () => {
                   <button
                     onClick={() => {
                       saveInfo();
-                      // Delay closing modal slightly to ensure save completes
                       setTimeout(() => {
                         setShowInfoEditModal(false);
                       }, 0);
                     }}
-                    className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
+                    className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                      darkMode
+                        ? "bg-slate-100/15 text-white hover:bg-slate-100/25"
+                        : "bg-slate-900 text-white hover:bg-slate-800"
+                    }`}
                   >
                     Save
                   </button>
