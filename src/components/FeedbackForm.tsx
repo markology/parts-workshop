@@ -51,72 +51,121 @@ export default function FeedbackPopup() {
     );
   };
 
-  return (
-    <div className={`p-6 rounded-2xl shadow-xl w-[500px] ${
-      darkMode 
-        ? 'bg-gray-800 border border-gray-700' 
-        : 'bg-white border border-gray-200'
-    }`}>
-      <h2 className={`text-xl font-semibold mb-4 ${
-        darkMode ? 'text-white' : 'text-gray-900'
-      }`}>
-        We&apos;d love your feedback
-      </h2>
+  const containerClasses = darkMode
+    ? "bg-slate-950/95 border-slate-800 text-slate-100"
+    : "bg-white border-sky-100 text-slate-900";
 
-      <div className="space-y-4">
-        <div>
+  const headerClasses = darkMode
+    ? "bg-slate-950/80 border-slate-800"
+    : "bg-gradient-to-br from-sky-50 via-cyan-50 to-white border-sky-100";
+
+  const headerAccentClasses = darkMode ? "text-cyan-300/80" : "text-sky-600/80";
+  const titleClasses = darkMode ? "text-white" : "text-slate-900";
+  const subtitleClasses = darkMode ? "text-slate-300/80" : "text-slate-600";
+
+  const cardClasses = darkMode
+    ? "bg-slate-900/60 border-slate-800"
+    : "bg-white border-sky-100";
+
+  const labelClasses = darkMode ? "text-cyan-200/70" : "text-sky-600";
+  const textareaClasses = darkMode
+    ? "bg-slate-950/80 border-slate-800 text-slate-100 placeholder-slate-500"
+    : "bg-white border-sky-200 text-slate-900 placeholder-slate-400";
+
+  const toggleContainerClasses = darkMode
+    ? "bg-slate-900/60 border-slate-800"
+    : "bg-sky-50 border-sky-100";
+
+  const toggleLabelClasses = darkMode ? "text-slate-200" : "text-slate-700";
+
+  const toggleTrackClasses = sendAnonymously
+    ? darkMode
+      ? "bg-cyan-500/70"
+      : "bg-sky-500"
+    : darkMode
+    ? "bg-slate-800"
+    : "bg-slate-200";
+
+  const footerClasses = darkMode
+    ? "bg-slate-950/80 border-slate-800"
+    : "bg-sky-50 border-sky-100";
+
+  const footerTextClasses = darkMode ? "text-slate-400" : "text-slate-500";
+
+  const buttonBaseClasses = "px-6 py-2 rounded-full font-semibold text-sm transition-transform duration-200 shadow-sm flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2";
+
+  const buttonPaletteClasses = darkMode
+    ? "bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-900 focus:ring-cyan-400 focus:ring-offset-slate-900"
+    : "bg-gradient-to-r from-sky-500 to-cyan-500 text-white focus:ring-sky-300 focus:ring-offset-sky-50";
+
+  return (
+    <div
+      className={`overflow-hidden w-full max-w-[520px] min-h-[520px] rounded-[28px] border shadow-[0_22px_48px_rgba(15,23,42,0.18)] flex flex-col ${containerClasses}`}
+    >
+      <div className={`px-6 pt-6 pb-5 border-b ${headerClasses}`}>
+        <p className={`text-[11px] uppercase tracking-[0.32em] ${headerAccentClasses}`}>
+          Studio Contact
+        </p>
+        <h2 className={`mt-2 text-2xl font-semibold leading-tight ${titleClasses}`}>
+          We&apos;re listening
+        </h2>
+        <p className={`mt-3 text-sm leading-relaxed ${subtitleClasses}`}>
+          Share thoughts, ideas, or rough edges. We review every note from the studio and respond when we can.
+        </p>
+      </div>
+
+      <div className="px-6 py-6 space-y-6">
+        <div className={`border rounded-2xl p-4 shadow-sm ${cardClasses}`}>
+          <label
+            htmlFor="message"
+            className={`block text-xs font-semibold uppercase tracking-[0.28em] mb-2 ${labelClasses}`}
+          >
+            Your note
+          </label>
           <textarea
             id="message"
             ref={textareaRef}
-            placeholder="What's working? What's confusing? Suggestions welcome."
-            rows={5}
+            placeholder="Let us know what feels helpful, confusing, or still missing."
+            rows={6}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className={`w-full px-4 py-2 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              darkMode 
-                ? 'bg-gray-700 border border-gray-600 text-white placeholder-gray-400' 
-                : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
-            }`}
+            className={`w-full rounded-xl px-4 py-3 resize-none border focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-shadow ${textareaClasses}`}
           />
         </div>
 
-        <div className="flex items-center">
-          <input
-            id="sendAnonymously"
-            type="checkbox"
-            checked={sendAnonymously}
-            onChange={(e) => setSendAnonymously(e.target.checked)}
-            className={`w-4 h-4 rounded focus:ring-2 focus:ring-blue-500 ${
-              darkMode 
-                ? 'bg-gray-700 border-gray-600 text-blue-500' 
-                : 'bg-white border-gray-300 text-blue-600'
-            }`}
-          />
-          <label htmlFor="sendAnonymously" className={`ml-2 text-sm ${
-            darkMode ? 'text-gray-300' : 'text-gray-700'
-          }`}>
-            Send anonymously
-          </label>
-        </div>
-
-        <div className="flex justify-end">
+        <div className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${toggleContainerClasses}`}>
+          <span className={`text-sm font-medium ${toggleLabelClasses}`}>Send anonymously</span>
           <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 ${
-              isSubmitting ? "opacity-75 cursor-not-allowed" : "hover:scale-105"
-            }`}
+            type="button"
+            onClick={() => setSendAnonymously((prev) => !prev)}
+            aria-pressed={sendAnonymously}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${toggleTrackClasses}`}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              "Send Feedback"
-            )}
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${sendAnonymously ? "translate-x-6" : "translate-x-1"}`}
+            />
           </button>
         </div>
+      </div>
+
+      <div className={`px-6 py-5 border-t flex items-center justify-between gap-4 ${footerClasses}`}>
+        <p className={`text-xs leading-relaxed max-w-[65%] ${footerTextClasses}`}>
+          Your email stays private. We only reach out if you leave us a way to reply.
+        </p>
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className={`${buttonBaseClasses} ${isSubmitting ? "opacity-75 cursor-not-allowed" : "hover:scale-105"} ${buttonPaletteClasses}`}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Sending
+            </>
+          ) : (
+            "Send feedback"
+          )}
+        </button>
       </div>
     </div>
   );
