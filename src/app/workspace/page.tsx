@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Sparkles, Loader2, MailPlus, HelpCircle } from "lucide-react";
+import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Loader2, MailPlus, HelpCircle } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -31,6 +31,12 @@ interface WorkspaceData {
   nodes: any[];
 }
 
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
 
 type SortOption = 'edited' | 'created' | 'name';
 
@@ -48,10 +54,23 @@ export default function WorkspacePage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: "assistant-initial",
+      role: "assistant",
+      content: "Hi! I'm here to help you navigate Parts Studio. Ask me anything."
+    }
+  ]);
+  const [isChatSending, setIsChatSending] = useState(false);
   const [navigatingToWorkspace, setNavigatingToWorkspace] = useState<string | null>(null);
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+  const collapsedInputRef = useRef<HTMLInputElement>(null);
+  const expandedInputRef = useRef<HTMLTextAreaElement>(null);
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load workspaces from API
   useEffect(() => {
@@ -91,6 +110,131 @@ export default function WorkspacePage() {
 
     loadWorkspaces();
   }, []);
+
+  useEffect(() => {
+    if (!isSearchExpanded) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
+        setIsSearchExpanded(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsSearchExpanded(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSearchExpanded]);
+
+  useEffect(() => {
+    if (!isSearchExpanded) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+  }, [chatMessages, isSearchExpanded]);
+
+  const handleSendChat = async () => {
+    const trimmedMessage = searchInput.trim();
+    if (!trimmedMessage || isChatSending) {
+      return;
+    }
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: trimmedMessage
+    };
+
+    const assistantMessageId = `assistant-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+    setChatMessages(prev => [
+      ...prev,
+      userMessage,
+      {
+        id: assistantMessageId,
+        role: "assistant",
+        content: ""
+      }
+    ]);
+
+    setSearchInput("");
+    setIsChatSending(true);
+
+    try {
+      const response = await fetch("/api/ai/ifs-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userMessage: trimmedMessage
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reach assistant");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      const decoder = new TextDecoder();
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        fullContent += decoder.decode(value, { stream: true });
+
+        const content = fullContent;
+        setChatMessages(prev =>
+          prev.map(message =>
+            message.id === assistantMessageId ? { ...message, content } : message
+          )
+        );
+      }
+
+      setChatMessages(prev =>
+        prev.map(message =>
+          message.id === assistantMessageId ? { ...message, content: fullContent } : message
+        )
+      );
+    } catch (error) {
+      console.error("Chat error:", error);
+      setChatMessages(prev =>
+        prev.map(message =>
+          message.id === assistantMessageId
+            ? {
+                ...message,
+                content:
+                  "I'm sorry, I'm having trouble responding right now. Please try again in a moment."
+              }
+            : message
+        )
+      );
+    } finally {
+      setIsChatSending(false);
+    }
+  };
 
   const handleStartSession = async () => {
     // Allow starting with or without a name
@@ -158,6 +302,12 @@ export default function WorkspacePage() {
     });
   };
 
+  const headerBackgroundClass = isSearchExpanded
+    ? 'bg-transparent'
+    : darkMode
+      ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black'
+      : 'bg-[#e6f8ff]';
+
   // Update dropdown position when it opens
   useEffect(() => {
     if (profileDropdownOpen && profileDropdownRef.current) {
@@ -209,12 +359,24 @@ export default function WorkspacePage() {
       ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white' 
       : 'bg-[#e6f8ff] text-gray-900'
     }`}>
+      <div
+        className={`fixed inset-0 pointer-events-none transition-opacity duration-300 ${
+          isSearchExpanded ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          backgroundColor: isSearchExpanded ? 'rgba(0,0,0,0.35)' : 'transparent',
+          backdropFilter: isSearchExpanded ? 'blur(2px)' : 'none',
+          WebkitBackdropFilter: isSearchExpanded ? 'blur(2px)' : 'none',
+          zIndex: 40
+        }}
+      />
       {/* Header */}
-      <div className={`relative z-40 ${
-        darkMode 
-          ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black' 
-          : 'bg-[#e6f8ff]'
-      }`}>
+      <div className={`relative ${headerBackgroundClass}`} style={{
+         backdropFilter: isSearchExpanded ? 'blur(4px)' : undefined,
+         WebkitBackdropFilter: isSearchExpanded ? 'blur(4px)' : undefined,
+         position: 'relative',
+         zIndex: isSearchExpanded ? 50 : 10
+       }}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="inline-block">
             <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -222,20 +384,92 @@ export default function WorkspacePage() {
             </h1>
           </Link>
           
-          {/* Search Input */}
-          <div className="flex-1 max-w-md relative">
-            <Sparkles className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-400" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Ask me anything..."
-              className={`w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                darkMode 
-                  ? 'bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400' 
-                  : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
+          {/* Search Input - Absolutely positioned, centered */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-4 w-full max-w-md px-6 pointer-events-none" style={{ zIndex: 60 }}>
+            <div
+              ref={searchBoxRef}
+              className={`relative pointer-events-auto transition-all duration-300 ease-out ${
+                isSearchExpanded
+                  ? `h-[60vh] max-h-[600px] rounded-3xl overflow-hidden border ${
+                      darkMode
+                        ? 'bg-white text-gray-900 border-gray-200 shadow-[0_22px_45px_rgba(20,23,55,0.20)]'
+                        : 'bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
+                    } flex flex-col`
+                  : ''
               }`}
-            />
+            >
+              {isSearchExpanded ? (
+                 <>
+                  <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
+                    <div>
+                      <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? 'text-purple-500/80' : 'text-purple-500/70'}`}>
+                        Studio Assistant
+                      </p>
+                      <p className={`mt-3 text-sm leading-relaxed ${darkMode ? 'text-gray-600' : 'text-gray-500'}`}>
+                        Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
+                      </p>
+                    </div>
+
+                    <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
+                      {chatMessages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                              message.role === 'user'
+                                ? 'bg-purple-500 text-white'
+                                : 'bg-gray-100 text-gray-800 border border-gray-200'
+                            }`}
+                          >
+                            {message.content.trim().length > 0 ? message.content : '...'}
+                          </div>
+                        </div>
+                      ))}
+                      <div ref={chatMessagesEndRef} />
+                    </div>
+                  </div>
+                  <div className="px-6 pb-6 border-0">
+                    <div className="relative">
+                      <textarea
+                        ref={expandedInputRef}
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            e.preventDefault();
+                            setIsSearchExpanded(false);
+                          } else if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendChat();
+                          }
+                        }}
+                        placeholder="Ask me anything..."
+                        className={`w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400`}
+                      />
+                    </div>
+                  </div>
+                 </>
+              ) : (
+                <div className="relative">
+                  <input
+                    ref={collapsedInputRef}
+                    type="text"
+                    value={searchInput}
+                    onFocus={() => setIsSearchExpanded(true)}
+                    onClick={() => setIsSearchExpanded(true)}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder="Ask me anything..."
+                    className={`w-full px-5 py-2 rounded-lg focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-transparent ${
+                      darkMode 
+                        ? 'bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400' 
+                        : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                  />
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Contact Button and Profile Dropdown */}
