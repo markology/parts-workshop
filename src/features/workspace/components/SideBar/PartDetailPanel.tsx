@@ -466,28 +466,34 @@ const PartDetailPanel = () => {
   const containerClasses = `${
     darkMode
       ? "bg-slate-950/95 border border-slate-800 text-slate-100"
-      : "bg-white border border-slate-200 text-slate-900"
+      : "bg-white border border-slate-200/90 text-slate-900"
   } relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col transition-all duration-300`;
 
   const navContainerClasses = darkMode
-    ? "bg-slate-950/75 border-r border-slate-800/70"
-    : "bg-white/90 border-r border-slate-200/80";
+    ? "bg-slate-950/80 border border-slate-800/70 shadow-[0_22px_48px_rgba(8,15,30,0.55)] rounded-[26px] backdrop-blur-xl flex flex-col overflow-hidden"
+    : "bg-white/80 border border-slate-200/70 shadow-[0_24px_48px_rgba(15,23,42,0.16)] rounded-[26px] backdrop-blur-xl flex flex-col overflow-hidden";
 
-  const navButtonClasses = darkMode
-    ? "text-slate-300 hover:bg-slate-900/40 hover:text-white"
-    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+  const navButtonBaseClasses = "w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold flex items-center justify-between transition-all duration-200 border";
+
+  const navButtonActiveClasses = darkMode
+    ? "bg-slate-900/70 border-slate-700 text-white shadow-[0_12px_28px_rgba(8,15,30,0.65)]"
+    : "bg-white border-slate-200 text-slate-900 shadow-[0_16px_36px_rgba(15,23,42,0.14)]";
+
+  const navButtonInactiveClasses = darkMode
+    ? "border-transparent text-slate-300 hover:bg-slate-900/40"
+    : "border-transparent text-slate-600 hover:bg-slate-100";
 
   const sectionCardClasses = darkMode
-    ? "bg-slate-950/70 border border-slate-800/70 shadow-[0_16px_48px_rgba(8,15,30,0.36)] rounded-[22px]"
-    : "bg-white border border-slate-200 shadow-[0_20px_55px_rgba(15,23,42,0.12)] rounded-[22px]";
+    ? "bg-slate-950/75 border border-slate-800/70 shadow-[0_24px_60px_rgba(8,15,30,0.45)] rounded-[26px] backdrop-blur-xl"
+    : "bg-white/95 border border-slate-200/90 shadow-[0_28px_65px_rgba(15,23,42,0.12)] rounded-[26px] backdrop-blur-xl";
 
   const subCardClasses = darkMode
-    ? "bg-slate-950/60 border border-slate-800/70 rounded-xl"
-    : "bg-slate-50 border border-slate-200 rounded-xl";
+    ? "bg-slate-950/65 border border-slate-800/70 rounded-2xl"
+    : "bg-slate-50/80 border border-slate-200 rounded-2xl";
 
   const listItemClasses = darkMode
-    ? "bg-slate-950/50 border border-slate-800/60 text-slate-200"
-    : "bg-white border border-slate-200 text-slate-700";
+    ? "bg-slate-950/55 border border-slate-800/70 text-slate-200"
+    : "bg-white/95 border border-slate-200 text-slate-700";
 
   const modalContainerClasses = darkMode
     ? "bg-slate-950/95 border border-slate-800 text-slate-100"
@@ -533,158 +539,258 @@ const PartDetailPanel = () => {
         {/* Content with TOC */}
         <div className="flex flex-row flex-1 overflow-hidden min-h-0">
           {/* Table of Contents - Left Column */}
-          <div className={`w-52 flex-shrink-0 flex flex-col ${navContainerClasses}`}>
-            <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2">
+          <div className={`w-60 flex-shrink-0 ${navContainerClasses}`}>
+            <div className="px-5 pt-5 pb-3">
+              <span className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                Navigate
+              </span>
+              <h2 className={`mt-2 text-base font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>
+                Part Sections
+              </h2>
+            </div>
+            <nav className="flex-1 overflow-y-auto px-5 pb-5 space-y-2">
               <button
                 onClick={() => scrollToSection(infoRef, 'info')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`${navButtonBaseClasses} ${activeSection === 'info' ? navButtonActiveClasses : navButtonInactiveClasses}`}
               >
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-emerald-600" />
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
+                    darkMode
+                      ? "bg-emerald-400/15 text-emerald-200 shadow-inner shadow-emerald-500/10"
+                      : "bg-emerald-500/10 text-emerald-600 shadow-inner shadow-emerald-200/60"
+                  }`}>
+                    <User className="w-4 h-4" />
+                  </span>
                   <span>Info</span>
                 </div>
+                <span
+                  className={`h-2.5 w-2.5 rounded-full transition-all ${
+                    activeSection === 'info'
+                      ? darkMode
+                        ? "bg-emerald-300 shadow-[0_0_0_4px_rgba(16,185,129,0.18)]"
+                        : "bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.18)]"
+                      : "border border-slate-400/40"
+                  }`}
+                />
               </button>
               <button
                 onClick={() => scrollToSection(insightsRef, 'insights')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`${navButtonBaseClasses} ${activeSection === 'insights' ? navButtonActiveClasses : navButtonInactiveClasses}`}
               >
-                <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-sky-600" />
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
+                    darkMode
+                      ? "bg-sky-400/15 text-sky-200 shadow-inner shadow-sky-500/10"
+                      : "bg-sky-100 text-sky-600 shadow-inner shadow-sky-200/60"
+                  }`}>
+                    <Brain className="w-4 h-4" />
+                  </span>
                   <span>Insights</span>
                 </div>
+                <span
+                  className={`h-2.5 w-2.5 rounded-full transition-all ${
+                    activeSection === 'insights'
+                      ? darkMode
+                        ? "bg-sky-300 shadow-[0_0_0_4px_rgba(125,211,252,0.18)]"
+                        : "bg-sky-500 shadow-[0_0_0_4px_rgba(59,130,246,0.18)]"
+                      : "border border-slate-400/40"
+                  }`}
+                />
               </button>
               <button
                 onClick={() => scrollToSection(impressionsRef, 'impressions')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`${navButtonBaseClasses} ${activeSection === 'impressions' ? navButtonActiveClasses : navButtonInactiveClasses}`}
               >
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-purple-600" />
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
+                    darkMode
+                      ? "bg-purple-400/20 text-purple-200 shadow-inner shadow-purple-500/10"
+                      : "bg-purple-100 text-purple-600 shadow-inner shadow-purple-200/60"
+                  }`}>
+                    <Eye className="w-4 h-4" />
+                  </span>
                   <span>Impressions</span>
                 </div>
+                <span
+                  className={`h-2.5 w-2.5 rounded-full transition-all ${
+                    activeSection === 'impressions'
+                      ? darkMode
+                        ? "bg-purple-300 shadow-[0_0_0_4px_rgba(192,132,252,0.2)]"
+                        : "bg-purple-500 shadow-[0_0_0_4px_rgba(168,85,247,0.18)]"
+                      : "border border-slate-400/40"
+                  }`}
+                />
               </button>
               <button
                 onClick={() => scrollToSection(journalRef, 'journal')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`${navButtonBaseClasses} ${activeSection === 'journal' ? navButtonActiveClasses : navButtonInactiveClasses}`}
               >
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-amber-600" />
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
+                    darkMode
+                      ? "bg-amber-400/20 text-amber-200 shadow-inner shadow-amber-500/15"
+                      : "bg-amber-100 text-amber-600 shadow-inner shadow-amber-200/60"
+                  }`}>
+                    <BookOpen className="w-4 h-4" />
+                  </span>
                   <span>Journal</span>
                 </div>
+                <span
+                  className={`h-2.5 w-2.5 rounded-full transition-all ${
+                    activeSection === 'journal'
+                      ? darkMode
+                        ? "bg-amber-300 shadow-[0_0_0_4px_rgba(251,191,36,0.2)]"
+                        : "bg-amber-500 shadow-[0_0_0_4px_rgba(245,158,11,0.2)]"
+                      : "border border-slate-400/40"
+                  }`}
+                />
               </button>
               <button
                 onClick={() => scrollToSection(relationshipsRef, 'relationships')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`${navButtonBaseClasses} ${activeSection === 'relationships' ? navButtonActiveClasses : navButtonInactiveClasses}`}
               >
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-rose-600" />
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
+                    darkMode
+                      ? "bg-rose-400/20 text-rose-200 shadow-inner shadow-rose-500/15"
+                      : "bg-rose-100 text-rose-600 shadow-inner shadow-rose-200/60"
+                  }`}>
+                    <Users className="w-4 h-4" />
+                  </span>
                   <span>Relationships</span>
                 </div>
+                <span
+                  className={`h-2.5 w-2.5 rounded-full transition-all ${
+                    activeSection === 'relationships'
+                      ? darkMode
+                        ? "bg-rose-300 shadow-[0_0_0_4px_rgba(244,114,182,0.2)]"
+                        : "bg-rose-500 shadow-[0_0_0_4px_rgba(244,63,94,0.2)]"
+                      : "border border-slate-400/40"
+                  }`}
+                />
               </button>
             </nav>
           </div>
 
           {/* Main Content - Right Column */}
-          <div ref={scrollableContentRef} className="flex-1 p-8 overflow-y-auto space-y-12 bg-transparent">
+          <div ref={scrollableContentRef} className="flex-1 p-8 lg:p-10 overflow-y-auto space-y-14 bg-transparent">
 
           {/* Info Section */}
-          <div ref={infoRef} className="transition-all duration-300 relative space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
-                  darkMode ? "text-slate-400" : "text-slate-500"
+          <div ref={infoRef} className="transition-all duration-300 relative space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${
+                  darkMode ? "bg-emerald-400/15 text-emerald-200 shadow-inner shadow-emerald-500/10" : "bg-emerald-100 text-emerald-600 shadow-inner shadow-emerald-200/60"
                 }`}>
-                  <User className="w-3 h-3 text-emerald-600" />
-                  Info
-                </h3>
+                  <User className="w-5 h-5" />
+                </span>
+                <div>
+                  <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    Overview
+                  </p>
+                  <h3 className={`text-lg font-semibold tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>
+                    Info
+                  </h3>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowInfoEditModal(true)}
-                  className={`p-2 rounded-full border transition-colors ${
+                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
                     darkMode
-                      ? "border-slate-700 text-slate-300 hover:bg-slate-900/60"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                      ? "border border-slate-700 bg-slate-950/60 text-slate-200 hover:bg-slate-900/70"
+                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
                   }`}
                   aria-label="Edit info"
                 >
                   <Pencil className="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (selectedPartId && partNode) {
+                      setJournalTarget({
+                        type: "node",
+                        nodeId: selectedPartId,
+                        nodeType: "part",
+                        title: partNode.data?.label || "Part",
+                      });
+                    }
+                  }}
+                  className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 ${
+                    darkMode
+                      ? "bg-slate-900/60 border border-purple-500/30 text-purple-200 hover:border-purple-400/50 hover:bg-slate-900/80"
+                      : "bg-white/90 border border-purple-300/60 text-purple-600 hover:border-purple-400/60 hover:bg-purple-50"
+                  }`}
+                >
+                  <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
+                  <span>Deepen</span>
                 </button>
               </div>
-              <button
-                onClick={() => {
-                  if (selectedPartId && partNode) {
-                    setJournalTarget({
-                      type: "node",
-                      nodeId: selectedPartId,
-                      nodeType: "part",
-                      title: partNode.data?.label || "Part",
-                    });
-                  }
-                }}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                  darkMode
-                    ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
-                    : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
-                }`}
-              >
-                <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
-                <span>Deepen</span>
-              </button>
             </div>
-            
-            {/* Main Info Grid */}
-            <div className={`${sectionCardClasses} p-6 space-y-6`}>
-              {/* First Row: Image and Info */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Image - Left Column */}
-                <div className="lg:col-span-1">
-                  <div className={`${subCardClasses} w-full aspect-square relative shadow-sm overflow-hidden group`}>
-                    {data.image ? (
-                      <>
-                        <Image
-                          src={data.image as string}
-                          alt="Part"
-                          width={256}
-                          height={256}
-                          className="w-full h-full object-cover"
-                        />
+
+            <div className={`${sectionCardClasses} overflow-hidden`}>
+              <div className={`p-6 lg:p-8 space-y-8 ${
+                darkMode
+                  ? "bg-gradient-to-br from-slate-950/85 via-slate-950/55 to-transparent"
+                  : "bg-gradient-to-br from-sky-50 via-white to-white"
+              }`}>
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-6 lg:gap-10">
+                  <div className="lg:col-span-1">
+                    <div className={`relative w-full aspect-square rounded-[22px] overflow-hidden border ${
+                      darkMode
+                        ? "border-slate-800/70 shadow-[0_18px_38px_rgba(8,15,30,0.6)]"
+                        : "border-slate-200 shadow-[0_22px_48px_rgba(15,23,42,0.18)]"
+                    }`}>
+                      {data.image ? (
+                        <>
+                          <Image
+                            src={data.image as string}
+                            alt="Part"
+                            width={320}
+                            height={320}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="absolute inset-0 bg-slate-950/0 hover:bg-slate-950/40 transition-colors flex items-center justify-center"
+                          >
+                            <Upload className="w-8 h-8 text-white" />
+                          </button>
+                        </>
+                      ) : (
                         <button
                           onClick={() => fileInputRef.current?.click()}
-                          className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                          className={`w-full h-full flex flex-col items-center justify-center gap-3 ${
+                            darkMode ? "bg-slate-900/50 text-slate-300 hover:bg-slate-900/40" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                          }`}
                         >
-                          <Upload className="w-8 h-8 text-white" />
+                          <SquareUserRound size={64} />
+                          <span className="text-xs font-medium">Upload portrait</span>
                         </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`w-full h-full ${
-                          darkMode ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-100 hover:bg-gray-200"
-                        } flex flex-col items-center justify-center cursor-pointer`}
-                      >
-                        <SquareUserRound size={64} className={darkMode ? "text-gray-300" : "text-gray-400"} />
-                        <span className={`text-xs mt-2 ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
-                          Click to upload
-                        </span>
-                      </button>
-                    )}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Info Fields - Right Columns */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Name and Part Type Row */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h2 className={`text-3xl font-bold mb-2 ${darkMode ? "text-white" : "text-black"}`}>
-                        {(data.name as string) || (data.label as string) || "Untitled"}
-                      </h2>
-                      <div className="flex items-center gap-2">
+                  <div className="lg:col-span-1 space-y-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className={`text-3xl lg:text-4xl font-semibold tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>
+                          {(data.name as string) || (data.label as string) || "Untitled"}
+                        </h2>
+                        <p className={`text-sm mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                          {(tempPartType || (data.customPartType as string) || (data.partType as string)) ? `Identified as ${(tempPartType || (data.customPartType as string) || (data.partType as string))}` : "Primary details for this part."}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2.5">
                         {['manager', 'firefighter', 'exile'].map((type) => {
                           const currentType = tempPartType || (data.customPartType as string) || (data.partType as string) || "";
                           const isSelected = currentType === type;
@@ -692,55 +798,52 @@ const PartDetailPanel = () => {
                           return (
                             <span
                               key={type}
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold uppercase tracking-wide ${
                                 type === "manager"
-                                  ? "bg-blue-600 text-white"
+                                  ? darkMode
+                                    ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-200"
+                                    : "bg-emerald-500/10 border border-emerald-200 text-emerald-600"
                                   : type === "firefighter"
-                                    ? "bg-red-600 text-white"
-                                    : "bg-purple-600 text-white"
+                                    ? darkMode
+                                      ? "bg-red-500/15 border border-red-500/30 text-red-200"
+                                      : "bg-red-500/10 border border-red-200 text-red-600"
+                                    : darkMode
+                                      ? "bg-purple-500/15 border border-purple-500/30 text-purple-200"
+                                      : "bg-purple-500/10 border border-purple-200 text-purple-600"
                               }`}
                             >
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                              {type}
                             </span>
                           );
                         })}
                         {!tempPartType && !(data.customPartType as string) && !(data.partType as string) && (
-                          <span className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                          <span className={`text-xs px-3 py-1.5 rounded-full border ${darkMode ? "border-slate-700 text-slate-400" : "border-slate-200 text-slate-500"}`}>
                             No type set
                           </span>
                         )}
-                        {/* Age and Gender Display - To the right of part type */}
-                        {(data.age as string) || (data.gender as string) ? (
-                          <>
-                            {(data.age as string) && (data.age as string) !== "Unknown" && (
-                              <span className={`px-2 py-1 rounded text-xs ${
-                                darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
-                              }`}>
-                                {data.age as string}
-                              </span>
-                            )}
-                            {(data.gender as string) && (
-                              <span className={`px-2 py-1 rounded text-xs ${
-                                darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
-                              }`}>
-                                {data.gender as string}
-                              </span>
-                            )}
-                          </>
-                        ) : null}
+                        {(data.age as string) && (data.age as string) !== "Unknown" && (
+                          <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border ${darkMode ? "border-slate-700 text-slate-200" : "border-slate-200 text-slate-600"}`}>
+                            <Clock className="w-3.5 h-3.5" />
+                            {data.age as string}
+                          </span>
+                        )}
+                        {(data.gender as string) && (
+                          <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border ${darkMode ? "border-slate-700 text-slate-200" : "border-slate-200 text-slate-600"}`}>
+                            {data.gender as string}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Description */}
-                  <div>
-                    <p className={`text-base leading-relaxed ${darkMode ? "text-gray-300" : "text-gray-700"} whitespace-pre-wrap`}>
-                      {(data.scratchpad as string) || (
-                        <span className={darkMode ? "text-gray-500" : "text-gray-400"}>
-                          No description added yet.
-                        </span>
-                      )}
-                    </p>
+                    <div className={`${subCardClasses} p-5 lg:p-6`}>
+                      <p className={`text-base leading-relaxed ${darkMode ? "text-slate-200" : "text-slate-700"} whitespace-pre-wrap`}>
+                        {(data.scratchpad as string) || (
+                          <span className={darkMode ? "text-slate-500" : "text-slate-400"}>
+                            No description added yet.
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -748,21 +851,37 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Insights Section */}
-          <div ref={insightsRef} className="transition-all duration-300 relative space-y-4">
-            <h4 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
-              darkMode ? "text-slate-400" : "text-slate-500"
-            }`}>
-              <Brain className="w-3 h-3 text-sky-600" />
-              Insights
-            </h4>
-            <div className={`${sectionCardClasses} p-6`}>
+          <div ref={insightsRef} className="transition-all duration-300 relative space-y-6">
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${
+                darkMode ? "bg-sky-400/15 text-sky-200 shadow-inner shadow-sky-500/10" : "bg-sky-100 text-sky-600 shadow-inner shadow-sky-200/60"
+              }`}>
+                <Brain className="w-5 h-5" />
+              </span>
+              <div>
+                <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  Interpret
+                </p>
+                <h3 className={`text-lg font-semibold tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>
+                  Insights
+                </h3>
+              </div>
+            </div>
+            <div className={`${sectionCardClasses} p-6 lg:p-7`}>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 {/* Needs */}
-                <div className={`${subCardClasses} p-4 shadow-sm`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className={`font-semibold capitalize text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
-                      Needs
-                    </h4>
+                <div className={`${subCardClasses} p-5 space-y-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-xl`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${
+                        darkMode ? "bg-emerald-400/15 text-emerald-200" : "bg-emerald-100 text-emerald-600"
+                      }`}>
+                        <Heart className="w-4 h-4" />
+                      </span>
+                      <h4 className={`font-semibold text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
+                        Needs
+                      </h4>
+                    </div>
                     <button
                       onClick={() => {
                         const input = prompt("Add a need:");
@@ -770,12 +889,13 @@ const PartDetailPanel = () => {
                           addListItem("needs", input.trim());
                         }
                       }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
                         darkMode
-                          ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
-                          : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
+                          ? "bg-slate-900/50 border border-slate-700 text-slate-200 hover:bg-slate-900/70"
+                          : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                       }`}
                     >
+                      <Plus className="w-3 h-3" />
                       Add
                     </button>
                   </div>
@@ -783,12 +903,14 @@ const PartDetailPanel = () => {
                     {((data.needs as string[]) || []).map((need: string, index: number) => (
                       <div
                         key={index}
-                        className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
+                        className={`${listItemClasses} group flex items-center justify-between rounded-xl px-3.5 py-2.5 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-lg`}
                       >
-                        <span className="text-xs font-medium leading-relaxed">{need}</span>
+                        <span className={`text-xs font-medium leading-relaxed ${darkMode ? "text-slate-100" : "text-slate-700"}`}>{need}</span>
                         <button
                           onClick={() => removeListItem("needs", index)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                          className={`opacity-0 group-hover:opacity-100 inline-flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-200 ${
+                            darkMode ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60" : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                          }`}
                           aria-label="Remove need"
                         >
                           <X size={14} />
@@ -796,7 +918,7 @@ const PartDetailPanel = () => {
                       </div>
                     ))}
                     {((data.needs as string[]) || []).length === 0 && (
-                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-500" : "text-slate-500/80"}`}>
                         No needs added yet
                       </div>
                     )}
@@ -804,11 +926,18 @@ const PartDetailPanel = () => {
                 </div>
 
                 {/* Fears */}
-                <div className={`${subCardClasses} p-4 shadow-sm`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className={`font-semibold capitalize text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
-                      Fears
-                    </h4>
+                <div className={`${subCardClasses} p-5 space-y-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-xl`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${
+                        darkMode ? "bg-rose-400/20 text-rose-200" : "bg-rose-100 text-rose-600"
+                      }`}>
+                        <Shield className="w-4 h-4" />
+                      </span>
+                      <h4 className={`font-semibold text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
+                        Fears
+                      </h4>
+                    </div>
                     <button
                       onClick={() => {
                         const input = prompt("Add a fear:");
@@ -816,12 +945,13 @@ const PartDetailPanel = () => {
                           addListItem("fears", input.trim());
                         }
                       }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
                         darkMode
-                          ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
-                          : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
+                          ? "bg-slate-900/50 border border-slate-700 text-slate-200 hover:bg-slate-900/70"
+                          : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                       }`}
                     >
+                      <Plus className="w-3 h-3" />
                       Add
                     </button>
                   </div>
@@ -829,12 +959,14 @@ const PartDetailPanel = () => {
                     {((data.fears as string[]) || []).map((fear: string, index: number) => (
                       <div
                         key={index}
-                        className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
+                        className={`${listItemClasses} group flex items-center justify-between rounded-xl px-3.5 py-2.5 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-lg`}
                       >
-                        <span className="text-xs font-medium leading-relaxed">{fear}</span>
+                        <span className={`text-xs font-medium leading-relaxed ${darkMode ? "text-slate-100" : "text-slate-700"}`}>{fear}</span>
                         <button
                           onClick={() => removeListItem("fears", index)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                          className={`opacity-0 group-hover:opacity-100 inline-flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-200 ${
+                            darkMode ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60" : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                          }`}
                           aria-label="Remove fear"
                         >
                           <X size={14} />
@@ -842,7 +974,7 @@ const PartDetailPanel = () => {
                       </div>
                     ))}
                     {((data.fears as string[]) || []).length === 0 && (
-                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-500" : "text-slate-500/80"}`}>
                         No fears added yet
                       </div>
                     )}
@@ -853,99 +985,118 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Impressions Section */}
-          <div ref={impressionsRef} className="transition-all duration-300 relative space-y-4">
-            <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
-              darkMode ? "text-slate-400" : "text-slate-500"
-            }`}>
-              <Eye className="w-3 h-3 text-purple-600" />
-              Impressions
-            </h3>
+          <div ref={impressionsRef} className="transition-all duration-300 relative space-y-6">
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${
+                darkMode ? "bg-purple-400/20 text-purple-200 shadow-inner shadow-purple-500/15" : "bg-purple-100 text-purple-600 shadow-inner shadow-purple-200/60"
+              }`}>
+                <Eye className="w-5 h-5" />
+              </span>
+              <div>
+                <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  Catalogue
+                </p>
+                <h3 className={`text-lg font-semibold tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>
+                  Impressions
+                </h3>
+              </div>
+            </div>
 
             {/* Flexible Layout for Impressions */}
-            <div className={`${sectionCardClasses} p-6`}>
-              <div className="space-y-4">
+            <div className={`${sectionCardClasses} p-6 lg:p-7`}>
+              <div className="space-y-5">
                 {/* All Impressions: emotion, thought, sensation, behavior, other */}
                 <div className="columns-1 lg:columns-2 gap-4 space-y-4">
                   {ImpressionList.map((impression) => {
                     const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
+                    const accentColor = NodeBackgroundColors[impression];
 
                     return (
-                      <div key={impression} className={`break-inside-avoid ${subCardClasses} p-4 shadow-sm mb-4`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <h4
-                              className="font-semibold capitalize text-sm"
-                              style={{ color: NodeBackgroundColors[impression] }}
-                            >
-                              {impression}
-                            </h4>
+                      <div
+                        key={impression}
+                        className={`break-inside-avoid ${subCardClasses} p-5 space-y-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-xl`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
                             <span
-                              className="px-2 py-1 rounded-full text-xs font-medium"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-xl shadow-inner"
                               style={{
-                                backgroundColor: `${NodeBackgroundColors[impression]}20`,
-                                color: NodeBackgroundColors[impression],
+                                backgroundColor: `${accentColor}20`,
+                                color: accentColor,
                               }}
                             >
-                              {impressions.length}
+                              <Sparkles className="w-4 h-4" />
                             </span>
+                            <div>
+                              <h4
+                                className="font-semibold capitalize text-sm"
+                                style={{ color: accentColor }}
+                              >
+                                {impression}
+                              </h4>
+                              <span className={`text-[11px] uppercase tracking-[0.22em] ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                {impressions.length} item{impressions.length === 1 ? "" : "s"}
+                              </span>
+                            </div>
                           </div>
                           <button
                             onClick={() => {
                               setAddingImpressionType(impression);
                               setCurrentImpressionType(impression);
                             }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
                               darkMode
-                                ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
-                                : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
+                                ? "bg-slate-900/50 text-slate-200 hover:bg-slate-900/70"
+                                : "bg-white text-slate-600 hover:bg-slate-100"
                             }`}
                             style={{
-                              borderColor: `${NodeBackgroundColors[impression]}40`,
+                              border: `1px solid ${accentColor}40`,
+                              color: accentColor,
                             }}
                           >
+                            <Plus className="w-3 h-3" />
                             Add
                           </button>
                         </div>
 
-                        <div className="space-y-2 mb-2">
-                          {impressions.map((imp, index) => {
-                            const bgColor = NodeBackgroundColors[impression];
-
-                            return (
-                              <div
-                                key={index}
-                                className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
-                                style={{
-                                  backgroundColor: `${bgColor}18`,
-                                  color: `${bgColor}FF`,
-                                }}
-                              >
-                                <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => handleReturnToSidebar(impression, imp.id)}
-                                    className="p-1"
-                                    style={{
-                                      color: getXButtonColor(impression),
-                                    }}
-                                    title="Return to sidebar"
-                                  >
-                                    <ListRestart size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleRemoveImpression(impression, imp.id)}
-                                    className="p-1"
-                                    style={{
-                                      color: getXButtonColor(impression),
-                                    }}
-                                    title="Delete"
-                                  >
-                                    <X size={14} />
-                                  </button>
-                                </div>
+                        <div className="space-y-2">
+                          {impressions.map((imp, index) => (
+                            <div
+                              key={index}
+                              className={`${listItemClasses} group flex items-center justify-between rounded-xl px-3.5 py-2.5 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-lg`}
+                              style={{
+                                backgroundColor: `${accentColor}15`,
+                                borderColor: `${accentColor}35`,
+                                color: accentColor,
+                              }}
+                            >
+                              <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => handleReturnToSidebar(impression, imp.id)}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-200"
+                                  style={{
+                                    color: accentColor,
+                                    backgroundColor: `${accentColor}15`,
+                                  }}
+                                  title="Return to sidebar"
+                                >
+                                  <ListRestart size={14} />
+                                </button>
+                                <button
+                                  onClick={() => handleRemoveImpression(impression, imp.id)}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-200"
+                                  style={{
+                                    color: accentColor,
+                                    backgroundColor: `${accentColor}15`,
+                                  }}
+                                  title="Delete"
+                                >
+                                  <X size={14} />
+                                </button>
                               </div>
-                            );
-                          })}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     );
@@ -956,14 +1107,23 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Journal History Section */}
-          <div ref={journalRef} className="transition-all duration-300 relative space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
-                darkMode ? "text-slate-400" : "text-slate-500"
-              }`}>
-                <BookOpen className="w-3 h-3 text-amber-600" />
-                Journal
-              </h3>
+          <div ref={journalRef} className="transition-all duration-300 relative space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${
+                  darkMode ? "bg-amber-400/20 text-amber-200 shadow-inner shadow-amber-500/15" : "bg-amber-100 text-amber-600 shadow-inner shadow-amber-200/60"
+                }`}>
+                  <BookOpen className="w-5 h-5" />
+                </span>
+                <div>
+                  <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    Record
+                  </p>
+                  <h3 className={`text-lg font-semibold tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>
+                    Journal
+                  </h3>
+                </div>
+              </div>
               <button
                 onClick={() => {
                   if (selectedPartId && partNode) {
@@ -975,29 +1135,29 @@ const PartDetailPanel = () => {
                     });
                   }
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition-colors border ${
+                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 ${
                   darkMode
-                    ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
-                    : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
+                    ? "bg-purple-500/20 border border-purple-500/30 text-purple-100 hover:bg-purple-500/30"
+                    : "bg-white border border-purple-300/60 text-purple-600 hover:border-purple-400/60 hover:bg-purple-50"
                 }`}
               >
-                <Sparkles className={`w-3 h-3 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
+                <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-200" : "text-purple-500"}`} />
                 <span>New Entry</span>
               </button>
             </div>
 
-            <div className={`${sectionCardClasses} p-6`}>
+            <div className={`${sectionCardClasses} p-6 lg:p-7`}>
               {isLoadingJournal ? (
-                <div className={`${subCardClasses} flex items-center justify-center py-6`}> 
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                  <span className={`ml-3 text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
+                <div className={`${subCardClasses} flex flex-col items-center gap-3 py-10`}>
+                  <div className="h-10 w-10 rounded-full border-2 border-slate-400/30 border-t-transparent animate-spin" />
+                  <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
                     Loading journal entries...
                   </span>
                 </div>
               ) : journalEntries.length === 0 ? (
-                <div className={`${subCardClasses} text-center py-8 px-4`}> 
-                  <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
-                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
+                <div className={`${subCardClasses} text-center py-10 px-4 space-y-3`}>
+                  <BookOpen className={`w-12 h-12 mx-auto ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
+                  <h3 className={`text-lg font-semibold ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
                     No journal entries yet
                   </h3>
                   <p className={darkMode ? "text-slate-400" : "text-slate-500"}>
@@ -1007,24 +1167,27 @@ const PartDetailPanel = () => {
               ) : (
                 <div className="space-y-4">
                   {journalEntries.map((entry) => (
-                    <div key={entry.id} className={`${subCardClasses} p-5 shadow-sm`}>
-                      <div className="flex items-center justify-between mb-3">
+                    <div
+                      key={entry.id}
+                      className={`${subCardClasses} p-5 lg:p-6 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-xl`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                         <div className="flex items-center gap-2">
                           <Clock className={`w-4 h-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
                           <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
-                            {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString()}
+                            {new Date(entry.createdAt).toLocaleDateString()} · {new Date(entry.createdAt).toLocaleTimeString()}
                           </span>
                         </div>
                         <button
                           onClick={() => extractImpressionsFromEntry(entry.id)}
                           disabled={isExtractingImpressions}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
                             isExtractingImpressions
                               ? darkMode
-                                ? "bg-slate-800 text-slate-400"
-                                : "bg-slate-200 text-slate-500"
+                                ? "bg-slate-800 text-slate-500"
+                                : "bg-slate-100 text-slate-500"
                               : darkMode
-                                ? "bg-slate-100/10 text-white hover:bg-slate-100/20"
+                                ? "bg-slate-100/15 text-slate-100 hover:bg-slate-100/25"
                                 : "bg-slate-900 text-white hover:bg-slate-800"
                           }`}
                         >
@@ -1047,7 +1210,7 @@ const PartDetailPanel = () => {
                         </h4>
                       )}
                       <div className={`whitespace-pre-wrap text-sm leading-relaxed ${
-                        darkMode ? "text-slate-300" : "text-slate-700"
+                        darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
                         {entry.content}
                       </div>
@@ -1059,71 +1222,68 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Relationships Section */}
-          <div ref={relationshipsRef} className="transition-all duration-300 relative space-y-4">
-            <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
-              darkMode ? "text-slate-400" : "text-slate-500"
-            }`}>
-              <Users className="w-3 h-3 text-rose-600" />
-              Relationships
-            </h3>
+          <div ref={relationshipsRef} className="transition-all duration-300 relative space-y-6">
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${
+                darkMode ? "bg-rose-400/20 text-rose-200 shadow-inner shadow-rose-500/15" : "bg-rose-100 text-rose-600 shadow-inner shadow-rose-200/60"
+              }`}>
+                <Users className="w-5 h-5" />
+              </span>
+              <div>
+                <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  Dynamics
+                </p>
+                <h3 className={`text-lg font-semibold tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>
+                  Relationships
+                </h3>
+              </div>
+            </div>
 
-            <div className={`${sectionCardClasses} p-6`}>
-              {relationships.length > 0 ? (
-                <div className="space-y-4">
-                  {relationships.map((rel) => {
-                    const isConflict = rel.relationshipType === "conflict";
-                    const isAlly = rel.relationshipType === "ally";
+            {relationships.length > 0 ? (
+              <div className={`${sectionCardClasses} p-6 lg:p-7 space-y-4`}>
+                {relationships.map((rel) => {
+                  const isConflict = rel.relationshipType === "conflict";
+                  const isAlly = rel.relationshipType === "ally";
 
-                    return (
-                      <div key={rel.id} className={`${subCardClasses} p-5 shadow-sm`}>
-                        <div
-                          className={`px-3 py-3 rounded-xl border ${
-                            isConflict
+                  return (
+                    <div
+                      key={rel.id}
+                      className={`transition-all duration-200 hover:-translate-y-[1px] hover:shadow-xl rounded-2xl p-5 ${
+                        darkMode ? "bg-slate-950/55 border border-slate-800/70" : "bg-white border border-slate-200/90"
+                      }`}
+                    >
+                      <div
+                        className={`rounded-2xl border px-4 py-3 space-y-2 ${
+                          isConflict
+                            ? darkMode
+                              ? "border-purple-400/50 bg-purple-900/40"
+                              : "border-purple-300/70 bg-purple-50"
+                            : isAlly
                               ? darkMode
-                                ? "border-purple-400/70 bg-purple-900/40"
-                                : "border-purple-300/80 bg-purple-50"
-                              : isAlly
-                                ? darkMode
-                                  ? "border-sky-400/70 bg-sky-900/35"
-                                  : "border-sky-300/80 bg-sky-50"
-                                : darkMode
-                                  ? "border-slate-700 bg-slate-900/50"
-                                  : "border-slate-200 bg-white"
-                          }`}
-                        >
-                          <div className={`font-semibold text-sm mb-2 ${
-                            isConflict
+                                ? "border-sky-400/50 bg-sky-900/35"
+                                : "border-sky-300/70 bg-sky-50"
+                              : darkMode
+                                ? "border-slate-700/60 bg-slate-900/60"
+                                : "border-slate-200 bg-white"
+                        }`}
+                      >
+                        <div className={`text-sm font-semibold ${
+                          isConflict
+                            ? darkMode
+                              ? "text-purple-200"
+                              : "text-purple-900"
+                            : isAlly
                               ? darkMode
-                                ? "text-purple-200"
-                                : "text-purple-900"
-                              : isAlly
-                                ? darkMode
-                                  ? "text-sky-200"
-                                  : "text-sky-900"
-                                : darkMode
-                                  ? "text-slate-100"
-                                  : "text-slate-900"
-                          }`}>
-                            {rel.nodeLabel}
-                          </div>
-                          {rel.nodeDescription && String(rel.nodeDescription).trim() ? (
-                            <div className={`text-xs mb-2 leading-relaxed whitespace-pre-wrap ${
-                              isConflict
-                                ? darkMode
-                                  ? "text-purple-300"
-                                  : "text-purple-700"
-                                : isAlly
-                                  ? darkMode
-                                    ? "text-sky-300"
-                                    : "text-sky-700"
-                                  : darkMode
-                                    ? "text-slate-300"
-                                    : "text-slate-700"
-                            }`}>
-                              {String(rel.nodeDescription)}
-                            </div>
-                          ) : null}
-                          <div className={`text-xs font-medium capitalize mt-2 ${
+                                ? "text-sky-200"
+                                : "text-sky-900"
+                              : darkMode
+                                ? "text-slate-100"
+                                : "text-slate-900"
+                        }`}>
+                          {rel.nodeLabel}
+                        </div>
+                        {rel.nodeDescription && String(rel.nodeDescription).trim() ? (
+                          <div className={`text-xs leading-relaxed whitespace-pre-wrap ${
                             isConflict
                               ? darkMode
                                 ? "text-purple-300"
@@ -1133,28 +1293,45 @@ const PartDetailPanel = () => {
                                   ? "text-sky-300"
                                   : "text-sky-700"
                                 : darkMode
-                                  ? "text-slate-400"
-                                  : "text-slate-600"
+                                  ? "text-slate-300"
+                                  : "text-slate-700"
                           }`}>
-                            {isConflict ? "⚔️ Conflict" : isAlly ? "🤝 Ally" : rel.nodeType}
+                            {String(rel.nodeDescription)}
                           </div>
+                        ) : null}
+                        <div className={`text-xs font-medium capitalize ${
+                          isConflict
+                            ? darkMode
+                              ? "text-purple-300"
+                              : "text-purple-700"
+                            : isAlly
+                              ? darkMode
+                                ? "text-sky-300"
+                                : "text-sky-700"
+                              : darkMode
+                                ? "text-slate-400"
+                                : "text-slate-600"
+                        }`}>
+                          {isConflict ? "⚔️ Conflict" : isAlly ? "🤝 Ally" : rel.nodeType}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className={`${subCardClasses} text-center py-8`}> 
-                  <Users className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
-                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={`${sectionCardClasses} p-6 lg:p-7`}>
+                <div className={`${subCardClasses} text-center py-10 space-y-3`}>
+                  <Users className={`w-12 h-12 mx-auto ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
+                  <h3 className={`text-lg font-semibold ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
                     No relationships yet
                   </h3>
                   <p className={darkMode ? "text-slate-400" : "text-slate-500"}>
                     No relationships have been created for this part.
                   </p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
           </div>
         </div>
