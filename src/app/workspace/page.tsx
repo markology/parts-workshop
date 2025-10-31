@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Loader2, MailPlus, HelpCircle } from "lucide-react";
+import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Loader2, MailPlus, HelpCircle, Sparkles } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -388,9 +388,9 @@ export default function WorkspacePage() {
           <div className="absolute left-1/2 -translate-x-1/2 top-4 w-full max-w-md px-6 pointer-events-none" style={{ zIndex: 60 }}>
             <div
               ref={searchBoxRef}
-              className={`relative pointer-events-auto transition-all duration-300 ease-out ${
+              className={`relative pointer-events-auto transition-all duration-300 ease-out border-none ${
                 isSearchExpanded
-                  ? `h-[60vh] max-h-[600px] rounded-3xl overflow-hidden border ${
+                  ? `h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden border ${
                       darkMode
                         ? 'bg-white text-gray-900 border-gray-200 shadow-[0_22px_45px_rgba(20,23,55,0.20)]'
                         : 'bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
@@ -434,6 +434,7 @@ export default function WorkspacePage() {
                     <div className="relative">
                       <textarea
                         ref={expandedInputRef}
+                        autoFocus
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={(e) => {
@@ -453,6 +454,7 @@ export default function WorkspacePage() {
                  </>
               ) : (
                 <div className="relative">
+                  <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 z-10" />
                   <input
                     ref={collapsedInputRef}
                     type="text"
@@ -460,11 +462,9 @@ export default function WorkspacePage() {
                     onFocus={() => setIsSearchExpanded(true)}
                     onClick={() => setIsSearchExpanded(true)}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder="Ask me anything..."
-                    className={`w-full px-5 py-2 rounded-lg focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-transparent ${
-                      darkMode 
-                        ? 'bg-gray-800/50 border border-gray-700 text-white placeholder-gray-400' 
-                        : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
+                    placeholder="Ask the Studio Assistant"
+                    className={`w-full pl-9 pr-5 py-2 rounded-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-transparent ${
+                      'bg-white border border-transparent text-purple-600 placeholder-purple-300'
                     }`}
                   />
                 </div>
