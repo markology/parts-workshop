@@ -512,22 +512,24 @@ const PartDetailPanel = () => {
       className="fixed inset-0 bg-slate-950/65 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
       onClick={() => setSelectedPartId(undefined)}
     >
-      <div
-        className={containerClasses}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close Button - Top Right */}
+      <div className="relative w-full max-w-5xl">
+        {/* Close Button - To the right of container */}
         <button
           onClick={handleClose}
-          className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2.5 rounded-full border transition-colors ${
-            darkMode
-              ? "bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-900"
-              : "bg-white border-slate-200 text-slate-500 shadow-sm hover:bg-slate-50"
-          }`}
+          className="absolute -right-12 top-0 z-[60] hover:opacity-70 transition-opacity"
+          aria-label="Close"
         >
-          <X size={16} className="pointer-events-none" />
+          <X 
+            className="text-white" 
+            strokeWidth={2} 
+            size={30} 
+          />
         </button>
 
+        <div
+          className={containerClasses}
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Content with TOC */}
         <div className="flex flex-row flex-1 overflow-hidden min-h-0">
           {/* Table of Contents - Left Column */}
@@ -1156,6 +1158,7 @@ const PartDetailPanel = () => {
           </div>
           </div>
         </div>
+      </div>
         
         {/* Impression Input Modal */}
         {addingImpressionType && (
