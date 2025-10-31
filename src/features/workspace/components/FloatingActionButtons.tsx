@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map, Sparkles } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
 import { useFlowNodesActions } from "../state/FlowNodesContext";
@@ -37,6 +37,7 @@ const FloatingActionButtons = () => {
   const [isCollapsing, setIsCollapsing] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuWidthRef = useRef<number>(0);
+  const [menuWidthMeasured, setMenuWidthMeasured] = useState(false);
   // Use actions-only hook to prevent re-renders when nodes/edges change
   const { createNode } = useFlowNodesActions();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -50,6 +51,8 @@ const FloatingActionButtons = () => {
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
+  const shouldCollapseSidebar = useUIStore((s) => s.shouldCollapseSidebar);
+  const setShouldCollapseSidebar = useUIStore((s) => s.setShouldCollapseSidebar);
   const [showRelationshipTypeModal, setShowRelationshipTypeModal] = useState(true);
   const { isSaving, saveCheck } = useAutoSave();
   const saveMap = useSaveMap();
@@ -68,18 +71,29 @@ const FloatingActionButtons = () => {
     }
   }, [isSearchExpanded, isCollapsing]);
 
-  // Measure menu width when it opens
-  useEffect(() => {
+  // Measure menu width when it opens - use useLayoutEffect for synchronous measurement
+  useLayoutEffect(() => {
     if (showRelationshipTypeModal && menuRef.current) {
-      // Small delay to ensure menu is rendered
-      setTimeout(() => {
-        const menuElement = menuRef.current?.querySelector('div') as HTMLElement;
-        if (menuElement) {
-          menuWidthRef.current = menuElement.offsetWidth;
-        }
-      }, 10);
+      // Measure synchronously before paint to minimize delay
+      const menuElement = menuRef.current?.querySelector('div') as HTMLElement;
+      if (menuElement) {
+        // Force a layout calculation by reading offsetWidth
+        menuWidthRef.current = menuElement.offsetWidth;
+        setMenuWidthMeasured(true);
+      }
+    } else {
+      setMenuWidthMeasured(false);
     }
   }, [showRelationshipTypeModal]);
+
+  // Handle collapse trigger from PartDetailPanel
+  useEffect(() => {
+    if (shouldCollapseSidebar) {
+      // Collapse the options menu and sidebar
+      setActiveButton(null);
+      setShowRelationshipTypeModal(false);
+    }
+  }, [shouldCollapseSidebar, setShouldCollapseSidebar]);
 
   const handleSearchClose = () => {
     // Start the collapse animation
@@ -206,32 +220,31 @@ const FloatingActionButtons = () => {
     }
     
     if (action === 'save') {
-      // Save functionality - just execute, don't change active button state
+      // Save functionality - just execute, don't change any UI state
       handleSaveAndCleanup();
       return;
     }
     
     if (action === 'contact') {
-      // Contact/Feedback functionality - open modal and reset to action button
+      // Contact/Feedback functionality - only open modal, don't touch sidebar/menu state
       setShowFeedbackModal(true);
-      setActiveButton('action');
       return;
     }
     
     if (action === 'settings') {
-      // Toggle profile dropdown - don't change activeButton state
+      // Toggle profile dropdown - don't change activeButton state or other UI
       setProfileDropdownOpen(!profileDropdownOpen);
       return;
     }
 
     if (action === 'action') {
-      // Toggle everything: if active, close both menu and sidebar. If not active, open both.
+      // Toggle action button and its associated menu/sidebar only
       if (activeButton === 'action') {
-        // Close everything: sidebar and menu
+        // Close action button's menu and sidebar
         setActiveButton(null);
         setShowRelationshipTypeModal(false);
       } else {
-        // Open everything: sidebar and menu
+        // Open action button's menu and sidebar
         setActiveButton('action');
         setShowRelationshipTypeModal(true);
       }
@@ -388,7 +401,9 @@ const FloatingActionButtons = () => {
     const isSaveAction = action === 'save';
     const isContactAction = action === 'contact';
     const isActionButton = action === 'action';
+    const isOptionsButton = action === 'options';
     const showXForAction = isActionButton && showRelationshipTypeModal;
+    const showXForOptions = isOptionsButton && isActive;
     
     return (
       <div className="relative" ref={isSettingsAction ? profileDropdownRef : null}>
@@ -399,7 +414,7 @@ const FloatingActionButtons = () => {
             w-12 h-12 rounded-full 
             ${isActive && !isSaveAction && !isContactAction && !isActionButton
               ? 'bg-gray-800 text-white' 
-              : showXForAction
+              : showXForAction || showXForOptions
               ? 'bg-gray-800 text-white'
               : 'bg-white text-gray-700'
             }
@@ -412,6 +427,8 @@ const FloatingActionButtons = () => {
           title={label}
         >
           {showXForAction ? (
+            <X className="w-6 h-6" />
+          ) : showXForOptions ? (
             <X className="w-6 h-6" />
           ) : icon === 'dots' ? (
             <div className="group-hover:rotate-90 transition-transform">
@@ -567,8 +584,8 @@ const FloatingActionButtons = () => {
         <div
           className="relative"
           style={{
-            transform: showRelationshipTypeModal 
-              ? `translateX(calc(${menuWidthRef.current || 380}px + 16px))` 
+            transform: showRelationshipTypeModal && menuWidthMeasured
+              ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
               : 'translateX(0)',
             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
             zIndex: showRelationshipTypeModal ? 60 : 50
@@ -581,8 +598,8 @@ const FloatingActionButtons = () => {
         <div
           className="relative"
           style={{
-            transform: showRelationshipTypeModal 
-              ? `translateX(calc(${menuWidthRef.current || 380}px + 16px))` 
+            transform: showRelationshipTypeModal && menuWidthMeasured
+              ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
               : 'translateX(0)',
             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
             zIndex: showRelationshipTypeModal ? 60 : 50
@@ -714,9 +731,9 @@ const FloatingActionButtons = () => {
               onMouseEnter={() => setHoveredOption('part')}
               onMouseLeave={() => setHoveredOption(null)}
               onClick={() => {
-                setShowPartModal(true);
-                setShowRelationshipTypeModal(false);
+                createNode("part", "New Part");
                 // Keep action button active so impressions sidebar stays open
+                // Keep options menu open
               }}
               className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
             >

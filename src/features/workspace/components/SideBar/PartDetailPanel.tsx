@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, memo } from "react";
+import React, { useState, useMemo, useEffect, useRef, memo } from "react";
 import Image from "next/image";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { 
@@ -18,11 +18,14 @@ import {
   ListRestart,
   FileText,
   Sparkles,
-  Clock
+  Clock,
+  Upload,
+  Pencil
 } from "lucide-react";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
+import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType, ImpressionType } from "@/features/workspace/types/Impressions";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
@@ -32,6 +35,15 @@ import ImpressionInput from "./Impressions/ImpressionInput";
 const PartDetailPanel = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
+  const [isCollapsing, setIsCollapsing] = useState(false);
+  
+  const setShouldCollapseSidebar = useUIStore((s) => s.setShouldCollapseSidebar);
+  const setJournalTarget = useJournalStore((s) => s.setJournalTarget);
+
+  const handleClose = () => {
+    // Detach close behavior from options/sidebar completely
+    setSelectedPartId(undefined);
+  };
   // Use selective subscriptions - only subscribe to updateNode function, not nodes/edges arrays
   const { updateNode } = useFlowNodesContext();
   
@@ -60,12 +72,46 @@ const PartDetailPanel = () => {
   const [tempAge, setTempAge] = useState("");
   const [tempGender, setTempGender] = useState("");
   const [tempPartType, setTempPartType] = useState("");
+  const [tempName, setTempName] = useState("");
+  const [tempScratchpad, setTempScratchpad] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const modalFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Refs for scroll-to-section functionality
+  const infoRef = useRef<HTMLDivElement>(null);
+  const impressionsRef = useRef<HTMLDivElement>(null);
+  const insightsRef = useRef<HTMLDivElement>(null);
+  const journalRef = useRef<HTMLDivElement>(null);
+  const relationshipsRef = useRef<HTMLDivElement>(null);
+  const scrollableContentRef = useRef<HTMLDivElement>(null);
+  
+  // Active section tracking for TOC
+  const [activeSection, setActiveSection] = useState<string>("info");
+  
+  // Scroll to section handler
+  const scrollToSection = (sectionRef: React.RefObject<HTMLDivElement | null>, sectionId: string) => {
+    if (sectionRef.current && scrollableContentRef.current) {
+      const container = scrollableContentRef.current;
+      const sectionElement = sectionRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const sectionRect = sectionElement.getBoundingClientRect();
+      const scrollTop = container.scrollTop;
+      const offsetTop = scrollTop + (sectionRect.top - containerRect.top) - 20; // 20px padding from top
+      container.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+      setActiveSection(sectionId);
+    }
+  };
+
   
   // Journal state
   const [journalEntries, setJournalEntries] = useState<any[]>([]);
   const [showJournalHistory, setShowJournalHistory] = useState(false);
   const [isLoadingJournal, setIsLoadingJournal] = useState(false);
   const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
+  const [showInfoEditModal, setShowInfoEditModal] = useState(false);
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -73,6 +119,19 @@ const PartDetailPanel = () => {
       loadJournalEntries();
     }
   }, [selectedPartId]);
+
+  // Initialize temp values from part data when part changes (only on selection change, not on every render)
+  useEffect(() => {
+    if (partNode && selectedPartId) {
+      const data = partNode.data;
+      setTempName((data.name as string) || (data.label as string) || "");
+      setTempScratchpad((data.scratchpad as string) || "");
+      setTempPartType((data.customPartType as string) || (data.partType as string) || "");
+      setTempAge((data.age as string) || "Unknown");
+      setTempGender((data.gender as string) || "");
+      setActiveSection("info"); // Reset to top section when part changes
+    }
+  }, [selectedPartId]); // Only sync when selectedPartId changes, not on every partNode update
 
   const loadJournalEntries = async () => {
     if (!selectedPartId) return;
@@ -245,6 +304,7 @@ const PartDetailPanel = () => {
         nodeId: connectedNodeId,
         nodeType: connectedNode?.type || "unknown",
         nodeLabel: connectedNode?.data?.label || "Unknown",
+        nodeDescription: (connectedNode?.data?.scratchpad as string) || (connectedNode?.data?.description as string) || "",
         relationshipType: edge.data?.relationshipType || "conflict",
       };
     });
@@ -313,283 +373,409 @@ const PartDetailPanel = () => {
     setTempPartType("");
   };
 
+  const saveName = () => {
+    if (!selectedPartId || !partNode) return;
+    const trimmedName = tempName.trim();
+    updateNode(selectedPartId, {
+      data: {
+        ...partNode.data,
+        name: trimmedName || "",
+        label: trimmedName || "",
+      },
+    });
+    setTempName(trimmedName);
+  };
+
+  const saveScratchpad = () => {
+    if (!selectedPartId || !partNode) return;
+    const trimmedScratchpad = tempScratchpad.trim();
+    updateNode(selectedPartId, {
+      data: {
+        ...partNode.data,
+        scratchpad: trimmedScratchpad,
+      },
+    });
+    setTempScratchpad(trimmedScratchpad);
+  };
+
+  const saveInfo = () => {
+    if (!selectedPartId || !partNode) return;
+    const trimmedName = tempName.trim();
+    const trimmedScratchpad = tempScratchpad.trim();
+    const trimmedAge = tempAge.trim() === "" || tempAge === "Unknown" ? "Unknown" : tempAge.trim();
+    const trimmedGender = tempGender.trim();
+    
+    // Use requestAnimationFrame to batch the update and avoid ResizeObserver issues
+    requestAnimationFrame(() => {
+      updateNode(selectedPartId, {
+        data: {
+          ...partNode.data,
+          name: trimmedName || "",
+          label: trimmedName || "",
+          scratchpad: trimmedScratchpad,
+          customPartType: tempPartType || undefined,
+          age: trimmedAge || "Unknown",
+          gender: trimmedGender || undefined,
+        },
+      });
+      
+      setTempName(trimmedName);
+      setTempScratchpad(trimmedScratchpad);
+      setTempAge(trimmedAge);
+      setTempGender(trimmedGender);
+    });
+  };
+
+  const handleModalImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && selectedPartId && partNode) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageDataUrl = event.target?.result as string;
+        updateNode(selectedPartId!, {
+          data: {
+            ...partNode!.data,
+            image: imageDataUrl,
+          },
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && selectedPartId && partNode) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageUrl = event.target?.result as string;
+        updateNode(selectedPartId, {
+          data: {
+            ...partNode.data,
+            image: imageUrl,
+          },
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   if (!selectedPartId || !partNode) return null;
 
   const data = partNode.data;
+  const containerBase = darkMode
+    ? "bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border border-gray-600/50"
+    : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50";
+  const containerClasses = containerBase + " rounded-xl shadow-lg overflow-y-auto w-full max-w-5xl max-h-[85vh] flex flex-col transition-all duration-300";
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={() => setSelectedPartId(undefined)}
     >
-      <div 
-        className={`${
-          darkMode 
-            ? "bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border border-gray-600/50" 
-            : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50"
-        } rounded-xl shadow-lg overflow-hidden w-full max-w-5xl max-h-[85vh] transition-all duration-300`}
+      <div
+        className={containerClasses}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className={`${
-          darkMode 
-            ? "bg-gray-800/80 backdrop-blur-sm border-b border-gray-600/30" 
-            : "bg-white/60 backdrop-blur-sm border-b border-blue-200/30"
-        } p-4`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 ${
-                darkMode 
-                  ? "bg-gray-700 border border-gray-600" 
-                  : "bg-white border border-gray-200"
-              } rounded-lg shadow-sm overflow-hidden`}>
-                {data.image ? (
-                  <Image
-                    src={data.image as string}
-                    alt="Part"
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className={`w-full h-full ${
-                    darkMode ? "bg-gray-600" : "bg-gray-100"
-                  } flex items-center justify-center`}>
-                    <SquareUserRound size={24} className={darkMode ? "text-gray-300" : "text-gray-400"} />
-                  </div>
-                )}
+        {/* Close Button - Top Right */}
+        <button
+          onClick={handleClose}
+          className={`absolute top-4 right-4 z-10 p-2 rounded-lg ${
+            darkMode 
+              ? "bg-gray-700/60 hover:bg-gray-600/80" 
+              : "bg-white/60 hover:bg-white/80"
+          }`}
+        >
+          <X size={18} className={darkMode ? "text-gray-300" : "text-gray-600"} />
+        </button>
+
+        {/* Content with TOC */}
+        <div className="flex flex-row flex-1 overflow-hidden min-h-0">
+          {/* Table of Contents - Left Column */}
+          <div className={`w-48 flex-shrink-0 border-r flex flex-col ${
+            darkMode 
+              ? "bg-gray-800/90 border-gray-700/50" 
+              : "bg-gray-50/90 border-gray-200/50"
+          }`}>
+            <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+              <button
+                onClick={() => scrollToSection(infoRef, 'info')}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                  darkMode
+                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-emerald-600" />
+                  <span>Info</span>
+                </div>
+              </button>
+              <button
+                onClick={() => scrollToSection(insightsRef, 'insights')}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                  darkMode
+                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-sky-600" />
+                  <span>Insights</span>
+                </div>
+              </button>
+              <button
+                onClick={() => scrollToSection(impressionsRef, 'impressions')}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                  darkMode
+                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-purple-600" />
+                  <span>Impressions</span>
+                </div>
+              </button>
+              <button
+                onClick={() => scrollToSection(journalRef, 'journal')}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                  darkMode
+                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-amber-600" />
+                  <span>Journal</span>
+                </div>
+              </button>
+              <button
+                onClick={() => scrollToSection(relationshipsRef, 'relationships')}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                  darkMode
+                    ? "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-200/50 hover:text-gray-900"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-rose-600" />
+                  <span>Relationships</span>
+                </div>
+              </button>
+            </nav>
+          </div>
+
+          {/* Main Content - Right Column */}
+          <div ref={scrollableContentRef} className={`flex-1 p-8 backdrop-blur-sm overflow-y-auto ${
+            darkMode 
+              ? "bg-gray-800/80" 
+              : "bg-white/80"
+          }`}>
+          
+          {/* Info Section */}
+          <div ref={infoRef} className="mb-6 transition-all duration-300 relative">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-xs font-semibold uppercase tracking-wide flex items-center gap-2 ${
+                darkMode ? "text-gray-400" : "text-gray-500"
+              }`}>
+                <User className="w-3 h-3 text-emerald-600" />
+                Info
+              </h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (selectedPartId && partNode) {
+                      setJournalTarget({
+                        type: "node",
+                        nodeId: selectedPartId,
+                        nodeType: "part",
+                        title: partNode.data?.label || "Part",
+                      });
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border-2 ${
+                    darkMode
+                      ? "bg-gray-800 border-purple-600 text-purple-400 hover:bg-gray-700"
+                      : "bg-white border-purple-600 text-purple-600 hover:bg-purple-50"
+                  } shadow-md`}
+                >
+                  <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-400" : "text-purple-600"}`} />
+                  <span>Deepen</span>
+                </button>
+                <button
+                  onClick={() => setShowInfoEditModal(true)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
+                    darkMode
+                      ? "bg-blue-800 hover:bg-blue-900 text-white"
+                      : "bg-blue-800 hover:bg-blue-900 text-white"
+                  } shadow-md`}
+                >
+                  <Pencil className="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
               </div>
-              <div className="flex-1">
-                <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-black"}`}>
-                  {(data.name as string) || (data.label as string) || "Untitled"}
-                </h2>
-                {editingPartType ? (
-                  <select
-                    value={tempPartType}
-                    onChange={(e) => setTempPartType(e.target.value)}
-                    onBlur={savePartType}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") savePartType();
-                      if (e.key === "Escape") {
-                        setEditingPartType(false);
-                        setTempPartType("");
-                      }
-                    }}
-                    className={`text-sm mb-2 bg-transparent border-b ${
-                      darkMode 
-                        ? "border-gray-500 focus:border-blue-400 text-white" 
-                        : "border-gray-300 focus:border-blue-500 text-gray-900"
-                    } focus:outline-none min-w-[100px]`}
-                    autoFocus
-                  >
-                    <option value="exile">Exile</option>
-                    <option value="manager">Manager</option>
-                    <option value="protector">Protector</option>
-                    <option value="firefighter">Firefighter</option>
-                  </select>
-                ) : (
-                  <p 
-                    className={`${darkMode ? "text-gray-300" : "text-gray-600"} text-sm mb-2 cursor-pointer transition-colors ${
-                      darkMode 
-                        ? "hover:text-blue-400" 
-                        : "hover:text-blue-600"
-                    }`}
-                    onClick={() => {
-                      setTempPartType((data.customPartType as string) || (data.partType as string) || "manager");
-                      setEditingPartType(true);
-                    }}
-                  >
-                    {(data.customPartType as string) || (data.partType as string) || "Manager"} Part
-                  </p>
-                )}
-                
-                {/* Stats Row */}
-                <div className={`flex items-center gap-4 text-xs ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
-                  {/* Journal Button */}
-                  <button
-                    onClick={() => {
-                      setShowJournalHistory(!showJournalHistory);
-                    }}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-full transition-colors ${
-                      darkMode 
-                        ? "bg-blue-900/50 hover:bg-blue-800/50" 
-                        : "bg-blue-100 hover:bg-blue-200"
-                    }`}
-                  >
-                    <BookOpen size={12} />
-                    <span>Journal</span>
-                    {journalEntries.length > 0 && (
-                      <span className="text-xs bg-blue-600 text-white rounded-full px-1.5 py-0.5">
-                        {journalEntries.length}
-                      </span>
+            </div>
+            
+            {/* Main Info Grid */}
+            <div className="space-y-6">
+              {/* First Row: Image and Info */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Image - Left Column */}
+                <div className="lg:col-span-1">
+                  <div className={`w-full aspect-square relative ${
+                    darkMode 
+                      ? "bg-gray-700 border border-gray-600" 
+                      : "bg-white border border-gray-200"
+                  } rounded-lg shadow-sm overflow-hidden group`}>
+                    {data.image ? (
+                      <>
+                        <Image
+                          src={data.image as string}
+                          alt="Part"
+                          width={256}
+                          height={256}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                        >
+                          <Upload className="w-8 h-8 text-white" />
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`w-full h-full ${
+                          darkMode ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-100 hover:bg-gray-200"
+                        } flex flex-col items-center justify-center cursor-pointer`}
+                      >
+                        <SquareUserRound size={64} className={darkMode ? "text-gray-300" : "text-gray-400"} />
+                        <span className={`text-xs mt-2 ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
+                          Click to upload
+                        </span>
+                      </button>
                     )}
-                  </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+
+                {/* Info Fields - Right Columns */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Name and Part Type Row */}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h2 className={`text-3xl font-bold mb-2 ${darkMode ? "text-white" : "text-black"}`}>
+                        {(data.name as string) || (data.label as string) || "Untitled"}
+                      </h2>
+                      <div className="flex items-center gap-2">
+                        {['manager', 'firefighter', 'exile'].map((type) => {
+                          const currentType = tempPartType || (data.customPartType as string) || (data.partType as string) || "";
+                          const isSelected = currentType === type;
+                          if (!isSelected) return null;
+                          return (
+                            <span
+                              key={type}
+                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                type === "manager"
+                                  ? "bg-blue-600 text-white"
+                                  : type === "firefighter"
+                                    ? "bg-red-600 text-white"
+                                    : "bg-purple-600 text-white"
+                              }`}
+                            >
+                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </span>
+                          );
+                        })}
+                        {!tempPartType && !(data.customPartType as string) && !(data.partType as string) && (
+                          <span className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                            No type set
+                          </span>
+                        )}
+                        {/* Age and Gender Display - To the right of part type */}
+                        {(data.age as string) || (data.gender as string) ? (
+                          <>
+                            {(data.age as string) && (data.age as string) !== "Unknown" && (
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
+                              }`}>
+                                {data.age as string}
+                              </span>
+                            )}
+                            {(data.gender as string) && (
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
+                              }`}>
+                                {data.gender as string}
+                              </span>
+                            )}
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <p className={`text-base leading-relaxed ${darkMode ? "text-gray-300" : "text-gray-700"} whitespace-pre-wrap`}>
+                      {(data.scratchpad as string) || (
+                        <span className={darkMode ? "text-gray-500" : "text-gray-400"}>
+                          No description added yet.
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => setSelectedPartId(undefined)}
-              className={`p-2 rounded-lg transition-colors ${
-                darkMode 
-                  ? "bg-gray-700/60 hover:bg-gray-600/80" 
-                  : "bg-white/60 hover:bg-white/80"
-              }`}
-            >
-              <X size={18} className={darkMode ? "text-gray-300" : "text-gray-600"} />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className={`p-6 overflow-y-auto max-h-[calc(85vh-100px)] backdrop-blur-sm ${
-          darkMode 
-            ? "bg-gray-800/80" 
-            : "bg-white/80"
-        }`}>
-          
-          {/* Observations Section - Top */}
-          <div className="mb-8">
-            <h3 className={`text-lg font-bold flex items-center gap-2 mb-4 ${
-              darkMode ? "text-white" : "text-black"
-            }`}>
-              <Eye className="w-5 h-5 text-indigo-600" />
-              Observations
-            </h3>
-            
-            {/* Flexible Layout for Observations and Fears */}
-            <div className="columns-1 lg:columns-2 gap-4 space-y-4">
-              {ImpressionList.map((impression) => {
-                const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
-                
-                return (
-                  <div key={impression} className={`break-inside-avoid rounded-lg p-4 border mb-4 ${
-                    darkMode 
-                      ? "bg-gray-700/40 border-gray-600/50" 
-                      : "bg-white/40 border-blue-200/50"
-                  }`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <h4 
-                          className="font-semibold capitalize text-sm"
-                          style={{ color: NodeBackgroundColors[impression] }}
-                        >
-                          {impression}
-                        </h4>
-                        <button
-                          onClick={() => {
-                            setAddingImpressionType(impression);
-                            setCurrentImpressionType(impression);
-                          }}
-                          className={`p-1 rounded-full transition-colors ${
-                            darkMode 
-                              ? "hover:bg-gray-600/60" 
-                              : "hover:bg-white/60"
-                          }`}
-                          style={{ color: NodeBackgroundColors[impression] }}
-                        >
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                      <span 
-                        className="px-2 py-1 rounded-full text-xs font-medium"
-                        style={{
-                          backgroundColor: `${NodeBackgroundColors[impression]}20`,
-                          color: NodeBackgroundColors[impression],
-                        }}
-                      >
-                        {impressions.length}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-1 mb-2">
-                      {impressions.map((imp, index) => {
-                        const bgColor = NodeBackgroundColors[impression];
-                        
-                        return (
-                          <div 
-                            key={index} 
-                            className={`group rounded border p-2 flex items-center justify-between ${
-                              darkMode 
-                                ? "border-gray-600/30" 
-                                : "border-blue-200/30"
-                            }`}
-                            style={{
-                              backgroundColor: `${bgColor}20`,
-                              color: `${bgColor}FF`, // Much darker version for better readability
-                            }}
-                          >
-                            <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                              <button 
-                                onClick={() => handleReturnToSidebar(impression, imp.id)}
-                                className="p-1 hover:opacity-70"
-                                style={{
-                                  color: getXButtonColor(impression),
-                                  height: "28px",
-                                  width: "24px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center"
-                                }}
-                                title="Return to sidebar"
-                              >
-                                <ListRestart size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleRemoveImpression(impression, imp.id)}
-                                className="p-1 hover:opacity-70"
-                                style={{
-                                  color: getXButtonColor(impression),
-                                  height: "28px",
-                                  width: "24px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center"
-                                }}
-                                title="Delete"
-                              >
-                                <X size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    
-                  </div>
-                );
-              })}
-            
-            </div>
           </div>
 
-          {/* Details Section - Bottom */}
-          <div>
-            <h3 className={`text-lg font-bold flex items-center gap-2 mb-4 ${
-              darkMode ? "text-white" : "text-black"
-            }`}>
-              <SquareUserRound className="w-5 h-5 text-blue-600" />
-              Details
-            </h3>
-            
-            {/* Two Column Grid for Details */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              
-              {/* Left Column - Needs, Fears, Insights */}
-              <div className="space-y-4">
-                {/* Needs */}
+          {/* Insights Section */}
+          <div ref={insightsRef} className="mb-6 transition-all duration-300 relative">
+                <h4 className={`text-xs font-semibold uppercase tracking-wide flex items-center gap-2 ${
+                  darkMode ? "text-gray-400" : "text-gray-500"
+                }`}>
+                  <Brain className="w-3 h-3 text-sky-600" />
+                  Insights
+                </h4>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* Needs */}
                 <div className={`rounded-lg p-4 border ${
                   darkMode 
                     ? "bg-gray-700/40 border-gray-600/50" 
-                    : "bg-white/40 border-blue-200/50"
+                    : "bg-white border-gray-300"
                 }`}>
-                  <h4 className={`font-semibold mb-3 flex items-center gap-2 text-sm ${
-                    darkMode ? "text-white" : "text-black"
-                  }`}>
-                    <Heart className="w-4 h-4 text-red-500" />
-                    Needs
-                  </h4>
-                  <div className="space-y-1 mb-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className={`font-semibold capitalize text-sm ${
+                      darkMode ? "text-white" : "text-black"
+                    }`}>
+                      Needs
+                    </h4>
+                    <button
+                      onClick={() => {
+                        const input = prompt("Add a need:");
+                        if (input?.trim()) {
+                          addListItem("needs", input.trim());
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        darkMode
+                          ? "bg-gray-700/50 hover:bg-gray-700 text-gray-300"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="space-y-1">
                     {((data.needs as string[]) || []).map((need: string, index: number) => (
                       <div key={index} className={`group rounded border p-2 flex items-center justify-between ${
                         darkMode 
@@ -609,48 +795,54 @@ const PartDetailPanel = () => {
                             justifyContent: "center"
                           }}
                         >
-                          <X size={20} />
+                          <X size={16} />
                         </button>
                       </div>
                     ))}
-                  </div>
-                  <div className="flex gap-1">
-                    <input
-                      type="text"
-                      placeholder="Add need..."
-                      className="flex-1 text-xs px-2 py-1 bg-white/60 backdrop-blur-sm border border-blue-200/50 rounded focus:outline-none focus:ring-1 focus:ring-blue-300"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          addListItem("needs", e.currentTarget.value);
-                          e.currentTarget.value = "";
-                        }
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        const input = document.querySelector('input[placeholder="Add need..."]') as HTMLInputElement;
-                        if (input?.value) {
-                          addListItem("needs", input.value);
-                          input.value = "";
-                        }
-                      }}
-                      className="p-1 bg-blue-100 hover:bg-blue-200 rounded transition-colors"
-                    >
-                      <Plus size={10} />
-                    </button>
+                    {((data.needs as string[]) || []).length === 0 && (
+                      <div className={`text-center py-4 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} italic`}>
+                        No needs added yet
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Fears */}
-                <div className="bg-white/40 rounded-lg p-4 border border-blue-200/50">
-                  <h4 className="font-semibold text-black mb-3 flex items-center gap-2 text-sm">
-                    <Shield className="w-4 h-4 text-orange-500" />
-                    Fears
-                  </h4>
-                  <div className="space-y-1 mb-2">
+                <div className={`rounded-lg p-4 border ${
+                  darkMode 
+                    ? "bg-gray-700/40 border-gray-600/50" 
+                    : "bg-white border-gray-300"
+                }`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className={`font-semibold capitalize text-sm ${
+                      darkMode ? "text-white" : "text-black"
+                    }`}>
+                      Fears
+                    </h4>
+                    <button
+                      onClick={() => {
+                        const input = prompt("Add a fear:");
+                        if (input?.trim()) {
+                          addListItem("fears", input.trim());
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        darkMode
+                          ? "bg-gray-700/50 hover:bg-gray-700 text-gray-300"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="space-y-1">
                     {((data.fears as string[]) || []).map((fear: string, index: number) => (
-                      <div key={index} className="group bg-white/40 rounded border border-blue-200/30 p-2 flex items-center justify-between">
-                        <span className="text-xs text-black">{fear}</span>
+                      <div key={index} className={`group rounded border p-2 flex items-center justify-between ${
+                        darkMode 
+                          ? "bg-gray-600/40 border-gray-500/30" 
+                          : "bg-white/40 border-blue-200/30"
+                      }`}>
+                        <span className={`text-xs ${darkMode ? "text-white" : "text-black"}`}>{fear}</span>
                         <button 
                           onClick={() => removeListItem("fears", index)}
                           className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
@@ -663,252 +855,345 @@ const PartDetailPanel = () => {
                             justifyContent: "center"
                           }}
                         >
-                          <X size={20} />
+                          <X size={16} />
                         </button>
                       </div>
                     ))}
-                  </div>
-                  <div className="flex gap-1">
-                    <input
-                      type="text"
-                      placeholder="Add fear..."
-                      className="flex-1 text-xs px-2 py-1 bg-white/60 backdrop-blur-sm border border-blue-200/50 rounded focus:outline-none focus:ring-1 focus:ring-blue-300"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          addListItem("fears", e.currentTarget.value);
-                          e.currentTarget.value = "";
-                        }
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        const input = document.querySelector('input[placeholder="Add fear..."]') as HTMLInputElement;
-                        if (input?.value) {
-                          addListItem("fears", input.value);
-                          input.value = "";
-                        }
-                      }}
-                      className="p-1 bg-blue-100 hover:bg-blue-200 rounded transition-colors"
-                    >
-                      <Plus size={10} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Insights */}
-                <div className="bg-white/40 rounded-lg p-4 border border-blue-200/50">
-                  <h4 className="font-semibold text-black mb-3 flex items-center gap-2 text-sm">
-                    <Brain className="w-4 h-4 text-purple-500" />
-                    Insights
-                  </h4>
-                  <div className="space-y-1 mb-2">
-                    {((data.insights as string[]) || []).map((insight: string, index: number) => (
-                      <div key={index} className="group bg-white/40 rounded border border-blue-200/30 p-2 flex items-center justify-between">
-                        <span className="text-xs text-black">{insight}</span>
-                        <button 
-                          onClick={() => removeListItem("insights", index)}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:opacity-70"
-                          style={{
-                            color: "#ed9f9f",
-                            height: "28px",
-                            width: "24px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                          }}
-                        >
-                          <X size={20} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-1">
-                    <input
-                      type="text"
-                      placeholder="Add insight..."
-                      className="flex-1 text-xs px-2 py-1 bg-white/60 backdrop-blur-sm border border-blue-200/50 rounded focus:outline-none focus:ring-1 focus:ring-blue-300"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          addListItem("insights", e.currentTarget.value);
-                          e.currentTarget.value = "";
-                        }
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        const input = document.querySelector('input[placeholder="Add insight..."]') as HTMLInputElement;
-                        if (input?.value) {
-                          addListItem("insights", input.value);
-                          input.value = "";
-                        }
-                      }}
-                      className="p-1 bg-blue-100 hover:bg-blue-200 rounded transition-colors"
-                    >
-                      <Plus size={10} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Relationships */}
-              <div className="space-y-4">
-                <div className="bg-white/40 rounded-lg p-4 border border-blue-200/50">
-                  <h4 className="font-semibold text-black mb-3 flex items-center gap-2 text-sm">
-                    <Users className="w-4 h-4 text-green-500" />
-                    Relationships
-                  </h4>
-                  <div className="space-y-1">
-                    {relationships.length > 0 ? (
-                      relationships.map((rel) => {
-                        console.log(rel)
-                        const isConflict = rel.relationshipType === "conflict";
-                        const isAlly = rel.relationshipType === "ally";
-                        
-                        return (
-                          <div
-                            key={rel.id}
-                            className={`px-3 py-2 rounded-lg border-2 ${
-                              isConflict 
-                                ? "border-purple-400 bg-purple-100 shadow-sm" 
-                                : isAlly 
-                                  ? "border-sky-400 bg-sky-100 shadow-sm"
-                                  : "border-blue-200/30 bg-white/40"
-                            }`}
-                          >
-                            <div className={`font-semibold text-sm ${
-                              isConflict 
-                                ? "text-purple-900" 
-                                : isAlly 
-                                  ? "text-sky-900"
-                                  : "text-black"
-                            }`}>
-                              {rel.nodeLabel}
-                            </div>
-                            <div className={`text-xs font-medium capitalize ${
-                              isConflict 
-                                ? "text-purple-700" 
-                                : isAlly 
-                                  ? "text-sky-700"
-                                  : "text-gray-600"
-                            }`}>
-                              {isConflict ? "⚔️ Conflict" : isAlly ? "🤝 Ally" : rel.nodeType}
-                            </div>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-gray-500 italic bg-white/40 rounded px-2 py-1 border border-blue-200/30 text-xs">
-                        No relationships yet
+                    {((data.fears as string[]) || []).length === 0 && (
+                      <div className={`text-center py-4 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"} italic`}>
+                        No fears added yet
                       </div>
                     )}
                   </div>
                 </div>
+                </div>
+          </div>
+
+          {/* Impressions Section */}
+          <div ref={impressionsRef} className="mb-6 transition-all duration-300 relative">
+                <h3 className={`text-xs font-semibold uppercase tracking-wide mb-4 flex items-center gap-2 ${
+                  darkMode ? "text-gray-400" : "text-gray-500"
+                }`}>
+                  <Eye className="w-3 h-3 text-purple-600" />
+                  Impressions
+                </h3>
+                
+                {/* Flexible Layout for Impressions */}
+                <div className="space-y-4">
+                  {/* All Impressions: emotion, thought, sensation, behavior, other */}
+                  <div className="columns-1 lg:columns-2 gap-4 space-y-4">
+                    {ImpressionList.map((impression) => {
+                      const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
+                      
+                      return (
+                        <div key={impression} className={`break-inside-avoid rounded-lg p-4 border mb-4 ${
+                          darkMode 
+                            ? "bg-gray-700/40 border-gray-600/50" 
+                            : "bg-white border-gray-300"
+                        }`}>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <h4 
+                                className="font-semibold capitalize text-sm"
+                                style={{ color: NodeBackgroundColors[impression] }}
+                              >
+                                {impression}
+                              </h4>
+                              <span 
+                                className="px-2 py-1 rounded-full text-xs font-medium"
+                                style={{
+                                  backgroundColor: `${NodeBackgroundColors[impression]}20`,
+                                  color: NodeBackgroundColors[impression],
+                                }}
+                              >
+                                {impressions.length}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setAddingImpressionType(impression);
+                                setCurrentImpressionType(impression);
+                              }}
+                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                darkMode 
+                                  ? "bg-gray-700/50 hover:bg-gray-700 text-gray-300" 
+                                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                              }`}
+                              style={{
+                                border: `1px solid ${NodeBackgroundColors[impression]}40`,
+                              }}
+                            >
+                              Add
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-1 mb-2">
+                            {impressions.map((imp, index) => {
+                              const bgColor = NodeBackgroundColors[impression];
+                              
+                              return (
+                                <div 
+                                  key={index} 
+                                  className={`group rounded border p-2 flex items-center justify-between ${
+                                    darkMode 
+                                      ? "border-gray-600/30" 
+                                      : "border-blue-200/30"
+                                  }`}
+                                  style={{
+                                    backgroundColor: `${bgColor}20`,
+                                    color: `${bgColor}FF`,
+                                  }}
+                                >
+                                  <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
+                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                                    <button 
+                                      onClick={() => handleReturnToSidebar(impression, imp.id)}
+                                      className="p-1 hover:opacity-70"
+                                      style={{
+                                        color: getXButtonColor(impression),
+                                        height: "28px",
+                                        width: "24px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center"
+                                      }}
+                                      title="Return to sidebar"
+                                    >
+                                      <ListRestart size={16} />
+                                    </button>
+                                    <button 
+                                      onClick={() => handleRemoveImpression(impression, imp.id)}
+                                      className="p-1 hover:opacity-70"
+                                      style={{
+                                        color: getXButtonColor(impression),
+                                        height: "28px",
+                                        width: "24px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center"
+                                      }}
+                                      title="Delete"
+                                    >
+                                      <X size={16} />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+          </div>
+
+           {/* Journal History Section */}
+             <div ref={journalRef} className="mt-6 transition-all duration-300 relative">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-xs font-semibold uppercase tracking-wide flex items-center gap-2 ${
+                  darkMode ? "text-gray-400" : "text-gray-500"
+                }`}>
+                  <BookOpen className="w-3 h-3 text-amber-600" />
+                  Journal
+                </h3>
+                <button
+                  onClick={() => {
+                    if (selectedPartId && partNode) {
+                      setJournalTarget({
+                        type: "node",
+                        nodeId: selectedPartId,
+                        nodeType: "part",
+                        title: partNode.data?.label || "Part",
+                      });
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border-2 ${
+                    darkMode
+                      ? "bg-gray-800 border-purple-600 text-purple-400 hover:bg-gray-700"
+                      : "bg-white border-purple-600 text-purple-600 hover:bg-purple-50"
+                  } shadow-md`}
+                >
+                  <Sparkles className={`w-3 h-3 ${darkMode ? "text-purple-400" : "text-purple-600"}`} />
+                  <span>New Entry</span>
+                </button>
               </div>
               
+              {isLoadingJournal ? (
+                <div className={`flex items-center justify-center py-8 rounded-lg ${
+                  darkMode 
+                    ? "bg-gray-700/40 border border-gray-600/50" 
+                    : "bg-white/40 border border-blue-200/50"
+                }`}>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className={`ml-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>Loading journal entries...</span>
+                </div>
+              ) : journalEntries.length === 0 ? (
+                <div className={`text-center py-8 rounded-lg ${
+                  darkMode 
+                    ? "bg-gray-700/40 border border-gray-600/50" 
+                    : "bg-white/40 border border-blue-200/50"
+                }`}>
+                  <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
+                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>No Journal Entries Yet</h3>
+                  <p className={darkMode ? "text-gray-400" : "text-gray-500"}>Start writing about this part to see entries here.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {journalEntries.map((entry) => (
+                    <div key={entry.id} className={`${
+                      darkMode 
+                        ? "bg-gray-700/40 border border-gray-600/50" 
+                        : "bg-white/40 border border-blue-200/50"
+                    } rounded-lg p-5`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Clock className={`w-4 h-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                          <span className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                            {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => extractImpressionsFromEntry(entry.id)}
+                          disabled={isExtractingImpressions}
+                          className={`flex items-center gap-1 px-3 py-1 text-white text-sm rounded-lg ${
+                            isExtractingImpressions
+                              ? "bg-gray-400"
+                              : darkMode
+                                ? "bg-blue-600 hover:bg-blue-700"
+                                : "bg-blue-600 hover:bg-blue-700"
+                          }`}
+                        >
+                          {isExtractingImpressions ? (
+                            <>
+                              <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                              <span>Extracting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3 h-3" />
+                              <span>Extract Impressions</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      {entry.title && (
+                        <h4 className={`font-semibold mb-2 ${darkMode ? "text-white" : "text-gray-800"}`}>{entry.title}</h4>
+                      )}
+                      <div className={`whitespace-pre-wrap text-sm leading-relaxed ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}>
+                        {entry.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+             {/* Relationships Section */}
+             <div ref={relationshipsRef} className="mt-6 transition-all duration-300 relative">
+              <h3 className={`text-xs font-semibold uppercase tracking-wide mb-4 flex items-center gap-2 ${
+                darkMode ? "text-gray-400" : "text-gray-500"
+              }`}>
+                <Users className="w-3 h-3 text-rose-600" />
+                Relationships
+              </h3>
+              
+              {relationships.length > 0 ? (
+                <div className="space-y-4">
+                  {relationships.map((rel) => {
+                    const isConflict = rel.relationshipType === "conflict";
+                    const isAlly = rel.relationshipType === "ally";
+                    
+                    return (
+                      <div
+                        key={rel.id}
+                        className={`rounded-lg p-5 ${
+                          darkMode 
+                            ? "bg-gray-700/40 border border-gray-600/50" 
+                            : "bg-white/40 border border-blue-200/50"
+                        }`}
+                      >
+                        <div className={`px-3 py-2 rounded-lg border-2 ${
+                          isConflict 
+                            ? darkMode
+                              ? "border-purple-400 bg-purple-900/40 shadow-sm"
+                              : "border-purple-400 bg-purple-100 shadow-sm"
+                            : isAlly 
+                              ? darkMode
+                                ? "border-sky-400 bg-sky-900/40 shadow-sm"
+                                : "border-sky-400 bg-sky-100 shadow-sm"
+                              : darkMode
+                                ? "border-gray-600/50 bg-gray-600/40"
+                                : "border-blue-200/30 bg-white/40"
+                        }`}>
+                          <div className={`font-semibold text-sm mb-2 ${
+                            isConflict 
+                              ? darkMode
+                                ? "text-purple-200"
+                                : "text-purple-900"
+                              : isAlly 
+                                ? darkMode
+                                  ? "text-sky-200"
+                                  : "text-sky-900"
+                                : darkMode
+                                  ? "text-white"
+                                  : "text-black"
+                          }`}>
+                            {rel.nodeLabel}
+                          </div>
+                          {rel.nodeDescription && String(rel.nodeDescription).trim() ? (
+                            <div className={`text-xs mb-2 leading-relaxed whitespace-pre-wrap ${
+                              isConflict 
+                                ? darkMode
+                                  ? "text-purple-300"
+                                  : "text-purple-700"
+                                : isAlly 
+                                  ? darkMode
+                                    ? "text-sky-300"
+                                    : "text-sky-700"
+                                  : darkMode
+                                    ? "text-gray-300"
+                                    : "text-gray-700"
+                            }`}>
+                              {String(rel.nodeDescription)}
+                            </div>
+                          ) : null}
+                          <div className={`text-xs font-medium capitalize mt-1 ${
+                            isConflict 
+                              ? darkMode
+                                ? "text-purple-300"
+                                : "text-purple-700"
+                              : isAlly 
+                                ? darkMode
+                                  ? "text-sky-300"
+                                  : "text-sky-700"
+                                : darkMode
+                                  ? "text-gray-400"
+                                  : "text-gray-600"
+                          }`}>
+                            {isConflict ? "⚔️ Conflict" : isAlly ? "🤝 Ally" : rel.nodeType}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className={`text-center py-8 rounded-lg ${
+                  darkMode 
+                    ? "bg-gray-700/40 border border-gray-600/50" 
+                    : "bg-white/40 border border-blue-200/50"
+                }`}>
+                  <Users className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
+                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>No Relationships Yet</h3>
+                  <p className={darkMode ? "text-gray-400" : "text-gray-500"}>No relationships have been created for this part.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
-        
-        {/* Journal History Section */}
-        {showJournalHistory && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div 
-              className={`${
-                darkMode 
-                  ? "bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border border-gray-600/50" 
-                  : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50"
-              } rounded-xl shadow-lg overflow-hidden w-full max-w-4xl max-h-[85vh] transition-all duration-300`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Journal Header */}
-              <div className={`${
-                darkMode 
-                  ? "bg-gray-800/80 backdrop-blur-sm border-b border-gray-600/30" 
-                  : "bg-white/60 backdrop-blur-sm border-b border-blue-200/30"
-              } p-4`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-600 rounded-lg">
-                      <BookOpen className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-800">
-                        Journal History - {(data.name as string) || (data.label as string) || "Untitled"}
-                      </h2>
-                      <p className="text-sm text-gray-600">
-                        {journalEntries.length} entries
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowJournalHistory(false)}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <X size={20} className="text-gray-500" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Journal Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(85vh-120px)]">
-                {isLoadingJournal ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-2 text-gray-600">Loading journal entries...</span>
-                  </div>
-                ) : journalEntries.length === 0 ? (
-                  <div className="text-center py-8">
-                    <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-600 mb-2">No Journal Entries Yet</h3>
-                    <p className="text-gray-500">Start writing about this part to see entries here.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {journalEntries.map((entry) => (
-                      <div key={entry.id} className={`${
-                        darkMode 
-                          ? "bg-gray-800/50 border border-gray-600/30" 
-                          : "bg-white border border-gray-200"
-                      } rounded-lg p-4`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600">
-                              {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString()}
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => extractImpressionsFromEntry(entry.id)}
-                            disabled={isExtractingImpressions}
-                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm rounded-lg transition-colors"
-                          >
-                            {isExtractingImpressions ? (
-                              <>
-                                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
-                                <span>Extracting...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="w-3 h-3" />
-                                <span>Extract Impressions</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                        {entry.title && (
-                          <h4 className="font-semibold text-gray-800 mb-2">{entry.title}</h4>
-                        )}
-                        <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                          {entry.content}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Impression Input Modal */}
         {addingImpressionType && (
@@ -933,7 +1218,7 @@ const PartDetailPanel = () => {
                 </div>
                 <button
                   onClick={() => setAddingImpressionType(null)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-full"
                 >
                   <X size={20} className="text-gray-500" />
                 </button>
@@ -967,6 +1252,244 @@ const PartDetailPanel = () => {
                   onTypeChange={(type) => setCurrentImpressionType(type)}
                   defaultType={addingImpressionType as ImpressionType}
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Info Edit Modal */}
+        {showInfoEditModal && (
+          <div
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4"
+            onClick={() => setShowInfoEditModal(false)}
+          >
+            <div
+              className={`rounded-2xl p-8 w-full max-w-2xl mx-4 shadow-2xl border ${
+                darkMode
+                  ? "bg-gray-800 border-gray-700"
+                  : "bg-white border-gray-200"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className={`text-xl font-bold ${
+                  darkMode ? "text-white" : "text-gray-800"
+                }`}>
+                  Edit Info
+                </h3>
+                <button
+                  onClick={() => setShowInfoEditModal(false)}
+                  className={`p-2 rounded-full ${
+                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <X size={20} className={darkMode ? "text-gray-300" : "text-gray-500"} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* First Row: Name/Pills on left, Image on right */}
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Left Column: Name and Part Type Pills */}
+                  <div className="space-y-4">
+                    {/* Name Input */}
+                    <div>
+                      <label className={`text-sm font-semibold mb-2 block ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}>
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        value={tempName}
+                        onChange={(e) => setTempName(e.target.value)}
+                        className={`w-full text-lg font-bold ${
+                          darkMode 
+                            ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500" 
+                            : "bg-white border-gray-300 text-black placeholder-gray-400"
+                        } border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="Part name..."
+                      />
+                    </div>
+
+                    {/* Part Type Pills */}
+                    <div>
+                      <label className={`text-sm font-semibold mb-3 block ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}>
+                        Part Type
+                      </label>
+                      <div className="flex gap-2">
+                        {['manager', 'firefighter', 'exile'].map((type) => {
+                          const currentType = tempPartType || (data.customPartType as string) || (data.partType as string) || "";
+                          const isSelected = currentType === type;
+                          return (
+                            <button
+                              key={type}
+                              onClick={() => {
+                                setTempPartType(type);
+                              }}
+                              className={`px-4 py-2 rounded-full text-sm font-medium ${
+                                isSelected
+                                  ? type === "manager"
+                                    ? "bg-blue-600 text-white shadow-md"
+                                    : type === "firefighter"
+                                      ? "bg-red-600 text-white shadow-md"
+                                      : "bg-purple-600 text-white shadow-md"
+                                  : darkMode
+                                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              }`}
+                            >
+                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Age and Gender - Side by Side */}
+                    <div className="grid grid-cols-[1fr_2fr] gap-4">
+                      {/* Age Number Picker */}
+                      <div>
+                        <label className={`text-sm font-semibold mb-2 block ${
+                          darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}>
+                          Age
+                        </label>
+                        <input
+                          type="number"
+                          value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
+                          onChange={(e) => setTempAge(e.target.value || "Unknown")}
+                          className={`w-full text-sm ${
+                            darkMode 
+                              ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500" 
+                              : "bg-white border-gray-300 text-black placeholder-gray-400"
+                          } border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="Unknown"
+                          min="0"
+                        />
+                      </div>
+
+                      {/* Gender Input */}
+                      <div>
+                        <label className={`text-sm font-semibold mb-2 block ${
+                          darkMode ? "text-gray-300" : "text-gray-700"
+                        }`}>
+                          Gender
+                        </label>
+                        <input
+                          type="text"
+                          value={tempGender}
+                          onChange={(e) => setTempGender(e.target.value)}
+                          className={`w-full text-sm ${
+                            darkMode 
+                              ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500" 
+                              : "bg-white border-gray-300 text-black placeholder-gray-400"
+                          } border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="Gender..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Image Upload */}
+                  <div>
+                    <label className={`text-sm font-semibold mb-3 block ${
+                      darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}>
+                      Image
+                    </label>
+                    <div className={`w-full aspect-square relative ${
+                      darkMode 
+                        ? "bg-gray-700 border border-gray-600" 
+                        : "bg-white border border-gray-200"
+                    } rounded-lg shadow-sm overflow-hidden group`}>
+                      {data.image ? (
+                        <>
+                          <Image
+                            src={data.image as string}
+                            alt="Part"
+                            width={256}
+                            height={256}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => modalFileInputRef.current?.click()}
+                            className="absolute inset-0 bg-black/0 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                          >
+                            <Upload className="w-8 h-8 text-white" />
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => modalFileInputRef.current?.click()}
+                          className={`w-full h-full ${
+                            darkMode ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-100 hover:bg-gray-200"
+                          } flex flex-col items-center justify-center cursor-pointer`}
+                        >
+                          <SquareUserRound size={64} className={darkMode ? "text-gray-300" : "text-gray-400"} />
+                          <span className={`text-xs mt-2 ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
+                            Click to upload
+                          </span>
+                        </button>
+                      )}
+                      <input
+                        ref={modalFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleModalImageUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description - Full Width */}
+                <div>
+                  <label className={`text-sm font-semibold mb-2 block ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}>
+                    Description
+                  </label>
+                  <textarea
+                    value={tempScratchpad}
+                    onChange={(e) => setTempScratchpad(e.target.value)}
+                    className={`w-full text-sm ${
+                      darkMode 
+                        ? "bg-gray-700 border-gray-600 text-gray-300 placeholder-gray-500" 
+                        : "bg-white border-gray-300 text-gray-700 placeholder-gray-400"
+                    } border rounded-lg px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    placeholder="Add a description..."
+                    rows={6}
+                  />
+                </div>
+
+                {/* Save Button */}
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => setShowInfoEditModal(false)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      darkMode
+                        ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      saveInfo();
+                      // Delay closing modal slightly to ensure save completes
+                      setTimeout(() => {
+                        setShowInfoEditModal(false);
+                      }, 0);
+                    }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             </div>
           </div>

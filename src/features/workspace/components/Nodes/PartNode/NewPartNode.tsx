@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useRef, useMemo, memo } from "react";
+import React, { useMemo, memo } from "react";
 import Image from "next/image";
 import { Handle, Position } from "@xyflow/react";
 import { 
   BookOpen, 
   SquareUserRound, 
-  Upload, 
   Trash2,
   User,
   Heart,
@@ -26,13 +25,10 @@ import { PartNodeData } from "@/features/workspace/types/Nodes";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
 
 const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
-  const [imagePreview, setImagePreview] = useState<string | null>(data.image || null);
-  
   const {
     deleteEdges,
     deleteNode,
     removePartFromAllConflicts,
-    updateNode,
     nodes,
     edges,
   } = useFlowNodesContext();
@@ -40,7 +36,6 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
 
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -102,34 +97,12 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
     });
   }, [data]);
 
-
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imageUrl = event.target?.result as string;
-        setImagePreview(imageUrl);
-        updateNode<PartNodeData>(partId, {
-          data: {
-            ...data,
-            image: imageUrl,
-          },
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-
-
   const getPartTypeColor = (partType: string) => {
     switch (partType) {
-      case "manager": return "bg-blue-500 text-white";
-      case "firefighter": return "bg-red-500 text-white";
-      case "exile": return "bg-purple-500 text-white";
-      default: return "bg-gray-500 text-white";
+      case "manager": return "bg-blue-600 text-white";
+      case "firefighter": return "bg-red-600 text-white";
+      case "exile": return "bg-purple-600 text-white";
+      default: return "bg-gray-600 text-white";
     }
   };
 
@@ -187,9 +160,9 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
 
               {/* Right Half - Image */}
               <div className="w-1/2 relative bg-gray-100 border-l border-blue-200/30">
-                {imagePreview ? (
+                {data.image ? (
                   <Image
-                    src={imagePreview}
+                    src={data.image}
                     alt="Part"
                     fill
                     className="object-cover"
@@ -199,21 +172,6 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                     <SquareUserRound size={32} className="text-gray-400" />
                   </div>
                 )}
-                
-                {/* Upload Button */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-2 right-2 bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 shadow-md z-10"
-                >
-                  <Upload size={12} />
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
               </div>
             </div>
           </div>
@@ -222,11 +180,11 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-black flex items-center gap-2">
-                {(data.partType || data.customPartType) && (
-                  <div className={`flex items-center gap-1 rounded-full px-2 py-1 ${getPartTypeColor(data.partType || data.customPartType)}`}>
-                    {getPartTypeIcon(data.partType || data.customPartType)}
+                {(data.customPartType || data.partType) && (
+                  <div className={`flex items-center gap-1 rounded-full px-2 py-1 ${getPartTypeColor(data.customPartType || data.partType)}`}>
+                    {getPartTypeIcon(data.customPartType || data.partType)}
                     <span className="text-xs font-medium capitalize">
-                      {data.partType || data.customPartType}
+                      {data.customPartType || data.partType}
                     </span>
                   </div>
                 )}
