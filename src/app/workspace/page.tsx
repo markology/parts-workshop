@@ -218,7 +218,7 @@ export default function WorkspacePage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="inline-block">
             <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Parts Workshop
+              Parts Studio
             </h1>
           </Link>
           

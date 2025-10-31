@@ -10,7 +10,7 @@ const interFont = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "Parts Workshop",
+  title: "Parts Studio",
   description: "Ceremonial Mapping for Parts Work",
 };
 
