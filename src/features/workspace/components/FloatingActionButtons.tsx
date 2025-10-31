@@ -45,11 +45,13 @@ const FloatingActionButtons = () => {
   ]);
   const [isChatSending, setIsChatSending] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchInputContainerRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const expandedInputRef = useRef<HTMLTextAreaElement>(null);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const menuWidthRef = useRef<number>(0);
   const [menuWidthMeasured, setMenuWidthMeasured] = useState(false);
+  const [chatboxPosition, setChatboxPosition] = useState<{ top: number; left: number } | null>(null);
   // Use actions-only hook to prevent re-renders when nodes/edges change
   const { createNode } = useFlowNodesActions();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -111,6 +113,32 @@ const FloatingActionButtons = () => {
       chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     });
   }, [chatMessages, isSearchExpanded]);
+
+  // Measure input position when chatbox opens or window resizes
+  useLayoutEffect(() => {
+    const updatePosition = () => {
+      if (isSearchExpanded && searchInputContainerRef.current) {
+        const rect = searchInputContainerRef.current.getBoundingClientRect();
+        setChatboxPosition({
+          top: rect.top,
+          left: rect.left
+        });
+      } else {
+        setChatboxPosition(null);
+      }
+    };
+
+    updatePosition();
+
+    if (isSearchExpanded) {
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true);
+      return () => {
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition, true);
+      };
+    }
+  }, [isSearchExpanded]);
 
   // Focus input when expanded
   useEffect(() => {
@@ -358,6 +386,11 @@ const FloatingActionButtons = () => {
       event.stopPropagation();
     }
     
+    // If the assistant chat is open and another action is clicked, close the chat first.
+    if (isSearchExpanded) {
+      handleSearchClose();
+    }
+
     if (action === 'save') {
       // Save functionality - just execute, don't change any UI state
       handleSaveAndCleanup();
@@ -365,7 +398,14 @@ const FloatingActionButtons = () => {
     }
     
     if (action === 'contact') {
-      // Contact/Feedback functionality - only open modal, don't touch sidebar/menu state
+      // Allow clicks that land inside the feedback modal to go through without closing it
+      setTimeout(() => {
+        const activeElement = document.activeElement;
+        if (activeElement instanceof HTMLElement) {
+          activeElement.blur();
+        }
+      });
+
       setShowFeedbackModal(true);
       return;
     }
@@ -717,6 +757,90 @@ const FloatingActionButtons = () => {
 
   return (
     <>
+      {isSearchExpanded && (
+        <div
+          className="fixed inset-0 bg-black/35 backdrop-blur-[2px] transition-opacity duration-300 z-[70]"
+          onClick={handleSearchClose}
+        />
+      )}
+
+      {isSearchExpanded && chatboxPosition && (
+        <div
+          ref={searchBoxRef}
+          className="fixed w-[320px] pointer-events-auto z-[80]"
+          style={{
+            top: `${chatboxPosition.top}px`,
+            left: `${chatboxPosition.left}px`
+          }}
+        >
+          <div className="relative w-full h-[60vh] max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]">
+            <button
+              onClick={handleSearchClose}
+              className={`absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10 ${
+                darkMode
+                  ? "hover:bg-gray-700 text-gray-400 hover:text-white"
+                  : "hover:bg-gray-100 text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
+              <div>
+                <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? "text-purple-500/80" : "text-purple-500/70"}`}>
+                  Studio Assistant
+                </p>
+                <p className={`mt-3 text-sm leading-relaxed ${darkMode ? "text-gray-600" : "text-gray-500"}`}>
+                  Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
+                </p>
+              </div>
+
+              <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
+                {chatMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                        message.role === "user"
+                          ? "bg-purple-500 text-white"
+                          : "bg-gray-100 text-gray-800 border border-gray-200"
+                      }`}
+                    >
+                      {message.content.trim().length > 0 ? message.content : "..."}
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatMessagesEndRef} />
+              </div>
+            </div>
+
+            <div className="px-6 pb-6 border-t border-gray-100 bg-gray-50/80">
+              <div className="relative">
+                <textarea
+                  ref={expandedInputRef}
+                  autoFocus
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      handleSearchClose();
+                    } else if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendChat();
+                    }
+                  }}
+                  placeholder="Ask me anything..."
+                  className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-white border border-gray-200 text-gray-900 placeholder-gray-400"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+ 
       {/* Plus button and 9 dots on the left */}
       <div className="absolute top-4 left-4 z-50 flex flex-row gap-3 items-center">
         {/* Plus/X button - slides to end of options pill when menu opens */}
@@ -765,103 +889,6 @@ const FloatingActionButtons = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Search button and other buttons on the right */}
-      <div className="absolute top-4 right-4 z-50 flex flex-row gap-3 items-center">
-        {/* Search Input */}
-        <div className="relative pointer-events-auto max-w-md">
-          <div
-            ref={searchBoxRef}
-            className={`relative pointer-events-auto transition-all duration-300 ease-out ${
-              isSearchExpanded
-                ? 'h-[60vh] max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
-                : ''
-            }`}
-          >
-            {isSearchExpanded ? (
-              <>
-                {/* Close Button */}
-                <button
-                  onClick={handleSearchClose}
-                  className={`absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10 ${
-                    darkMode 
-                      ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
-                      : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
-                  }`}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                
-                <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
-                  <div>
-                    <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? 'text-purple-500/80' : 'text-purple-500/70'}`}>
-                      Studio Assistant
-                    </p>
-                    <p className={`mt-3 text-sm leading-relaxed ${darkMode ? 'text-gray-600' : 'text-gray-500'}`}>
-                      Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
-                    </p>
-                  </div>
-
-                  <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
-                    {chatMessages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
-                            message.role === 'user'
-                              ? 'bg-purple-500 text-white'
-                              : 'bg-gray-100 text-gray-800 border border-gray-200'
-                          }`}
-                        >
-                          {message.content.trim().length > 0 ? message.content : '...'}
-                        </div>
-                      </div>
-                    ))}
-                    <div ref={chatMessagesEndRef} />
-                  </div>
-                </div>
-                <div className="px-6 pb-6 border-0">
-                  <div className="relative">
-                    <textarea
-                      ref={expandedInputRef}
-                      autoFocus
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          e.preventDefault();
-                          handleSearchClose();
-                        } else if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendChat();
-                        }
-                      }}
-                      placeholder="Ask me anything..."
-                      className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400"
-                    />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <StudioSparkleInput
-                inputRef={searchInputRef}
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onFocus={() => setIsSearchExpanded(true)}
-                onClick={() => setIsSearchExpanded(true)}
-                placeholder="Ask the Studio Assistant"
-              />
-            )}
-          </div>
-        </div>
-        
-        {/* Other action buttons */}
-        {buttons.filter(b => b.action !== 'action' && b.action !== 'options').map(({ icon, action, label }) => (
-          <ButtonComponent key={action} icon={icon} action={action} label={label} />
-        ))}
       </div>
 
       {/* Quick Action Menu (shown when "Add" is clicked) - aligned with impression sidebar */}
@@ -921,6 +948,35 @@ const FloatingActionButtons = () => {
           </div>
         </div>
       )}
+
+      {/* Right side: Assistant input and action buttons */}
+      <div
+        className="absolute top-4 right-4 flex flex-row gap-3 items-start z-50"
+      >
+        {/* Assistant input (hidden when chat open) */}
+        <div ref={searchInputContainerRef} className="relative w-[320px] pointer-events-auto">
+          <StudioSparkleInput
+            inputRef={searchInputRef}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onFocus={() => setIsSearchExpanded(true)}
+            onClick={() => setIsSearchExpanded(true)}
+            placeholder="Ask the Studio Assistant"
+            className={`${
+              isSearchExpanded ? "opacity-0 pointer-events-none" : "opacity-100"
+            } transition-opacity duration-200`}
+          />
+        </div>
+
+        {/* Other action buttons */}
+        <div className="flex flex-row gap-3 pointer-events-auto">
+          {buttons
+            .filter((b) => b.action !== "action" && b.action !== "options")
+            .map(({ icon, action, label }) => (
+              <ButtonComponent key={action} icon={icon} action={action} label={label} />
+            ))}
+        </div>
+      </div>
 
     </>
   );
