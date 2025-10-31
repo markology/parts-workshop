@@ -3,15 +3,16 @@
 import React, { useMemo, memo } from "react";
 import Image from "next/image";
 import { Handle, Position } from "@xyflow/react";
-import { 
-  BookOpen, 
-  SquareUserRound, 
+import {
+  BookOpen,
+  SquareUserRound,
   Trash2,
   User,
   Heart,
   Brain,
   Eye,
-  Shield
+  Shield,
+  Sparkles,
 } from "lucide-react";
 import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
@@ -23,6 +24,7 @@ import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { PartNodeData } from "@/features/workspace/types/Nodes";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const {
@@ -33,6 +35,8 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
     edges,
   } = useFlowNodesContext();
   const { setJournalTarget } = useJournalStore();
+
+  const { darkMode } = useThemeContext();
 
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
@@ -79,42 +83,78 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
   const allObservations = useMemo(() => {
     const observations = ImpressionList.flatMap((impressionType) => {
       const impressions = (data[ImpressionTextType[impressionType]] as ImpressionNode[]) || [];
-      return impressions.map(imp => ({
+      return impressions.map((imp) => ({
         ...imp,
         impressionType,
-        // Try multiple date fields, fallback to creation time
-        addedAt: imp.data?.addedAt || imp.data?.createdAt || imp.data?.timestamp
+        addedAt: imp.data?.addedAt || imp.data?.createdAt || imp.data?.timestamp,
       }));
     });
 
-    console.log(observations);
-    
-    // Sort by recency (most recent first) - convert to numbers for proper comparison
     return observations.sort((a, b) => {
-      const dateA = typeof a.addedAt === 'string' ? new Date(a.addedAt).getTime() : Number(a.addedAt || 0);
-      const dateB = typeof b.addedAt === 'string' ? new Date(b.addedAt).getTime() : Number(b.addedAt || 0);
-      return dateB - dateA; // Most recent first
+      const dateA = typeof a.addedAt === "string" ? new Date(a.addedAt).getTime() : Number(a.addedAt || 0);
+      const dateB = typeof b.addedAt === "string" ? new Date(b.addedAt).getTime() : Number(b.addedAt || 0);
+      return dateB - dateA;
     });
   }, [data]);
 
-  const getPartTypeColor = (partType: string) => {
-    switch (partType) {
-      case "manager": return "bg-blue-600 text-white";
-      case "firefighter": return "bg-red-600 text-white";
-      case "exile": return "bg-purple-600 text-white";
-      default: return "bg-gray-600 text-white";
+  const getPartTypePill = (partType: string | undefined) => {
+    if (!partType) {
+      return (
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${
+          darkMode
+            ? "border border-slate-700/70 text-slate-300"
+            : "border border-slate-200 text-slate-500"
+        }`}>
+          <User className="w-3.5 h-3.5" />
+          No type set
+        </span>
+      );
     }
+
+    const mapping: Record<string, { icon: React.ReactNode; className: string }> = {
+      manager: {
+        icon: <Brain className="w-3.5 h-3.5" />,
+        className: darkMode
+          ? "bg-sky-500/15 border border-sky-500/40 text-sky-100"
+          : "bg-sky-100 border border-sky-200 text-sky-600",
+      },
+      firefighter: {
+        icon: <Shield className="w-3.5 h-3.5" />,
+        className: darkMode
+          ? "bg-rose-500/15 border border-rose-500/40 text-rose-100"
+          : "bg-rose-100 border border-rose-200 text-rose-600",
+      },
+      exile: {
+        icon: <Heart className="w-3.5 h-3.5" />,
+        className: darkMode
+          ? "bg-purple-500/15 border border-purple-500/40 text-purple-100"
+          : "bg-purple-100 border border-purple-200 text-purple-600",
+      },
+    };
+
+    const pill = mapping[partType] || {
+      icon: <User className="w-3.5 h-3.5" />,
+      className: darkMode
+        ? "bg-slate-800/60 border border-slate-700 text-slate-200"
+        : "bg-slate-100 border border-slate-200 text-slate-600",
+    };
+
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${pill.className}`}
+      >
+        {pill.icon}
+        {partType}
+      </span>
+    );
   };
 
-  const getPartTypeIcon = (partType: string) => {
-    switch (partType) {
-      case "manager": return <Brain className="w-4 h-4" />;
-      case "firefighter": return <Shield className="w-4 h-4" />;
-      case "exile": return <Heart className="w-4 h-4" />;
-      default: return <User className="w-4 h-4" />;
-    }
-  };
+  const observationPreview = allObservations.slice(0, 8);
 
+  const isSelected = selectedPartId === partId;
+  const cardBase = darkMode
+    ? "bg-slate-950/70 border border-slate-800/60 text-slate-100 shadow-[0_24px_60px_rgba(8,15,30,0.5)]"
+    : "bg-white/90 border border-slate-200/70 text-slate-900 shadow-[0_26px_60px_rgba(15,23,42,0.14)]";
 
 
   return (
@@ -123,158 +163,112 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
         onContextMenu={handleContextMenu}
         ref={nodeRef}
         className="node part-node relative"
-        style={{ width: '400px' }}
+        style={{ width: 420 }}
       >
-
-        {/* Modern Card Design */}
-        <div className={`bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${
-          selectedPartId === partId 
-            ? 'border-blue-500 shadow-blue-200 shadow-xl ring-2 ring-blue-200' 
-            : 'hover:shadow-xl hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100'
-        }`}>
-          
-          {/* Header Section */}
-          <div className="bg-white/60 backdrop-blur-sm border-b border-blue-200/30" style={{ height: '200px' }}>
-            <div className="flex h-full">
-              {/* Left Half - Name and Description */}
-              <div className="flex-1 p-4 flex flex-col justify-between">
-                <div>
-                  <h2
-                    className="font-bold text-black flex items-center justify-center gap-1 text-center"
-                    style={{ fontSize: '30px' }}
-                  >
-                    {data.name || data.label}
+        <div
+          className={`relative overflow-hidden rounded-[24px] transition-all duration-300 cursor-pointer ${cardBase} ${
+            isSelected
+              ? "ring-2 ring-sky-400 border-sky-300 translate-y-[-2px]"
+              : "hover:translate-y-[-2px] hover:shadow-[0_32px_70px_rgba(15,23,42,0.2)]"
+          }`}
+          onClick={() => setSelectedPartId(partId)}
+        >
+          <div className="relative p-6 lg:p-7 space-y-6">
+            <div className="flex flex-wrap items-start gap-6">
+              <div className="flex-1 space-y-4">
+                <div className="space-y-2">
+                  <h2 className="text-2xl lg:text-[28px] font-semibold leading-tight">
+                    {data.name || data.label || "Untitled"}
                   </h2>
-                  {data.scratchpad && (
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                  <div>{getPartTypePill(data.customPartType || (data.partType as string | undefined))}</div>
+                </div>
+                <div className="min-h-[48px]">
+                  {data.scratchpad ? (
+                    <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-300 line-clamp-3">
                       {data.scratchpad}
+                    </p>
+                  ) : (
+                    <p className="text-sm leading-relaxed text-slate-400 dark:text-slate-500 italic">
+                      No description added yet.
                     </p>
                   )}
                 </div>
-                
-                {/* Bottom Actions */}
-                <div className="flex items-center justify-between mt-auto">
-                  <div></div>
-                </div>
               </div>
 
-              {/* Right Half - Image */}
-              <div className="w-1/2 relative bg-gray-100 border-l border-blue-200/30">
+              <div className="relative h-[110px] w-[110px] sm:h-[120px] sm:w-[120px] rounded-2xl overflow-hidden">
                 {data.image ? (
-                  <Image
-                    src={data.image}
-                    alt="Part"
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={data.image} alt="Part" fill className="object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <SquareUserRound size={32} className="text-gray-400" />
+                  <div className="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-200">
+                    <SquareUserRound size={40} className="text-gray-400 dark:text-gray-500" />
                   </div>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Observations Section */}
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-black flex items-center gap-2">
-                {(data.customPartType || data.partType) && (
-                  <div className={`flex items-center gap-1 rounded-full px-2 py-1 ${getPartTypeColor(data.customPartType || data.partType)}`}>
-                    {getPartTypeIcon(data.customPartType || data.partType)}
-                    <span className="text-xs font-medium capitalize">
-                      {data.customPartType || data.partType}
-                    </span>
-                  </div>
-                )}
-              </h3>
-              <button
-                onClick={() =>
-                  setJournalTarget({
-                    type: "node",
-                    nodeId: partId,
-                    nodeType: "part",
-                    title: data.name || data.label,
-                  })
-                }
-                className="relative p-2 bg-white/60 hover:bg-white/80 rounded-lg transition-colors group"
-                title="Open AI Journal"
-              >
-                <BookOpen size={14} className="text-gray-600 group-hover:text-blue-600 transition-colors" />
-                {/* AI Sparkle */}
-                <div className="absolute -top-1 -right-1 text-purple-500 animate-pulse text-xs font-bold">
-                  ✨
-                </div>
-              </button>
-            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pl-3 pr-2">
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500">Recent impressions</p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setJournalTarget({
+                      type: "node",
+                      nodeId: partId,
+                      nodeType: "part",
+                      title: data.name || data.label,
+                    });
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-colors ${
+                    darkMode
+                      ? "bg-slate-900/60 text-slate-200 hover:bg-slate-900/80"
+                      : "bg-white text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  <BookOpen size={14} />
+                  Journal
+                  <Sparkles className="w-3 h-3 text-purple-400" />
+                </button>
+              </div>
 
-            <div 
-              className="relative h-56 overflow-hidden rounded-lg bg-white/80 backdrop-blur-sm border border-blue-200/50 cursor-pointer hover:border-blue-300 hover:bg-white/90 transition-colors p-3"
-              onClick={() => setSelectedPartId(partId)}
-            >
-              {allObservations.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {allObservations.slice(0, 12).map((obs, index) => {
+              <div className="relative min-h-[90px] p-3 flex flex-wrap gap-2 items-start content-start overflow-hidden">
+                {observationPreview.length > 0 ? (
+                  observationPreview.map((obs, index) => {
                     const bgColor = NodeBackgroundColors[obs.impressionType];
-                    
                     return (
-                      <div
+                      <span
                         key={`${obs.impressionType}-${index}`}
-                        className="px-2 py-1 rounded text-base font-medium text-left"
+                        className="inline-flex items-center rounded-full px-3 py-[6px] text-xs font-medium leading-none whitespace-nowrap"
                         style={{
-                          backgroundColor: `${bgColor}20`,
+                          backgroundColor: `${bgColor}18`,
                           color: bgColor,
                         }}
                       >
                         {obs.data?.label || obs.id}
-                      </div>
+                      </span>
                     );
-                  })}
-                  {allObservations.length > 12 && (
-                    <div className="px-2 py-1 rounded text-xs font-medium bg-gray-200 text-gray-600">
-                      +{allObservations.length - 12} more
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-gray-400 text-xs text-center py-4">
-                  No observations yet
-                </div>
-              )}
-              
-              {/* Fade gradient */}
-              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white/80 to-transparent pointer-events-none"></div>
+                  })
+                ) : (
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    No observations yet
+                  </span>
+                )}
+                {allObservations.length > observationPreview.length && (
+                  <span className="inline-flex items-center rounded-full bg-slate-200/80 dark:bg-slate-800/80 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                    +{allObservations.length - observationPreview.length} more
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
         {/* Handles for edges */}
-        <Handle
-          className="part-handle"
-          type="source"
-          position={Position.Top}
-          id="top"
-        />
-        <Handle
-          className="part-handle"
-          type="source"
-          position={Position.Bottom}
-          id="bottom"
-        />
-        <Handle
-          className="part-handle"
-          type="source"
-          position={Position.Left}
-          id="left"
-        />
-        <Handle
-          className="part-handle"
-          type="source"
-          position={Position.Right}
-          id="right"
-        />
+        <Handle className="part-handle" type="source" position={Position.Top} id="top" />
+        <Handle className="part-handle" type="source" position={Position.Bottom} id="bottom" />
+        <Handle className="part-handle" type="source" position={Position.Left} id="left" />
+        <Handle className="part-handle" type="source" position={Position.Right} id="right" />
       {showContextMenu && <RightClickMenu items={menuItems} />}
     </>
   );

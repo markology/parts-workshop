@@ -14,6 +14,8 @@ import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { Users, Trash2, BookOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
+import { useThemeContext } from "@/state/context/ThemeContext";
+import type { CSSProperties } from "react";
 
 const AllyNode = ({
   connectedNodes,
@@ -90,112 +92,130 @@ const AllyNode = ({
     };
   }, [editingId, editValue, handleSave]);
 
+  const { darkMode } = useThemeContext();
+  const accent = NodeBackgroundColors["ally"];
+  const accentText = NodeTextColors["ally"];
+  const shellClasses = darkMode
+    ? "bg-gradient-to-br from-[#0d2533] via-[#13425c] to-[#071720] border border-sky-500/35 text-white shadow-[0_26px_70px_rgba(6,42,61,0.6)]"
+    : "bg-gradient-to-br from-[#eaf7ff] via-[#e4f4ff] to-white border border-sky-200/70 text-slate-900 shadow-[0_26px_62px_rgba(28,102,143,0.16)]";
+  const cardBackground = darkMode ? "bg-white/10" : "bg-white";
+  const cardBorder = darkMode ? "border-sky-400/50" : "border-sky-200";
+
   return (
     <>
       <div
-        className="node text-white min-w-[200px] max-w-[280px] min-h-[100px] bg-[linear-gradient(348deg,#87CEEB,#B0E0E6);] rounded break-words px-4 py-2 pb-4 min-w-[100px] flex flex-col gap-[8px] text-left"
-        style={{ backgroundColor: NodeBackgroundColors["ally"] }}
         onContextMenu={handleContextMenu}
         ref={nodeRef}
+        className="node relationship-node relative w-[320px]"
       >
-        <div className="flex flex-row justify-between">
-          <strong
-            className="text-sm text-white justify-items-center semibold"
-            style={{ color: NodeTextColors["ally"] }}
-          >
-            Ally
-          </strong>
-          <div className="flex items-center gap-2">
+        <div
+          className={`rounded-[26px] overflow-hidden p-5 space-y-5 transition-transform duration-200 hover:-translate-y-[2px] ${shellClasses}`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em]"
+              style={{
+                backgroundColor: darkMode ? "rgba(255,255,255,0.14)" : "rgba(135,206,235,0.25)",
+                color: darkMode ? "#ffffff" : accentText,
+              }}
+            >
+              <Users size={16} />
+              Ally
+            </span>
+
             <button
               onClick={() =>
                 setJournalTarget({
                   type: "node",
                   nodeId: id,
                   nodeType: "ally",
-                  title: connectedNodes.reduce((acc, connectedNode) => {
-                    return acc === ""
-                      ? connectedNode.part.data.label
-                      : acc + " + " + connectedNode.part.data.label;
-                  }, ""),
+                  title: connectedNodes.reduce((acc, connectedNode) =>
+                    acc === "" ? connectedNode.part.data.label : `${acc} + ${connectedNode.part.data.label}`,
+                  ""),
                 })
               }
-              className="relative p-1 text-white hover:text-gray-200 hover:bg-white/20 rounded"
-              title="Open Journal"
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
+                darkMode ? "text-white hover:bg-white/10" : "text-sky-700 hover:bg-sky-100"
+              }`}
+              title="Open journal"
             >
               <BookOpen size={16} />
-              {/* AI Sparkle */}
-              <div className="absolute -top-1 -right-1 text-purple-500 animate-pulse text-xs font-bold">
-                ✨
-              </div>
             </button>
           </div>
-        </div>
-        <div className="flex gap-4 flex-col">
-          {connectedNodes.length ? (
-            connectedNodes.map(({ part, conflictDescription }) => (
-              <div
-                className="bg-[#87CEEB] p-3 rounded"
-                onClick={() => {
-                  setEditValue(conflictDescription);
-                  setEditingId(part.id);
-                }}
-                key={`connectedNode ${part.id}`}
-              >
-                <p
-                  className="text-xl pb-2 pl-1 mb-3 text-white border-b"
-                  key={part.id}
+
+          <div className="space-y-4">
+            {connectedNodes.length ? (
+              connectedNodes.map(({ part, conflictDescription }) => (
+                <div
+                  key={`connectedNode-${part.id}`}
+                  className={`rounded-2xl border px-4 py-3 shadow-sm ${cardBackground} ${cardBorder}`}
                 >
-                  {part.data.label}
-                </p>
-                <div className="min-h-6 pl-1">
-                  {part.id === editingId ? (
-                    <input
-                      className="text-sm h-[30px]"
-                      ref={inputRef}
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={handleEnter}
-                      autoFocus
-                      placeholder="Enter description"
-                    />
-                  ) : conflictDescription ? (
-                    <p className="max-w-[300px] text-sm break-words text-white">
-                      {conflictDescription}
-                    </p>
-                  ) : (
-                    <p className="text-sm">Enter description</p>
-                  )}
+                  <div className="flex items-center justify-between">
+                    <span
+                      className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                      style={{
+                        backgroundColor: darkMode ? "rgba(135,206,235,0.22)" : "rgba(135,206,235,0.18)",
+                        color: darkMode ? "#ecfbff" : accentText,
+                      }}
+                    >
+                      {part.data.label}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setEditValue(conflictDescription);
+                        setEditingId(part.id);
+                      }}
+                      className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
+                        darkMode ? "text-sky-200 hover:text-white" : "text-sky-700 hover:text-sky-900"
+                      }`}
+                    >
+                      Edit
+                    </button>
+                  </div>
+
+                  <div className="mt-3">
+                    {part.id === editingId ? (
+                      <input
+                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-300 ${
+                          darkMode
+                            ? "bg-white/5 border-sky-300/60 text-white"
+                            : "bg-white border-sky-300 text-sky-900"
+                        }`}
+                        ref={inputRef}
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={handleEnter}
+                        autoFocus
+                        placeholder="Describe how these parts support each other"
+                      />
+                    ) : conflictDescription ? (
+                      <p
+                        className={`text-xs leading-relaxed text-right ${
+                          darkMode ? "text-sky-100" : "text-sky-900"
+                        }`}
+                      >
+                        {conflictDescription}
+                      </p>
+                    ) : (
+                      <p className={`text-xs italic text-right ${darkMode ? "text-white/70" : "text-sky-900/55"}`}>
+                        Click edit to add notes.
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-xl text-[#B0E0E6]">Connect Parts to Ally</p>
-          )}
+              ))
+            ) : (
+              <p className={`text-xs ${darkMode ? "text-white/70" : "text-sky-900/70"}`}>
+                Connect parts that collaborate closely.
+              </p>
+            )}
+          </div>
         </div>
-        <Handle
-          className="ally-handle"
-          type="target"
-          position={Position.Top}
-          id="top"
-        />
-        <Handle
-          className="ally-handle"
-          type="target"
-          position={Position.Bottom}
-          id="bottom"
-        />
-        <Handle
-          className="ally-handle"
-          type="target"
-          position={Position.Left}
-          id="left"
-        />
-        <Handle
-          className="ally-handle"
-          type="target"
-          position={Position.Right}
-          id="right"
-        />
+
+        <Handle className="ally-handle" type="target" position={Position.Top} id="top" />
+        <Handle className="ally-handle" type="target" position={Position.Bottom} id="bottom" />
+        <Handle className="ally-handle" type="target" position={Position.Left} id="left" />
+        <Handle className="ally-handle" type="target" position={Position.Right} id="right" />
       </div>
       {showContextMenu && <RightClickMenu items={menuItems} />}
     </>

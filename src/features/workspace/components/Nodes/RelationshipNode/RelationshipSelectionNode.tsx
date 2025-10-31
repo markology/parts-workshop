@@ -6,10 +6,12 @@ import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext
 import { useReactFlow } from "@xyflow/react";
 import { Sword, Users, Trash2 } from "lucide-react";
 import { useCallback, useMemo } from "react";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 const RelationshipSelectionNode = ({ id }: { id: string }) => {
   const { updateNode, setNodes, deleteNode } = useFlowNodesContext();
   const { getNode } = useReactFlow();
+  const { darkMode } = useThemeContext();
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -59,30 +61,59 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
       <div
         onContextMenu={handleContextMenu}
         ref={nodeRef}
-        className="node min-w-[200px] max-w-[280px] min-h-[120px] bg-gray-100 rounded-lg break-words px-4 py-3 flex flex-col gap-3 text-left border-2 border-gray-300"
+        className={`node relative w-[320px] rounded-[24px] border transition-all duration-200 bg-white text-slate-900 ${
+          darkMode
+            ? "border-slate-700 shadow-[0_24px_60px_rgba(8,15,30,0.45)]"
+            : "border-slate-200 shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
+        }`}
       >
-        <div className="text-center">
-          <strong className="text-sm text-gray-700 font-semibold">
-            Choose Relationship Type
-          </strong>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => convertToRelationship("conflict")}
-            className="flex-1 p-4 rounded-lg border-2 border-purple-300 bg-purple-50 hover:bg-purple-100 transition-colors flex flex-col items-center gap-2"
-          >
-            <Sword size={24} className="text-purple-600" />
-            <span className="font-semibold text-purple-800 text-sm">Conflict</span>
-            <span className="text-xs text-purple-600">Parts in opposition</span>
-          </button>
-          <button
-            onClick={() => convertToRelationship("ally")}
-            className="flex-1 p-4 rounded-lg border-2 border-sky-300 bg-sky-50 hover:bg-sky-100 transition-colors flex flex-col items-center gap-2"
-          >
-            <Users size={24} className="text-sky-600" />
-            <span className="font-semibold text-sky-800 text-sm">Ally</span>
-            <span className="text-xs text-sky-600">Parts working together</span>
-          </button>
+        <div className="absolute inset-0 pointer-events-none rounded-[24px] bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.08),transparent_60%)]" />
+        <div className="relative p-6 space-y-5">
+          <div>
+            <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+              Define Connection
+            </p>
+            <h3 className="text-lg font-semibold">Choose Relationship Type</h3>
+            <p className={`mt-1 text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+              Select whether these parts are collaborating or in conflict.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => convertToRelationship("conflict")}
+              className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
+                darkMode
+                  ? "border-purple-400/40 bg-purple-500/15 hover:bg-purple-500/25"
+                  : "border-purple-200 bg-purple-50 hover:bg-purple-100"
+              }`}
+            >
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/20 text-purple-600">
+                <Sword size={20} />
+              </span>
+              <div>
+                <p className="font-semibold text-sm text-purple-700">Conflict</p>
+                <p className="text-xs text-purple-600">Parts in opposition</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => convertToRelationship("ally")}
+              className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
+                darkMode
+                  ? "border-sky-400/40 bg-sky-500/15 hover:bg-sky-500/25"
+                  : "border-sky-200 bg-sky-50 hover:bg-sky-100"
+              }`}
+            >
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/20 text-sky-600">
+                <Users size={20} />
+              </span>
+              <div>
+                <p className="font-semibold text-sm text-sky-700">Ally</p>
+                <p className="text-xs text-sky-600">Parts working together</p>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
       {showContextMenu && <RightClickMenu items={menuItems} />}
