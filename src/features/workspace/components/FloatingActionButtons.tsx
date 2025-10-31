@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map, Sparkles } from "lucide-react";
+import StudioSparkleInput from "@/components/StudioSparkleInput";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
@@ -32,10 +33,21 @@ const FloatingActionButtons = () => {
     behavior: true,
     other: true,
   });
-  const [isSearchExpanded, setIsSearchExpanded] = useState(true);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [isCollapsing, setIsCollapsing] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: "user" | "assistant"; content: string }>>([
+    {
+      id: "assistant-initial",
+      role: "assistant",
+      content: "Hi! I'm here to help you navigate Parts Studio. Ask me anything."
+    }
+  ]);
+  const [isChatSending, setIsChatSending] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+  const expandedInputRef = useRef<HTMLTextAreaElement>(null);
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const menuWidthRef = useRef<number>(0);
   const [menuWidthMeasured, setMenuWidthMeasured] = useState(false);
   // Use actions-only hook to prevent re-renders when nodes/edges change
@@ -62,11 +74,49 @@ const FloatingActionButtons = () => {
   const impressions = useWorkingStore((s) => s.sidebarImpressions);
   const { setActiveSidebarNode } = useSidebarStore();
   
+  // Handle click outside and escape key for chatbox
+  useEffect(() => {
+    if (!isSearchExpanded) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
+        handleSearchClose();
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleSearchClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSearchExpanded]);
+
+  // Scroll to bottom of chat messages
+  useEffect(() => {
+    if (!isSearchExpanded) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+  }, [chatMessages, isSearchExpanded]);
+
   // Focus input when expanded
   useEffect(() => {
-    if (isSearchExpanded && searchInputRef.current && !isCollapsing) {
+    if (isSearchExpanded && expandedInputRef.current && !isCollapsing) {
       setTimeout(() => {
-        searchInputRef.current?.focus();
+        expandedInputRef.current?.focus();
       }, 50);
     }
   }, [isSearchExpanded, isCollapsing]);
@@ -105,6 +155,95 @@ const FloatingActionButtons = () => {
       setIsCollapsing(false);
       setSearchInput("");
     }, 300);
+  };
+
+  const handleSendChat = async () => {
+    const trimmedMessage = searchInput.trim();
+    if (!trimmedMessage || isChatSending) {
+      return;
+    }
+
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      role: "user" as const,
+      content: trimmedMessage
+    };
+
+    const assistantMessageId = `assistant-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+    setChatMessages(prev => [
+      ...prev,
+      userMessage,
+      {
+        id: assistantMessageId,
+        role: "assistant" as const,
+        content: ""
+      }
+    ]);
+
+    setSearchInput("");
+    setIsChatSending(true);
+
+    try {
+      const response = await fetch("/api/ai/ifs-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userMessage: trimmedMessage
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reach assistant");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      const decoder = new TextDecoder();
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        fullContent += decoder.decode(value, { stream: true });
+
+        const content = fullContent;
+        setChatMessages(prev =>
+          prev.map(message =>
+            message.id === assistantMessageId ? { ...message, content } : message
+          )
+        );
+      }
+
+      setChatMessages(prev =>
+        prev.map(message =>
+          message.id === assistantMessageId ? { ...message, content: fullContent } : message
+        )
+      );
+    } catch (error) {
+      console.error("Chat error:", error);
+      setChatMessages(prev =>
+        prev.map(message =>
+          message.id === assistantMessageId
+            ? {
+                ...message,
+                content:
+                  "I'm sorry, I'm having trouble responding right now. Please try again in a moment."
+              }
+            : message
+        )
+      );
+    } finally {
+      setIsChatSending(false);
+    }
   };
   
   const handleSaveAndCleanup = async () => {
@@ -630,73 +769,91 @@ const FloatingActionButtons = () => {
 
       {/* Search button and other buttons on the right */}
       <div className="absolute top-4 right-4 z-50 flex flex-row gap-3 items-center">
-        {/* Search Button */}
-        <div 
-          className="relative pointer-events-auto h-12"
-          style={{ 
-            width: (isSearchExpanded || isCollapsing) ? '448px' : '48px',
-            transition: 'width 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
-            overflow: 'visible',
-            willChange: 'width',
-            padding: '2px'
-          }}
-        >
-          {/* Collapsed Button */}
-          <button
-            onClick={() => {
-              if (!isSearchExpanded) {
-                setIsCollapsing(false);
-                setIsSearchExpanded(true);
-              }
-            }}
-            className="absolute left-0 top-0 w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center hover:shadow-md z-10"
-            style={{
-              opacity: isSearchExpanded ? 0 : 1,
-              transform: isSearchExpanded ? 'scale(0.8)' : 'scale(1)',
-              pointerEvents: isSearchExpanded ? 'none' : 'auto',
-              transition: 'opacity 0.15s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1)'
-            }}
-            title="Ask me anything..."
+        {/* Search Input */}
+        <div className="relative pointer-events-auto max-w-md">
+          <div
+            ref={searchBoxRef}
+            className={`relative pointer-events-auto transition-all duration-300 ease-out ${
+              isSearchExpanded
+                ? 'h-[60vh] max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
+                : ''
+            }`}
           >
-            <Sparkles className="w-6 h-6 text-purple-400" />
-          </button>
-          
-          {/* Expanded Input */}
-          <div 
-            className="absolute inset-0 flex items-center"
-            style={{ 
-              opacity: (isSearchExpanded || isCollapsing) ? 1 : 0,
-              pointerEvents: (isSearchExpanded || isCollapsing) ? 'auto' : 'none',
-              transform: (isSearchExpanded || isCollapsing) ? 'translateX(0)' : 'translateX(12px)',
-              transition: isSearchExpanded 
-                ? 'opacity 0.15s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1)'
-                : 'opacity 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) 0.1s, transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) 0.1s'
-            }}
-          >
-            <Sparkles className="absolute left-3 w-4 h-4 text-purple-400 z-10 pointer-events-none" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  handleSearchClose();
-                }
-              }}
-              placeholder="Ask me anything..."
-              className="w-full h-12 pl-10 pr-10 bg-white border border-gray-300 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:border-transparent"
-              style={{ margin: '-2px' }}
-              disabled={isCollapsing}
-            />
-            {!isCollapsing && (
-              <button
-                onClick={handleSearchClose}
-                className="absolute right-3 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors duration-200 z-10"
-                title="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            {isSearchExpanded ? (
+              <>
+                {/* Close Button */}
+                <button
+                  onClick={handleSearchClose}
+                  className={`absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10 ${
+                    darkMode 
+                      ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
+                      : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                
+                <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
+                  <div>
+                    <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? 'text-purple-500/80' : 'text-purple-500/70'}`}>
+                      Studio Assistant
+                    </p>
+                    <p className={`mt-3 text-sm leading-relaxed ${darkMode ? 'text-gray-600' : 'text-gray-500'}`}>
+                      Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
+                    </p>
+                  </div>
+
+                  <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
+                    {chatMessages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                            message.role === 'user'
+                              ? 'bg-purple-500 text-white'
+                              : 'bg-gray-100 text-gray-800 border border-gray-200'
+                          }`}
+                        >
+                          {message.content.trim().length > 0 ? message.content : '...'}
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={chatMessagesEndRef} />
+                  </div>
+                </div>
+                <div className="px-6 pb-6 border-0">
+                  <div className="relative">
+                    <textarea
+                      ref={expandedInputRef}
+                      autoFocus
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          e.preventDefault();
+                          handleSearchClose();
+                        } else if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendChat();
+                        }
+                      }}
+                      placeholder="Ask me anything..."
+                      className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <StudioSparkleInput
+                inputRef={searchInputRef}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onFocus={() => setIsSearchExpanded(true)}
+                onClick={() => setIsSearchExpanded(true)}
+                placeholder="Ask the Studio Assistant"
+              />
             )}
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Loader2, MailPlus, HelpCircle, Sparkles } from "lucide-react";
+import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Loader2, MailPlus, HelpCircle } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -11,6 +11,7 @@ import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import Modal from "@/components/Modal";
 import FeedbackForm from "@/components/FeedbackForm";
+import StudioSparkleInput from "@/components/StudioSparkleInput";
 
 interface PartNode {
   id: string;
@@ -68,7 +69,6 @@ export default function WorkspacePage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
-  const collapsedInputRef = useRef<HTMLInputElement>(null);
   const expandedInputRef = useRef<HTMLTextAreaElement>(null);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -390,16 +390,12 @@ export default function WorkspacePage() {
               ref={searchBoxRef}
               className={`relative pointer-events-auto transition-all duration-300 ease-out border-none ${
                 isSearchExpanded
-                  ? `h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden border ${
-                      darkMode
-                        ? 'bg-white text-gray-900 border-gray-200 shadow-[0_22px_45px_rgba(20,23,55,0.20)]'
-                        : 'bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
-                    } flex flex-col`
+                  ? `h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]`
                   : ''
               }`}
             >
               {isSearchExpanded ? (
-                 <>
+                <>
                   <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
                     <div>
                       <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? 'text-purple-500/80' : 'text-purple-500/70'}`}>
@@ -451,23 +447,15 @@ export default function WorkspacePage() {
                       />
                     </div>
                   </div>
-                 </>
+                </>
               ) : (
-                <div className="relative">
-                  <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 z-10" />
-                  <input
-                    ref={collapsedInputRef}
-                    type="text"
-                    value={searchInput}
-                    onFocus={() => setIsSearchExpanded(true)}
-                    onClick={() => setIsSearchExpanded(true)}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder="Ask the Studio Assistant"
-                    className={`w-full pl-9 pr-5 py-2 rounded-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-transparent ${
-                      'bg-white border border-transparent text-purple-600 placeholder-purple-300'
-                    }`}
-                  />
-                </div>
+                <StudioSparkleInput
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => setIsSearchExpanded(true)}
+                  onClick={() => setIsSearchExpanded(true)}
+                  placeholder="Ask the Studio Assistant"
+                />
               )}
             </div>
           </div>
