@@ -63,7 +63,7 @@ export default function WorkspaceNavigation() {
       description: "Open an existing workspace or create a new one to visualize and explore your internal parts",
       icon: Map,
       color: "from-green-500 to-emerald-500",
-      route: "/workspace"
+      route: "/workspaces"
     },
     {
       id: "journal",

@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, Download, Share2 } from "lucide-react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
+import PageLoader from "@/components/PageLoader";
 
 interface PartMapping {
   partId: string;
@@ -162,11 +163,15 @@ export default function CompositeBodyMappingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading composite body mapping...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white flex items-center justify-center px-6 py-12">
+        <PageLoader
+          withBackground={false}
+          fullHeight={false}
+          className="max-w-xl"
+          title="Loading composite body map"
+          subtitle="We’re layering each part’s impressions and avatars onto the shared canvas."
+          message="Preparing your composite view..."
+        />
       </div>
     );
   }
@@ -178,7 +183,7 @@ export default function CompositeBodyMappingPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => router.push("/workspace")}
+              onClick={() => router.push("/workspaces")}
               className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />

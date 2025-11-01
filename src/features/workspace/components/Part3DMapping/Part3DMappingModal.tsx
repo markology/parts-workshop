@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, Suspense } from "react";
 import { X, Save, Upload, RotateCcw, RotateCw, ZoomIn, ZoomOut, Palette } from "lucide-react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import * as THREE from "three";
 
 interface PaintPoint {
@@ -479,11 +480,13 @@ export default function Part3DMappingModal({
 
           {/* Right Panel - 3D Canvas */}
           <div className="flex-1 bg-gray-900 relative">
-            <Suspense fallback={
-              <div className="h-full w-full bg-gray-700 flex items-center justify-center">
-                <div className="text-gray-400">Loading 3D scene...</div>
-              </div>
-            }>
+            <Suspense
+              fallback={
+                <div className="h-full w-full flex items-center justify-center bg-gray-900/60 backdrop-blur-sm">
+                  <LoadingSpinner variant="sparkles" size="lg" message="Loading 3D scene..." />
+                </div>
+              }
+            >
               <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
                 <Scene 
                   paintPoints={paintPoints}

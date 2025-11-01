@@ -32,6 +32,7 @@ import { ImpressionTextType, ImpressionType } from "@/features/workspace/types/I
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
 import ImpressionInput from "./Impressions/ImpressionInput";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const PartDetailPanel = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
@@ -1030,11 +1031,8 @@ const PartDetailPanel = () => {
 
             <div className={`${sectionCardClasses} p-6`}>
               {isLoadingJournal ? (
-                <div className={`${subCardClasses} flex items-center justify-center py-6`}> 
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                  <span className={`ml-3 text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
-                    Loading journal entries...
-                  </span>
+                <div className={`${subCardClasses} flex flex-col items-center justify-center gap-3 py-8`}>
+                  <LoadingSpinner variant="sparkles" size="md" message="Loading journal entries..." />
                 </div>
               ) : journalEntries.length === 0 ? (
                 <div className={`${subCardClasses} text-center py-8 px-4`}> 

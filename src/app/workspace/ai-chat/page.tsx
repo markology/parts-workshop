@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Send, ArrowLeft, Bot, User } from "lucide-react";
+import PageLoader from "@/components/PageLoader";
 
 interface Message {
   id: string;
@@ -346,7 +347,7 @@ function AIChatContent({ initialMessage }: { initialMessage: string | null }) {
       <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => router.push("/workspace")}
+            onClick={() => router.push("/workspaces")}
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -472,16 +473,15 @@ function SearchParamsWrapper() {
 
 export default function AIChatPage() {
   return (
-    <Suspense fallback={
-      <div className="h-screen text-white flex flex-col items-center justify-center" style={{ background: "#181818" }}>
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-600 rounded-lg">
-            <Bot className="w-5 h-5" />
-          </div>
-          <div className="text-lg font-semibold">Loading chat...</div>
-        </div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <PageLoader
+          title="Connecting to the Studio Assistant"
+          subtitle="We’re spinning up a fresh conversation so you can dive right in."
+          message="Initializing chat experience..."
+        />
+      }
+    >
       <SearchParamsWrapper />
     </Suspense>
   );

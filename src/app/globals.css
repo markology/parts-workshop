@@ -266,3 +266,12 @@ button {
 .animate-scroll {
   animation: scroll 12s linear infinite;
 }
+
+@keyframes rotateOrbit {
+  0% {
+    transform: translate(-50%, -50%) rotate(-90deg) translateX(120px);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(270deg) translateX(120px);
+  }
+}

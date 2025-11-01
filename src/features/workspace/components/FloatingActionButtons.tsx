@@ -686,7 +686,7 @@ const FloatingActionButtons = () => {
             </button>
             <button
               onClick={() => {
-                router.push('/workspace');
+                router.push('/workspaces');
                 setProfileDropdownOpen(false);
               }}
               className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${

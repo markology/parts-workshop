@@ -27,7 +27,7 @@ export default function Auth() {
       });
 
       if (res?.ok) {
-        router.push("/workspace");
+        router.push("/workspaces");
       } else {
         setError("Invalid email or password");
       }
@@ -46,7 +46,7 @@ export default function Auth() {
         await signIn("credentials", {
           email,
           password,
-          callbackUrl: "/workspace",
+          callbackUrl: "/workspaces",
         });
       } else {
         setError(data.error || "Something went wrong");
@@ -98,7 +98,7 @@ export default function Auth() {
 
         <button
           className="w-full border bg-white dark:text-black border-gray-300 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2"
-          onClick={() => signIn("google", { callbackUrl: "/workspace" })}
+          onClick={() => signIn("google", { callbackUrl: "/workspaces" })}
         >
           <Image
             src="/google-logo.svg"

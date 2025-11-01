@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Map, Calendar, Trash2, Edit3, Play } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
+import PageLoader from "@/components/PageLoader";
 
 interface MapData {
   id: string;
@@ -119,6 +120,21 @@ export default function MapSelectionPage() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white flex items-center justify-center px-6 py-12">
+        <PageLoader
+          withBackground={false}
+          fullHeight={false}
+          className="max-w-xl"
+          title="Loading workspace maps"
+          subtitle="Gathering your saved Studio canvases and sessions."
+          message="Preparing your maps..."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
       {/* Header */}
@@ -137,13 +153,6 @@ export default function MapSelectionPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-12">
-            <div className="text-gray-400">Loading workspaces...</div>
-          </div>
-        )}
-
         {/* Error State */}
         {error && (
           <div className="text-center py-12">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Palette, Save, RotateCcw, Download, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Text, Box } from "@react-three/drei";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import * as THREE from "three";
 
 interface PaintPoint {
@@ -294,7 +295,7 @@ export default function Body3DMappingPage() {
 
   const handleSaveBodyMap = () => {
     console.log('Saving 3D body map:', paintPoints);
-    router.push('/workspace');
+    router.push('/workspaces');
   };
 
   return (
@@ -304,7 +305,7 @@ export default function Body3DMappingPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => router.push("/workspace")}
+              onClick={() => router.push("/workspaces")}
               className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -390,11 +391,13 @@ export default function Body3DMappingPage() {
       <div className="flex h-[calc(100vh-80px)]">
         {/* Main 3D Canvas */}
         <div className="flex-1 relative">
-          <Suspense fallback={
-            <div className="h-full w-full bg-gray-700 flex items-center justify-center">
-              <div className="text-gray-400">Loading 3D scene...</div>
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div className="h-full w-full flex items-center justify-center bg-gray-900/60 backdrop-blur-sm">
+                <LoadingSpinner variant="sparkles" size="lg" message="Loading 3D scene..." />
+              </div>
+            }
+          >
             <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
               <Scene 
                 paintPoints={paintPoints}

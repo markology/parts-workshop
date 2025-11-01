@@ -15,6 +15,7 @@ import FeedbackForm from "@/components/FeedbackForm";
 import Modal from "@/components/Modal";
 import { useUIStore } from "../state/stores/UI";
 import PartDetailPanel from "./SideBar/PartDetailPanel";
+import PageLoader from "@/components/PageLoader";
 import { useSession, signOut } from "next-auth/react";
 import { User, Settings, Moon, Mail, LogOut, HelpCircle } from "lucide-react";
 import Image from "next/image";
@@ -144,10 +145,30 @@ export default function CanvasClient({
   }
 
   if (isLoading || !data || !hydrated) {
-    return <p>Loading workspace...</p>;
+    return (
+      <PageLoader
+        title="Loading workspace canvas"
+        subtitle="Hydrating parts, impressions, and journal insights."
+        message="Preparing your Studio view..."
+      />
+    );
   }
   if (error) {
-    return <p>Failed to load map.</p>;
+    return (
+      <PageLoader
+        title="We hit a snag"
+        subtitle="We couldn't load this workspace."
+        message="Please refresh or try again shortly."
+        spinnerVariant="dots"
+      >
+        <button
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-sky-500 shadow-[0_12px_30px_rgba(124,58,237,0.25)] hover:brightness-110 transition-all"
+        >
+          Try again
+        </button>
+      </PageLoader>
+    );
   }
   // const showTour = !map;
 

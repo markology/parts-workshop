@@ -12,6 +12,7 @@ import { useThemeContext } from "@/state/context/ThemeContext";
 import Modal from "@/components/Modal";
 import FeedbackForm from "@/components/FeedbackForm";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
 
 interface PartNode {
@@ -42,7 +43,7 @@ interface ChatMessage {
 
 type SortOption = 'edited' | 'created' | 'name';
 
-export default function WorkspacePage() {
+export default function WorkspacesPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { darkMode, toggleDarkMode } = useThemeContext();
@@ -380,6 +381,19 @@ export default function WorkspacePage() {
     },
   ];
 
+  // FORCE LOADER FOR EDITING - Remove this line to restore normal behavior
+  const forceLoading = false;
+
+  if (loading || forceLoading) {
+    return (
+      <PageLoader
+        title="Loading workspace library"
+        subtitle="Gathering your sessions, parts, relationships, and journal insights."
+        message="Preparing your Studio overview..."
+      />
+    );
+  }
+
   return (
     <div className={`min-h-screen ${darkMode 
       ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white' 
@@ -627,20 +641,6 @@ export default function WorkspacePage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Loading State */}
-        {/* {loading && ( */}
-          <div className="py-24">
-            <PageLoader
-              withBackground={false}
-              fullHeight={false}
-              className="max-w-xl mx-auto"
-              title="Loading workspace library"
-              subtitle="Gathering your sessions, parts, relationships, and journal insights."
-              message="Preparing your Studio overview..."
-            />
-          </div>
-        {/* )} */}
-
         {/* Error State */}
         {error && (
           <div className="text-center py-12">
@@ -810,7 +810,7 @@ export default function WorkspacePage() {
               </div>
               <h3 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Your canvas is ready</h3>
               <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} max-w-md`}>
-                Kick off your first session to start mapping parts, impressions, and relationships. We’ll keep everything saved as you go.
+                Kick off your first session to start mapping parts, impressions, and relationships. We'll keep everything saved as you go.
               </p>
               <button
                 onClick={handleStartSession}
@@ -1022,7 +1022,7 @@ export default function WorkspacePage() {
                       <div className={`absolute inset-0 flex items-center justify-center rounded-3xl ${
                         darkMode ? 'bg-slate-950/80' : 'bg-white/80'
                       }`}>
-                        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                        <LoadingSpinner variant="spinner" size="lg" />
                       </div>
                     )}
                   </div>

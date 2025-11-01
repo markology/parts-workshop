@@ -15,6 +15,7 @@ import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import PageLoader from "@/components/PageLoader";
 
 export type HydratedMap = Omit<
   PrismaMap,
@@ -69,7 +70,13 @@ export default function MobileWorkspace() {
   }
 
   if (loading || status === "loading") {
-    return <div>Loading...</div>;
+    return (
+      <PageLoader
+        title="Opening your mobile workspace"
+        subtitle="We’re preparing your saved canvas and impressions."
+        message="Loading workspace data..."
+      />
+    );
   }
 
   if (error) {

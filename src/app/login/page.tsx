@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Auth from "@/features/login/Auth";
+import PageLoader from "@/components/PageLoader";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,12 +12,18 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/workspace");
+      router.replace("/workspaces");
     }
   }, [status, router]);
 
   if (status === "loading") {
-    return <p className="text-center p-8">Checking session...</p>;
+    return (
+      <PageLoader
+        title="Checking your session"
+        subtitle="Making sure you're signed in before entering Parts Studio."
+        message="Authenticating..."
+      />
+    );
   }
 
   return <Auth />;
