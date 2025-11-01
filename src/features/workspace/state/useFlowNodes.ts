@@ -440,7 +440,7 @@ export const useFlowNodes = () => {
         console.log('Trying dataTransfer fallback:', data);
         if (data) {
           try {
-            const parsed = JSON.parse(data);
+            const parsed = JSON.parse(data) as { type: ImpressionType; id: string };
             const impressions = useWorkingStore.getState().sidebarImpressions;
             const impression = impressions[parsed.type]?.[parsed.id];
             if (impression) {

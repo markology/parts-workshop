@@ -4,7 +4,7 @@ import React from "react";
 
 export type ContextMenuItem = {
   label?: string;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement<{ size?: number }>;
   onClick: () => void;
 };
 

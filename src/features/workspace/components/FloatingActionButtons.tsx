@@ -773,7 +773,7 @@ const FloatingActionButtons = () => {
             left: `${chatboxPosition.left}px`
           }}
         >
-          <div className="relative w-full h-[60vh] max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]">
+          <div className="relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]">
             <button
               onClick={handleSearchClose}
               className={`absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10 ${
@@ -816,27 +816,27 @@ const FloatingActionButtons = () => {
               </div>
             </div>
 
-            <div className="px-6 pb-6 border-t border-gray-100 bg-gray-50/80">
-              <div className="relative">
-                <textarea
-                  ref={expandedInputRef}
-                  autoFocus
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                      e.preventDefault();
-                      handleSearchClose();
-                    } else if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendChat();
-                    }
-                  }}
-                  placeholder="Ask me anything..."
-                  className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-white border border-gray-200 text-gray-900 placeholder-gray-400"
-                />
-              </div>
-            </div>
+            <div className="px-6 pb-6 border-0">
+                    <div className="relative">
+                      <textarea
+                        ref={expandedInputRef}
+                        autoFocus
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            e.preventDefault();
+                            setIsSearchExpanded(false);
+                          } else if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendChat();
+                          }
+                        }}
+                        placeholder="Ask me anything..."
+                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400"
+                      />
+                    </div>
+                  </div>
           </div>
         </div>
       )}
