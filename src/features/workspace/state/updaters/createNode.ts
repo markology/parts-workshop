@@ -49,6 +49,10 @@ export default function createNodeFN({
       newNode = {
         ...baseNode,
         type: impressionType, // e.g., 'emotion', 'thought'
+        style: {
+          ...baseNode.style,
+          borderRadius: 12, // Match rounded-xl (12px) to prevent border radius from poking through
+        },
         data: {
           label,
         },

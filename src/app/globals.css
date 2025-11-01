@@ -192,6 +192,15 @@ body {
   box-shadow: var(--box-shadow);
 }
 
+.react-flow__node-emotion,
+.react-flow__node-thought,
+.react-flow__node-sensation,
+.react-flow__node-behavior,
+.react-flow__node-other,
+.react-flow__node-default {
+  border-radius: 12px !important;
+}
+
 .img-cropper {
   width: 100%;
   height: 400px;

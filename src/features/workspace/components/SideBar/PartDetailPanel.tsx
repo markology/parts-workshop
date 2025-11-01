@@ -20,7 +20,8 @@ import {
   Sparkles,
   Clock,
   Upload,
-  Pencil
+  Pencil,
+  Trash2
 } from "lucide-react";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
@@ -29,7 +30,7 @@ import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType, ImpressionType } from "@/features/workspace/types/Impressions";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
-import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
+import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
 import ImpressionInput from "./Impressions/ImpressionInput";
 
 const PartDetailPanel = () => {
@@ -45,7 +46,7 @@ const PartDetailPanel = () => {
     setSelectedPartId(undefined);
   };
   // Use selective subscriptions - only subscribe to updateNode function, not nodes/edges arrays
-  const { updateNode } = useFlowNodesContext();
+  const { updateNode, deleteNode, deleteEdges, removePartFromAllConflicts } = useFlowNodesContext();
   
   // Get nodes and edges from store - Zustand handles this efficiently
   const nodes = useWorkingStore((s) => s.nodes);
@@ -64,6 +65,15 @@ const PartDetailPanel = () => {
     );
   }, [selectedPartId, edges]);
   const { darkMode } = useThemeContext();
+
+  const toRgba = (hex: string, opacity: number) => {
+    const sanitized = hex.replace("#", "");
+    const bigint = parseInt(sanitized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
   const [addingImpressionType, setAddingImpressionType] = useState<string | null>(null);
   const [currentImpressionType, setCurrentImpressionType] = useState<string>("emotion");
   const [editingAge, setEditingAge] = useState(false);
@@ -507,10 +517,25 @@ const PartDetailPanel = () => {
 
   const modalLabelClasses = darkMode ? "text-slate-200" : "text-slate-700";
 
+  const handleDeletePart = () => {
+    if (!selectedPartId) return;
+    const confirmed = window.confirm("Delete this part and all related connections?");
+    if (!confirmed) return;
+    removePartFromAllConflicts(selectedPartId);
+    deleteEdges(selectedPartId);
+    deleteNode(selectedPartId);
+    setSelectedPartId(undefined);
+  };
+
+  const handleBackdropClick = () => {
+    if (addingImpressionType) return;
+    setSelectedPartId(undefined);
+  };
+
   return (
     <div
       className="fixed inset-0 bg-slate-950/65 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
-      onClick={() => setSelectedPartId(undefined)}
+      onClick={handleBackdropClick}
     >
       <div className="relative w-full max-w-5xl">
         {/* Close Button - To the right of container */}
@@ -608,26 +633,39 @@ const PartDetailPanel = () => {
                   <Pencil className="w-4 h-4" />
                 </button>
               </div>
-              <button
-                onClick={() => {
-                  if (selectedPartId && partNode) {
-                    setJournalTarget({
-                      type: "node",
-                      nodeId: selectedPartId,
-                      nodeType: "part",
-                      title: partNode.data?.label || "Part",
-                    });
-                  }
-                }}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                  darkMode
-                    ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
-                    : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
-                }`}
-              >
-                <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
-                <span>Deepen</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (selectedPartId && partNode) {
+                      setJournalTarget({
+                        type: "node",
+                        nodeId: selectedPartId,
+                        nodeType: "part",
+                        title: partNode.data?.label || "Part",
+                      });
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border transition-colors ${
+                    darkMode
+                      ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
+                      : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
+                  }`}
+                >
+                  <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
+                  <span>Deepen</span>
+                </button>
+                <button
+                  onClick={handleDeletePart}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    darkMode
+                      ? "bg-rose-600/80 text-white hover:bg-rose-500"
+                      : "bg-rose-600 text-white hover:bg-rose-500"
+                  }`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
+                </button>
+              </div>
             </div>
             
             {/* Main Info Grid */}
@@ -882,8 +920,8 @@ const PartDetailPanel = () => {
                             <span
                               className="px-2 py-1 rounded-full text-xs font-medium"
                               style={{
-                                backgroundColor: `${NodeBackgroundColors[impression]}20`,
-                                color: NodeBackgroundColors[impression],
+                                backgroundColor: toRgba(NodeBackgroundColors[impression], darkMode ? 0.45 : 0.24),
+                                color: darkMode ? "rgba(255,255,255,0.92)" : (NodeTextColors[impression] || NodeBackgroundColors[impression]),
                               }}
                             >
                               {impressions.length}
@@ -909,15 +947,19 @@ const PartDetailPanel = () => {
 
                         <div className="space-y-2 mb-2">
                           {impressions.map((imp, index) => {
-                            const bgColor = NodeBackgroundColors[impression];
+                            const accent = NodeBackgroundColors[impression];
+                            const accentText = NodeTextColors[impression] || accent;
+                            const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
+                            const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
 
                             return (
                               <div
                                 key={index}
-                                className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
+                                className={`${listItemClasses} group flex items-center justify-between rounded-xl border px-3 py-2 shadow-sm`}
                                 style={{
-                                  backgroundColor: `${bgColor}18`,
-                                  color: `${bgColor}FF`,
+                                  backgroundColor: chipBackground,
+                                  borderColor: chipBorder,
+                                  color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
                                 }}
                               >
                                 <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>

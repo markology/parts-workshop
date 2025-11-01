@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 export type ContextMenuItem = {
   label?: string;
   icon?: React.ReactNode;
@@ -21,12 +23,18 @@ const RightClickMenu = ({ items, style = "float" }: ContextMenuProps) => {
       {items.map((item, index) => (
         <div
           key={index}
-          className="cursor-pointer text-black px-2 py-1 hover:bg-gray-100"
+          className="flex cursor-pointer items-center gap-2 px-3 py-2 text-black hover:bg-gray-100"
           onClick={() => {
             item.onClick();
           }}
         >
-          {item?.icon || item?.label}
+          {item.icon && React.isValidElement(item.icon) ? (
+            React.cloneElement(item.icon, {
+              size: Math.max((item.icon.props?.size ?? 16) + 4, 20),
+            })
+          ) : null}
+          {item.label && <span className="text-sm font-medium">{item.label}</span>}
+          {!item.label && !item.icon && <span className="text-sm">Action</span>}
         </div>
       ))}
     </div>

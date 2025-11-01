@@ -4,7 +4,7 @@ import {
 } from "@/features/workspace/constants/Nodes";
 import { useCallback, useMemo } from "react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
-import { ListRestart, Trash2, BookOpen, Sparkles } from "lucide-react";
+import { ListRestart, Trash2, BookOpen } from "lucide-react";
 import RightClickMenu from "@/components/RightClickMenu";
 import {
   ImpressionTextType,
@@ -61,85 +61,75 @@ const ImpressionNode = ({
   );
 
   const accent = NodeBackgroundColors[type];
-  const textColor = NodeTextColors[type];
+  const accentText = NodeTextColors[type] || accent;
+
+  const toRgba = (hex: string, opacity: number) => {
+    const sanitized = hex.replace("#", "");
+    const bigint = parseInt(sanitized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  // Calculate opaque color that matches translucent color on white background
+  // result = (1 - alpha) * white + alpha * color
+  const blendOnWhite = (hex: string, opacity: number) => {
+    const sanitized = hex.replace("#", "");
+    const bigint = parseInt(sanitized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    
+    const blendedR = Math.round((1 - opacity) * 255 + opacity * r);
+    const blendedG = Math.round((1 - opacity) * 255 + opacity * g);
+    const blendedB = Math.round((1 - opacity) * 255 + opacity * b);
+    
+    return `rgb(${blendedR}, ${blendedG}, ${blendedB})`;
+  };
+
+  // Use sidebar opacity values: 0.24 for light mode, 0.45 for dark mode
+  const sidebarOpacity = darkMode ? 0.45 : 0.24;
+  const chipBackground = blendOnWhite(accent, sidebarOpacity);
+  const chipBorder = blendOnWhite(accent, darkMode ? 0.65 : 0.32);
 
   return (
-    <div className="node impression-node">
+    <div className="node impression-node text-right overflow-hidden">
       <div
         ref={nodeRef}
         onContextMenu={handleContextMenu}
-        className={`relative w-[260px] rounded-[20px] border transition-all duration-200 cursor-pointer ${
-          darkMode
-            ? "bg-slate-950/75 border-slate-800/70 text-slate-100 shadow-[0_18px_38px_rgba(8,15,30,0.45)] hover:-translate-y-[2px] hover:shadow-[0_24px_48px_rgba(8,15,30,0.55)]"
-            : "bg-white/95 border-slate-200/80 text-slate-900 shadow-[0_18px_35px_rgba(15,23,42,0.12)] hover:-translate-y-[2px] hover:shadow-[0_24px_55px_rgba(15,23,42,0.16)]"
-        }`}
+        className="text-left rounded-xl border px-3 py-2 text-sm font-medium shadow-sm break-words min-w-[180px] flex flex-col gap-2 relative overflow-hidden"
+        style={{
+          backgroundColor: chipBackground,
+          borderColor: chipBorder,
+          color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+        }}
       >
-        <div className="absolute inset-0 pointer-events-none rounded-[20px]" style={{ background: `linear-gradient(135deg, ${accent}12, transparent 65%)` }} />
-        <div className="relative p-5 space-y-4">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em]"
-                style={{
-                  backgroundColor: `${accent}18`,
-                  color: textColor,
-                }}
-              >
-                {ImpressionTextType[type]}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() =>
-                  setJournalTarget({
-                    type: "node",
-                    nodeId: id,
-                    nodeType: type,
-                    title: label,
-                  })
-                }
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                  darkMode ? "hover:bg-slate-900/70 text-slate-200" : "hover:bg-slate-100 text-slate-500"
-                }`}
-                title="Open Journal"
-              >
-                <BookOpen size={16} />
-              </button>
-              <button
-                onClick={() => handleSendBackToSideBar(id, type)}
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                  darkMode ? "hover:bg-slate-900/70 text-slate-200" : "hover:bg-slate-100 text-slate-500"
-                }`}
-                title="Return to sidebar"
-              >
-                <ListRestart size={15} />
-              </button>
-            </div>
-          </div>
+        <div className="flex items-center justify-between gap-2">
+          <strong className="text-sm font-semibold">
+            {`${ImpressionTextType[type]}`}
+          </strong>
+          <button
+            onClick={() =>
+              setJournalTarget({
+                type: "node",
+                nodeId: id,
+                nodeType: type,
+                title: label,
+              })
+            }
+            className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs transition-colors hover:bg-white/20 flex-shrink-0"
+            title="Open Journal"
+          >
+            <BookOpen size={16} />
+          </button>
+        </div>
 
-          <p className={`text-sm leading-relaxed ${darkMode ? "text-slate-200" : "text-slate-600"}`}>
-            {label || "No label provided"}
-          </p>
-
-          <div className="flex items-center justify-between">
-            <span className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide ${
-              darkMode ? "bg-slate-900/60 text-slate-300" : "bg-slate-100 text-slate-500"
-            }`}>
-              <Sparkles className="w-3 h-3" />
-              Impression
-            </span>
-            <button
-              onClick={() => deleteNode(id)}
-              className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                darkMode ? "hover:bg-slate-900/70 text-slate-200" : "hover:bg-slate-100 text-slate-500"
-              }`}
-              title="Delete"
-            >
-              <Trash2 size={15} />
-            </button>
-          </div>
+        <div className="text-sm leading-relaxed">
+          {label || "No label provided"}
         </div>
       </div>
+      
       {showContextMenu && <RightClickMenu items={menuItems} />}
     </div>
   );

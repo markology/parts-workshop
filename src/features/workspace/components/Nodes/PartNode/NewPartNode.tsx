@@ -17,7 +17,7 @@ import {
 import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
-import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
+import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
@@ -37,6 +37,15 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
   const { setJournalTarget } = useJournalStore();
 
   const { darkMode } = useThemeContext();
+
+  const toRgba = (hex: string, opacity: number) => {
+    const sanitized = hex.replace("#", "");
+    const bigint = parseInt(sanitized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
 
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
@@ -168,8 +177,8 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
         <div
           className={`relative overflow-hidden rounded-[24px] transition-all duration-300 cursor-pointer ${cardBase} ${
             isSelected
-              ? "ring-2 ring-sky-400 border-sky-300 translate-y-[-2px]"
-              : "hover:translate-y-[-2px] hover:shadow-[0_32px_70px_rgba(15,23,42,0.2)]"
+              ? "ring-2 ring-sky-400 border-sky-300"
+              : ""
           }`}
           onClick={() => setSelectedPartId(partId)}
         >
@@ -234,14 +243,18 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
               <div className="relative min-h-[90px] p-3 flex flex-wrap gap-2 items-start content-start overflow-hidden">
                 {observationPreview.length > 0 ? (
                   observationPreview.map((obs, index) => {
-                    const bgColor = NodeBackgroundColors[obs.impressionType];
+                    const accent = NodeBackgroundColors[obs.impressionType];
+                    const accentText = NodeTextColors[obs.impressionType] || accent;
+                    const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
+                    const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
                     return (
                       <span
                         key={`${obs.impressionType}-${index}`}
-                        className="inline-flex items-center rounded-full px-3 py-[6px] text-xs font-medium leading-none whitespace-nowrap"
+                        className="inline-flex items-center rounded-xl border px-3 py-[6px] text-xs font-medium leading-none whitespace-nowrap shadow-sm"
                         style={{
-                          backgroundColor: `${bgColor}18`,
-                          color: bgColor,
+                          backgroundColor: chipBackground,
+                          borderColor: chipBorder,
+                          color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
                         }}
                       >
                         {obs.data?.label || obs.id}
