@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Map, Calendar, Trash2, Edit3, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Mail, Loader2, MailPlus, HelpCircle } from "lucide-react";
+import { Map, Calendar, Trash2, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Loader2, MailPlus, HelpCircle, Sparkles } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -303,10 +303,10 @@ export default function WorkspacePage() {
   };
 
   const headerBackgroundClass = isSearchExpanded
-    ? 'bg-transparent'
+    ? 'bg-transparent supports-[backdrop-filter]:backdrop-blur-xl border-b border-transparent'
     : darkMode
-      ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black'
-      : 'bg-[#e6f8ff]';
+      ? 'bg-slate-950/80 border-b border-slate-800/60 supports-[backdrop-filter]:backdrop-blur-xl'
+      : 'bg-white/75 border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)]';
 
   // Update dropdown position when it opens
   useEffect(() => {
@@ -354,6 +354,31 @@ export default function WorkspacePage() {
     }
   });
 
+  const totalParts = workspaces.reduce((sum, workspace) => sum + workspace.partCount, 0);
+  const recentlyEditedWorkspace = sortedWorkspaces[0];
+  const heroHighlights = [
+    {
+      icon: Map,
+      label: "Visual canvases",
+      description: "Plot parts and relationships on an infinite canvas.",
+    },
+    {
+      icon: Calendar,
+      label: "Reflection ready",
+      description: "Log entries and export them to your journal in seconds.",
+    },
+    {
+      icon: Clock,
+      label: "Auto-saving progress",
+      description: "Sessions update as you drag, drop, and edit.",
+    },
+    {
+      icon: HelpCircle,
+      label: "Assistant guidance",
+      description: "Ask the Studio Assistant for prompts anytime.",
+    },
+  ];
+
   return (
     <div className={`min-h-screen ${darkMode 
       ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white' 
@@ -371,26 +396,28 @@ export default function WorkspacePage() {
         }}
       />
       {/* Header */}
-      <div className={`relative ${headerBackgroundClass}`} style={{
-         backdropFilter: isSearchExpanded ? 'blur(4px)' : undefined,
-         WebkitBackdropFilter: isSearchExpanded ? 'blur(4px)' : undefined,
-         position: 'relative',
-         zIndex: isSearchExpanded ? 50 : 10
-       }}>
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-          <Link href="/" className="inline-block">
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Parts Studio
-            </h1>
-          </Link>
-          
+      <header
+        className={`sticky top-0 z-[65] transition-[background-color,backdrop-filter] duration-300 ${headerBackgroundClass}`}
+      >
+        <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="inline-flex flex-col">
+              <span className={`text-xs uppercase tracking-[0.28em] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Parts Studio
+              </span>
+              <span className={`text-2xl font-semibold leading-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                Workspace Library
+              </span>
+            </Link>
+          </div>
+
           {/* Search Input - Absolutely positioned, centered */}
           <div className="absolute left-1/2 -translate-x-1/2 top-4 w-full max-w-md px-6 pointer-events-none" style={{ zIndex: 60 }}>
             <div
               ref={searchBoxRef}
               className={`relative pointer-events-auto transition-all duration-300 ease-out border-none ${
                 isSearchExpanded
-                  ? `h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]`
+                  ? 'h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
                   : ''
               }`}
             >
@@ -443,7 +470,7 @@ export default function WorkspacePage() {
                           }
                         }}
                         placeholder="Ask me anything..."
-                        className={`w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400`}
+                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400"
                       />
                     </div>
                   </div>
@@ -459,135 +486,144 @@ export default function WorkspacePage() {
               )}
             </div>
           </div>
-          
+
           {/* Contact Button and Profile Dropdown */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setShowFeedbackModal(true)}
-              className={`group relative flex items-center justify-center w-10 h-10 rounded-full ${
-                darkMode 
-                  ? 'bg-gray-700' 
-                  : 'bg-white'
+              className={`hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                darkMode
+                  ? 'bg-gradient-to-r from-purple-500/70 to-sky-500/70 text-white hover:from-purple-500 hover:to-sky-500'
+                  : 'bg-gradient-to-r from-purple-500 to-sky-500 text-white hover:brightness-110'
               }`}
               title="Contact"
             >
-              <MailPlus className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'} opacity-0 group-hover:opacity-100 absolute`} />
-              <Mail className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'} opacity-100 group-hover:opacity-0`} />
+              <MailPlus className="w-4 h-4" />
+              <span>Contact</span>
             </button>
-            
+            <button
+              onClick={() => setShowFeedbackModal(true)}
+              className={`sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+                darkMode
+                  ? 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                  : 'bg-white text-slate-700 hover:bg-slate-100'
+              }`}
+              title="Contact"
+            >
+              <MailPlus className="w-5 h-5" />
+            </button>
+
             {/* Profile Dropdown */}
             <div className="relative" ref={profileDropdownRef}>
-            <button
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors overflow-hidden ${
-                darkMode 
-                  ? 'bg-gray-700 hover:bg-gray-600' 
-                  : 'bg-gray-200 hover:bg-gray-300'
-              }`}
-            >
-              {session?.user?.image ? (
-                <Image
-                  src={session.user.image}
-                  alt={session.user.name || "User"}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              ) : (
-                <User className={`w-5 h-5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} />
-              )}
-            </button>
-            
-            {profileDropdownOpen && profileDropdownPosition && (
-              <div 
-                ref={(el) => {
-                  if (el && profileDropdownRef.current) {
-                    // Store reference to dropdown menu for click-outside detection
-                    (profileDropdownRef.current as any).dropdownMenu = el;
-                  }
-                }}
-                className={`fixed rounded-lg shadow-lg z-[100] ${
-                  darkMode 
-                    ? 'bg-gray-800 border border-gray-700' 
-                    : 'bg-white border border-gray-200'
+              <button
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className={`flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden ${
+                  darkMode
+                    ? 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
+                    : 'border-slate-200 bg-white hover:border-slate-400'
                 }`}
-                style={{ 
-                  minWidth: '150px',
-                  top: `${profileDropdownPosition.top}px`,
-                  right: `${profileDropdownPosition.right}px`
-                }}
               >
-                <button
-                  onClick={() => {
-                    // Navigate to account settings
-                    setProfileDropdownOpen(false);
+                {session?.user?.image ? (
+                  <Image
+                    src={session.user.image}
+                    alt={session.user.name || 'User'}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <User className={`w-5 h-5 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`} />
+                )}
+              </button>
+
+              {profileDropdownOpen && profileDropdownPosition && (
+                <div
+                  ref={(el) => {
+                    if (el && profileDropdownRef.current) {
+                      (profileDropdownRef.current as any).dropdownMenu = el;
+                    }
                   }}
-                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg ${
-                    darkMode 
-                      ? 'hover:bg-gray-700 text-white' 
-                      : 'hover:bg-gray-100 text-gray-900'
+                  className={`fixed rounded-lg shadow-lg z-[100] ${
+                    darkMode
+                      ? 'bg-gray-800 border border-gray-700'
+                      : 'bg-white border border-gray-200'
                   }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  Account
-                </button>
-                    <button
-                      onClick={() => {
-                        toggleDarkMode(!darkMode);
-                        setProfileDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                        darkMode 
-                          ? 'hover:bg-gray-700 text-white' 
-                          : 'hover:bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      {darkMode ? (
-                        <>
-                          <Sun className="w-4 h-4" />
-                          Light Mode
-                        </>
-                      ) : (
-                        <>
-                          <Moon className="w-4 h-4" />
-                          Dark Mode
-                        </>
-                      )}
-                    </button>
-                <button
-                  onClick={() => {
-                    setShowFeedbackModal(true);
-                    setProfileDropdownOpen(false);
+                  style={{
+                    minWidth: '160px',
+                    top: `${profileDropdownPosition.top}px`,
+                    right: `${profileDropdownPosition.right}px`
                   }}
-                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                    darkMode 
-                      ? 'hover:bg-gray-700 text-white' 
-                      : 'hover:bg-gray-100 text-gray-900'
-                  }`}
                 >
-                  <HelpCircle className="w-4 h-4" />
-                  Help
-                </button>
-                <button
-                  onClick={async () => {
-                    await signOut({ callbackUrl: '/login' });
-                    setProfileDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg ${
-                    darkMode 
-                      ? 'hover:bg-gray-700 text-white' 
-                      : 'hover:bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </button>
-              </div>
-            )}
+                  <button
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg ${
+                      darkMode
+                        ? 'hover:bg-gray-700 text-white'
+                        : 'hover:bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4" />
+                    Account
+                  </button>
+                  <button
+                    onClick={() => {
+                      toggleDarkMode(!darkMode);
+                      setProfileDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                      darkMode
+                        ? 'hover:bg-gray-700 text-white'
+                        : 'hover:bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    {darkMode ? (
+                      <>
+                        <Sun className="w-4 h-4" />
+                        Light Mode
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="w-4 h-4" />
+                        Dark Mode
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowFeedbackModal(true);
+                      setProfileDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                      darkMode
+                        ? 'hover:bg-gray-700 text-white'
+                        : 'hover:bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    <HelpCircle className="w-4 h-4" />
+                    Help
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await signOut({ callbackUrl: '/login' });
+                      setProfileDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg ${
+                      darkMode
+                        ? 'hover:bg-gray-700 text-white'
+                        : 'hover:bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Loading State */}
@@ -616,63 +652,194 @@ export default function WorkspacePage() {
 
         {/* Start Session Section */}
         {!loading && !error && (
-          <div className="mb-8">
-            <div className={`border rounded-2xl p-6 backdrop-blur-sm ${
-              darkMode 
-                ? 'bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-purple-600/20 border-blue-500/30' 
-                : 'bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 border-blue-300 shadow-sm'
+          <section className="mb-12">
+            <div className={`relative overflow-hidden rounded-[28px] border transition-all duration-300 ${
+              darkMode
+                ? 'bg-gradient-to-r from-slate-950 via-slate-900/80 to-slate-900/40 border-slate-800/60 shadow-[0_40px_80px_rgba(2,6,23,0.55)]'
+                : 'bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)]'
             }`}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
-                    <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      Ready to start a session?
-                    </h2>
+              <div className="absolute -top-28 -right-36 h-72 w-72 rounded-full bg-gradient-to-br from-purple-400/30 via-sky-400/20 to-transparent blur-3xl" />
+              <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-sky-500/30 via-emerald-400/20 to-transparent blur-3xl" />
+              <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] items-start p-8 lg:p-12">
+                <div className="space-y-6">
+                  <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] ${
+                    darkMode ? 'bg-slate-900/85 text-slate-200 border border-slate-800/70' : 'bg-white/90 text-slate-600 border border-white/80 shadow-sm'
+                  }`}>
+                    <span>Self Guided Session</span>
                   </div>
-                  <p className={`text-sm leading-relaxed mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Starting a session creates a safe space for you to explore and map your internal parts.
-                    There's no pressure—you can take your time and explore at your own pace.
+                  <h2 className={`text-3xl lg:text-4xl font-semibold leading-snug ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    Begin a fresh exploration of your inner team.
+                  </h2>
+                  <p className={`text-sm leading-relaxed max-w-2xl ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    Launch a new Parts Studio map to capture impressions, relationships, and breakthroughs. Your work auto-saves, so you can pause and return any time.
                   </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    {heroHighlights.map(({ icon: Icon, label, description }) => (
+                      <div
+                        key={label}
+                        className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${
+                          darkMode ? 'border-slate-800/70 bg-slate-900/50' : 'border-slate-200 bg-white/80 shadow-sm'
+                        }`}
+                      >
+                        <div className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${
+                          darkMode ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className={`font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{label}</p>
+                          <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2">
+                    <button
+                      onClick={handleStartSession}
+                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 via-indigo-500 to-sky-500 shadow-[0_22px_48px_rgba(124,58,237,0.28)] hover:shadow-[0_28px_60px_rgba(124,58,237,0.32)] transition-all duration-200 hover:-translate-y-[2px]"
+                    >
+                      <Play className="w-4 h-4" />
+                      Start a fresh map
+                    </button>
+                    <button
+                      onClick={() => setIsSearchExpanded(true)}
+                      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                        darkMode
+                          ? 'text-slate-200 border border-slate-700 hover:bg-slate-800/70'
+                          : 'text-slate-700 border border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                      Ask the assistant
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={handleStartSession}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all duration-200 font-semibold flex items-center gap-2 text-base hover:scale-105 disabled:opacity-50 disabled:cursor-wait shrink-0 text-white"
-                >
-                  <Play className="w-5 h-5" />
-                  <span>Start</span>
-                </button>
+                <div className="relative">
+                  <div className={`rounded-2xl border p-6 lg:p-7 space-y-5 ${
+                    darkMode ? 'bg-slate-950/50 border-slate-800/60' : 'bg-white/90 border-slate-200 shadow-xl'
+                  }`}>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className={`rounded-xl border px-4 py-3 ${
+                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
+                      }`}>
+                        <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Sessions</p>
+                        <p className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{workspaces.length}</p>
+                        <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Saved journeys</p>
+                      </div>
+                      <div className={`rounded-xl border px-4 py-3 ${
+                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
+                      }`}>
+                        <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Parts</p>
+                        <p className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{totalParts}</p>
+                        <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Mapped across sessions</p>
+                      </div>
+                    </div>
+                    <div className={`rounded-xl border px-4 py-4 ${
+                      darkMode ? 'border-slate-800 bg-slate-900/45' : 'border-slate-200 bg-slate-50/80'
+                    }`}>
+                      <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Latest activity</p>
+                      {recentlyEditedWorkspace ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                              {recentlyEditedWorkspace.name}
+                            </p>
+                            <span className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                              {formatDate(
+                                recentlyEditedWorkspace.createdAt.getTime() === recentlyEditedWorkspace.lastModified.getTime()
+                                  ? recentlyEditedWorkspace.createdAt
+                                  : recentlyEditedWorkspace.lastModified
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {recentlyEditedWorkspace.nodes.slice(0, 3).map((node: any) => (
+                              <span
+                                key={node.id}
+                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                  darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-600 shadow-sm'
+                                }`}
+                              >
+                                {node.data?.label || 'Part'}
+                              </span>
+                            ))}
+                            {recentlyEditedWorkspace.nodes.length > 3 && (
+                              <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                                darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-600 shadow-sm'
+                              }`}>
+                                +{recentlyEditedWorkspace.nodes.length - 3}
+                              </span>
+                            )}
+                            {recentlyEditedWorkspace.nodes.length === 0 && (
+                              <span className={`text-xs italic ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+                                No parts added yet
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                          Your next mapped journey will appear here once you create a session.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
         )}
 
         {/* Empty State */}
         {!loading && !error && workspaces.length === 0 && (
-          <div className="text-center py-12">
-            <div className={`inline-flex p-6 rounded-2xl mb-4 ${
-              darkMode ? 'bg-gray-800/30' : 'bg-gray-100'
-            }`}>
-              <Map className={`w-16 h-16 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+          <div className={`relative overflow-hidden rounded-[24px] border px-8 py-16 text-center ${
+            darkMode ? 'border-slate-800/60 bg-slate-950/40' : 'border-slate-200 bg-white/90 shadow-[0_30px_70px_rgba(15,23,42,0.1)]'
+          }`}>
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-purple-400/10 via-transparent to-sky-400/20" />
+            <div className="relative flex flex-col items-center gap-4">
+              <div className={`${darkMode ? 'bg-slate-900/60' : 'bg-slate-100'} p-5 rounded-full`}>
+                <Map className={`w-14 h-14 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+              </div>
+              <h3 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Your canvas is ready</h3>
+              <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} max-w-md`}>
+                Kick off your first session to start mapping parts, impressions, and relationships. We’ll keep everything saved as you go.
+              </p>
+              <button
+                onClick={handleStartSession}
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 via-indigo-500 to-sky-500 shadow-[0_18px_40px_rgba(124,58,237,0.28)] hover:shadow-[0_24px_55px_rgba(124,58,237,0.32)] transition-all duration-200 hover:-translate-y-[2px]"
+              >
+                <Play className="w-4 h-4" />
+                Start a session
+              </button>
             </div>
-            <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Ready when you are</h3>
-            <p className={darkMode ? "text-gray-400" : "text-gray-600"}>Click Start above to begin your first session</p>
           </div>
         )}
 
         {/* Workspaces Grid */}
         {!loading && !error && workspaces.length > 0 && (
           <>
-            {/* Sort Controls */}
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}</h3>
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold ${
+                  darkMode ? 'bg-slate-900/60 text-slate-200 border border-slate-800/60' : 'bg-white text-slate-600 border border-slate-200 shadow-sm'
+                }`}>
+                  <Clock className="w-3.5 h-3.5" />
+                  {workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}
+                </span>
+                <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold ${
+                  darkMode ? 'bg-slate-900/60 text-slate-200 border border-slate-800/60' : 'bg-white text-slate-600 border border-slate-200 shadow-sm'
+                }`}>
+                  <Map className="w-3.5 h-3.5" />
+                  {totalParts} {totalParts === 1 ? 'part' : 'parts'} catalogued
+                </span>
+              </div>
               <div className="flex items-center gap-2">
-                <ArrowUpDown className={`w-4 h-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                <ArrowUpDown className={`w-4 h-4 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className={`text-sm focus:outline-none cursor-pointer flex items-center gap-1 ${
-                      darkMode ? 'text-white' : 'text-gray-900'
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium ${
+                      darkMode ? 'border-slate-700 text-white hover:border-slate-500' : 'border-slate-300 text-slate-700 hover:border-slate-400'
                     }`}
                   >
                     {sortBy === 'edited' && 'Recently Edited'}
@@ -680,15 +847,11 @@ export default function WorkspacePage() {
                     {sortBy === 'name' && 'Name'}
                     <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
-                  
                   {dropdownOpen && (
-                    <div 
-                      className={`absolute right-0 mt-2 rounded-lg shadow-lg z-50 ${
-                        darkMode 
-                          ? 'bg-gray-800 border border-gray-700' 
-                          : 'bg-white border border-gray-200'
+                    <div
+                      className={`absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden ${
+                        darkMode ? 'bg-slate-900/95 border-slate-700/70' : 'bg-white border-slate-200'
                       }`}
-                      style={{ minWidth: 0, width: '157px' }}
                     >
                       {sortBy !== 'edited' && (
                         <button
@@ -696,10 +859,8 @@ export default function WorkspacePage() {
                             setSortBy('edited');
                             setDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-lg ${
-                            darkMode 
-                              ? 'hover:bg-gray-700 text-white' 
-                              : 'hover:bg-gray-100 text-gray-900'
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl ${
+                            darkMode ? 'hover:bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-900'
                           }`}
                         >
                           Recently Edited
@@ -712,9 +873,7 @@ export default function WorkspacePage() {
                             setDropdownOpen(false);
                           }}
                           className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                            darkMode 
-                              ? 'hover:bg-gray-700 text-white' 
-                              : 'hover:bg-gray-100 text-gray-900'
+                            darkMode ? 'hover:bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-900'
                           }`}
                         >
                           Recently Created
@@ -726,10 +885,8 @@ export default function WorkspacePage() {
                             setSortBy('name');
                             setDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-lg ${
-                            darkMode 
-                              ? 'hover:bg-gray-700 text-white' 
-                              : 'hover:bg-gray-100 text-gray-900'
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl ${
+                            darkMode ? 'hover:bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-900'
                           }`}
                         >
                           Name
@@ -740,137 +897,129 @@ export default function WorkspacePage() {
                 </div>
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Existing Workspaces */}
-              {sortedWorkspaces.map((workspace) => (
-              <div
-                key={workspace.id}
-                className={`relative group rounded-xl overflow-hidden border-2 backdrop-blur-sm cursor-pointer ${navigatingToWorkspace === workspace.id ? 'opacity-50 pointer-events-none' : ''} ${
-                  darkMode 
-                    ? 'border-gray-700/50 hover:border-blue-500 bg-gray-800/50' 
-                    : 'border-gray-300 hover:border-blue-400 bg-white/80'
-                }`}
-                onClick={() => handleOpenWorkspace(workspace.id)}
-              >
-                {/* Workspace Preview - Grid of Parts */}
-                <div className={`h-40 bg-gradient-to-br relative overflow-hidden p-3 ${
-                  darkMode 
-                    ? 'from-gray-700 to-gray-800' 
-                    : 'from-blue-50 to-indigo-50'
-                }`}>
-                  {workspace.nodes && workspace.nodes.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2 h-full">
-                      {workspace.nodes.slice(0, 6).map((node: any) => (
-                        <div
-                          key={node.id}
-                          className={`rounded-lg overflow-hidden flex items-center justify-center ${
-                            darkMode ? 'bg-gray-800/50' : 'bg-white'
-                          }`}
-                        >
-                          {node.data?.image ? (
-                            <img 
-                              src={node.data.image} 
-                              alt={node.data.label || 'Part'}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className={`text-xs p-1 text-center truncate w-full ${
-                              darkMode ? 'text-gray-400' : 'text-gray-600'
-                            }`}>
-                              {node.data?.label || 'Part'}
-                            </div>
-                          )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {sortedWorkspaces.map((workspace) => {
+                const lastEdited =
+                  workspace.createdAt.getTime() === workspace.lastModified.getTime()
+                    ? workspace.createdAt
+                    : workspace.lastModified;
+
+                return (
+                  <div
+                    key={workspace.id}
+                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border transition-all duration-300 ${
+                      darkMode
+                        ? 'border-slate-800/60 bg-slate-950/40 hover:border-purple-400/70 hover:shadow-[0_32px_70px_rgba(8,15,30,0.55)]'
+                        : 'border-slate-200 bg-white/90 backdrop-blur-sm hover:border-purple-300 hover:shadow-[0_35px_80px_rgba(124,58,237,0.14)]'
+                    } ${navigatingToWorkspace === workspace.id ? 'opacity-60 pointer-events-none' : 'hover:-translate-y-[6px]'}`}
+                    onClick={() => handleOpenWorkspace(workspace.id)}
+                  >
+                    <div className="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-purple-500/10 via-transparent to-sky-400/10" />
+                    <div className="relative p-6 pb-4 space-y-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-2">
+                          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
+                            darkMode ? 'bg-slate-900/70 text-slate-200 border border-slate-800/60' : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          }`}>
+                            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                            Session
+                          </span>
+                          <h3 className={`text-xl font-semibold leading-tight line-clamp-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                            {workspace.name}
+                          </h3>
                         </div>
-                      ))}
-                      {workspace.nodes.length > 6 && (
-                        <div className={`rounded-lg flex items-center justify-center text-xs ${
-                          darkMode 
-                            ? 'bg-gray-800/50 text-gray-400' 
-                            : 'bg-white text-gray-600'
-                        }`}>
-                          +{workspace.nodes.length - 6}
-                        </div>
+                        <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                          Edited {formatDate(lastEdited)}
+                        </span>
+                      </div>
+                      {workspace.description && (
+                        <p className={`text-sm leading-relaxed line-clamp-2 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                          {workspace.description}
+                        </p>
                       )}
                     </div>
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                      <div className={`p-3 rounded-full ${
-                        darkMode ? 'bg-gray-800/30' : 'bg-white/70'
+                    <div className="relative px-6 pb-4">
+                      <div className={`rounded-2xl border p-3 h-32 sm:h-36 ${
+                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
                       }`}>
-                        <Map className={`w-8 h-8 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                        {workspace.nodes && workspace.nodes.length > 0 ? (
+                          <div className="grid grid-cols-3 gap-2 h-full">
+                            {workspace.nodes.slice(0, 6).map((node: any) => (
+                              <div
+                                key={node.id}
+                                className={`rounded-lg overflow-hidden flex items-center justify-center ${
+                                  darkMode ? 'bg-slate-800/70' : 'bg-white'
+                                }`}
+                              >
+                                {node.data?.image ? (
+                                  <img
+                                    src={node.data.image}
+                                    alt={node.data.label || 'Part'}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span className={`text-xs p-1 text-center truncate w-full ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                                    {node.data?.label || 'Part'}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                            {workspace.nodes.length > 6 && (
+                              <div className={`rounded-lg flex items-center justify-center text-xs font-semibold ${
+                                darkMode ? 'bg-slate-800/70 text-slate-200' : 'bg-white text-slate-600'
+                              }`}>
+                                +{workspace.nodes.length - 6}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex h-full flex-col items-center justify-center gap-2">
+                            <div className={`${darkMode ? 'bg-slate-900/60' : 'bg-white'} p-3 rounded-full`}>
+                              <Map className={`w-7 h-7 ${darkMode ? 'text-slate-500' : 'text-slate-500'}`} />
+                            </div>
+                            <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                              Empty workspace
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Empty workspace</span>
                     </div>
-                  )}
-                  
-                  {/* Loading Overlay */}
-                  {navigatingToWorkspace === workspace.id && (
-                    <div className={`absolute inset-0 flex items-center justify-center ${
-                      darkMode ? 'bg-gray-900/80' : 'bg-white/80'
+                    <div className={`relative px-6 pb-6 pt-4 mt-auto border-t ${
+                      darkMode ? 'border-slate-800/60' : 'border-slate-200'
                     }`}>
-                      <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <span className={`inline-flex items-center gap-2 text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                          <User className="w-4 h-4" />
+                          {workspace.partCount} {workspace.partCount === 1 ? 'part' : 'parts'}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteWorkspace(workspace.id);
+                            }}
+                            className={`inline-flex items-center justify-center rounded-full p-2 transition-colors ${
+                              darkMode ? 'text-slate-400 hover:text-rose-200 hover:bg-rose-500/20' : 'text-slate-500 hover:text-rose-500 hover:bg-rose-50'
+                            }`}
+                            title="Delete session"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                <div className="p-5">
-                  {/* Workspace Title */}
-                  <h3 className={`text-xl font-semibold mb-1 line-clamp-1 ${
-                    darkMode ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    {workspace.name}
-                  </h3>
-
-                  {/* Workspace Description */}
-                  {workspace.description && (
-                    <p className={`text-sm line-clamp-2 mb-3 ${
-                      darkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      {workspace.description}
-                    </p>
-                  )}
-
-                  {/* Dates */}
-                  <div className={`flex flex-col gap-2 text-xs mb-4 ${
-                    darkMode ? 'text-gray-500' : 'text-gray-500'
-                  }`}>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Created {formatDate(workspace.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Edited {formatDate(workspace.createdAt.getTime() === workspace.lastModified.getTime() ? workspace.createdAt : workspace.lastModified)}</span>
-                    </div>
+                    {navigatingToWorkspace === workspace.id && (
+                      <div className={`absolute inset-0 flex items-center justify-center rounded-3xl ${
+                        darkMode ? 'bg-slate-950/80' : 'bg-white/80'
+                      }`}>
+                        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                      </div>
+                    )}
                   </div>
-
-                  {/* Action Button */}
-                  <div className={`flex items-center justify-between pt-3 border-t ${
-                    darkMode ? 'border-gray-700/50' : 'border-gray-200'
-                  }`}>
-                    <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>
-                      {workspace.partCount} {workspace.partCount === 1 ? 'part' : 'parts'}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteWorkspace(workspace.id);
-                        }}
-                        className="p-1.5 rounded transition-colors group"
-                        style={{ '--hover-bg': '#bb6262' } as React.CSSProperties}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#bb6262'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        title="Delete session"
-                      >
-                        <Trash2 className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}

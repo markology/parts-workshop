@@ -55,21 +55,19 @@ const Impressions = () => {
           </button>
         </div>
       </div>
-      {totalImpressions > 0 && (
-        <div
-          id="impression-dropdown-container"
-          className="flex-1 space-y-2 overflow-auto px-2 py-2 overscroll-x-none"
-        >
-          {ImpressionList.map((type) => (
-            <ImpressionDropdown
-              key={type}
-              type={type}
-              filteredImpressions={impressions[type] || {}}
-              onDragStart={onDragStart}
-            />
-          ))}
-        </div>
-      )}
+      <div
+        id="impression-dropdown-container"
+        className="flex-1 space-y-2 overflow-auto px-2 py-2 overscroll-x-none"
+      >
+        {ImpressionList.map((type) => (
+          <ImpressionDropdown
+            key={type}
+            type={type}
+            filteredImpressions={impressions[type] || {}}
+            onDragStart={onDragStart}
+          />
+        ))}
+      </div>
     </div>
   );
 };
