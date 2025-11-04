@@ -52,6 +52,7 @@
   --tooltip-text: black;
   --overlay-background: #000000c9;
   --conflict-handle-bg: #5a4784;
+  --ally-handle-bg: #386183;
   --part-handle-bg: #88b7fd;
   --create-conflict-bg: #5a4784;
   --toggle-utilities: white;
@@ -72,6 +73,7 @@
   --tooltip-text: white;
   --overlay-background: #000000b0;
   --conflict-handle-bg: #5a4784;
+  --ally-handle-bg: #386183;
   --part-handle-bg: #baceec;
   --create-conflict-bg: #5a4784;
   --toggle-utilities: white;
@@ -201,6 +203,11 @@ body {
   border-radius: 12px !important;
 }
 
+.react-flow__node-conflict,
+.react-flow__node-ally {
+  border-radius: 26px !important;
+}
+
 .img-cropper {
   width: 100%;
   height: 400px;
@@ -233,9 +240,16 @@ button {
 }
 
 .conflict-handle {
-  width: 16px !important;
-  height: 16px !important;
+  width: 12px !important;
+  height: 12px !important;
   background-color: var(--conflict-handle-bg) !important;
+  border: none !important;
+}
+
+.ally-handle {
+  width: 12px !important;
+  height: 12px !important;
+  background-color: var(--ally-handle-bg) !important;
   border: none !important;
 }
 

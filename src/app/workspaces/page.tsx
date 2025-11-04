@@ -437,80 +437,59 @@ export default function WorkspacesPage() {
               }`}
             >
               {isSearchExpanded ? (
-   <div
-//    ref={searchBoxRef}
-//    className="fixed w-[320px] pointer-events-auto z-[80]"
-   style={{
-    //  top: `${chatboxPosition.top}px`,
-    //  left: `${chatboxPosition.left}px`
-   }}
- >
-   <div className="relative w-full h-[60vh] max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]">
-     <button
-    //    onClick={handleSearchClose}
-       className={`absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10 ${
-         darkMode
-           ? "hover:bg-gray-700 text-gray-400 hover:text-white"
-           : "hover:bg-gray-100 text-gray-500 hover:text-gray-900"
-       }`}
-     >
-       <X className="w-4 h-4" />
-     </button>
+                <>
+                  <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
+                    <div>
+                      <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? 'text-purple-500/80' : 'text-purple-500/70'}`}>
+                        Studio Assistant
+                      </p>
+                      <p className={`mt-3 text-sm leading-relaxed ${darkMode ? 'text-gray-600' : 'text-gray-500'}`}>
+                        Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
+                      </p>
+                    </div>
 
-     <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
-       <div>
-         <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? "text-purple-500/80" : "text-purple-500/70"}`}>
-           Studio Assistant
-         </p>
-         <p className={`mt-3 text-sm leading-relaxed ${darkMode ? "text-gray-600" : "text-gray-500"}`}>
-           Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
-         </p>
-       </div>
-
-       <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
-         {chatMessages.map((message) => (
-           <div
-             key={message.id}
-             className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-           >
-             <div
-               className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
-                 message.role === "user"
-                   ? "bg-purple-500 text-white"
-                   : "bg-gray-100 text-gray-800 border border-gray-200"
-               }`}
-             >
-               {message.content.trim().length > 0 ? message.content : "..."}
-             </div>
-           </div>
-         ))}
-         <div ref={chatMessagesEndRef} />
-       </div>
-     </div>
-
-     <div className="px-6 pb-6 border-t border-gray-100 bg-gray-50/80">
-       <div className="relative">
-         <textarea
-           ref={expandedInputRef}
-           autoFocus
-           value={searchInput}
-           onChange={(e) => setSearchInput(e.target.value)}
-           onKeyDown={(e) => {
-             if (e.key === "Escape") {
-               e.preventDefault();
-            //    handleSearchClose();
-             } else if (e.key === "Enter" && !e.shiftKey) {
-               e.preventDefault();
-               handleSendChat();
-             }
-           }}
-           placeholder="Ask me anything..."
-           className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-white border border-gray-200 text-gray-900 placeholder-gray-400"
-         />
-       </div>
-     </div>
-   </div>
- </div>
+                    <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
+                      {chatMessages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                              message.role === 'user'
+                                ? 'bg-purple-500 text-white'
+                                : 'bg-gray-100 text-gray-800 border border-gray-200'
+                            }`}
+                          >
+                            {message.content.trim().length > 0 ? message.content : '...'}
+                          </div>
+                        </div>
+                      ))}
+                      <div ref={chatMessagesEndRef} />
+                    </div>
+                  </div>
+                  <div className="px-6 pb-6 border-0">
+                    <div className="relative">
+                      <textarea
+                        ref={expandedInputRef}
+                        autoFocus
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            e.preventDefault();
+                            setIsSearchExpanded(false);
+                          } else if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendChat();
+                          }
+                        }}
+                        placeholder="Ask me anything..."
+                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400"
+                      />
+                    </div>
+                  </div>
+                </>
               ) : (
                 <StudioSparkleInput
                   value={searchInput}

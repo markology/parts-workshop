@@ -94,6 +94,7 @@ export default function createNodeFN({
         style: {
           ...baseNode.style,
           textAlign: "right",
+          borderRadius: 26,
         },
         data: {
           type: "conflictData",
@@ -112,6 +113,7 @@ export default function createNodeFN({
         style: {
           ...baseNode.style,
           textAlign: "right",
+          borderRadius: 26,
         },
         data: {
           type: "conflictData",
