@@ -3,8 +3,8 @@ import { ConflictNodeData, ImpressionNodeData, NodeType, PartNodeData, Relations
 
 import ImpressionNode from "./ImpressionNode";
 import NewPartNode from "./PartNode/NewPartNode";
-import ConflictNode from "./RelationshipNode/ConflictNode";
-import AllyNode from "./RelationshipNode/AllyNode";
+import TensionNode from "./RelationshipNode/TensionNode";
+import RelationshipNode from "./RelationshipNode/RelationshipNode";
 import RelationshipSelectionNode from "./RelationshipNode/RelationshipSelectionNode";
 
 const NodeComponent = ({
@@ -20,12 +20,12 @@ const NodeComponent = ({
     if (data.type === "partData") return <NewPartNode partId={id} data={data} />;
 
     if (data.type === "conflictData") {
-      // Check if this is an ally node based on relationshipType
+      // Check if this is an interaction node based on relationshipType
       const isAlly = data.relationshipType === "ally";
       return isAlly ? (
-        <AllyNode key={id} id={id} connectedNodes={data.connectedNodes} />
+        <RelationshipNode key={id} id={id} connectedNodes={data.connectedNodes} />
       ) : (
-        <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
+        <TensionNode key={id} id={id} connectedNodes={data.connectedNodes} />
       );
     }
 

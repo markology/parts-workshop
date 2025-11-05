@@ -204,8 +204,11 @@ body {
 }
 
 .react-flow__node-conflict,
-.react-flow__node-ally {
+.react-flow__node-ally,
+.react-flow__node-relationship,
+.react-flow__node-tension {
   border-radius: 26px !important;
+  background: transparent !important;
 }
 
 .img-cropper {
