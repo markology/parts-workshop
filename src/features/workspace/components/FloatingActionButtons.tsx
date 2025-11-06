@@ -63,10 +63,13 @@ const FloatingActionButtons = () => {
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
+  const showImpressionModal = useUIStore((s) => s.showImpressionModal);
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const shouldCollapseSidebar = useUIStore((s) => s.shouldCollapseSidebar);
   const setShouldCollapseSidebar = useUIStore((s) => s.setShouldCollapseSidebar);
+  const selectedPartId = useUIStore((s) => s.selectedPartId);
+  const showPartDetailImpressionInput = useUIStore((s) => s.showPartDetailImpressionInput);
   const [showRelationshipTypeModal, setShowRelationshipTypeModal] = useState(true);
   const { isSaving, saveCheck } = useAutoSave();
   const saveMap = useSaveMap();
@@ -842,7 +845,7 @@ const FloatingActionButtons = () => {
       )}
  
       {/* Plus button and 9 dots on the left */}
-      <div className="absolute top-4 left-4 z-50 flex flex-row gap-3 items-center">
+      <div className={`absolute top-4 left-4 flex flex-row gap-3 items-center`} style={{ zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 75, pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto' }}>
         {/* Plus/X button - slides to end of options pill when menu opens */}
         <div
           className="relative"
@@ -851,7 +854,8 @@ const FloatingActionButtons = () => {
               ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
               : 'translateX(0)',
             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
-            zIndex: showRelationshipTypeModal ? 60 : 50
+            zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : (showRelationshipTypeModal ? 76 : 75),
+            pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto'
           }}
         >
           <ButtonComponent icon={Plus} action="action" label="Add" />
@@ -865,7 +869,8 @@ const FloatingActionButtons = () => {
               ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
               : 'translateX(0)',
             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
-            zIndex: showRelationshipTypeModal ? 60 : 50
+            zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : (showRelationshipTypeModal ? 76 : 75),
+            pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto'
           }}
         >
           <ButtonComponent icon="dots" action="options" label="Options" />
@@ -875,13 +880,14 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col pointer-events-auto" 
+            className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col" 
             style={{ 
-              zIndex: 40, 
+              zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 75, 
               width: '313px',
               transform: 'scaleX(0)',
               transformOrigin: 'left center',
-              animation: 'expandMenu 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards'
+              animation: 'expandMenu 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards',
+              pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto'
             }}
           >
             <div className="pt-[10px] pb-[15px] px-[10px] h-full flex flex-col">

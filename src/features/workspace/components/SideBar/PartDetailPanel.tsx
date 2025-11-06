@@ -33,6 +33,7 @@ import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
 import ImpressionInput from "./Impressions/ImpressionInput";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
 
 const PartDetailPanel = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
@@ -41,6 +42,7 @@ const PartDetailPanel = () => {
   
   const setShouldCollapseSidebar = useUIStore((s) => s.setShouldCollapseSidebar);
   const setJournalTarget = useJournalStore((s) => s.setJournalTarget);
+  const { activeSidebarNode } = useSidebarStore();
 
   const handleClose = () => {
     // Detach close behavior from options/sidebar completely
@@ -76,7 +78,22 @@ const PartDetailPanel = () => {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
   const [addingImpressionType, setAddingImpressionType] = useState<string | null>(null);
+  const setShowPartDetailImpressionInput = useUIStore((s) => s.setShowPartDetailImpressionInput);
   const [currentImpressionType, setCurrentImpressionType] = useState<string>("emotion");
+  const accentHex =
+    NodeBackgroundColors[
+      currentImpressionType as keyof typeof NodeBackgroundColors
+    ] ?? "#6366f1";
+  const accentTextHex =
+    NodeTextColors[
+      currentImpressionType as keyof typeof NodeTextColors
+    ] ?? "#312e81";
+  const accentSoftBg = toRgba(accentHex, darkMode ? 0.26 : 0.14);
+  const accentBorder = toRgba(accentHex, darkMode ? 0.55 : 0.28);
+  const accentGlow = toRgba(accentHex, darkMode ? 0.42 : 0.24);
+  const impressionTypeLabel = currentImpressionType
+    ? currentImpressionType.charAt(0).toUpperCase() + currentImpressionType.slice(1)
+    : "Impression";
   const [editingAge, setEditingAge] = useState(false);
   const [editingGender, setEditingGender] = useState(false);
   const [editingPartType, setEditingPartType] = useState(false);
@@ -249,6 +266,11 @@ const PartDetailPanel = () => {
     }
   }, [addingImpressionType]);
 
+  // Sync addingImpressionType with global state for sidebar visibility
+  useEffect(() => {
+    setShowPartDetailImpressionInput(!!addingImpressionType);
+  }, [addingImpressionType, setShowPartDetailImpressionInput]);
+
   const handleRemoveImpression = (impressionType: string, impressionId: string) => {
     if (!selectedPartId || !partNode) return;
 
@@ -261,6 +283,81 @@ const PartDetailPanel = () => {
         [ImpressionTextType[impressionType as keyof typeof ImpressionTextType]]: filteredImpressions,
       },
     });
+  };
+
+  const handleDropImpression = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!selectedPartId || !partNode) return;
+
+    // Get impression data from sidebar store or dataTransfer
+    let impressionData: { id: string; type: ImpressionType; label: string } | null = null;
+
+    if (activeSidebarNode?.type) {
+      impressionData = {
+        id: activeSidebarNode.id,
+        type: activeSidebarNode.type,
+        label: activeSidebarNode.label,
+      };
+    } else {
+      // Fallback: read from dataTransfer
+      const data = e.dataTransfer.getData("parts-workshop/sidebar-impression");
+      if (data) {
+        try {
+          const parsed = JSON.parse(data) as { type: ImpressionType; id: string };
+          const impressions = useWorkingStore.getState().sidebarImpressions;
+          const impression = impressions[parsed.type]?.[parsed.id];
+          if (impression) {
+            impressionData = {
+              id: impression.id,
+              type: impression.type,
+              label: impression.label,
+            };
+          }
+        } catch (error) {
+          console.error("Failed to parse drag data:", error);
+          return;
+        }
+      }
+    }
+
+    if (!impressionData) return;
+
+    // Add impression to the part
+    const impressionTypeKey = ImpressionTextType[impressionData.type as keyof typeof ImpressionTextType];
+    const currentImpressions = (partNode.data[impressionTypeKey] as ImpressionNode[]) || [];
+    
+    // Check if impression already exists
+    if (currentImpressions.find(imp => imp.id === impressionData.id)) {
+      return; // Already exists
+    }
+
+    const newImpression: ImpressionNode = {
+      id: impressionData.id,
+      type: impressionData.type,
+      data: {
+        label: impressionData.label,
+        addedAt: Date.now()
+      },
+      position: { x: 0, y: 0 }
+    };
+
+    updateNode(selectedPartId, {
+      data: {
+        ...partNode.data,
+        [impressionTypeKey]: [...currentImpressions, newImpression],
+      },
+    });
+
+    // Remove from sidebar
+    useWorkingStore.getState().removeImpression({ type: impressionData.type, id: impressionData.id });
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
   };
 
   const handleReturnToSidebar = (impressionType: string, impressionId: string) => {
@@ -901,7 +998,11 @@ const PartDetailPanel = () => {
             </h3>
 
             {/* Flexible Layout for Impressions */}
-            <div className={`${sectionCardClasses} p-6`}>
+            <div 
+              className={`${sectionCardClasses} p-6`}
+              onDrop={handleDropImpression}
+              onDragOver={handleDragOver}
+            >
               <div className="space-y-4">
                 {/* All Impressions: emotion, thought, sensation, behavior, other */}
                 <div className="columns-1 lg:columns-2 gap-4 space-y-4">
@@ -1202,61 +1303,154 @@ const PartDetailPanel = () => {
         
         {/* Impression Input Modal */}
         {addingImpressionType && (
-          <div 
-            className="absolute inset-0 bg-black/40 flex items-center justify-center z-10"
+          <div
+            className="absolute inset-0 z-20 flex items-center justify-center px-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 setAddingImpressionType(null);
               }
             }}
           >
-            <div className="bg-white rounded-2xl p-6 w-full max-w-3xl mx-4 shadow-2xl border border-gray-200">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: NodeBackgroundColors[currentImpressionType as keyof typeof NodeBackgroundColors] }}
-                  ></div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    Add {currentImpressionType} to {(data.name as string) || (data.label as string) || "Untitled"}
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setAddingImpressionType(null)}
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <ImpressionInput 
-                  onAddImpression={(impressionData) => {
-                    // Add impression directly to the part using the actual selected type
-                    const impressionTypeKey = ImpressionTextType[impressionData.type as keyof typeof ImpressionTextType];
-                    const currentImpressions = (data[impressionTypeKey] as ImpressionNode[]) || [];
-                    const newImpression: ImpressionNode = {
-                      id: impressionData.id,
-                      type: impressionData.type,
-                      data: {
-                        label: impressionData.label,
-                        addedAt: Date.now()
-                      },
-                      position: { x: 0, y: 0 }
-                    };
-                    
-                    updateNode(selectedPartId!, {
-                      data: {
-                        ...data,
-                        [impressionTypeKey]: [...currentImpressions, newImpression],
-                      },
-                    });
-                    
-                    // Don't close the modal, just clear the input
-                    // setAddingImpressionType(null);
-                  }}
-                  onTypeChange={(type) => setCurrentImpressionType(type)}
-                  defaultType={addingImpressionType as ImpressionType}
+            <div
+              className={`absolute inset-0 pointer-events-none ${
+                darkMode ? "bg-slate-950/70" : "bg-slate-900/20"
+              } backdrop-blur-sm`}
+            />
+            <div
+              className="relative w-full max-w-3xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className={`relative overflow-hidden rounded-[28px] border ${
+                  darkMode
+                    ? "border-slate-700/60 bg-slate-900/85"
+                    : "border-slate-200/80 bg-white/95"
+                } shadow-[0_30px_70px_rgba(15,23,42,0.36)]`}
+              >
+                <div
+                  className="pointer-events-none absolute inset-x-16 -top-40 h-64 rounded-full blur-3xl"
+                  style={{ backgroundColor: accentGlow }}
                 />
+                <div className="relative px-8 pt-8 pb-6 space-y-7">
+                  <div className="flex items-start justify-between gap-6">
+                    <div className="space-y-3">
+                      <span
+                        className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
+                        style={{
+                          backgroundColor: accentSoftBg,
+                          color: accentTextHex,
+                        }}
+                      >
+                        <Sparkles size={14} />
+                        {impressionTypeLabel}
+                      </span>
+                      <div>
+                        <h3
+                          className={`text-2xl font-semibold ${
+                            darkMode ? "text-white" : "text-slate-900"
+                          }`}
+                        >
+                          Add a new {impressionTypeLabel.toLowerCase()} to {(data.name as string) || (data.label as string) || "this part"}
+                        </h3>
+                        <p
+                          className={`mt-2 text-sm leading-relaxed ${
+                            darkMode ? "text-slate-300" : "text-slate-600"
+                          }`}
+                        >
+                          Give {(data.name as string) || (data.label as string) || "this part"} a voice by noting what you're sensing right now.
+                        </p>
+                        <div className={`mt-3 flex items-center gap-3 flex-wrap ${
+                          darkMode ? "text-slate-400" : "text-slate-500"
+                        }`}>
+                          <div className="flex items-center gap-1.5">
+                            <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                              darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                            }`}>
+                              Tab
+                            </kbd>
+                            <span className="text-xs">Switch types</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                              darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                            }`}>
+                              Enter
+                            </kbd>
+                            <span className="text-xs">Submit</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setAddingImpressionType(null)}
+                      className={`h-10 w-10 flex items-center justify-center rounded-full border transition-colors ${
+                        darkMode
+                          ? "border-slate-700 text-slate-300 hover:bg-slate-800/70"
+                          : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                      }`}
+                      aria-label="Close"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  <div
+                    className="rounded-2xl border px-6 py-6 shadow-inner"
+                    style={{
+                      backgroundColor: accentSoftBg,
+                      borderColor: accentBorder,
+                    }}
+                  >
+                    <ImpressionInput
+                      onAddImpression={(impressionData) => {
+                        // Add impression directly to the part using the actual selected type
+                        const impressionTypeKey =
+                          ImpressionTextType[
+                            impressionData.type as keyof typeof ImpressionTextType
+                          ];
+                        const currentImpressions =
+                          (data[impressionTypeKey] as ImpressionNode[]) || [];
+                        const newImpression: ImpressionNode = {
+                          id: impressionData.id,
+                          type: impressionData.type,
+                          data: {
+                            label: impressionData.label,
+                            addedAt: Date.now(),
+                          },
+                          position: { x: 0, y: 0 },
+                        };
+
+                        updateNode(selectedPartId!, {
+                          data: {
+                            ...data,
+                            [impressionTypeKey]: [...currentImpressions, newImpression],
+                          },
+                        });
+
+                        // Don't close the modal, just clear the input
+                        // setAddingImpressionType(null);
+                      }}
+                      onTypeChange={(type) => setCurrentImpressionType(type)}
+                      defaultType={addingImpressionType as ImpressionType}
+                    />
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-3 rounded-2xl border px-5 py-4 text-sm ${
+                      darkMode
+                        ? "border-slate-700/60 bg-slate-900/60 text-slate-300"
+                        : "border-slate-200 bg-slate-50 text-slate-600"
+                    }`}
+                  >
+                    <Sparkles
+                      size={16}
+                      className={darkMode ? "text-slate-200" : "text-slate-500"}
+                    />
+                    <p className="leading-relaxed">
+                      Impressions flow straight onto the canvas so you can connect them to parts and relationships later.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

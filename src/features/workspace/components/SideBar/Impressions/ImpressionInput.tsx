@@ -94,8 +94,8 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
   }, []);
 
   return (
-    <div ref={containerRef} className="relative space-y-0">
-      <div className="flex flex-wrap m-0 bg-gray-100 rounded-t-xl overflow-hidden">
+    <div ref={containerRef} className="relative space-y-4">
+      <div className="flex flex-wrap gap-2">
         {ImpressionList.map((type) => (
           <button
             key={type}
@@ -103,33 +103,41 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
               setSelectedType(type);
               setIsSelectorOpen(false);
             }}
-            className={`px-4 py-3 text-sm flex-1 transition-all duration-200 ${
+            className={`px-3.5 py-2 rounded-full text-xs font-semibold ${
               selectedType === type
-                ? "font-semibold bg-white text-gray-800 shadow-sm"
-                : `text-gray-600 hover:text-gray-800 hover:bg-gray-50`
+                ? "shadow-sm"
+                : "opacity-60"
             }`}
             style={{
-              color: selectedType === type ? NodeBackgroundColors[type] : undefined,
+              backgroundColor: selectedType === type 
+                ? `${NodeBackgroundColors[type]}20` 
+                : "transparent",
+              color: selectedType === type 
+                ? NodeBackgroundColors[type] 
+                : undefined,
+              border: selectedType === type 
+                ? `1.5px solid ${NodeBackgroundColors[type]}40` 
+                : "1.5px solid transparent",
             }}
           >
             {ImpressionTextType[type]}
           </button>
         ))}
       </div>
-      <div className="relative bg-white border border-gray-200 rounded-b-xl shadow-sm">
+      <div className="relative">
         <textarea
           style={{
             visibility: !isSelectorOpen ? "visible" : "hidden",
             color: NodeBackgroundColors[selectedType],
-            backgroundColor: `${NodeBackgroundColors[selectedType]}10`,
+            backgroundColor: "transparent",
             '--tw-placeholder-color': `${NodeBackgroundColors[selectedType]}90`,
           } as React.CSSProperties}
           ref={textAreaRef}
-          className="w-full p-5 pt-7 px-6 rounded-b-xl resize-y focus:outline-none font-medium placeholder:opacity-90 text-base"
+          className="w-full p-4 rounded-xl resize-y focus:outline-none font-medium placeholder:opacity-90 text-base"
           rows={5}
           autoFocus
           onKeyDown={handleTextAreaKeyDown}
-          placeholder="Add Impression and Press Enter ↵ + (Tab switches types)"
+          placeholder="Type your impression here..."
         />
       </div>
     </div>

@@ -8,6 +8,7 @@ type UIState = {
   showPartModal: boolean;
   showFeedbackModal: boolean;
   showImpressionModal: boolean;
+  showPartDetailImpressionInput: boolean;
   shouldCollapseSidebar: boolean;
   setIsEditing: (show: boolean) => void;
   setContextMenuParentNodeId: (id: string) => void;
@@ -15,6 +16,7 @@ type UIState = {
   setShowPartModal: (show: boolean) => void;
   setShowFeedbackModal: (show: boolean) => void;
   setShowImpressionModal: (show: boolean) => void;
+  setShowPartDetailImpressionInput: (show: boolean) => void;
   setShouldCollapseSidebar: (should: boolean) => void;
 };
 
@@ -22,6 +24,7 @@ export const useUIStore = create<UIState>((set) => ({
   showPartModal: false,
   showImpressionModal: false,
   showFeedbackModal: false,
+  showPartDetailImpressionInput: false,
   contextMenuParentNodeId: "",
   isEditing: false,
   selectedPartId: undefined,
@@ -29,6 +32,7 @@ export const useUIStore = create<UIState>((set) => ({
   setShowPartModal: (show) => set({ showPartModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
   setShowImpressionModal: (show) => set({ showImpressionModal: show }),
+  setShowPartDetailImpressionInput: (show) => set({ showPartDetailImpressionInput: show }),
   setContextMenuParentNodeId: (id) => set({ contextMenuParentNodeId: id }),
   setIsEditing: (show) => set({ isEditing: show }),
   setSelectedPartId: (id) => set({ selectedPartId: id }),
