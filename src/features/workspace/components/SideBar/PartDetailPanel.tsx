@@ -1313,7 +1313,7 @@ const PartDetailPanel = () => {
           >
             <div
               className={`absolute inset-0 pointer-events-none ${
-                darkMode ? "bg-slate-950/70" : "bg-slate-900/20"
+                darkMode ? "bg-slate-950/95" : "bg-slate-900/60"
               } backdrop-blur-sm`}
             />
             <div
@@ -1327,10 +1327,6 @@ const PartDetailPanel = () => {
                     : "border-slate-200/80 bg-white/95"
                 } shadow-[0_30px_70px_rgba(15,23,42,0.36)]`}
               >
-                <div
-                  className="pointer-events-none absolute inset-x-16 -top-40 h-64 rounded-full blur-3xl"
-                  style={{ backgroundColor: accentGlow }}
-                />
                 <div className="relative px-8 pt-8 pb-6 space-y-7">
                   <div className="flex items-start justify-between gap-6">
                     <div className="space-y-3">
@@ -1359,26 +1355,6 @@ const PartDetailPanel = () => {
                         >
                           Give {(data.name as string) || (data.label as string) || "this part"} a voice by noting what you're sensing right now.
                         </p>
-                        <div className={`mt-3 flex items-center gap-3 flex-wrap ${
-                          darkMode ? "text-slate-400" : "text-slate-500"
-                        }`}>
-                          <div className="flex items-center gap-1.5">
-                            <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                              darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                            }`}>
-                              Tab
-                            </kbd>
-                            <span className="text-xs">Switch types</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                              darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                            }`}>
-                              Enter
-                            </kbd>
-                            <span className="text-xs">Submit</span>
-                          </div>
-                        </div>
                       </div>
                     </div>
                     <button
@@ -1435,20 +1411,23 @@ const PartDetailPanel = () => {
                     />
                   </div>
 
-                  <div
-                    className={`flex items-center gap-3 rounded-2xl border px-5 py-4 text-sm ${
-                      darkMode
-                        ? "border-slate-700/60 bg-slate-900/60 text-slate-300"
-                        : "border-slate-200 bg-slate-50 text-slate-600"
-                    }`}
-                  >
-                    <Sparkles
-                      size={16}
-                      className={darkMode ? "text-slate-200" : "text-slate-500"}
-                    />
-                    <p className="leading-relaxed">
-                      Impressions flow straight onto the canvas so you can connect them to parts and relationships later.
-                    </p>
+                  <div className={`flex items-center gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                      }`}>
+                        Tab
+                      </kbd>
+                      <span className="text-xs">Switch types</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                      }`}>
+                        Enter
+                      </kbd>
+                      <span className="text-xs">Submit</span>
+                    </div>
                   </div>
                 </div>
               </div>

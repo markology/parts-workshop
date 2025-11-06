@@ -9,6 +9,7 @@ import {
 } from "@/features/workspace/types/Impressions";
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 const isValidImpression = (text: string) => {
   const trimmed = text.trim();
@@ -31,11 +32,12 @@ interface ImpressionInputProps {
 const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion" }: ImpressionInputProps) => {
   const [selectedType, setSelectedType] = useState<ImpressionType>(defaultType);
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
+  const [inputValue, setInputValue] = useState<string>("");
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const textAreaRef = useRef<HTMLInputElement>(null);
 
-  const handleTextAreaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleTextAreaKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (
       e.key === "Enter" &&
       selectedType !== null &&
@@ -54,6 +56,7 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
         useWorkingStore.getState().addImpression(impressionData);
       }
       textAreaRef.current!.value = "";
+      setInputValue("");
     } else if (e.key === "Tab") {
       e.preventDefault();
       const currentIndex = ImpressionList.indexOf(selectedType);
@@ -93,6 +96,8 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const { darkMode } = useThemeContext();
+
   return (
     <div ref={containerRef} className="relative space-y-4">
       <div className="flex flex-wrap gap-2">
@@ -103,12 +108,13 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
               setSelectedType(type);
               setIsSelectorOpen(false);
             }}
-            className={`px-3.5 py-2 rounded-full text-xs font-semibold ${
+            className={`px-3.5 py-2 rounded-full font-semibold ${
               selectedType === type
                 ? "shadow-sm"
                 : "opacity-60"
             }`}
             style={{
+              fontSize: '14px',
               backgroundColor: selectedType === type 
                 ? `${NodeBackgroundColors[type]}20` 
                 : "transparent",
@@ -125,20 +131,34 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
         ))}
       </div>
       <div className="relative">
-        <textarea
+        <input
+          type="text"
           style={{
-            visibility: !isSelectorOpen ? "visible" : "hidden",
-            color: NodeBackgroundColors[selectedType],
-            backgroundColor: "transparent",
-            '--tw-placeholder-color': `${NodeBackgroundColors[selectedType]}90`,
-          } as React.CSSProperties}
+            position: 'absolute',
+            opacity: 0,
+            pointerEvents: !isSelectorOpen ? 'auto' : 'none',
+            width: '1px',
+            height: '1px',
+          }}
           ref={textAreaRef}
-          className="w-full p-4 rounded-xl resize-y focus:outline-none font-medium placeholder:opacity-90 text-base"
-          rows={5}
+          className="focus:outline-none"
           autoFocus
           onKeyDown={handleTextAreaKeyDown}
-          placeholder="Type your impression here..."
+          onChange={(e) => setInputValue(e.target.value)}
         />
+        <div 
+          className={`min-h-[120px] px-4 py-4 rounded-xl border-0 ${
+            darkMode ? "text-slate-200" : "text-slate-800"
+          }`}
+          style={{
+            color: inputValue ? NodeBackgroundColors[selectedType] : (darkMode ? "#cbd5e1" : "#1e293b"),
+            backgroundColor: "transparent",
+            fontSize: '16px',
+            lineHeight: '1.6',
+          }}
+        >
+          {inputValue || <span style={{ opacity: 0.7, color: `${NodeBackgroundColors[selectedType]}` }}>Type your impression here...</span>}
+        </div>
       </div>
     </div>
   );
