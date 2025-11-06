@@ -30,20 +30,23 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
     });
 
   const convertToRelationship = useCallback(
-    (relationshipType: "conflict" | "ally") => {
+    (relationshipType: "tension" | "interaction") => {
       const node = getNode(id);
       if (!node) return;
 
       // Update the node to the chosen relationship type
+      const nodeType = relationshipType === "tension" ? "tension" : "relationship";
+      const label = relationshipType === "tension" ? "Tension" : "Interaction";
+
       setNodes((nodes) =>
         nodes.map((n) => {
           if (n.id === id) {
             return {
               ...n,
-              type: relationshipType,
+              type: nodeType,
               data: {
-                type: "conflictData",
-                label: relationshipType === "conflict" ? "Conflict" : "Ally",
+                type: "tensionData",
+                label,
                 relationshipType,
                 connectedNodes: [],
               },
@@ -75,13 +78,13 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
             </p>
             <h3 className="text-lg font-semibold">Choose Relationship Type</h3>
             <p className={`mt-1 text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-              Select whether these parts are collaborating or in conflict.
+              Select whether these parts are in tension or interacting.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => convertToRelationship("conflict")}
+              onClick={() => convertToRelationship("tension")}
               className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
                 darkMode
                   ? "border-purple-400/40 bg-purple-500/15 hover:bg-purple-500/25"
@@ -92,13 +95,13 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
                 <Sword size={20} />
               </span>
               <div>
-                <p className="font-semibold text-sm text-purple-700">Conflict</p>
+                <p className="font-semibold text-sm text-purple-700">Tension</p>
                 <p className="text-xs text-purple-600">Parts in opposition</p>
               </div>
             </button>
 
             <button
-              onClick={() => convertToRelationship("ally")}
+              onClick={() => convertToRelationship("interaction")}
               className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
                 darkMode
                   ? "border-sky-400/40 bg-sky-500/15 hover:bg-sky-500/25"
@@ -109,7 +112,7 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
                 <Users size={20} />
               </span>
               <div>
-                <p className="font-semibold text-sm text-sky-700">Ally</p>
+                <p className="font-semibold text-sm text-sky-700">Interaction</p>
                 <p className="text-xs text-sky-600">Parts working together</p>
               </div>
             </button>

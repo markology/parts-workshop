@@ -1212,18 +1212,18 @@ const PartDetailPanel = () => {
               {relationships.length > 0 ? (
                 <div className="space-y-4">
                   {relationships.map((rel) => {
-                    const isConflict = rel.relationshipType === "conflict";
-                    const isAlly = rel.relationshipType === "ally";
+                    const isTension = rel.relationshipType === "tension";
+                    const isInteraction = rel.relationshipType === "interaction";
 
                     return (
                       <div key={rel.id} className={`${subCardClasses} p-5 shadow-sm`}>
                         <div
                           className={`px-3 py-3 rounded-xl border ${
-                            isConflict
+                            isTension
                               ? darkMode
                                 ? "border-purple-400/70 bg-purple-900/40"
                                 : "border-purple-300/80 bg-purple-50"
-                              : isAlly
+                              : isInteraction
                                 ? darkMode
                                   ? "border-sky-400/70 bg-sky-900/35"
                                   : "border-sky-300/80 bg-sky-50"
@@ -1233,11 +1233,11 @@ const PartDetailPanel = () => {
                           }`}
                         >
                           <div className={`font-semibold text-sm mb-2 ${
-                            isConflict
+                            isTension
                               ? darkMode
                                 ? "text-purple-200"
                                 : "text-purple-900"
-                              : isAlly
+                              : isInteraction
                                 ? darkMode
                                   ? "text-sky-200"
                                   : "text-sky-900"
@@ -1249,11 +1249,11 @@ const PartDetailPanel = () => {
                           </div>
                           {rel.nodeDescription && String(rel.nodeDescription).trim() ? (
                             <div className={`text-xs mb-2 leading-relaxed whitespace-pre-wrap ${
-                              isConflict
+                              isTension
                                 ? darkMode
                                   ? "text-purple-300"
                                   : "text-purple-700"
-                                : isAlly
+                                : isInteraction
                                   ? darkMode
                                     ? "text-sky-300"
                                     : "text-sky-700"
@@ -1265,11 +1265,11 @@ const PartDetailPanel = () => {
                             </div>
                           ) : null}
                           <div className={`text-xs font-medium capitalize mt-2 ${
-                            isConflict
+                            isTension
                               ? darkMode
                                 ? "text-purple-300"
                                 : "text-purple-700"
-                              : isAlly
+                              : isInteraction
                                 ? darkMode
                                   ? "text-sky-300"
                                   : "text-sky-700"
@@ -1277,7 +1277,7 @@ const PartDetailPanel = () => {
                                   ? "text-slate-400"
                                   : "text-slate-600"
                           }`}>
-                            {isConflict ? "⚔️ Conflict" : isAlly ? "🤝 Ally" : rel.nodeType}
+                            {isTension ? "⚔️ Tension" : isInteraction ? "🤝 Interaction" : rel.nodeType}
                           </div>
                         </div>
                       </div>
