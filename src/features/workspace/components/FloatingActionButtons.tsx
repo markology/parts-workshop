@@ -165,18 +165,30 @@ const FloatingActionButtons = () => {
 
   // Measure menu width when it opens - use useLayoutEffect for synchronous measurement
   useLayoutEffect(() => {
-    if (showRelationshipTypeModal && menuRef.current) {
+    if (showRelationshipTypeModal && !selectedPartId && menuRef.current) {
       // Measure synchronously before paint to minimize delay
       const menuElement = menuRef.current?.querySelector('div') as HTMLElement;
       if (menuElement) {
         // Force a layout calculation by reading offsetWidth
-        menuWidthRef.current = menuElement.offsetWidth;
-        setMenuWidthMeasured(true);
+        const width = menuElement.offsetWidth;
+        if (width > 0) {
+          menuWidthRef.current = width;
+          setMenuWidthMeasured(true);
+        } else {
+          // If width is 0, the menu might still be animating, so measure again
+          requestAnimationFrame(() => {
+            const newWidth = menuElement.offsetWidth;
+            if (newWidth > 0) {
+              menuWidthRef.current = newWidth;
+              setMenuWidthMeasured(true);
+            }
+          });
+        }
       }
     } else {
       setMenuWidthMeasured(false);
     }
-  }, [showRelationshipTypeModal]);
+  }, [showRelationshipTypeModal, selectedPartId]);
 
   // Handle collapse trigger from PartDetailPanel
   useEffect(() => {
@@ -864,8 +876,8 @@ const FloatingActionButtons = () => {
           style={{
             transform: selectedPartId 
               ? 'translateX(0)' 
-              : (showRelationshipTypeModal && menuWidthMeasured
-                ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
+              : (showRelationshipTypeModal && !selectedPartId
+                ? `translateX(calc(${menuWidthRef.current || 0}px + 16px))` 
                 : 'translateX(0)'),
             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
             zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : (showRelationshipTypeModal ? 76 : 75),
@@ -881,8 +893,8 @@ const FloatingActionButtons = () => {
           style={{
             transform: selectedPartId 
               ? 'translateX(0)' 
-              : (showRelationshipTypeModal && menuWidthMeasured
-                ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
+              : (showRelationshipTypeModal && !selectedPartId
+                ? `translateX(calc(${menuWidthRef.current || 0}px + 16px))` 
                 : 'translateX(0)'),
             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
             zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : (showRelationshipTypeModal ? 76 : 75),
