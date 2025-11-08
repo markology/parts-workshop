@@ -101,7 +101,7 @@ const ImpressionDropdown = ({
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <GripVertical className="h-4 w-4 opacity-70" />
-                <span className="truncate">{item.label}</span>
+                <span className="break-words">{item.label}</span>
               </div>
               <button
                 type="button"

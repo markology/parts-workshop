@@ -35,18 +35,18 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
   const [inputValue, setInputValue] = useState<string>("");
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const textAreaRef = useRef<HTMLInputElement>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleTextAreaKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleTextAreaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (
       e.key === "Enter" &&
       selectedType !== null &&
-      isValidImpression(textAreaRef.current!.value)
+      isValidImpression(inputValue)
     ) {
       e.preventDefault();
       const impressionData = {
         id: uuidv4(),
-        label: textAreaRef.current!.value,
+        label: inputValue,
         type: selectedType,
       };
       
@@ -55,7 +55,6 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
       } else {
         useWorkingStore.getState().addImpression(impressionData);
       }
-      textAreaRef.current!.value = "";
       setInputValue("");
     } else if (e.key === "Tab") {
       e.preventDefault();
@@ -193,23 +192,9 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
         ))}
       </div>
       <div className="relative">
-        <input
-          type="text"
-          style={{
-            position: 'absolute',
-            opacity: 0,
-            pointerEvents: !isSelectorOpen ? 'auto' : 'none',
-            width: '1px',
-            height: '1px',
-          }}
-          ref={textAreaRef}
-          className="focus:outline-none"
-          autoFocus
-          onKeyDown={handleTextAreaKeyDown}
-          onChange={(e) => setInputValue(e.target.value)}
-        />
-        <div 
-          className={`min-h-[120px] px-4 py-4 rounded-xl border-0 ${
+        <textarea
+          ref={textAreaRef as React.RefObject<HTMLTextAreaElement>}
+          className={`min-h-[120px] px-4 pb-4 pt-[30px] rounded-xl border-0 w-full focus:outline-none resize-none ${
             darkMode ? "text-slate-200" : "text-slate-800"
           }`}
           style={{
@@ -217,10 +202,22 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
             backgroundColor: "transparent",
             fontSize: '16px',
             lineHeight: '1.6',
+            caretColor: NodeBackgroundColors[selectedType],
           }}
-        >
-          {inputValue || <span style={{ opacity: 0.7, color: `${NodeBackgroundColors[selectedType]}` }}>Type your impression here...</span>}
-        </div>
+          placeholder="Type your impression here..."
+          autoFocus
+          onKeyDown={handleTextAreaKeyDown}
+          onChange={(e) => setInputValue(e.target.value)}
+          value={inputValue}
+        />
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            textarea::placeholder {
+              opacity: 0.7;
+              color: ${NodeBackgroundColors[selectedType]} !important;
+            }
+          `
+        }} />
       </div>
     </div>
   );

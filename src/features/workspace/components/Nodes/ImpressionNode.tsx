@@ -98,7 +98,7 @@ const ImpressionNode = ({
       <div
         ref={nodeRef}
         onContextMenu={handleContextMenu}
-        className="text-left rounded-xl border px-3 py-2 text-sm font-medium shadow-sm break-words min-w-[180px] flex flex-col gap-2 relative overflow-hidden"
+        className="text-left rounded-xl border px-3 py-2 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden"
         style={{
           backgroundColor: chipBackground,
           borderColor: chipBorder,

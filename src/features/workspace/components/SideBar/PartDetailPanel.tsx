@@ -46,6 +46,7 @@ const PartDetailPanel = () => {
 
   const handleClose = () => {
     // Detach close behavior from options/sidebar completely
+    setAddingImpressionType(null); // Close impression input if open
     setSelectedPartId(undefined);
   };
   // Use selective subscriptions - only subscribe to updateNode function, not nodes/edges arrays
@@ -575,7 +576,7 @@ const PartDetailPanel = () => {
     darkMode
       ? "bg-slate-950/95 border border-slate-800 text-slate-100"
       : "bg-white border border-slate-200 text-slate-900"
-  } relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col transition-all duration-300 rounded-[10px]`;
+  } relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col rounded-[10px]`;
 
   const navContainerClasses = darkMode
     ? "bg-slate-950/75 border-r border-slate-800/70"
@@ -635,11 +636,11 @@ const PartDetailPanel = () => {
       className="fixed inset-0 bg-slate-950/65 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
-      <div className={`relative w-full max-w-5xl ${addingImpressionType ? `backdrop-blur-sm ${darkMode ? '' : 'bg-white/50'}` : ''}`}>
+      <div className={`relative w-full max-w-5xl ${addingImpressionType ? `backdrop-blur-sm ${darkMode ? '' : 'bg-white'}` : ''}`}>
         {/* Close Button - To the right of container */}
         <button
           onClick={handleClose}
-          className="absolute -right-12 top-0 z-[60] hover:opacity-70 transition-opacity"
+          className="absolute -right-12 top-0 z-[60] hover:opacity-70"
           aria-label="Close"
         >
           <X 
@@ -663,7 +664,7 @@ const PartDetailPanel = () => {
             <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2">
               <button
                 onClick={() => scrollToSection(infoRef, 'info')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-emerald-600" />
@@ -672,25 +673,25 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(insightsRef, 'insights')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-sky-600" />
+                  <Brain className="w-4 h-4" style={{ color: NodeBackgroundColors["thought"] }} />
                   <span>Insights</span>
                 </div>
               </button>
               <button
                 onClick={() => scrollToSection(impressionsRef, 'impressions')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-purple-600" />
+                  <Eye className="w-4 h-4" style={{ color: NodeBackgroundColors["emotion"] }} />
                   <span>Impressions</span>
                 </div>
               </button>
               <button
                 onClick={() => scrollToSection(journalRef, 'journal')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-amber-600" />
@@ -699,7 +700,7 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(relationshipsRef, 'relationships')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors ${navButtonClasses}`}
+                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
               >
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-rose-600" />
@@ -713,7 +714,7 @@ const PartDetailPanel = () => {
           <div ref={scrollableContentRef} className="flex-1 p-8 overflow-y-auto space-y-12 bg-transparent">
 
           {/* Info Section */}
-          <div ref={infoRef} className="transition-all duration-300 relative space-y-4">
+          <div ref={infoRef} className="relative space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
@@ -746,7 +747,7 @@ const PartDetailPanel = () => {
                       });
                     }
                   }}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border ${
                     darkMode
                       ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
                       : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
@@ -757,7 +758,7 @@ const PartDetailPanel = () => {
                 </button>
                 <button
                   onClick={handleDeletePart}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold ${
                     darkMode
                       ? "bg-rose-600/80 text-white hover:bg-rose-500"
                       : "bg-rose-600 text-white hover:bg-rose-500"
@@ -887,11 +888,11 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Insights Section */}
-          <div ref={insightsRef} className="transition-all duration-300 relative space-y-4">
+          <div ref={insightsRef} className="relative space-y-4">
             <h4 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
-              <Brain className="w-3 h-3 text-sky-600" />
+              <Brain className="w-3 h-3" style={{ color: NodeBackgroundColors["thought"] }} />
               Insights
             </h4>
             <div className={`${sectionCardClasses} p-6`}>
@@ -909,7 +910,7 @@ const PartDetailPanel = () => {
                           addListItem("needs", input.trim());
                         }
                       }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
                         darkMode
                           ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
                           : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
@@ -927,7 +928,7 @@ const PartDetailPanel = () => {
                         <span className="text-xs font-medium leading-relaxed">{need}</span>
                         <button
                           onClick={() => removeListItem("needs", index)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                          className="opacity-0 group-hover:opacity-100 p-1"
                           aria-label="Remove need"
                         >
                           <X size={14} />
@@ -955,7 +956,7 @@ const PartDetailPanel = () => {
                           addListItem("fears", input.trim());
                         }
                       }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
                         darkMode
                           ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
                           : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
@@ -973,7 +974,7 @@ const PartDetailPanel = () => {
                         <span className="text-xs font-medium leading-relaxed">{fear}</span>
                         <button
                           onClick={() => removeListItem("fears", index)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                          className="opacity-0 group-hover:opacity-100 p-1"
                           aria-label="Remove fear"
                         >
                           <X size={14} />
@@ -992,11 +993,11 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Impressions Section */}
-          <div ref={impressionsRef} className="transition-all duration-300 relative space-y-4">
+          <div ref={impressionsRef} className="relative space-y-4">
             <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
-              <Eye className="w-3 h-3 text-purple-600" />
+              <Eye className="w-3 h-3" style={{ color: NodeBackgroundColors["emotion"] }} />
               Impressions
             </h3>
 
@@ -1037,7 +1038,7 @@ const PartDetailPanel = () => {
                               setAddingImpressionType(impression);
                               setCurrentImpressionType(impression);
                             }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
                               darkMode
                                 ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
                                 : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
@@ -1056,6 +1057,7 @@ const PartDetailPanel = () => {
                             const accentText = NodeTextColors[impression] || accent;
                             const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
                             const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
+                            const iconColor = darkMode ? "rgba(255,255,255,0.75)" : accentText;
 
                             return (
                               <div
@@ -1068,12 +1070,12 @@ const PartDetailPanel = () => {
                                 }}
                               >
                                 <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100">
                                   <button
                                     onClick={() => handleReturnToSidebar(impression, imp.id)}
                                     className="p-1"
                                     style={{
-                                      color: getXButtonColor(impression),
+                                      color: iconColor,
                                     }}
                                     title="Return to sidebar"
                                   >
@@ -1083,7 +1085,7 @@ const PartDetailPanel = () => {
                                     onClick={() => handleRemoveImpression(impression, imp.id)}
                                     className="p-1"
                                     style={{
-                                      color: getXButtonColor(impression),
+                                      color: iconColor,
                                     }}
                                     title="Delete"
                                   >
@@ -1103,7 +1105,7 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Journal History Section */}
-          <div ref={journalRef} className="transition-all duration-300 relative space-y-4">
+          <div ref={journalRef} className="relative space-y-4">
             <div className="flex items-center justify-between">
               <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
                 darkMode ? "text-slate-400" : "text-slate-500"
@@ -1122,7 +1124,7 @@ const PartDetailPanel = () => {
                     });
                   }
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition-colors border ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium border ${
                   darkMode
                     ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
                     : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
@@ -1162,7 +1164,7 @@ const PartDetailPanel = () => {
                         <button
                           onClick={() => extractImpressionsFromEntry(entry.id)}
                           disabled={isExtractingImpressions}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${
                             isExtractingImpressions
                               ? darkMode
                                 ? "bg-slate-800 text-slate-400"
@@ -1203,7 +1205,7 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Relationships Section */}
-          <div ref={relationshipsRef} className="transition-all duration-300 relative space-y-4">
+          <div ref={relationshipsRef} className="relative space-y-4">
             <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
@@ -1362,7 +1364,7 @@ const PartDetailPanel = () => {
                     </div>
                     <button
                       onClick={() => setAddingImpressionType(null)}
-                      className={`h-10 w-10 flex items-center justify-center rounded-full border transition-colors ${
+                      className={`h-10 w-10 flex items-center justify-center rounded-full border ${
                         darkMode
                           ? "border-slate-700 text-slate-300 hover:bg-slate-800/70"
                           : "border-slate-200 text-slate-500 hover:bg-slate-100"
@@ -1461,7 +1463,7 @@ const PartDetailPanel = () => {
                   </div>
                   <button
                     onClick={() => setShowInfoEditModal(false)}
-                    className={`p-2 rounded-full border transition-colors ${
+                    className={`p-2 rounded-full border ${
                       darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-900/60" : "border-slate-200 text-slate-500 hover:bg-slate-100"
                     }`}
                     aria-label="Close"
@@ -1496,7 +1498,7 @@ const PartDetailPanel = () => {
                                 onClick={() => {
                                   setTempPartType(type);
                                 }}
-                                className={`px-3.5 py-2 rounded-full text-xs font-semibold transition-colors ${
+                                className={`px-3.5 py-2 rounded-full text-xs font-semibold ${
                                   isSelected
                                     ? type === "manager"
                                       ? "bg-blue-600 text-white shadow-sm"
@@ -1559,7 +1561,7 @@ const PartDetailPanel = () => {
                               />
                               <button
                                 onClick={() => modalFileInputRef.current?.click()}
-                                className="absolute inset-0 bg-slate-950/0 hover:bg-slate-950/50 transition-colors flex items-center justify-center"
+                                className="absolute inset-0 bg-slate-950/0 hover:bg-slate-950/50 flex items-center justify-center"
                               >
                                 <Upload className="w-7 h-7 text-white" />
                               </button>
@@ -1601,7 +1603,7 @@ const PartDetailPanel = () => {
                 <div className="flex justify-end gap-3 pt-2">
                   <button
                     onClick={() => setShowInfoEditModal(false)}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
+                    className={`px-4 py-2.5 rounded-lg text-sm font-medium border ${
                       darkMode
                         ? "border-slate-700 text-slate-300 hover:bg-slate-900/60"
                         : "border-slate-200 text-slate-600 hover:bg-slate-100"
@@ -1616,7 +1618,7 @@ const PartDetailPanel = () => {
                         setShowInfoEditModal(false);
                       }, 0);
                     }}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                    className={`px-5 py-2.5 rounded-lg text-sm font-semibold ${
                       darkMode
                         ? "bg-slate-100/15 text-white hover:bg-slate-100/25"
                         : "bg-slate-900 text-white hover:bg-slate-800"
