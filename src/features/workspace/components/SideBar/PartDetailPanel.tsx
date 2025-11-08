@@ -663,10 +663,14 @@ const PartDetailPanel = () => {
           transform: shiftAmount > 0 ? `translateX(${shiftAmount}px)` : 'none'
         }}
       >
-        {/* Close Button - To the right of container */}
+        {/* Close Button - To the right of container, or above on smaller screens */}
         <button
           onClick={handleClose}
-          className="absolute -right-12 top-0 z-[60] hover:opacity-70"
+          className={`z-[60] hover:opacity-70 ${
+            windowWidth < 1120 
+              ? "absolute -top-12 left-1/2 -translate-x-1/2" 
+              : "absolute -right-12 top-0"
+          }`}
           aria-label="Close"
         >
           <X 
@@ -686,6 +690,7 @@ const PartDetailPanel = () => {
         {/* Content with TOC */}
         <div className={`flex flex-row flex-1 overflow-hidden min-h-0 ${addingImpressionType ? 'pointer-events-none' : ''}`}>
           {/* Table of Contents - Left Column */}
+          {windowWidth >= 800 && (
           <div className={`w-52 flex-shrink-0 flex flex-col ${navContainerClasses}`}>
             <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2">
               <button
@@ -735,9 +740,10 @@ const PartDetailPanel = () => {
               </button>
             </nav>
           </div>
+          )}
 
           {/* Main Content - Right Column */}
-          <div ref={scrollableContentRef} className="flex-1 p-8 overflow-y-auto space-y-12 bg-transparent">
+          <div ref={scrollableContentRef} className={`${windowWidth < 800 ? 'w-full' : 'flex-1'} p-8 overflow-y-auto space-y-12 bg-transparent`}>
 
           {/* Info Section */}
           <div ref={infoRef} className="relative space-y-4">
