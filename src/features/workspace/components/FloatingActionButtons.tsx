@@ -846,7 +846,7 @@ const FloatingActionButtons = () => {
  
       {/* Plus button and 9 dots on the left */}
       <div className={`absolute top-4 left-4 flex flex-row gap-3 items-center`} 
-      style={{ zIndex: (showImpressionModal ? 49 : showPartDetailImpressionInput ? 30 : 75), pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto' }}>
+      style={{ zIndex: selectedPartId && !showPartDetailImpressionInput ? 51 : (showImpressionModal ? 49 : showPartDetailImpressionInput ? 30 : 50), pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto' }}>
         {/* Plus/X button - slides to end of options pill when menu opens */}
         <div
           className="relative"
