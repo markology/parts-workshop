@@ -575,7 +575,7 @@ const PartDetailPanel = () => {
     darkMode
       ? "bg-slate-950/95 border border-slate-800 text-slate-100"
       : "bg-white border border-slate-200 text-slate-900"
-  } relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col transition-all duration-300`;
+  } relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col transition-all duration-300 rounded-[10px]`;
 
   const navContainerClasses = darkMode
     ? "bg-slate-950/75 border-r border-slate-800/70"
@@ -599,7 +599,7 @@ const PartDetailPanel = () => {
 
   const modalContainerClasses = darkMode
     ? "bg-slate-950/95 border border-slate-800 text-slate-100"
-    : "bg-white border border-slate-200 text-slate-900";
+    : "bg-white border border-slate-200 text-slate-900 markymark";
 
   const modalFieldCardClasses = darkMode
     ? "bg-slate-950/75 border border-slate-800/70 rounded-2xl"
@@ -607,11 +607,11 @@ const PartDetailPanel = () => {
 
   const modalInputClasses = darkMode
     ? "bg-slate-900/60 border border-slate-700 text-slate-100 placeholder-slate-500"
-    : "bg-white border border-slate-200 text-slate-900 placeholder-slate-400";
+    : "bg-white border border-slate-200 text-slate-900 placeholder-slate-400 markymarkinput";
 
   const modalTextareaClasses = darkMode
     ? "bg-slate-900/60 border border-slate-700 text-slate-100 placeholder-slate-500"
-    : "bg-white border border-slate-200 text-slate-900 placeholder-slate-400";
+    : "bg-white border border-slate-200 text-slate-900 markymarktextarea placeholder-slate-400";
 
   const modalLabelClasses = darkMode ? "text-slate-200" : "text-slate-700";
 
@@ -635,7 +635,7 @@ const PartDetailPanel = () => {
       className="fixed inset-0 bg-slate-950/65 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
-      <div className="relative w-full max-w-5xl">
+      <div className={`relative w-full max-w-5xl ${addingImpressionType ? `backdrop-blur-sm ${darkMode ? '' : 'bg-white/50'}` : ''}`}>
         {/* Close Button - To the right of container */}
         <button
           onClick={handleClose}
@@ -650,11 +650,14 @@ const PartDetailPanel = () => {
         </button>
 
         <div
-          className={containerClasses}
+          className={`${containerClasses} relative`}
           onClick={(e) => e.stopPropagation()}
         >
+        {addingImpressionType && (
+          <div className="absolute inset-0 backdrop-blur-sm bg-white/10 dark:bg-slate-950/10 z-10 pointer-events-none" />
+        )}
         {/* Content with TOC */}
-        <div className="flex flex-row flex-1 overflow-hidden min-h-0">
+        <div className={`flex flex-row flex-1 overflow-hidden min-h-0 ${addingImpressionType ? 'pointer-events-none' : ''}`}>
           {/* Table of Contents - Left Column */}
           <div className={`w-52 flex-shrink-0 flex flex-col ${navContainerClasses}`}>
             <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2">
@@ -1304,7 +1307,7 @@ const PartDetailPanel = () => {
         {/* Impression Input Modal */}
         {addingImpressionType && (
           <div
-            className="absolute inset-0 z-20 flex items-center justify-center px-4"
+            className="fixed inset-0 z-[55] flex items-center justify-center px-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 setAddingImpressionType(null);
@@ -1312,9 +1315,9 @@ const PartDetailPanel = () => {
             }}
           >
             <div
-              className={`absolute inset-0 pointer-events-none ${
-                darkMode ? "bg-slate-950/95" : "bg-slate-900/60"
-              } backdrop-blur-sm`}
+              className={`fixed inset-0 pointer-events-none ${
+                darkMode ? "bg-slate-950/30" : "bg-slate-900/20"
+              }`}
             />
             <div
               className="relative w-full max-w-3xl"

@@ -22,6 +22,41 @@ const SideBar = () => {
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const [showRelationshipTypeModal, setShowRelationshipTypeModal] = useState(false);
+  const selectedPartId = useUIStore((s) => s.selectedPartId);
+  const [shouldHideSidebar, setShouldHideSidebar] = useState(false);
+
+  // Calculate if sidebar should be hidden due to part details panel collision
+  useEffect(() => {
+    if (!selectedPartId) {
+      setShouldHideSidebar(false);
+      return;
+    }
+
+    const checkCollision = () => {
+      const windowWidth = window.innerWidth;
+      const sidebarWidth = 230; // Sidebar is flex-[0_0_230px]
+      const panelMaxWidth = 896; // max-w-5xl = 896px
+      const panelPadding = 32; // p-4 = 16px on each side
+      const buffer = 16; // Extra buffer for safety
+
+      // When panel is at max width, it's centered
+      // Panel left edge = (windowWidth - panelMaxWidth) / 2
+      // They collide when: (windowWidth - panelMaxWidth) / 2 < sidebarWidth + buffer
+      // Solving: windowWidth < panelMaxWidth + 2*(sidebarWidth + buffer) - panelPadding
+      const collisionThreshold = panelMaxWidth + 2 * (sidebarWidth + buffer);
+
+      // If panel would be smaller than max width due to padding, use actual width
+      const actualPanelWidth = Math.min(panelMaxWidth, windowWidth - panelPadding);
+      const panelLeftEdge = (windowWidth - actualPanelWidth) / 2;
+
+      // Hide sidebar if panel would overlap with sidebar
+      setShouldHideSidebar(panelLeftEdge < sidebarWidth + buffer);
+    };
+
+    checkCollision();
+    window.addEventListener('resize', checkCollision);
+    return () => window.removeEventListener('resize', checkCollision);
+  }, [selectedPartId]);
 
   const CreateButtons = useMemo(
     () => (
@@ -60,7 +95,11 @@ const SideBar = () => {
 
   return (
     <>
-      <aside className="bg-aside flex-[0_0_230px] p-[15px_10px] shadow-[var(--aside-shadow)_0px_0px_10px_0px] z-[70]">
+      <aside 
+        className={`bg-aside flex-[0_0_230px] p-[15px_10px] shadow-[var(--aside-shadow)_0px_0px_10px_0px] z-[70] transition-opacity duration-300 ${
+          shouldHideSidebar ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
         {CreateButtons}
         <ImpressionDisplay />
 
