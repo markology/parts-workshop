@@ -762,7 +762,7 @@ const FloatingActionButtons = () => {
     <>
       {isSearchExpanded && (
         <div
-          className="fixed inset-0 bg-black/35 backdrop-blur-[2px] transition-opacity duration-300 z-[70]"
+          className="fixed inset-0 bg-black/35 backdrop-blur-[2px] transition-opacity duration-300 z-[76]"
           onClick={handleSearchClose}
         />
       )}
@@ -845,14 +845,17 @@ const FloatingActionButtons = () => {
       )}
  
       {/* Plus button and 9 dots on the left */}
-      <div className={`absolute top-4 left-4 flex flex-row gap-3 items-center`} style={{ zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 75, pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto' }}>
+      <div className={`absolute top-4 left-4 flex flex-row gap-3 items-center`} 
+      style={{ zIndex: (showImpressionModal ? 49 : showPartDetailImpressionInput ? 30 : 75), pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto' }}>
         {/* Plus/X button - slides to end of options pill when menu opens */}
         <div
           className="relative"
           style={{
-            transform: showRelationshipTypeModal && menuWidthMeasured
-              ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
-              : 'translateX(0)',
+            transform: selectedPartId 
+              ? 'translateX(0)' 
+              : (showRelationshipTypeModal && menuWidthMeasured
+                ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
+                : 'translateX(0)'),
             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
             zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : (showRelationshipTypeModal ? 76 : 75),
             pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto'
@@ -865,9 +868,11 @@ const FloatingActionButtons = () => {
         <div
           className="relative"
           style={{
-            transform: showRelationshipTypeModal && menuWidthMeasured
-              ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
-              : 'translateX(0)',
+            transform: selectedPartId 
+              ? 'translateX(0)' 
+              : (showRelationshipTypeModal && menuWidthMeasured
+                ? `translateX(calc(${menuWidthRef.current}px + 16px))` 
+                : 'translateX(0)'),
             transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
             zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : (showRelationshipTypeModal ? 76 : 75),
             pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto'
@@ -898,7 +903,7 @@ const FloatingActionButtons = () => {
       </div>
 
       {/* Quick Action Menu (shown when "Add" is clicked) - aligned with impression sidebar */}
-      {showRelationshipTypeModal && (
+      {showRelationshipTypeModal && !selectedPartId && (
         <div 
           ref={menuRef} 
           className="absolute top-4 z-50"
