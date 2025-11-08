@@ -39,10 +39,21 @@ const PartDetailPanel = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
   const [isCollapsing, setIsCollapsing] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(0);
   
   const setShouldCollapseSidebar = useUIStore((s) => s.setShouldCollapseSidebar);
   const setJournalTarget = useJournalStore((s) => s.setJournalTarget);
   const { activeSidebarNode } = useSidebarStore();
+
+  // Track window width for responsive positioning
+  useEffect(() => {
+    const updateWindowWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    updateWindowWidth();
+    window.addEventListener('resize', updateWindowWidth);
+    return () => window.removeEventListener('resize', updateWindowWidth);
+  }, []);
 
   const handleClose = () => {
     // Detach close behavior from options/sidebar completely
@@ -631,12 +642,27 @@ const PartDetailPanel = () => {
     setSelectedPartId(undefined);
   };
 
+  // Calculate positioning based on screen width
+  // When >= 1400px, center the pane accounting for the 313px impression display
+  // The impression display is at left-4 (16px) and is 313px wide = 329px total
+  // We shift the pane right by half of that to center it in the remaining space
+  const impressionDisplayWidth = 313;
+  const impressionDisplayOffset = 16; // left-4 = 16px
+  const impressionDisplayTotal = impressionDisplayWidth + impressionDisplayOffset;
+  const shouldShiftForImpressionDisplay = windowWidth >= 1400;
+  const shiftAmount = shouldShiftForImpressionDisplay ? impressionDisplayTotal / 2 : 0;
+
   return (
     <div
       className="fixed inset-0 bg-slate-950/65 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
-      <div className={`relative w-full max-w-5xl ${addingImpressionType ? `backdrop-blur-sm ${darkMode ? '' : 'bg-white'}` : ''}`}>
+      <div 
+        className={`relative w-full max-w-5xl ${addingImpressionType ? `backdrop-blur-sm ${darkMode ? '' : 'bg-white'}` : ''}`}
+        style={{
+          transform: shiftAmount > 0 ? `translateX(${shiftAmount}px)` : 'none'
+        }}
+      >
         {/* Close Button - To the right of container */}
         <button
           onClick={handleClose}

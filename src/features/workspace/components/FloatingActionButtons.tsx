@@ -25,6 +25,7 @@ import { HelpCircle } from "lucide-react";
 const FloatingActionButtons = () => {
   const router = useRouter();
   const [activeButton, setActiveButton] = useState<string | null>('action');
+  const [windowWidth, setWindowWidth] = useState(0);
   const [hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [impressionDropdownStates, setImpressionDropdownStates] = useState<Partial<Record<ImpressionType, boolean>>>({
     emotion: true,
@@ -116,6 +117,16 @@ const FloatingActionButtons = () => {
       chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     });
   }, [chatMessages, isSearchExpanded]);
+
+  // Track window width for responsive behavior
+  useEffect(() => {
+    const updateWindowWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    updateWindowWidth();
+    window.addEventListener('resize', updateWindowWidth);
+    return () => window.removeEventListener('resize', updateWindowWidth);
+  }, []);
 
   // Measure input position when chatbox opens or window resizes
   useLayoutEffect(() => {
@@ -846,7 +857,7 @@ const FloatingActionButtons = () => {
  
       {/* Plus button and 9 dots on the left */}
       <div className={`absolute top-4 left-4 flex flex-row gap-3 items-center`} 
-      style={{ zIndex: selectedPartId && !showPartDetailImpressionInput ? 51 : (showImpressionModal ? 49 : showPartDetailImpressionInput ? 30 : 50), pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto' }}>
+      style={{ zIndex: showPartDetailImpressionInput ? 49 : (selectedPartId && windowWidth < 1400 ? 49 : (selectedPartId ? 51 : (showImpressionModal ? 49 : 50))), pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto' }}>
         {/* Plus/X button - slides to end of options pill when menu opens */}
         <div
           className="relative"
