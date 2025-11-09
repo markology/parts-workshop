@@ -58,6 +58,8 @@ const PartDetailPanel = () => {
   const handleClose = () => {
     // Detach close behavior from options/sidebar completely
     setAddingImpressionType(null); // Close impression input if open
+    setAddingNeedsOrFears(null); // Close needs/fears input if open
+    setNeedsFearsInput(""); // Clear input
     setSelectedPartId(undefined);
   };
   // Use selective subscriptions - only subscribe to updateNode function, not nodes/edges arrays
@@ -92,6 +94,8 @@ const PartDetailPanel = () => {
   const [addingImpressionType, setAddingImpressionType] = useState<string | null>(null);
   const setShowPartDetailImpressionInput = useUIStore((s) => s.setShowPartDetailImpressionInput);
   const [currentImpressionType, setCurrentImpressionType] = useState<string>("emotion");
+  const [addingNeedsOrFears, setAddingNeedsOrFears] = useState<'needs' | 'fears' | null>(null);
+  const [needsFearsInput, setNeedsFearsInput] = useState<string>("");
   const accentHex =
     NodeBackgroundColors[
       currentImpressionType as keyof typeof NodeBackgroundColors
@@ -937,10 +941,8 @@ const PartDetailPanel = () => {
                     </h4>
                     <button
                       onClick={() => {
-                        const input = prompt("Add a need:");
-                        if (input?.trim()) {
-                          addListItem("needs", input.trim());
-                        }
+                        setAddingNeedsOrFears('needs');
+                        setNeedsFearsInput("");
                       }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
                         darkMode
@@ -983,10 +985,8 @@ const PartDetailPanel = () => {
                     </h4>
                     <button
                       onClick={() => {
-                        const input = prompt("Add a fear:");
-                        if (input?.trim()) {
-                          addListItem("fears", input.trim());
-                        }
+                        setAddingNeedsOrFears('fears');
+                        setNeedsFearsInput("");
                       }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
                         darkMode
@@ -1464,6 +1464,185 @@ const PartDetailPanel = () => {
                         Enter
                       </kbd>
                       <span className="text-xs">Submit</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Needs/Fears Input Modal */}
+        {addingNeedsOrFears && (
+          <div
+            className="fixed inset-0 z-[55] flex items-center justify-center px-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setAddingNeedsOrFears(null);
+                setNeedsFearsInput("");
+              }
+            }}
+          >
+            <div
+              className={`fixed inset-0 pointer-events-none ${
+                darkMode ? "bg-slate-950/30" : "bg-slate-900/20"
+              }`}
+            />
+            <div
+              className="relative w-full max-w-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className={`relative overflow-hidden rounded-[28px] border ${
+                  darkMode
+                    ? "border-slate-700/60 bg-slate-900/85"
+                    : "border-slate-200/80 bg-white/95"
+                } shadow-[0_30px_70px_rgba(15,23,42,0.36)]`}
+              >
+                <div className="relative px-8 pt-8 pb-6 space-y-7">
+                  <div className="flex items-start justify-between gap-6">
+                    <div className="space-y-3">
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] ${
+                          addingNeedsOrFears === 'needs'
+                            ? darkMode
+                              ? "bg-emerald-900/40 text-emerald-200 border border-emerald-700/50"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : darkMode
+                              ? "bg-rose-900/40 text-rose-200 border border-rose-700/50"
+                              : "bg-rose-50 text-rose-700 border border-rose-200"
+                        }`}
+                      >
+                        {addingNeedsOrFears === 'needs' ? <Heart size={14} /> : <Shield size={14} />}
+                        {addingNeedsOrFears === 'needs' ? 'Need' : 'Fear'}
+                      </span>
+                      <div>
+                        <h3
+                          className={`text-2xl font-semibold ${
+                            darkMode ? "text-white" : "text-slate-900"
+                          }`}
+                        >
+                          Add a new {addingNeedsOrFears === 'needs' ? 'need' : 'fear'} to {(data.name as string) || (data.label as string) || "this part"}
+                        </h3>
+                        <p
+                          className={`mt-2 text-sm leading-relaxed ${
+                            darkMode ? "text-slate-300" : "text-slate-600"
+                          }`}
+                        >
+                          {addingNeedsOrFears === 'needs' 
+                            ? "What does this part need to feel safe, heard, or supported?"
+                            : "What does this part fear might happen?"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setAddingNeedsOrFears(null);
+                        setNeedsFearsInput("");
+                      }}
+                      className={`h-10 w-10 flex items-center justify-center rounded-full border ${
+                        darkMode
+                          ? "border-slate-700 text-slate-300 hover:bg-slate-800/70"
+                          : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                      }`}
+                      aria-label="Close"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  <div
+                    className={`rounded-2xl border px-6 py-6 shadow-inner ${
+                      addingNeedsOrFears === 'needs'
+                        ? darkMode
+                          ? "border-emerald-700/50 bg-emerald-900/20"
+                          : "border-emerald-200 bg-emerald-50/50"
+                        : darkMode
+                          ? "border-rose-700/50 bg-rose-900/20"
+                          : "border-rose-200 bg-rose-50/50"
+                    }`}
+                  >
+                    <textarea
+                      ref={(el) => {
+                        if (el) {
+                          el.focus();
+                          // Auto-resize textarea
+                          el.style.height = 'auto';
+                          el.style.height = `${el.scrollHeight}px`;
+                        }
+                      }}
+                      value={needsFearsInput}
+                      onChange={(e) => {
+                        setNeedsFearsInput(e.target.value);
+                        // Auto-resize
+                        e.target.style.height = 'auto';
+                        e.target.style.height = `${e.target.scrollHeight}px`;
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey && needsFearsInput.trim()) {
+                          e.preventDefault();
+                          addListItem(addingNeedsOrFears, needsFearsInput.trim());
+                          setNeedsFearsInput("");
+                          setAddingNeedsOrFears(null);
+                        }
+                        if (e.key === 'Escape') {
+                          setAddingNeedsOrFears(null);
+                          setNeedsFearsInput("");
+                        }
+                      }}
+                      placeholder={`Describe ${addingNeedsOrFears === 'needs' ? 'what this part needs' : 'what this part fears'}...`}
+                      className={`w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none focus:ring-0 border-transparent ${
+                        addingNeedsOrFears === 'needs'
+                          ? darkMode
+                            ? "bg-emerald-900/20 text-white placeholder-emerald-300/50"
+                            : "bg-emerald-50/50 text-slate-900 placeholder-slate-400"
+                          : darkMode
+                            ? "bg-rose-900/20 text-white placeholder-rose-300/50"
+                            : "bg-rose-50/50 text-slate-900 placeholder-slate-400"
+                      }`}
+                      rows={4}
+                    />
+                    <div className="flex justify-end mt-4">
+                      <button
+                        onClick={() => {
+                          if (needsFearsInput.trim()) {
+                            addListItem(addingNeedsOrFears, needsFearsInput.trim());
+                            setNeedsFearsInput("");
+                            setAddingNeedsOrFears(null);
+                          }
+                        }}
+                        disabled={!needsFearsInput.trim()}
+                        className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                          addingNeedsOrFears === 'needs'
+                            ? darkMode
+                              ? "bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-900/50 disabled:text-emerald-400/50"
+                              : "bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-200 disabled:text-emerald-400"
+                            : darkMode
+                              ? "bg-rose-600 text-white hover:bg-rose-700 disabled:bg-rose-900/50 disabled:text-rose-400/50"
+                              : "bg-rose-600 text-white hover:bg-rose-700 disabled:bg-rose-200 disabled:text-rose-400"
+                        }`}
+                      >
+                        Add {addingNeedsOrFears === 'needs' ? 'Need' : 'Fear'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={`flex items-center gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                      }`}>
+                        Enter
+                      </kbd>
+                      <span className="text-xs">Submit</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                      }`}>
+                        Esc
+                      </kbd>
+                      <span className="text-xs">Cancel</span>
                     </div>
                   </div>
                 </div>
