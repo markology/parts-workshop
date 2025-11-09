@@ -23,7 +23,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const {
     deleteEdges,
     deleteNode,
-    removePartFromAllConflicts,
+    removePartFromAllTensions,
     updatePartName,
     updateNode,
   } = useFlowNodesContext();
@@ -42,7 +42,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
             icon: <Trash2 size={16} />,
             onClick: () => {
               deleteNode(partId);
-              removePartFromAllConflicts(partId);
+              removePartFromAllTensions(partId);
               deleteEdges(partId);
             },
           },

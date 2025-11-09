@@ -7,7 +7,7 @@ import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import {
-  ConflictNode as ConflictNodeType,
+  InteractionNode as InteractionNodeType,
   ConnectedNodeType,
 } from "@/features/workspace/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
@@ -25,7 +25,7 @@ const RelationshipNode = ({
   id: string;
 }) => {
   const { getNode } = useReactFlow();
-  const { deleteEdges, deleteNode, updateConflictDescription } =
+  const { deleteEdges, deleteNode, updateTensionDescription } =
     useFlowNodesContext();
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
@@ -54,15 +54,15 @@ const RelationshipNode = ({
   // Handle Enter key or outside click save
   const handleSave = useCallback(() => {
     if (editingId) {
-      updateConflictDescription(
-        getNode(id) as ConflictNodeType,
+      updateTensionDescription(
+        getNode(id) as InteractionNodeType,
         editingId,
         editValue
       );
     }
     setEditValue("");
     setEditingId(null);
-  }, [editValue, editingId, getNode, id, updateConflictDescription]);
+  }, [editValue, editingId, getNode, id, updateTensionDescription]);
 
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -93,8 +93,8 @@ const RelationshipNode = ({
   }, [editingId, editValue, handleSave]);
 
   const { darkMode } = useThemeContext();
-  const accent = NodeBackgroundColors["ally"];
-  const accentText = NodeTextColors["ally"];
+  const accent = NodeBackgroundColors["interaction"];
+  const accentText = NodeTextColors["interaction"];
   const shellClasses = darkMode
     ? "bg-gradient-to-br from-[#0d2533] via-[#13425c] to-[#071720] border border-sky-500/35 text-white shadow-[0_26px_70px_rgba(6,42,61,0.6)]"
     : "bg-gradient-to-br from-[#eaf7ff] via-[#e4f4ff] to-white border border-sky-200/70 text-slate-900 shadow-[0_26px_62px_rgba(28,102,143,0.16)]";
@@ -128,7 +128,7 @@ const RelationshipNode = ({
                 setJournalTarget({
                   type: "node",
                   nodeId: id,
-                  nodeType: "ally",
+                  nodeType: "interaction",
                   title: connectedNodes.reduce((acc, connectedNode) =>
                     acc === "" ? connectedNode.part.data.label : `${acc} + ${connectedNode.part.data.label}`,
                   ""),
@@ -145,7 +145,7 @@ const RelationshipNode = ({
 
           <div className="space-y-4">
             {connectedNodes.length ? (
-              connectedNodes.map(({ part, conflictDescription }) => (
+              connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
                   className={`rounded-2xl border px-4 py-3 shadow-sm ${cardBackground} ${cardBorder}`}
@@ -162,7 +162,7 @@ const RelationshipNode = ({
                     </span>
                     <button
                       onClick={() => {
-                        setEditValue(conflictDescription);
+                        setEditValue(tensionDescription);
                         setEditingId(part.id);
                       }}
                       className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
@@ -188,13 +188,13 @@ const RelationshipNode = ({
                         autoFocus
                         placeholder="Describe how these parts support each other"
                       />
-                    ) : conflictDescription ? (
+                    ) : tensionDescription ? (
                       <p
                         className={`text-xs leading-relaxed text-right ${
                           darkMode ? "text-sky-100" : "text-sky-900"
                         }`}
                       >
-                        {conflictDescription}
+                        {tensionDescription}
                       </p>
                     ) : (
                       <p className={`text-xs italic text-right ${darkMode ? "text-white/70" : "text-sky-900/55"}`}>
@@ -212,10 +212,10 @@ const RelationshipNode = ({
           </div>
         </div>
 
-        <Handle className="ally-handle" type="target" position={Position.Top} id="top" />
-        <Handle className="ally-handle" type="target" position={Position.Bottom} id="bottom" />
-        <Handle className="ally-handle" type="target" position={Position.Left} id="left" />
-        <Handle className="ally-handle" type="target" position={Position.Right} id="right" />
+        <Handle className="interaction-handle" type="target" position={Position.Top} id="top" />
+        <Handle className="interaction-handle" type="target" position={Position.Bottom} id="bottom" />
+        <Handle className="interaction-handle" type="target" position={Position.Left} id="left" />
+        <Handle className="interaction-handle" type="target" position={Position.Right} id="right" />
       </div>
       {showContextMenu && <RightClickMenu items={menuItems} />}
     </>

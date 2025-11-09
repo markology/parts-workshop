@@ -1,5 +1,5 @@
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import { ConflictNodeData, ImpressionNodeData, NodeType, PartNodeData, RelationshipSelectionNodeData } from "@/features/workspace/types/Nodes";
+import { TensionNodeData, ImpressionNodeData, NodeType, PartNodeData, RelationshipSelectionNodeData } from "@/features/workspace/types/Nodes";
 
 import ImpressionNode from "./ImpressionNode";
 import NewPartNode from "./PartNode/NewPartNode";
@@ -13,16 +13,16 @@ const NodeComponent = ({
   id,
 }: {
   type: NodeType;
-  data: ImpressionNodeData | ConflictNodeData | PartNodeData | RelationshipSelectionNodeData;
+  data: ImpressionNodeData | TensionNodeData | PartNodeData | RelationshipSelectionNodeData;
   id: string;
 }) => {
   if ("type" in data) {
     if (data.type === "partData") return <NewPartNode partId={id} data={data} />;
 
-    if (data.type === "conflictData") {
+    if (data.type === "tensionData") {
       // Check if this is an interaction node based on relationshipType
-      const isAlly = data.relationshipType === "ally";
-      return isAlly ? (
+      const isInteraction = data.relationshipType === "interaction";
+      return isInteraction ? (
         <RelationshipNode key={id} id={id} connectedNodes={data.connectedNodes} />
       ) : (
         <TensionNode key={id} id={id} connectedNodes={data.connectedNodes} />
@@ -51,8 +51,8 @@ export const nodeTypes = {
   thought: NodeComponent,
   sensation: NodeComponent,
   behavior: NodeComponent,
-  conflict: NodeComponent,
-  ally: NodeComponent,
+  tension: NodeComponent,
+  interaction: NodeComponent,
   part: NodeComponent,
   other: NodeComponent,
   relationship: NodeComponent,

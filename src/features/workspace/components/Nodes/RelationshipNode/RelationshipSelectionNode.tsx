@@ -4,7 +4,7 @@ import RightClickMenu from "@/components/RightClickMenu";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useReactFlow } from "@xyflow/react";
-import { Sword, Users, Trash2 } from "lucide-react";
+import { MessageCircleWarning, Users, Trash2 } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useThemeContext } from "@/state/context/ThemeContext";
 
@@ -85,16 +85,16 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => convertToRelationship("tension")}
-              className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
+              className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
                 darkMode
                   ? "border-purple-400/40 bg-purple-500/15 hover:bg-purple-500/25"
                   : "border-purple-200 bg-purple-50 hover:bg-purple-100"
               }`}
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/20 text-purple-600">
-                <Sword size={20} />
+              <span className="inline-flex h-9 w-9 items-center justify-center text-purple-600">
+                <MessageCircleWarning size={20} />
               </span>
-              <div>
+              <div className="text-center">
                 <p className="font-semibold text-sm text-purple-700">Tension</p>
                 <p className="text-xs text-purple-600">Parts in opposition</p>
               </div>
@@ -102,16 +102,16 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
 
             <button
               onClick={() => convertToRelationship("interaction")}
-              className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
+              className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
                 darkMode
                   ? "border-sky-400/40 bg-sky-500/15 hover:bg-sky-500/25"
                   : "border-sky-200 bg-sky-50 hover:bg-sky-100"
               }`}
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/20 text-sky-600">
+              <span className="inline-flex h-9 w-9 items-center justify-center text-sky-600">
                 <Users size={20} />
               </span>
-              <div>
+              <div className="text-center">
                 <p className="font-semibold text-sm text-sky-700">Interaction</p>
                 <p className="text-xs text-sky-600">Parts working together</p>
               </div>

@@ -63,7 +63,7 @@ const PartDetailPanel = () => {
     setSelectedPartId(undefined);
   };
   // Use selective subscriptions - only subscribe to updateNode function, not nodes/edges arrays
-  const { updateNode, deleteNode, deleteEdges, removePartFromAllConflicts } = useFlowNodesContext();
+  const { updateNode, deleteNode, deleteEdges, removePartFromAllTensions } = useFlowNodesContext();
   
   // Get nodes and edges from store - Zustand handles this efficiently
   const nodes = useWorkingStore((s) => s.nodes);
@@ -407,8 +407,8 @@ const PartDetailPanel = () => {
       thought: "#9fc7e8", 
       sensation: "#f5c99a",
       behavior: "#a8d4a8",
-      conflict: "#c4a8e0",
-      ally: "#a8d4a8",
+      tension: "#c4a8e0",
+      interaction: "#a8d4a8",
       part: "#c4d4e8",
       other: "#f0b8d0"
     };
@@ -429,7 +429,7 @@ const PartDetailPanel = () => {
         nodeType: connectedNode?.type || "unknown",
         nodeLabel: connectedNode?.data?.label || "Unknown",
         nodeDescription: (connectedNode?.data?.scratchpad as string) || (connectedNode?.data?.description as string) || "",
-        relationshipType: edge.data?.relationshipType || "conflict",
+        relationshipType: edge.data?.relationshipType || "tension",
       };
     });
   }, [relatedEdges, nodes, selectedPartId]);
@@ -635,7 +635,7 @@ const PartDetailPanel = () => {
     if (!selectedPartId) return;
     const confirmed = window.confirm("Delete this part and all related connections?");
     if (!confirmed) return;
-    removePartFromAllConflicts(selectedPartId);
+    removePartFromAllTensions(selectedPartId);
     deleteEdges(selectedPartId);
     deleteNode(selectedPartId);
     setSelectedPartId(undefined);
@@ -773,23 +773,14 @@ const PartDetailPanel = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    if (selectedPartId && partNode) {
-                      setJournalTarget({
-                        type: "node",
-                        nodeId: selectedPartId,
-                        nodeType: "part",
-                        title: partNode.data?.label || "Part",
-                      });
-                    }
-                  }}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border ${
+                  disabled
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border cursor-not-allowed opacity-50 ${
                     darkMode
-                      ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
-                      : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
+                      ? "border-slate-600/40 text-slate-400 bg-slate-950/30"
+                      : "border-slate-300/50 text-slate-400 bg-slate-100/50"
                   }`}
                 >
-                  <Sparkles className={`w-4 h-4 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
+                  <Sparkles className={`w-4 h-4 ${darkMode ? "text-slate-400" : "text-slate-400"}`} />
                   <span>Deepen</span>
                 </button>
                 <button

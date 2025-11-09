@@ -11,7 +11,7 @@ import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import {
-  ConflictNode,
+  TensionNode,
   ConnectedNodeType,
   ImpressionNode,
   NodeType,
@@ -65,10 +65,10 @@ function isPointInsideNode(position: XYPosition, node: Node): boolean {
 }
 
 // Hook Features
-// add and remove conflicts
+// add and remove tensions
 // update, delete and create new nodes
 // update part title / needs
-// update conflict descriptions
+// update tension descriptions
 // add / remove impressions from parts
 // return impressions to sidebar
 // move impressions from sidebar to canvas
@@ -142,11 +142,11 @@ export const useFlowNodes = () => {
     });
     setNodes((prev: WorkshopNode[]) => [...prev, newNode]);
     const offsets: Record<NodeType, Record<string, number>> = {
-      conflict: {
+      tension: {
         x: 200,
         y: 100,
       },
-      ally: {
+      interaction: {
         x: 200,
         y: 100,
       },
@@ -200,7 +200,7 @@ export const useFlowNodes = () => {
         label: partName,
       },
     });
-    updateConflictConnectedNodesPartName(partId, partName);
+    updateTensionConnectedNodesPartName(partId, partName);
   };
 
   // PART IMPRESSIONS
@@ -239,16 +239,16 @@ export const useFlowNodes = () => {
     [setNodes]
   );
 
-  // CONFLICTS
+  // TENSIONS
 
-  const addPartToConflict = useCallback(
-    (conflict: ConflictNode, part: PartNode) => {
-      updateNode(conflict.id, {
+  const addPartToTension = useCallback(
+    (tension: TensionNode, part: PartNode) => {
+      updateNode(tension.id, {
         data: {
-          ...conflict.data,
+          ...tension.data,
           connectedNodes: [
-            ...((conflict.data.connectedNodes as ConnectedNodeType[]) || []),
-            { part, conflictDescription: "" },
+            ...((tension.data.connectedNodes as ConnectedNodeType[]) || []),
+            { part, tensionDescription: "" },
           ],
         },
       });
@@ -256,13 +256,13 @@ export const useFlowNodes = () => {
     [updateNode]
   );
 
-  const removePartFromConflict = useCallback(
-    (conflict: ConflictNode, partId: string) => {
-      updateNode(conflict.id, {
+  const removePartFromTension = useCallback(
+    (tension: TensionNode, partId: string) => {
+      updateNode(tension.id, {
         data: {
-          ...conflict.data,
+          ...tension.data,
           connectedNodes: (
-            conflict.data.connectedNodes as ConnectedNodeType[]
+            tension.data.connectedNodes as ConnectedNodeType[]
           ).filter((cn) => cn.part.id !== partId),
         },
       });
@@ -270,48 +270,48 @@ export const useFlowNodes = () => {
     [updateNode]
   );
 
-  const updateConflictDescription = (
-    conflict: ConflictNode,
+  const updateTensionDescription = (
+    tension: TensionNode,
     connectedNodeId: string,
-    conflictDescription: string
+    tensionDescription: string
   ) => {
     const newConnectedNodes = (
-      conflict.data.connectedNodes as ConnectedNodeType[]
+      tension.data.connectedNodes as ConnectedNodeType[]
     ).reduce<ConnectedNodeType[]>((acc, connectedNode: ConnectedNodeType) => {
       if (connectedNode.part.id === connectedNodeId)
-        connectedNode.conflictDescription = conflictDescription;
+        connectedNode.tensionDescription = tensionDescription;
       acc.push(connectedNode);
       return acc;
     }, []);
 
-    updateNode(conflict.id, {
+    updateNode(tension.id, {
       data: {
-        ...conflict.data,
+        ...tension.data,
         connectedNodes: newConnectedNodes,
       },
     });
   };
 
-  function isConflictNode(node: WorkshopNode): node is ConflictNode {
-    return node.type === "conflict" && "connectedNodes" in node.data;
+  function isTensionNode(node: WorkshopNode): node is TensionNode {
+    return (node.type === "tension" || node.type === "interaction") && "connectedNodes" in node.data;
   }
 
-  const updateConflictConnectedNodesPartName = (
+  const updateTensionConnectedNodesPartName = (
     partId: string,
     partName: string
   ) => {
     setNodes((prev) => {
-      const conflictNodesContainingPartId: ConflictNode[] = prev.filter(
-        (node): node is ConflictNode =>
-          isConflictNode(node) &&
+      const tensionNodesContainingPartId: TensionNode[] = prev.filter(
+        (node): node is TensionNode =>
+          isTensionNode(node) &&
           node.data.connectedNodes.some(
             (connectedNode) => connectedNode.part.id === partId
           )
       );
 
-      const remappedConflictNodes: ConflictNode[] =
-        conflictNodesContainingPartId.map((conflictNode) => {
-          const connectedNodes = conflictNode.data.connectedNodes;
+      const remappedTensionNodes: TensionNode[] =
+        tensionNodesContainingPartId.map((tensionNode) => {
+          const connectedNodes = tensionNode.data.connectedNodes;
           const updatedConnectedNodes = connectedNodes.map(
             (connectedNode: ConnectedNodeType) => {
               if (connectedNode.part.id === partId) {
@@ -332,15 +332,15 @@ export const useFlowNodes = () => {
           );
 
           return {
-            ...conflictNode,
+            ...tensionNode,
             data: {
-              ...conflictNode.data,
+              ...tensionNode.data,
               connectedNodes: updatedConnectedNodes,
             },
           };
         });
 
-      const remappedMap = new Map(remappedConflictNodes.map((n) => [n.id, n]));
+      const remappedMap = new Map(remappedTensionNodes.map((n) => [n.id, n]));
 
       const newNodes = prev.map((node) =>
         remappedMap.has(node.id) ? remappedMap.get(node.id)! : node
@@ -350,36 +350,36 @@ export const useFlowNodes = () => {
     });
   };
 
-  const removePartFromAllConflicts = useCallback(
+  const removePartFromAllTensions = useCallback(
     (partId: string) => {
       setNodes((prev) => {
-        const conflictNodesContainingPartId: ConflictNode[] = prev.filter(
-          (node): node is ConflictNode =>
-            isConflictNode(node) &&
+        const tensionNodesContainingPartId: TensionNode[] = prev.filter(
+          (node): node is TensionNode =>
+            isTensionNode(node) &&
             node.data.connectedNodes.some(
               (connectedNode) => connectedNode.part.id === partId
             )
         );
 
-        const remappedConflictNodes: ConflictNode[] =
-          conflictNodesContainingPartId.map((conflictNode) => {
-            const connectedNodes = conflictNode.data.connectedNodes;
+        const remappedTensionNodes: TensionNode[] =
+          tensionNodesContainingPartId.map((tensionNode) => {
+            const connectedNodes = tensionNode.data.connectedNodes;
             const updatedConnectedNodes = connectedNodes.filter(
               (connectedNode: ConnectedNodeType) =>
                 connectedNode.part.id !== partId
             );
 
             return {
-              ...conflictNode,
+              ...tensionNode,
               data: {
-                ...conflictNode.data,
+                ...tensionNode.data,
                 connectedNodes: updatedConnectedNodes,
               },
             };
           });
 
         const remappedMap = new Map(
-          remappedConflictNodes.map((n) => [n.id, n])
+          remappedTensionNodes.map((n) => [n.id, n])
         );
 
         const newNodes = prev.map((node) =>
@@ -415,6 +415,43 @@ export const useFlowNodes = () => {
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
+      // Check if this is a canvas impression being dropped (should go to sidebar, not canvas)
+      if (event.dataTransfer.types.includes("parts-workshop/canvas-impression")) {
+        // Check if drop coordinates are over the sidebar using elementFromPoint
+        const elementAtPoint = document.elementFromPoint(event.clientX, event.clientY);
+        const sidebarElement = elementAtPoint?.closest('#impression-dropdown-container') || 
+                               document.getElementById("impression-dropdown-container");
+        
+        if (sidebarElement) {
+          // The drop is over the sidebar - handle it directly
+          try {
+            const data = event.dataTransfer.getData("parts-workshop/canvas-impression");
+            if (data) {
+              const parsed = JSON.parse(data) as { id: string; type: ImpressionType; label: string };
+              
+              // Add impression back to sidebar
+              useWorkingStore.getState().addImpression({
+                id: parsed.id,
+                type: parsed.type,
+                label: parsed.label,
+              });
+
+              // Delete the node from canvas
+              deleteNode(parsed.id);
+            }
+          } catch (error) {
+            console.error("Failed to handle canvas impression drop:", error);
+          }
+          
+          // Don't handle it further in React Flow
+          return;
+        }
+        
+        // If dropping on canvas but it's a canvas impression, don't handle it
+        // Canvas impressions should only go back to sidebar
+        return;
+      }
+
       event.preventDefault();
 
       console.log('Drop event fired', { 
@@ -527,12 +564,12 @@ export const useFlowNodes = () => {
         if ("id" in change) {
           const { target, source } = getEdge(change?.id) || {};
           if (target && source) {
-            const conflictNode = getNode(target);
+            const tensionNode = getNode(target);
             if (
               change.type === "remove" &&
-              "connectedNodes" in (conflictNode?.data ?? {})
+              "connectedNodes" in (tensionNode?.data ?? {})
             ) {
-              removePartFromConflict(conflictNode as ConflictNode, source);
+              removePartFromTension(tensionNode as TensionNode, source);
             }
           }
         }
@@ -540,20 +577,20 @@ export const useFlowNodes = () => {
       // // Apply other edge changes (e.g., position updates)
       onEdgesChange(changes);
     },
-    [getEdge, getNode, onEdgesChange, removePartFromConflict]
+    [getEdge, getNode, onEdgesChange, removePartFromTension]
   );
 
   const onConnect = useCallback(
     (params: Connection) => {
       const partNode = getNode(params.source) as PartNode;
-      const conflictNode = getNode(params.target) as ConflictNode;
+      const tensionNode = getNode(params.target) as TensionNode;
       if (
-        conflictNode.data.connectedNodes.find(
+        tensionNode.data.connectedNodes.find(
           (connectedPartNode) => connectedPartNode.part.id === partNode.id
         )
       )
         return;
-      if (partNode && conflictNode) addPartToConflict(conflictNode, partNode);
+      if (partNode && tensionNode) addPartToTension(tensionNode, partNode);
       else return;
 
       const newParams = {
@@ -561,13 +598,13 @@ export const useFlowNodes = () => {
         sourceHandle: params.sourceHandle,
         targetHandle: params.targetHandle,
         data: {
-          relationshipType: conflictNode.data.relationshipType || "conflict",
+          relationshipType: tensionNode.data.relationshipType || "tension",
         },
       };
 
       setEdges((eds) => addEdge(newParams, eds));
     },
-    [addPartToConflict, getNode, setEdges]
+    [addPartToTension, getNode, setEdges]
   );
 
   const handleNodeDragStop = useCallback(
@@ -588,8 +625,8 @@ export const useFlowNodes = () => {
         if (isOverBucket) {
           // Delete the node:
           deleteNode(node.id);
-          if (node.type === "part") removePartFromAllConflicts(node.id);
-          if (node.type === "part" || node.type === "conflict")
+          if (node.type === "part") removePartFromAllTensions(node.id);
+          if (node.type === "part" || node.type === "tension" || node.type === "interaction")
             deleteEdges(node.id);
           return;
         }
@@ -600,7 +637,7 @@ export const useFlowNodes = () => {
         y: event.clientY,
       });
 
-      if (node.type !== "conflict" && node.type !== "part") {
+      if (node.type !== "tension" && node.type !== "interaction" && node.type !== "part") {
         const partNodeToInsertImpression: PartNode | undefined = nodes
           .filter((n) => n.type === "part")
           .find(
@@ -623,13 +660,13 @@ export const useFlowNodes = () => {
       deleteNode,
       insertImpressionToPart,
       nodes,
-      removePartFromAllConflicts,
+      removePartFromAllTensions,
       screenToFlowPosition,
     ]
   );
 
   return {
-    addPartToConflict,
+    addPartToTension,
     createNode,
     edges,
     handleNodeDragStop,
@@ -637,7 +674,7 @@ export const useFlowNodes = () => {
     nodes,
     setNodes,
     onNodesChange,
-    removePartFromConflict,
+    removePartFromTension,
     getNodes,
     deleteEdges,
     deleteNode,
@@ -649,7 +686,7 @@ export const useFlowNodes = () => {
     updatePartName,
     detachImpressionFromPart,
     insertImpressionToPart,
-    removePartFromAllConflicts,
-    updateConflictDescription,
+    removePartFromAllTensions,
+    updateTensionDescription,
   };
 };

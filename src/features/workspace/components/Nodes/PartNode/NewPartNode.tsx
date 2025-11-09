@@ -30,7 +30,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
   const {
     deleteEdges,
     deleteNode,
-    removePartFromAllConflicts,
+    removePartFromAllTensions,
     nodes,
     edges,
   } = useFlowNodesContext();
@@ -59,12 +59,12 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
             icon: <Trash2 size={16} />,
             onClick: () => {
               deleteNode(partId);
-              removePartFromAllConflicts(partId);
+              removePartFromAllTensions(partId);
               deleteEdges(partId);
             },
           },
         ],
-        [deleteNode, removePartFromAllConflicts, deleteEdges, partId]
+        [deleteNode, removePartFromAllTensions, deleteEdges, partId]
       ),
     });
 

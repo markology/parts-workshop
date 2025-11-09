@@ -30,10 +30,10 @@ export interface PartNodeData extends BaseNodeData {
   customImpressionBuckets: { [key: string]: ImpressionNode[] };
 }
 
-export type RelationshipType = "conflict" | "ally";
+export type RelationshipType = "tension" | "interaction";
 
-export interface ConflictNodeData extends BaseNodeData {
-  type: "conflictData";
+export interface TensionNodeData extends BaseNodeData {
+  type: "tensionData";
   relationshipType: RelationshipType;
   connectedNodes: ConnectedNodeType[];
 }
@@ -48,7 +48,7 @@ export interface RelationshipSelectionNodeData extends BaseNodeData {
 
 export type ConnectedNodeType = {
   part: PartNode;
-  conflictDescription: string;
+  tensionDescription: string;
 };
 
 export type ImpressionNode = Node<BaseNodeData> & {
@@ -59,18 +59,18 @@ export type PartNode = Node<PartNodeData> & {
   type: "part";
 };
 
-export type ConflictNode = Node<ConflictNodeData> & {
-  type: "conflict";
+export type TensionNode = Node<TensionNodeData> & {
+  type: "tension";
 };
 
-export type AllyNode = Node<ConflictNodeData> & {
-  type: "ally";
+export type InteractionNode = Node<TensionNodeData> & {
+  type: "interaction";
 };
 
 export type RelationshipSelectionNode = Node<RelationshipSelectionNodeData> & {
   type: "relationship";
 };
 
-export type WorkshopNode = ImpressionNode | PartNode | ConflictNode | AllyNode | RelationshipSelectionNode;
+export type WorkshopNode = ImpressionNode | PartNode | TensionNode | InteractionNode | RelationshipSelectionNode;
 
-export type NodeType = "impression" | "part" | "conflict" | "ally" | "relationship";
+export type NodeType = "impression" | "part" | "tension" | "interaction" | "relationship";

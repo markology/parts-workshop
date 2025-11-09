@@ -1,8 +1,8 @@
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import {
-  AllyNode,
-  ConflictNode,
-  ConflictNodeData,
+  InteractionNode,
+  TensionNode,
+  TensionNodeData,
   ImpressionNode,
   NodeType,
   PartNode,
@@ -87,41 +87,41 @@ export default function createNodeFN({
       } as PartNode;
       break;
 
-    case "conflict":
+    case "tension":
       newNode = {
         ...baseNode,
-        type: "conflict",
+        type: "tension",
         style: {
           ...baseNode.style,
           textAlign: "right",
           borderRadius: 26,
         },
         data: {
-          type: "conflictData",
+          type: "tensionData",
           label,
-          relationshipType: "conflict" as const,
+          relationshipType: "tension" as const,
           connectedNodes: [],
-        } as ConflictNodeData,
-      } as ConflictNode;
+        } as TensionNodeData,
+      } as TensionNode;
 
       break;
 
-    case "ally":
+    case "interaction":
       newNode = {
         ...baseNode,
-        type: "ally",
+        type: "interaction",
         style: {
           ...baseNode.style,
           textAlign: "right",
           borderRadius: 26,
         },
         data: {
-          type: "conflictData",
+          type: "tensionData",
           label,
-          relationshipType: "ally" as const,
+          relationshipType: "interaction" as const,
           connectedNodes: [],
-        } as ConflictNodeData,
-      } as AllyNode;
+        } as TensionNodeData,
+      } as InteractionNode;
 
       break;
 

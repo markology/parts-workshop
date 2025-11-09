@@ -910,7 +910,7 @@ const FloatingActionButtons = () => {
             ref={impressionsRef} 
             className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col" 
             style={{ 
-              zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 75, 
+              zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
               width: '313px',
               transform: 'scaleX(0)',
               transformOrigin: 'left center',

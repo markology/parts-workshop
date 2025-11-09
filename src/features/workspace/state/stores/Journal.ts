@@ -6,7 +6,7 @@ type JournalTarget =
   | {
       type: "node";
       nodeId: string;
-      nodeType: ImpressionType | "part" | "conflict" | "ally";
+      nodeType: ImpressionType | "part" | "tension" | "interaction";
       title: string;
     };
 

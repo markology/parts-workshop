@@ -51,15 +51,15 @@
   --tooltip-background: white;
   --tooltip-text: black;
   --overlay-background: #000000c9;
-  --conflict-handle-bg: #5a4784;
-  --ally-handle-bg: #386183;
+  --tension-handle-bg: #5a4784;
+  --interaction-handle-bg: #386183;
   --part-handle-bg: #88b7fd;
-  --create-conflict-bg: #5a4784;
+  --create-tension-bg: #5a4784;
   --toggle-utilities: white;
   --aside-shadow: #171717;
   --part-button-shadow: #00000082;
   --impression-button-shadow: black;
-  --conflict-button-shadow: black;
+  --tension-button-shadow: black;
 }
 
 .dark {
@@ -72,15 +72,15 @@
   --tooltip-background: #161616;
   --tooltip-text: white;
   --overlay-background: #000000b0;
-  --conflict-handle-bg: #5a4784;
-  --ally-handle-bg: #386183;
+  --tension-handle-bg: #5a4784;
+  --interaction-handle-bg: #386183;
   --part-handle-bg: #baceec;
-  --create-conflict-bg: #5a4784;
+  --create-tension-bg: #5a4784;
   --toggle-utilities: white;
   --aside-shadow: #171717;
   --part-button-shadow: #00000082;
   --impression-button-shadow: black;
-  --conflict-button-shadow: black;
+  --tension-button-shadow: black;
 }
 
 @layer base {
@@ -123,8 +123,8 @@
   .bg-overlay {
     background: var(--overlay-background);
   }
-  .bg-conflict-handle {
-    background-color: var(--conflict-handle-bg);
+  .bg-tension-handle {
+    background-color: var(--tension-handle-bg);
   }
   .bg-part-handle {
     background-color: var(--part-handle-bg);
@@ -145,7 +145,7 @@
     box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
   }
   .shadow-conflict-button {
-    box-shadow: 1px 2px 4px 0px var(--conflict-button-shadow);
+    box-shadow: 1px 2px 4px 0px var(--tension-button-shadow);
   }
   .modal-overlay {
     background: var(--overlay-background);
@@ -242,17 +242,17 @@ button {
   color: var(--tooltip-text);
 }
 
-.conflict-handle {
+.tension-handle {
   width: 12px !important;
   height: 12px !important;
-  background-color: var(--conflict-handle-bg) !important;
+  background-color: var(--tension-handle-bg) !important;
   border: none !important;
 }
 
-.ally-handle {
+.interaction-handle {
   width: 12px !important;
   height: 12px !important;
-  background-color: var(--ally-handle-bg) !important;
+  background-color: var(--interaction-handle-bg) !important;
   border: none !important;
 }
 

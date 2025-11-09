@@ -60,6 +60,8 @@ const ImpressionNode = ({
     [deleteNode, label]
   );
 
+  console.log(type)
+
   const accent = NodeBackgroundColors[type];
   const accentText = NodeTextColors[type] || accent;
 
@@ -88,17 +90,28 @@ const ImpressionNode = ({
     return `rgb(${blendedR}, ${blendedG}, ${blendedB})`;
   };
 
+  console.log(accent)
   // Use sidebar opacity values: 0.24 for light mode, 0.45 for dark mode
   const sidebarOpacity = darkMode ? 0.45 : 0.24;
   const chipBackground = blendOnWhite(accent, sidebarOpacity);
   const chipBorder = blendOnWhite(accent, darkMode ? 0.65 : 0.32);
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData(
+      "parts-workshop/canvas-impression",
+      JSON.stringify({ id, type, label })
+    );
+    e.dataTransfer.effectAllowed = "move";
+  };
 
   return (
     <div className="node impression-node text-right overflow-hidden">
       <div
         ref={nodeRef}
         onContextMenu={handleContextMenu}
-        className="text-left rounded-xl border px-3 py-2 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden"
+        onDragStart={handleDragStart}
+        draggable
+        className="text-left rounded-xl border px-3 py-2 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden cursor-grab active:cursor-grabbing"
         style={{
           backgroundColor: chipBackground,
           borderColor: chipBorder,

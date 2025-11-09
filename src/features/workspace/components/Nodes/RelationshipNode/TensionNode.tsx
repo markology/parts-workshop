@@ -7,7 +7,7 @@ import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import {
-  ConflictNode as ConflictNodeType,
+  TensionNode as TensionNodeType,
   ConnectedNodeType,
 } from "@/features/workspace/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
@@ -24,7 +24,7 @@ const TensionNode = ({
   id: string;
 }) => {
   const { getNode } = useReactFlow();
-  const { deleteEdges, deleteNode, updateConflictDescription } =
+  const { deleteEdges, deleteNode, updateTensionDescription } =
     useFlowNodesContext();
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
@@ -54,15 +54,15 @@ const TensionNode = ({
   // Handle Enter key or outside click save
   const handleSave = useCallback(() => {
     if (editingId) {
-      updateConflictDescription(
-        getNode(id) as ConflictNodeType,
+      updateTensionDescription(
+        getNode(id) as TensionNodeType,
         editingId,
         editValue
       );
     }
     setEditValue("");
     setEditingId(null);
-  }, [editValue, editingId, getNode, id, updateConflictDescription]);
+  }, [editValue, editingId, getNode, id, updateTensionDescription]);
 
   const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -92,8 +92,8 @@ const TensionNode = ({
     };
   }, [editingId, editValue, handleSave]);
 
-  const accent = NodeBackgroundColors["conflict"];
-  const accentText = NodeTextColors["conflict"];
+  const accent = NodeBackgroundColors["tension"];
+  const accentText = NodeTextColors["tension"];
   const shellClasses = darkMode
     ? "bg-gradient-to-br from-[#26143d] via-[#332152] to-[#160d29] border border-purple-500/40 text-white shadow-[0_26px_70px_rgba(15,10,30,0.62)]"
     : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white border border-purple-200/70 text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
@@ -129,7 +129,7 @@ const TensionNode = ({
                 setJournalTarget({
                   type: "node",
                   nodeId: id,
-                  nodeType: "conflict",
+                  nodeType: "tension",
                   title: connectedNodes.reduce((acc, connectedNode) =>
                     acc === "" ? connectedNode.part.data.label : `${acc} + ${connectedNode.part.data.label}`,
                   ""),
@@ -146,7 +146,7 @@ const TensionNode = ({
 
           <div className="space-y-4">
             {connectedNodes.length ? (
-              connectedNodes.map(({ part, conflictDescription }) => (
+              connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
                   className={`rounded-2xl border px-4 py-3 shadow-sm ${cardBackground} ${cardBorder}`}
@@ -163,7 +163,7 @@ const TensionNode = ({
                     </span>
                     <button
                       onClick={() => {
-                        setEditValue(conflictDescription);
+                        setEditValue(tensionDescription);
                         setEditingId(part.id);
                       }}
                       className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
@@ -189,13 +189,13 @@ const TensionNode = ({
                         autoFocus
                         placeholder="Describe the friction between these parts"
                       />
-                    ) : conflictDescription ? (
+                    ) : tensionDescription ? (
                       <p
                         className={`text-xs leading-relaxed ${
                           darkMode ? "text-purple-100" : "text-purple-900"
                         }`}
                       >
-                        {conflictDescription}
+                        {tensionDescription}
                       </p>
                     ) : (
                       <p className={`text-xs italic ${placeholderText}`}>
@@ -213,10 +213,10 @@ const TensionNode = ({
           </div>
         </div>
 
-        <Handle className="conflict-handle" type="target" position={Position.Top} id="top" />
-        <Handle className="conflict-handle" type="target" position={Position.Bottom} id="bottom" />
-        <Handle className="conflict-handle" type="target" position={Position.Left} id="left" />
-        <Handle className="conflict-handle" type="target" position={Position.Right} id="right" />
+        <Handle className="tension-handle" type="target" position={Position.Top} id="top" />
+        <Handle className="tension-handle" type="target" position={Position.Bottom} id="bottom" />
+        <Handle className="tension-handle" type="target" position={Position.Left} id="left" />
+        <Handle className="tension-handle" type="target" position={Position.Right} id="right" />
       </div>
       {showContextMenu && <RightClickMenu items={menuItems} />}
     </>
