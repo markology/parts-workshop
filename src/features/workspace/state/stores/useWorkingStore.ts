@@ -16,7 +16,7 @@ type WorkingState = {
   sidebarImpressions: Record<ImpressionType, Record<string, SidebarImpression>>;
   journalEntries: JournalEntry[];
   updateJournalEntry: (entry: JournalEntry) => void;
-  deleteJournalEntry: (nodeId: string) => void;
+  deleteJournalEntry: (args: { entryId?: string; nodeId?: string | null }) => void;
   addImpression: ({ id, label, type }: SidebarImpression) => void;
   removeImpression: ({
     type,
@@ -76,14 +76,28 @@ export const useWorkingStore = create<WorkingState>()(
         }),
       updateJournalEntry: (newEntry) => {
         const current = get().journalEntries;
-        const rest = current.filter((e) =>
-          newEntry.nodeId ? e.nodeId !== newEntry.nodeId : e.nodeId !== null
-        );
-        set({ journalEntries: [...rest, newEntry] });
+        const rest = current.filter((e) => e.id !== newEntry.id);
+        set({
+          journalEntries: [...rest, newEntry].sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() -
+              new Date(a.updatedAt).getTime()
+          ),
+        });
       },
-      deleteJournalEntry: (nodeId) => {
+      deleteJournalEntry: ({ entryId, nodeId }) => {
         const current = get().journalEntries;
-        const rest = current.filter((e) => e.nodeId !== nodeId);
+        const rest = current.filter((entry) => {
+          if (entryId) {
+            return entry.id !== entryId;
+          }
+
+          if (typeof nodeId !== "undefined") {
+            return entry.nodeId !== nodeId;
+          }
+
+          return true;
+        });
         set({ journalEntries: rest });
       },
       hydrated: false,

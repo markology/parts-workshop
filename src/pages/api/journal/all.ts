@@ -19,7 +19,11 @@ export default async function handler(
       nodeId: true,
       content: true,
       updatedAt: true,
+      createdAt: true,
       title: true,
+    },
+    orderBy: {
+      updatedAt: "desc",
     },
   });
 

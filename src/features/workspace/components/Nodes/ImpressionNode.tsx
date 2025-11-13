@@ -60,8 +60,6 @@ const ImpressionNode = ({
     [deleteNode, label]
   );
 
-  console.log(type)
-
   const accent = NodeBackgroundColors[type];
   const accentText = NodeTextColors[type] || accent;
 
@@ -90,7 +88,6 @@ const ImpressionNode = ({
     return `rgb(${blendedR}, ${blendedG}, ${blendedB})`;
   };
 
-  console.log(accent)
   // Use sidebar opacity values: 0.24 for light mode, 0.45 for dark mode
   const sidebarOpacity = darkMode ? 0.45 : 0.24;
   const chipBackground = blendOnWhite(accent, sidebarOpacity);

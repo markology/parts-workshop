@@ -178,7 +178,7 @@ export const useFlowNodes = () => {
   const deleteNode = useCallback(
     (id: string) => {
       setNodes((prev) => prev.filter((n) => n.id !== id));
-      deleteJournalEntry(id);
+      deleteJournalEntry({ nodeId: id });
     },
     [deleteJournalEntry, setNodes]
   );

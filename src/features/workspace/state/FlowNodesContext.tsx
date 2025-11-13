@@ -53,3 +53,8 @@ export const useFlowNodesActions = () => {
     );
   return ctx;
 };
+
+// Optional hook that returns null if context is not available (useful for components that may render outside the provider)
+export const useFlowNodesContextOptional = () => {
+  return useContext(FlowNodesContext);
+};

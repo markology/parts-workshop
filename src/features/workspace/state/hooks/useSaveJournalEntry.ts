@@ -8,9 +8,15 @@ export const useSaveJournalEntry = () => {
     mutationFn: async ({
       nodeId,
       content,
+      title,
+      entryId,
+      createNewVersion,
     }: {
       nodeId?: string;
-      content?: string;
+      content: string;
+      title?: string;
+      entryId?: string;
+      createNewVersion?: boolean;
     }) => {
       const url = nodeId
         ? `/api/journal/node/${nodeId}`
@@ -18,7 +24,12 @@ export const useSaveJournalEntry = () => {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          title,
+          entryId,
+          createNewVersion,
+        }),
       });
       if (!res.ok) throw new Error("Had trouble saving journal entry");
 
@@ -28,8 +39,24 @@ export const useSaveJournalEntry = () => {
       queryClient.setQueryData(
         ["journal", "all"],
         (prev: JournalEntry[] = []) => {
-          const rest = prev.filter((e) => e.nodeId !== newEntry.nodeId);
-          return [...rest, newEntry];
+          const existingIndex = prev.findIndex((e) => e.id === newEntry.id);
+          let nextEntries: JournalEntry[];
+
+          if (existingIndex >= 0) {
+            nextEntries = [...prev];
+            nextEntries[existingIndex] = {
+              ...nextEntries[existingIndex],
+              ...newEntry,
+            };
+          } else {
+            nextEntries = [...prev, newEntry];
+          }
+
+          return nextEntries.sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() -
+              new Date(a.updatedAt).getTime()
+          );
         }
       );
     },

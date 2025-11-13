@@ -13,12 +13,16 @@ type JournalTarget =
 type JournalStore = {
   isOpen: boolean;
   journalTarget: JournalTarget | null;
-  journalData: string | null;
-  lastSavedJournalData: string | null;
+  journalData: string;
+  lastSavedJournalData: string;
+  activeEntryId: string | null;
   openJournal: () => void;
   closeJournal: () => void;
   setJournalTarget: (target: JournalTarget) => void;
-  setJournalData: (data: string | null) => void;
+  setJournalData: (data: string) => void;
+  setLastSavedJournalData: (data: string) => void;
+  setActiveEntryId: (entryId: string | null) => void;
+  loadEntry: (payload: { entryId: string | null; content: string }) => void;
   markJournalSaved: () => void;
 };
 
@@ -27,6 +31,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
   journalTarget: null,
   journalData: "",
   lastSavedJournalData: "",
+  activeEntryId: null,
 
   openJournal: () => set({ isOpen: true }),
   closeJournal: () =>
@@ -35,8 +40,17 @@ export const useJournalStore = create<JournalStore>((set) => ({
       journalData: "",
       lastSavedJournalData: "",
       journalTarget: null,
+      activeEntryId: null,
     }),
   setJournalTarget: (target) => set({ journalTarget: target, isOpen: true }),
   setJournalData: (data) => set({ journalData: data }),
+  setLastSavedJournalData: (data) => set({ lastSavedJournalData: data }),
+  setActiveEntryId: (entryId) => set({ activeEntryId: entryId }),
+  loadEntry: ({ entryId, content }) =>
+    set({
+      activeEntryId: entryId,
+      journalData: content,
+      lastSavedJournalData: content,
+    }),
   markJournalSaved: () => set((s) => ({ lastSavedJournalData: s.journalData })),
 }));
