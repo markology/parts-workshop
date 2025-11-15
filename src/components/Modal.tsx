@@ -36,7 +36,7 @@ const Modal = ({
     >
       <div
         ref={modalRef}
-        className={`rounded p-8 relative ${full ? "" : "ml-[150px]"}`}
+        className="rounded p-8 relative"
         style={{ width: width ?? "650px" }}
       >
         <button

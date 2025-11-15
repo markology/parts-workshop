@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Calendar, Trash2, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Loader2, MailPlus, HelpCircle, Sparkles } from "lucide-react";
+import { Map, Calendar, Trash2, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Loader2, MailPlus, HelpCircle, Sparkles, Target, ArrowRight } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -72,6 +72,7 @@ export default function WorkspacePage() {
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const expandedInputRef = useRef<HTMLTextAreaElement>(null);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
+  const savedScrollY = useRef<number>(0);
 
   // Load workspaces from API
   useEffect(() => {
@@ -111,6 +112,34 @@ export default function WorkspacePage() {
 
     loadWorkspaces();
   }, []);
+
+  useEffect(() => {
+    if (isSearchExpanded) {
+      savedScrollY.current = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${savedScrollY.current}px`;
+      document.body.style.width = '100%';
+    } else {
+      const scrollY = savedScrollY.current;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      // Restore scroll position immediately without animation
+      requestAnimationFrame(() => {
+        document.documentElement.scrollTop = scrollY;
+        document.body.scrollTop = scrollY;
+      });
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [isSearchExpanded]);
 
   useEffect(() => {
     if (!isSearchExpanded) {
@@ -356,7 +385,6 @@ export default function WorkspacePage() {
   });
 
   const totalParts = workspaces.reduce((sum, workspace) => sum + workspace.partCount, 0);
-  const recentlyEditedWorkspace = sortedWorkspaces[0];
   const heroHighlights = [
     {
       icon: Map,
@@ -386,7 +414,7 @@ export default function WorkspacePage() {
       : 'bg-[#e6f8ff] text-gray-900'
     }`}>
       <div
-        className={`fixed inset-0 pointer-events-none transition-opacity duration-300 ${
+        className={`fixed inset-0 pointer-events-none ${
           isSearchExpanded ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
@@ -398,7 +426,7 @@ export default function WorkspacePage() {
       />
       {/* Header */}
       <header
-        className={`sticky top-0 z-[65] transition-[background-color,backdrop-filter] duration-300 ${headerBackgroundClass}`}
+        className={`sticky top-0 z-[65] ${headerBackgroundClass}`}
       >
         <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -416,9 +444,9 @@ export default function WorkspacePage() {
           <div className="absolute left-1/2 -translate-x-1/2 top-4 w-full max-w-md px-6 pointer-events-none" style={{ zIndex: 60 }}>
             <div
               ref={searchBoxRef}
-              className={`relative pointer-events-auto transition-all duration-300 ease-out border-none ${
+              className={`relative pointer-events-auto border-none ${
                 isSearchExpanded
-                  ? 'h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
+                  ? 'h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
                   : ''
               }`}
             >
@@ -434,14 +462,14 @@ export default function WorkspacePage() {
                       </p>
                     </div>
 
-                    <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
+                    <div className="mt-5 space-y-3 flex-1 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
                       {chatMessages.map((message) => (
                         <div
                           key={message.id}
                           className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                           <div
-                            className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                            className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words ${
                               message.role === 'user'
                                 ? 'bg-purple-500 text-white'
                                 : 'bg-gray-100 text-gray-800 border border-gray-200'
@@ -471,7 +499,7 @@ export default function WorkspacePage() {
                           }
                         }}
                         placeholder="Ask me anything..."
-                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400"
+                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 break-words"
                       />
                     </div>
                   </div>
@@ -480,8 +508,12 @@ export default function WorkspacePage() {
                 <StudioSparkleInput
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => setIsSearchExpanded(true)}
-                  onClick={() => setIsSearchExpanded(true)}
+                  onFocus={() => {
+                    setIsSearchExpanded(true);
+                  }}
+                  onClick={() => {
+                    setIsSearchExpanded(true);
+                  }}
                   placeholder="Ask the Studio Assistant"
                 />
               )}
@@ -710,7 +742,10 @@ export default function WorkspacePage() {
                       Start a fresh map
                     </button>
                     <button
-                      onClick={() => setIsSearchExpanded(true)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsSearchExpanded(true);
+                      }}
                       className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                         darkMode
                           ? 'text-slate-200 border border-slate-700 hover:bg-slate-800/70'
@@ -742,54 +777,34 @@ export default function WorkspacePage() {
                         <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Mapped across sessions</p>
                       </div>
                     </div>
-                    <div className={`rounded-xl border px-4 py-4 ${
-                      darkMode ? 'border-slate-800 bg-slate-900/45' : 'border-slate-200 bg-slate-50/80'
+                    <div className={`rounded-2xl border px-4 py-4 ${
+                      darkMode ? 'border-slate-800/70 bg-slate-900/55' : 'border-slate-200/70 bg-white/90 shadow-inner'
                     }`}>
-                      <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Latest activity</p>
-                      {recentlyEditedWorkspace ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                              {recentlyEditedWorkspace.name}
-                            </p>
-                            <span className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                              {formatDate(
-                                recentlyEditedWorkspace.createdAt.getTime() === recentlyEditedWorkspace.lastModified.getTime()
-                                  ? recentlyEditedWorkspace.createdAt
-                                  : recentlyEditedWorkspace.lastModified
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {recentlyEditedWorkspace.nodes.slice(0, 3).map((node: any) => (
-                              <span
-                                key={node.id}
-                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                  darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-600 shadow-sm'
-                                }`}
-                              >
-                                {node.data?.label || 'Part'}
-                              </span>
-                            ))}
-                            {recentlyEditedWorkspace.nodes.length > 3 && (
-                              <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-600 shadow-sm'
-                              }`}>
-                                +{recentlyEditedWorkspace.nodes.length - 3}
-                              </span>
-                            )}
-                            {recentlyEditedWorkspace.nodes.length === 0 && (
-                              <span className={`text-xs italic ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>
-                                No parts added yet
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                          Your next mapped journey will appear here once you create a session.
+                      <p className={`text-[11px] uppercase tracking-[0.32em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        Message from the team
+                      </p>
+                      <div className={`space-y-3 text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        <p>
+                          Thanks for trying Parts Studio. Every session you create is saved automatically and backed up securely so you can experiment without worry.
                         </p>
-                      )}
+                        <p>
+                          We want your parts to feel safe here as we continue to try and grow this tool together.
+                        </p>
+                        <div className="pt-2">
+                          <button
+                            onClick={() => window.open('/mission', '_blank')}
+                            className="arrow-pulse inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
+                            style={{ color: 'orange' }}
+                          >
+                            <Target className="w-4 h-4" />
+                            Our Mission & Roadmap
+                            <ArrowRight className="arrow-icon w-4 h-4" />
+                          </button>
+                        </div>
+                        <p className={`${darkMode ? 'text-slate-400' : 'text-slate-500'} text-xs uppercase tracking-[0.28em] pt-2`}>
+                          — The Parts Studio team
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

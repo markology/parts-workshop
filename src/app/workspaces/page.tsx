@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Calendar, Trash2, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Loader2, MailPlus, HelpCircle, Sparkles } from "lucide-react";
+import { Map, Calendar, Trash2, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Loader2, MailPlus, HelpCircle, Sparkles, Target, ArrowRight } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -73,6 +73,7 @@ export default function WorkspacesPage() {
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const expandedInputRef = useRef<HTMLTextAreaElement>(null);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
+  const savedScrollY = useRef<number>(0);
 
   // Load workspaces from API
   useEffect(() => {
@@ -112,6 +113,34 @@ export default function WorkspacesPage() {
 
     loadWorkspaces();
   }, []);
+
+  useEffect(() => {
+    if (isSearchExpanded) {
+      savedScrollY.current = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${savedScrollY.current}px`;
+      document.body.style.width = '100%';
+    } else {
+      const scrollY = savedScrollY.current;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      // Restore scroll position immediately without animation
+      requestAnimationFrame(() => {
+        document.documentElement.scrollTop = scrollY;
+        document.body.scrollTop = scrollY;
+      });
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [isSearchExpanded]);
 
   useEffect(() => {
     if (!isSearchExpanded) {
@@ -357,7 +386,6 @@ export default function WorkspacesPage() {
   });
 
   const totalParts = workspaces.reduce((sum, workspace) => sum + workspace.partCount, 0);
-  const recentlyEditedWorkspace = sortedWorkspaces[0];
   const heroHighlights = [
     {
       icon: Map,
@@ -400,7 +428,7 @@ export default function WorkspacesPage() {
       : 'bg-[#e6f8ff] text-gray-900'
     }`}>
       <div
-        className={`fixed inset-0 pointer-events-none transition-opacity duration-300 ${
+        className={`fixed inset-0 pointer-events-none ${
           isSearchExpanded ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
@@ -412,7 +440,7 @@ export default function WorkspacesPage() {
       />
       {/* Header */}
       <header
-        className={`sticky top-0 z-[65] transition-[background-color,backdrop-filter] duration-300 ${headerBackgroundClass}`}
+        className={`sticky top-0 z-[65] ${headerBackgroundClass}`}
       >
         <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -421,7 +449,7 @@ export default function WorkspacesPage() {
                 Parts Studio
               </span>
               <span className={`text-2xl font-semibold leading-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                Workspace Library
+                Dashboard
               </span>
             </Link>
           </div>
@@ -430,9 +458,9 @@ export default function WorkspacesPage() {
           <div className="absolute left-1/2 -translate-x-1/2 top-4 w-full max-w-md px-6 pointer-events-none" style={{ zIndex: 60 }}>
             <div
               ref={searchBoxRef}
-              className={`relative pointer-events-auto transition-all duration-300 ease-out border-none ${
+              className={`relative pointer-events-auto border-none ${
                 isSearchExpanded
-                  ? 'h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
+                  ? 'h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
                   : ''
               }`}
             >
@@ -448,14 +476,14 @@ export default function WorkspacesPage() {
                       </p>
                     </div>
 
-                    <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
+                    <div className="mt-5 space-y-3 flex-1 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
                       {chatMessages.map((message) => (
                         <div
                           key={message.id}
                           className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                           <div
-                            className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                            className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words ${
                               message.role === 'user'
                                 ? 'bg-purple-500 text-white'
                                 : 'bg-gray-100 text-gray-800 border border-gray-200'
@@ -485,7 +513,7 @@ export default function WorkspacesPage() {
                           }
                         }}
                         placeholder="Ask me anything..."
-                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400"
+                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 break-words"
                       />
                     </div>
                   </div>
@@ -494,8 +522,12 @@ export default function WorkspacesPage() {
                 <StudioSparkleInput
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => setIsSearchExpanded(true)}
-                  onClick={() => setIsSearchExpanded(true)}
+                  onFocus={() => {
+                    setIsSearchExpanded(true);
+                  }}
+                  onClick={() => {
+                    setIsSearchExpanded(true);
+                  }}
                   placeholder="Ask the Studio Assistant"
                 />
               )}
@@ -668,8 +700,8 @@ export default function WorkspacesPage() {
             }`}>
               <div className="absolute -top-28 -right-36 h-72 w-72 rounded-full bg-gradient-to-br from-purple-400/30 via-sky-400/20 to-transparent blur-3xl" />
               <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-sky-500/30 via-emerald-400/20 to-transparent blur-3xl" />
-              <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] items-start p-8 lg:p-12">
-                <div className="space-y-6">
+              <div className="relative flex flex-col gap-12 p-8 lg:flex-row lg:items-stretch lg:justify-between lg:p-12">
+                <div className="relative flex-1 space-y-6">
                   <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] ${
                     darkMode ? 'bg-slate-900/85 text-slate-200 border border-slate-800/70' : 'bg-white/90 text-slate-600 border border-white/80 shadow-sm'
                   }`}>
@@ -710,89 +742,90 @@ export default function WorkspacesPage() {
                       Start a fresh map
                     </button>
                     <button
-                      onClick={() => setIsSearchExpanded(true)}
-                      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsSearchExpanded(true);
+                      }}
+                      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                         darkMode
-                          ? 'text-slate-200 border border-slate-700 hover:bg-slate-800/70'
-                          : 'text-slate-700 border border-slate-300 hover:bg-slate-100'
+                          ? 'text-slate-100 bg-slate-900/45 border border-slate-700/60 hover:bg-slate-900/65 shadow-[0_14px_32px_rgba(8,15,30,0.45)] hover:-translate-y-px'
+                          : 'text-slate-700 bg-white/85 border border-sky-200/70 shadow-[0_16px_38px_rgba(59,130,246,0.12)] hover:bg-white hover:-translate-y-px'
                       }`}
                     >
-                      <HelpCircle className="w-4 h-4" />
+                      <Sparkles className="w-4 h-4" />
                       Ask the assistant
                     </button>
                   </div>
                 </div>
-                <div className="relative">
-                  <div className={`rounded-2xl border p-6 lg:p-7 space-y-5 ${
-                    darkMode ? 'bg-slate-950/50 border-slate-800/60' : 'bg-white/90 border-slate-200 shadow-xl'
+                <aside className="relative lg:w-[360px] xl:w-[380px]">
+                  <div className={`relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 ${
+                    darkMode
+                      ? 'bg-slate-950/65 border-slate-800/70 shadow-[0_48px_120px_rgba(2,6,23,0.6)]'
+                      : 'bg-white/92 border-white/70 shadow-[0_55px_120px_rgba(91,105,255,0.15)] backdrop-blur-xl'
                   }`}>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className={`rounded-xl border px-4 py-3 ${
-                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                          Studio snapshot
+                        </p>
+                        <p className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                          A quick glance at your practice
+                        </p>
+                      </div>
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-2xl ${
+                        darkMode ? 'bg-slate-900/70 text-slate-200' : 'bg-sky-100 text-sky-600'
                       }`}>
-                        <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Sessions</p>
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className={`rounded-2xl border px-4 py-3 ${
+                        darkMode ? 'border-slate-800/70 bg-slate-900/55' : 'border-sky-100 bg-gradient-to-br from-sky-50 via-white to-white/90'
+                      }`}>
+                        <p className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-sky-600'}`}>Sessions</p>
                         <p className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{workspaces.length}</p>
                         <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Saved journeys</p>
                       </div>
-                      <div className={`rounded-xl border px-4 py-3 ${
-                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
+                      <div className={`rounded-2xl border px-4 py-3 ${
+                        darkMode ? 'border-slate-800/70 bg-slate-900/55' : 'border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-white/90'
                       }`}>
-                        <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Parts</p>
+                        <p className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-indigo-600'}`}>Parts</p>
                         <p className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{totalParts}</p>
                         <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Mapped across sessions</p>
                       </div>
                     </div>
-                    <div className={`rounded-xl border px-4 py-4 ${
-                      darkMode ? 'border-slate-800 bg-slate-900/45' : 'border-slate-200 bg-slate-50/80'
+                    <div className={`rounded-2xl border px-4 py-4 ${
+                      darkMode ? 'border-slate-800/70 bg-slate-900/55' : 'border-slate-200/70 bg-white/90 shadow-inner'
                     }`}>
-                      <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Latest activity</p>
-                      {recentlyEditedWorkspace ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                              {recentlyEditedWorkspace.name}
-                            </p>
-                            <span className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                              {formatDate(
-                                recentlyEditedWorkspace.createdAt.getTime() === recentlyEditedWorkspace.lastModified.getTime()
-                                  ? recentlyEditedWorkspace.createdAt
-                                  : recentlyEditedWorkspace.lastModified
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {recentlyEditedWorkspace.nodes.slice(0, 3).map((node: any) => (
-                              <span
-                                key={node.id}
-                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                  darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-600 shadow-sm'
-                                }`}
-                              >
-                                {node.data?.label || 'Part'}
-                              </span>
-                            ))}
-                            {recentlyEditedWorkspace.nodes.length > 3 && (
-                              <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                                darkMode ? 'bg-slate-800/80 text-slate-200' : 'bg-white text-slate-600 shadow-sm'
-                              }`}>
-                                +{recentlyEditedWorkspace.nodes.length - 3}
-                              </span>
-                            )}
-                            {recentlyEditedWorkspace.nodes.length === 0 && (
-                              <span className={`text-xs italic ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>
-                                No parts added yet
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                          Your next mapped journey will appear here once you create a session.
+                      <p className={`text-[11px] uppercase tracking-[0.32em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        Message from the team
+                      </p>
+                      <div className={`space-y-3 text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        <p>
+                          Thanks for trying Parts Studio. Every session you create is saved automatically and backed up securely so you can experiment without worry.
                         </p>
-                      )}
+                        <p>
+                          We want your parts to feel safe here as we continue to try and grow this tool together.
+                        </p>
+                        <div className="pt-2">
+                          <button
+                            onClick={() => window.open('/mission', '_blank')}
+                            className="arrow-pulse inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
+                            style={{ color: 'orange' }}
+                          >
+                            <Target className="w-4 h-4" />
+                            Our Mission & Roadmap
+                            <ArrowRight className="arrow-icon w-4 h-4" />
+                          </button>
+                        </div>
+                        <p className={`${darkMode ? 'text-slate-400' : 'text-slate-500'} text-xs uppercase tracking-[0.28em] pt-2`}>
+                          — The Parts Studio team
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                  <div className="pointer-events-none absolute inset-x-10 -bottom-10 h-36 rounded-full bg-gradient-to-t from-sky-500/10 via-sky-400/0 to-transparent blur-3xl" />
+                </aside>
               </div>
             </div>
           </section>
@@ -827,29 +860,26 @@ export default function WorkspacesPage() {
         {!loading && !error && workspaces.length > 0 && (
           <>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold ${
-                  darkMode ? 'bg-slate-900/60 text-slate-200 border border-slate-800/60' : 'bg-white text-slate-600 border border-slate-200 shadow-sm'
+              <div className="flex flex-wrap items-baseline gap-3">
+                <h2 className={`text-2xl font-semibold leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  My Workspaces
+                </h2>
+                <span className={`inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] ${
+                  darkMode
+                    ? 'bg-white/90 text-slate-900 shadow-sm'
+                    : 'bg-white text-slate-700 shadow-sm shadow-slate-200/50'
                 }`}>
-                  <Clock className="w-3.5 h-3.5" />
                   {workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}
-                </span>
-                <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold ${
-                  darkMode ? 'bg-slate-900/60 text-slate-200 border border-slate-800/60' : 'bg-white text-slate-600 border border-slate-200 shadow-sm'
-                }`}>
-                  <Map className="w-3.5 h-3.5" />
-                  {totalParts} {totalParts === 1 ? 'part' : 'parts'} catalogued
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <ArrowUpDown className={`w-4 h-4 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium ${
-                      darkMode ? 'border-slate-700 text-white hover:border-slate-500' : 'border-slate-300 text-slate-700 hover:border-slate-400'
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ${
+                      darkMode ? 'text-white hover:text-slate-300' : 'text-slate-700 hover:text-slate-900'
                     }`}
-                  >
+                    >
                     {sortBy === 'edited' && 'Recently Edited'}
                     {sortBy === 'created' && 'Recently Created'}
                     {sortBy === 'name' && 'Name'}
@@ -857,7 +887,7 @@ export default function WorkspacesPage() {
                   </button>
                   {dropdownOpen && (
                     <div
-                      className={`absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden ${
+                      className={`absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50 ${
                         darkMode ? 'bg-slate-900/95 border-slate-700/70' : 'bg-white border-slate-200'
                       }`}
                     >
@@ -916,21 +946,19 @@ export default function WorkspacesPage() {
                 return (
                   <div
                     key={workspace.id}
-                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border transition-all duration-300 ${
+                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 ${
                       darkMode
-                        ? 'border-slate-800/60 bg-slate-950/40 hover:border-purple-400/70 hover:shadow-[0_32px_70px_rgba(8,15,30,0.55)]'
-                        : 'border-slate-200 bg-white/90 backdrop-blur-sm hover:border-purple-300 hover:shadow-[0_35px_80px_rgba(124,58,237,0.14)]'
-                    } ${navigatingToWorkspace === workspace.id ? 'opacity-60 pointer-events-none' : 'hover:-translate-y-[6px]'}`}
+                        ? 'bg-slate-950/40 shadow-sm hover:bg-slate-950/60 hover:shadow-sm hover:-translate-y-1'
+                        : 'bg-white/90 shadow-sm shadow-slate-200/50 hover:bg-white hover:shadow-sm hover:shadow-slate-200/50 hover:-translate-y-1'
+                    } ${navigatingToWorkspace === workspace.id ? 'opacity-60 pointer-events-none' : ''}`}
                     onClick={() => handleOpenWorkspace(workspace.id)}
                   >
-                    <div className="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-purple-500/10 via-transparent to-sky-400/10" />
                     <div className="relative p-6 pb-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-2">
-                          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
-                            darkMode ? 'bg-slate-900/70 text-slate-200 border border-slate-800/60' : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase ${
+                            darkMode ? 'bg-slate-900/75 text-slate-200 border border-slate-800/60' : 'bg-white/90 text-slate-600 border border-slate-200 shadow-sm'
                           }`}>
-                            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
                             Session
                           </span>
                           <h3 className={`text-xl font-semibold leading-tight line-clamp-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
@@ -938,7 +966,7 @@ export default function WorkspacesPage() {
                           </h3>
                         </div>
                         <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                          Edited {formatDate(lastEdited)}
+                          {formatDate(lastEdited)}
                         </span>
                       </div>
                       {workspace.description && (
@@ -949,7 +977,7 @@ export default function WorkspacesPage() {
                     </div>
                     <div className="relative px-6 pb-4">
                       <div className={`rounded-2xl border p-3 h-32 sm:h-36 ${
-                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
+                        darkMode ? 'border-slate-800 bg-slate-900/55' : 'border-slate-200 bg-white/85 shadow-inner'
                       }`}>
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
@@ -957,7 +985,7 @@ export default function WorkspacesPage() {
                               <div
                                 key={node.id}
                                 className={`rounded-lg overflow-hidden flex items-center justify-center ${
-                                  darkMode ? 'bg-slate-800/70' : 'bg-white'
+                                  darkMode ? 'bg-slate-800/70' : 'bg-slate-50'
                                 }`}
                               >
                                 {node.data?.image ? (
@@ -975,7 +1003,7 @@ export default function WorkspacesPage() {
                             ))}
                             {workspace.nodes.length > 6 && (
                               <div className={`rounded-lg flex items-center justify-center text-xs font-semibold ${
-                                darkMode ? 'bg-slate-800/70 text-slate-200' : 'bg-white text-slate-600'
+                                darkMode ? 'bg-slate-800/70 text-slate-200' : 'bg-slate-100 text-slate-600'
                               }`}>
                                 +{workspace.nodes.length - 6}
                               </div>
@@ -983,8 +1011,8 @@ export default function WorkspacesPage() {
                           </div>
                         ) : (
                           <div className="flex h-full flex-col items-center justify-center gap-2">
-                            <div className={`${darkMode ? 'bg-slate-900/60' : 'bg-white'} p-3 rounded-full`}>
-                              <Map className={`w-7 h-7 ${darkMode ? 'text-slate-500' : 'text-slate-500'}`} />
+                            <div className={`${darkMode ? 'bg-slate-900/60' : 'bg-sky-50'} p-3 rounded-full`}>
+                              <Map className={`w-7 h-7 ${darkMode ? 'text-slate-500' : 'text-sky-500'}`} />
                             </div>
                             <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                               Empty workspace

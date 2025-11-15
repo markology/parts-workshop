@@ -292,3 +292,15 @@ button {
     transform: translate(-50%, -50%) rotate(270deg) translateX(120px);
   }
 }
+
+@keyframes pulseRight {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(4px); }
+  20% { transform: translateX(0); }
+  30% { transform: translateX(4px); }
+  40%, 100% { transform: translateX(0); }
+}
+
+.arrow-pulse:hover .arrow-icon {
+  animation: pulseRight 3s ease-in-out infinite;
+}
