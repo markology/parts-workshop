@@ -957,7 +957,7 @@ export default function WorkspacesPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-2">
                           <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase ${
-                            darkMode ? 'bg-slate-900/75 text-slate-200 border border-slate-800/60' : 'bg-white/90 text-slate-600 border border-slate-200 shadow-sm'
+                            darkMode ? 'bg-slate-900/75 text-slate-200 border border-slate-800/60 shadow-sm' : 'bg-white/90 text-slate-600 border border-slate-200 shadow-sm shadow-slate-200/50'
                           }`}>
                             Session
                           </span>
