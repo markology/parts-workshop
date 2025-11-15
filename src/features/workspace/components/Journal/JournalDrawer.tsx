@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import JournalEditor from "./JournalEditor";
 import { useSaveJournalEntry } from "../../state/hooks/useSaveJournalEntry";
@@ -11,21 +11,17 @@ import { useFlowNodesContextOptional } from "../../state/FlowNodesContext";
 import { useWorkingStore } from "../../state/stores/useWorkingStore";
 import {
   ConnectedNodeType,
+  ImpressionNode,
   PartNodeData,
   TensionNodeData,
   WorkshopNode,
 } from "@/features/workspace/types/Nodes";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import {
-  Clock,
-  FilePlus2,
-  History,
-  Layers,
-  Save,
-  Sparkles,
-  X,
-} from "lucide-react";
-import { NodeBackgroundColors } from "../../constants/Nodes";
+import { Brain, Clock, FilePlus2, Heart, History, Layers, Save, Shield, Sparkles, SquareUserRound, User, X } from "lucide-react";
+import { NodeBackgroundColors, NodeTextColors } from "../../constants/Nodes";
+import { ImpressionList } from "../../constants/Impressions";
+import { ImpressionTextType } from "@/features/workspace/types/Impressions";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 const IMPRESSION_NODE_TYPES: ImpressionType[] = [
   "emotion",
@@ -77,8 +73,31 @@ const formatTimestamp = (iso: string) => {
 const capitalize = (value: string) =>
   value.charAt(0).toUpperCase() + value.slice(1);
 
+const toRgba = (hex: string, opacity: number) => {
+  const sanitized = hex.replace("#", "");
+  const bigint = parseInt(sanitized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
+const withAlpha = (hex: string, alpha: number) => {
+  const sanitized = hex.replace("#", "");
+  if (sanitized.length !== 6) {
+    return hex;
+  }
+
+  const r = parseInt(sanitized.slice(0, 2), 16);
+  const g = parseInt(sanitized.slice(2, 4), 16);
+  const b = parseInt(sanitized.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export default function JournalDrawer() {
   useDebouncedJournalSave();
+  const { darkMode } = useThemeContext();
 
   const isOpen = useJournalStore((s) => s.isOpen);
   const closeJournal = useJournalStore((s) => s.closeJournal);
@@ -102,6 +121,8 @@ export default function JournalDrawer() {
 
   const [showContext, setShowContext] = useState(true);
   const [showHistory, setShowHistory] = useState(true);
+  const hasSidePanels = showContext || showHistory;
+  const layoutIsCompact = !hasSidePanels;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -235,6 +256,23 @@ export default function JournalDrawer() {
   }, [activeEntryId, relevantEntries]);
 
   const hasUnsavedChanges = journalData !== lastSavedJournalData;
+
+  // Clear journal data when switching to a different node
+  const previousNodeIdRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!isOpen || !journalTarget) {
+      previousNodeIdRef.current = nodeId;
+      return;
+    }
+    
+    // Only clear if we're switching to a different node
+    if (previousNodeIdRef.current !== undefined && previousNodeIdRef.current !== nodeId) {
+      setJournalData("");
+      loadEntry({ entryId: null, content: "" });
+    }
+    
+    previousNodeIdRef.current = nodeId;
+  }, [nodeId, isOpen, journalTarget, setJournalData, loadEntry]);
 
   useEffect(() => {
     if (!journalTarget) return;
@@ -465,66 +503,204 @@ export default function JournalDrawer() {
         needs: data.needs?.length || 0,
         insights: data.insights?.length || 0,
       });
-      const needs = (data.needs || []).filter(Boolean).slice(0, 4);
-      const insights = (data.insights || []).filter(Boolean).slice(0, 3);
-      const scratchpad = data.scratchpad?.trim();
+
+      // Flatten all impressions and sort by recency (most recent first)
+      const impressions = ImpressionList.flatMap((impressionType) => {
+        const impressionData = (data[ImpressionTextType[impressionType]] as ImpressionNode[]) || [];
+        return impressionData.map((imp) => ({
+          ...imp,
+          impressionType,
+          addedAt: imp.data?.addedAt || imp.data?.createdAt || imp.data?.timestamp,
+        }));
+      });
+
+      const allImpressions = impressions.sort((a, b) => {
+        const dateA = typeof a.addedAt === "string" ? new Date(a.addedAt).getTime() : Number(a.addedAt || 0);
+        const dateB = typeof b.addedAt === "string" ? new Date(b.addedAt).getTime() : Number(b.addedAt || 0);
+        return dateB - dateA; // Most recent first
+      });
+
+      const metadata = [
+        data.name && data.name !== data.label
+          ? { label: "Also known as", value: data.name }
+          : null,
+      ].filter(Boolean) as { label: string; value: string | number }[];
+
+      const hasImpressions = ImpressionList.some((impression) => {
+        const impressionData =
+          (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
+        return impressionData.length > 0;
+      });
 
       return (
-        <div className="space-y-5 text-sm text-slate-600">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
-              Part
-            </p>
-            <h3 className="mt-1 text-lg font-semibold text-slate-900">
-              {data.label}
-            </h3>
-            <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">
-              {data.partType === "custom"
-                ? data.customPartType || "Custom Part"
-                : capitalize(data.partType)}
-            </p>
-          </div>
+        <div className="space-y-6 text-sm text-slate-600">
+          <section className="p-0">
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-slate-900">
+                  {data.label}
+                </h3>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  {(() => {
+                    const partType = data.partType === "custom" ? data.customPartType : data.partType;
+                    const mapping: Record<string, { icon: React.ReactNode; className: string }> = {
+                      manager: {
+                        icon: <Brain className="w-3.5 h-3.5" />,
+                        className: darkMode
+                          ? "bg-sky-500/15 border border-sky-500/40 text-sky-100"
+                          : "bg-sky-100 border border-sky-200 text-sky-600",
+                      },
+                      firefighter: {
+                        icon: <Shield className="w-3.5 h-3.5" />,
+                        className: darkMode
+                          ? "bg-rose-500/15 border border-rose-500/40 text-rose-100"
+                          : "bg-rose-100 border border-rose-200 text-rose-600",
+                      },
+                      exile: {
+                        icon: <Heart className="w-3.5 h-3.5" />,
+                        className: darkMode
+                          ? "bg-purple-500/15 border border-purple-500/40 text-purple-100"
+                          : "bg-purple-100 border border-purple-200 text-purple-600",
+                      },
+                    };
 
-          {scratchpad && (
-            <div className="rounded-xl border border-slate-200/70 bg-white/80 px-3.5 py-3 text-sm leading-relaxed shadow-sm">
-              {scratchpad}
+                    const pill = partType && mapping[partType] ? mapping[partType] : {
+                      icon: <User className="w-3.5 h-3.5" />,
+                      className: darkMode
+                        ? "bg-slate-800/60 border border-slate-700 text-slate-200"
+                        : "bg-slate-100 border border-slate-200 text-slate-600",
+                    };
+
+                    return (
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${pill.className}`}
+                      >
+                        {pill.icon}
+                        {partType || "No type set"}
+                      </span>
+                    );
+                  })()}
+                  {data.age && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500">
+                      Age{" "}
+                      <span className="font-semibold text-slate-700">
+                        {data.age}
+                      </span>
+                    </span>
+                  )}
+                  {data.gender && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500">
+                      Gender{" "}
+                      <span className="font-semibold text-slate-700">
+                        {data.gender}
+                      </span>
+                    </span>
+                  )}
+                  {metadata.map((item) => (
+                    <span
+                      key={item.label}
+                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500"
+                    >
+                      {item.label}{" "}
+                      <span className="font-semibold text-slate-700">
+                        {item.value}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {data.image && (
+                <div className="relative h-24 w-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
+                  <img
+                    src={data.image}
+                    alt={`${data.label} image`}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
             </div>
+
+            {data.scratchpad?.trim() && (
+              <div className="mt-4 rounded-xl bg-slate-50 px-3.5 py-3 text-sm leading-relaxed text-slate-600 shadow-inner">
+                {data.scratchpad}
+              </div>
+            )}
+          </section>
+
+          {hasImpressions && (
+            <section className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Impressions
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {allImpressions.map((item) => {
+                  const impressionType = item.impressionType as ImpressionType;
+                  const accentText = NodeTextColors[impressionType];
+                  const accent = NodeBackgroundColors[impressionType];
+                  const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
+                  const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between rounded-xl border px-3 py-2"
+                      style={{
+                        backgroundColor: chipBackground,
+                        borderColor: chipBorder,
+                        color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+                      }}
+                    >
+                      <span className="font-medium text-xs break-words">
+                        {item.data?.label || "No label"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           )}
 
-          {needs.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+          {data.needs && data.needs.length > 0 && (
+            <section className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Key Needs
               </p>
-              <ul className="mt-2 space-y-1.5">
-                {needs.map((need) => (
-                  <li
-                    key={need}
-                    className="rounded-lg bg-slate-100/80 px-3 py-1.5 text-sm text-slate-700"
-                  >
-                    {need}
-                  </li>
-                ))}
+              <ul className="flex flex-wrap gap-2">
+                {data.needs
+                  .filter(Boolean)
+                  .slice(0, 6)
+                  .map((need, idx) => (
+                    <li
+                      key={`${need}-${idx}`}
+                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                    >
+                      {need}
+                    </li>
+                  ))}
               </ul>
-            </div>
+            </section>
           )}
 
-          {insights.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+          {data.insights && data.insights.length > 0 && (
+            <section className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Insights
               </p>
-              <ul className="mt-2 space-y-1.5">
-                {insights.map((insight) => (
-                  <li
-                    key={insight}
-                    className="rounded-lg bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm"
-                  >
-                    {insight}
-                  </li>
-                ))}
+              <ul className="flex flex-col gap-1.5">
+                {data.insights
+                  .filter(Boolean)
+                  .slice(0, 4)
+                  .map((insight, idx) => (
+                    <li
+                      key={`${insight}-${idx}`}
+                      className="rounded-lg bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm"
+                    >
+                      {insight}
+                    </li>
+                  ))}
               </ul>
-            </div>
+            </section>
           )}
         </div>
       );
@@ -779,33 +955,28 @@ export default function JournalDrawer() {
       >
         <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-2xl">
           <header className="border-b border-slate-200/80 bg-white/85 px-6 py-5 shadow-sm backdrop-blur">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
-                    Journal
-                  </span>
+                <h2 className="text-2xl font-semibold text-slate-900">
+                  {nodeLabel}
+                </h2>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   {nodeType && (
                     <span
-                      className="rounded-full border px-3 py-0.5 text-xs font-semibold uppercase tracking-wide"
+                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600"
                       style={{
-                        borderColor: accentColor,
-                        color: accentColor,
+                        borderColor: withAlpha(
+                          accentColor ?? NodeBackgroundColors.default,
+                          0.4
+                        ),
                       }}
                     >
                       {capitalize(nodeType)}
                     </span>
                   )}
-                </div>
-                <h2 className="text-2xl font-semibold text-slate-900">
-                  {nodeLabel}
-                </h2>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
                   <span
-                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                      hasUnsavedChanges
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-emerald-100 text-emerald-700"
+                    className={`flex items-center gap-1 font-medium ${
+                      hasUnsavedChanges ? "text-amber-600" : "text-emerald-600"
                     }`}
                   >
                     <span
@@ -816,18 +987,18 @@ export default function JournalDrawer() {
                           : "#047857",
                       }}
                     />
-                    {hasUnsavedChanges ? "Unsaved changes" : "All changes saved"}
+                    {hasUnsavedChanges ? "Unsaved changes" : "Saved"}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs uppercase tracking-wide">
+                  <span className="flex items-center gap-1">
                     <Clock size={12} />
                     {activeEntry
-                      ? formatTimestamp(activeEntry.updatedAt)
+                      ? `Updated ${formatTimestamp(activeEntry.updatedAt)}`
                       : "Not saved yet"}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs uppercase tracking-wide">
+                  <span className="flex items-center gap-1">
                     <History size={12} />
                     {relevantEntries.length}{" "}
-                    {relevantEntries.length === 1 ? "entry" : "entries"}
+                    {relevantEntries.length === 1 ? "version" : "versions"}
                   </span>
                 </div>
               </div>
@@ -836,20 +1007,20 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => setShowContext((prev) => !prev)}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition ${
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                     showContext
                       ? "border-slate-900 bg-slate-900 text-white shadow-sm"
                       : "border-slate-300 bg-white text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   <Layers size={14} />
-                  Context
+                  Info
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setShowHistory((prev) => !prev)}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition ${
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                     showHistory
                       ? "border-slate-900 bg-slate-900 text-white shadow-sm"
                       : "border-slate-300 bg-white text-slate-600 hover:bg-slate-100"
@@ -862,10 +1033,10 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void handleStartNewEntry()}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
                 >
                   <FilePlus2 size={14} />
-                  New Entry
+                  New entry
                 </button>
 
                 <button
@@ -894,28 +1065,29 @@ export default function JournalDrawer() {
           </header>
 
           <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 pb-6 pt-6 lg:flex-row lg:gap-8">
+            <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto px-6 pb-6 pt-6">
+              {/* Side panels positioned relative to centered content */}
               {showContext && (
                 <>
-                  <aside className="hidden h-full w-72 shrink-0 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 px-4 py-5 shadow-inner lg:flex">
+                  <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 px-4 py-5 shadow-inner" style={{ left: 'calc((100% - 3rem - 56rem) / 2 - 20rem)', top: '1.5rem' }}>
                     <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
                       <span
                         className="h-2.5 w-2.5 rounded-full"
                         style={{ backgroundColor: accentColor }}
                       />
-                      Context
+                      Info
                     </div>
                     {renderContextPanel()}
                   </aside>
 
                   <div className="block lg:hidden">
-                    <div className="rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-5 shadow-sm">
+                    <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-5 shadow-sm">
                       <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
                         <span
                           className="h-2.5 w-2.5 rounded-full"
                           style={{ backgroundColor: accentColor }}
                         />
-                        Context
+                        Info
                       </div>
                       {renderContextPanel()}
                     </div>
@@ -923,7 +1095,29 @@ export default function JournalDrawer() {
                 </>
               )}
 
-              <main className="flex flex-1 flex-col gap-6 overflow-hidden">
+              {showHistory && (
+                <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 px-4 py-5 shadow-inner" style={{ right: 'calc((100% - 3rem - 56rem) / 2 - 20rem)', top: '1.5rem' }}>
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                      History
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void handleSaveNewVersion()}
+                      disabled={isSaving}
+                      title="Save current content as a new version (keeps history)"
+                      className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
+                    >
+                      <Sparkles size={14} />
+                      Snapshot
+                    </button>
+                  </div>
+                  {renderHistoryPanel()}
+                </aside>
+              )}
+
+              {/* Main content area - always centered */}
+              <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 overflow-hidden">
                 <div className="flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-xl">
                   <JournalEditor
                     content={journalData}
@@ -962,27 +1156,6 @@ export default function JournalDrawer() {
                   </div>
                 )}
               </main>
-
-              {showHistory && (
-                <aside className="hidden h-full w-72 shrink-0 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 px-4 py-5 shadow-inner lg:flex">
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                      History
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void handleSaveNewVersion()}
-                      disabled={isSaving}
-                      title="Save current content as a new version (keeps history)"
-                      className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
-                    >
-                      <Sparkles size={14} />
-                      Snapshot
-                    </button>
-                  </div>
-                  {renderHistoryPanel()}
-                </aside>
-              )}
             </div>
           </div>
         </div>
