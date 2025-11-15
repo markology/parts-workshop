@@ -946,12 +946,37 @@ export default function WorkspacesPage() {
                 return (
                   <div
                     key={workspace.id}
+                    data-workspace-tile
                     className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 ${
                       darkMode
                         ? 'bg-slate-950/40 shadow-sm hover:bg-slate-950/60 hover:shadow-sm hover:-translate-y-1'
-                        : 'bg-white/90 shadow-sm shadow-slate-200/50 hover:bg-white hover:shadow-sm hover:shadow-slate-200/50 hover:-translate-y-1'
+                        : 'shadow-sm shadow-slate-200/50 hover:shadow-sm hover:shadow-slate-200/50 hover:-translate-y-1'
                     } ${navigatingToWorkspace === workspace.id ? 'opacity-60 pointer-events-none' : ''}`}
+                    style={darkMode ? {} : { backgroundColor: '#edf2ff' }}
                     onClick={() => handleOpenWorkspace(workspace.id)}
+                    onMouseMove={(e) => {
+                      if (!darkMode) {
+                        const target = e.target as HTMLElement;
+                        const deleteButton = e.currentTarget.querySelector('[data-delete-button]') as HTMLButtonElement;
+                        // Only apply styles if not hovering over delete button
+                        if (!deleteButton?.contains(target) && target !== deleteButton) {
+                          const openButton = e.currentTarget.querySelector('[data-open-button]') as HTMLButtonElement;
+                          if (openButton) {
+                            openButton.style.backgroundColor = '#3b82f6';
+                            openButton.style.color = 'white';
+                          }
+                        }
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!darkMode) {
+                        const openButton = e.currentTarget.querySelector('[data-open-button]') as HTMLButtonElement;
+                        if (openButton) {
+                          openButton.style.backgroundColor = '';
+                          openButton.style.color = '';
+                        }
+                      }
+                    }}
                   >
                     <div className="relative p-6 pb-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
@@ -977,8 +1002,10 @@ export default function WorkspacesPage() {
                     </div>
                     <div className="relative px-6 pb-4">
                       <div className={`rounded-2xl border p-3 h-32 sm:h-36 ${
-                        darkMode ? 'border-slate-800 bg-slate-900/55' : 'border-slate-200 bg-white/85 shadow-inner'
-                      }`}>
+                        darkMode ? 'border-slate-800 bg-slate-900/55' : 'border-slate-200 shadow-inner'
+                      }`}
+                      style={darkMode ? {} : { backgroundColor: 'white' }}
+                      >
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
                             {workspace.nodes.slice(0, 6).map((node: any) => (
@@ -1023,17 +1050,66 @@ export default function WorkspacesPage() {
                     </div>
                     <div className={`relative px-6 pb-6 pt-4 mt-auto border-t ${
                       darkMode ? 'border-slate-800/60' : 'border-slate-200'
-                    }`}>
+                    }`}
+                    style={darkMode ? {} : { backgroundColor: 'white' }}
+                    >
                       <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <span className={`inline-flex items-center gap-2 text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        <span 
+                          className={`inline-flex items-center gap-2 text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}
+                        >
                           <User className="w-4 h-4" />
-                          {workspace.partCount} {workspace.partCount === 1 ? 'part' : 'parts'}
+                          <span style={darkMode ? {} : { padding: '2px 5px', background: 'rgb(237, 242, 255)', borderRadius: '6px' }}>
+                            {workspace.partCount}
+                          </span>
                         </span>
                         <div className="flex items-center gap-2">
                           <button
+                            data-open-button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenWorkspace(workspace.id);
+                            }}
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase ${
+                              darkMode 
+                                ? 'text-slate-200 hover:text-white hover:bg-slate-800/60 border border-slate-700/60 transition-colors' 
+                                : 'text-slate-700 border border-slate-200'
+                            }`}
+                            style={{ textTransform: 'uppercase' }}
+                            title="Open session"
+                          >
+                            Open
+                          </button>
+                          <button
+                            data-delete-button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteWorkspace(workspace.id);
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!darkMode) {
+                                e.stopPropagation();
+                                const tile = e.currentTarget.closest('[data-workspace-tile]') as HTMLElement;
+                                const openButton = tile?.querySelector('[data-open-button]') as HTMLButtonElement;
+                                if (openButton) {
+                                  openButton.style.backgroundColor = '';
+                                  openButton.style.color = '';
+                                }
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!darkMode) {
+                                e.stopPropagation();
+                                const tile = e.currentTarget.closest('[data-workspace-tile]') as HTMLElement;
+                                const openButton = tile?.querySelector('[data-open-button]') as HTMLButtonElement;
+                                if (openButton && tile) {
+                                  // Reapply styles when leaving delete button if still on tile
+                                  const relatedTarget = e.relatedTarget as HTMLElement;
+                                  if (tile.contains(relatedTarget) || relatedTarget === tile) {
+                                    openButton.style.backgroundColor = '#3b82f6';
+                                    openButton.style.color = 'white';
+                                  }
+                                }
+                              }
                             }}
                             className={`inline-flex items-center justify-center rounded-full p-2 transition-colors ${
                               darkMode ? 'text-slate-400 hover:text-rose-200 hover:bg-rose-500/20' : 'text-slate-500 hover:text-rose-500 hover:bg-rose-50'
