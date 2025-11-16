@@ -852,30 +852,58 @@ const PartDetailPanel = () => {
                         {(data.name as string) || (data.label as string) || "Untitled"}
                       </h2>
                       <div className="flex items-center gap-2">
-                        {['manager', 'firefighter', 'exile'].map((type) => {
+                        {(() => {
                           const currentType = tempPartType || (data.customPartType as string) || (data.partType as string) || "";
-                          const isSelected = currentType === type;
-                          if (!isSelected) return null;
+                          if (!currentType) {
+                            return (
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${
+                                darkMode
+                                  ? "text-slate-300"
+                                  : "text-slate-500"
+                              }`}>
+                                <User className="w-3.5 h-3.5" />
+                                No type set
+                              </span>
+                            );
+                          }
+                          
+                          const partTypeMapping: Record<string, { icon: React.ReactNode; className: string }> = {
+                            manager: {
+                              icon: <Brain className="w-3.5 h-3.5" />,
+                              className: darkMode
+                                ? "bg-sky-500/15 text-sky-100"
+                                : "bg-sky-100 text-sky-600",
+                            },
+                            firefighter: {
+                              icon: <Shield className="w-3.5 h-3.5" />,
+                              className: darkMode
+                                ? "bg-rose-500/15 text-rose-100"
+                                : "bg-rose-100 text-rose-600",
+                            },
+                            exile: {
+                              icon: <Heart className="w-3.5 h-3.5" />,
+                              className: darkMode
+                                ? "bg-purple-500/15 text-purple-100"
+                                : "bg-purple-100 text-purple-600",
+                            },
+                          };
+
+                          const pill = partTypeMapping[currentType] || {
+                            icon: <User className="w-3.5 h-3.5" />,
+                            className: darkMode
+                              ? "bg-slate-800/60 text-slate-200"
+                              : "bg-slate-100 text-slate-600",
+                          };
+
                           return (
                             <span
-                              key={type}
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                type === "manager"
-                                  ? "bg-blue-600 text-white"
-                                  : type === "firefighter"
-                                    ? "bg-red-600 text-white"
-                                    : "bg-purple-600 text-white"
-                              }`}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${pill.className}`}
                             >
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
+                              {pill.icon}
+                              {currentType.charAt(0).toUpperCase() + currentType.slice(1)}
                             </span>
                           );
-                        })}
-                        {!tempPartType && !(data.customPartType as string) && !(data.partType as string) && (
-                          <span className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
-                            No type set
-                          </span>
-                        )}
+                        })()}
                         {/* Age and Gender Display - To the right of part type */}
                         {(data.age as string) || (data.gender as string) ? (
                           <>

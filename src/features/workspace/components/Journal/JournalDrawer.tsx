@@ -547,28 +547,28 @@ export default function JournalDrawer() {
                       manager: {
                         icon: <Brain className="w-3.5 h-3.5" />,
                         className: darkMode
-                          ? "bg-sky-500/15 border border-sky-500/40 text-sky-100"
-                          : "bg-sky-100 border border-sky-200 text-sky-600",
+                          ? "bg-sky-500/15 text-sky-100"
+                          : "bg-sky-100 text-sky-600",
                       },
                       firefighter: {
                         icon: <Shield className="w-3.5 h-3.5" />,
                         className: darkMode
-                          ? "bg-rose-500/15 border border-rose-500/40 text-rose-100"
-                          : "bg-rose-100 border border-rose-200 text-rose-600",
+                          ? "bg-rose-500/15 text-rose-100"
+                          : "bg-rose-100 text-rose-600",
                       },
                       exile: {
                         icon: <Heart className="w-3.5 h-3.5" />,
                         className: darkMode
-                          ? "bg-purple-500/15 border border-purple-500/40 text-purple-100"
-                          : "bg-purple-100 border border-purple-200 text-purple-600",
+                          ? "bg-purple-500/15 text-purple-100"
+                          : "bg-purple-100 text-purple-600",
                       },
                     };
 
                     const pill = partType && mapping[partType] ? mapping[partType] : {
                       icon: <User className="w-3.5 h-3.5" />,
                       className: darkMode
-                        ? "bg-slate-800/60 border border-slate-700 text-slate-200"
-                        : "bg-slate-100 border border-slate-200 text-slate-600",
+                        ? "bg-slate-800/60 text-slate-200"
+                        : "bg-slate-100 text-slate-600",
                     };
 
                     return (
@@ -759,21 +759,8 @@ export default function JournalDrawer() {
                           "No summary yet";
 
       return (
-        <div className="space-y-5 text-sm text-slate-600">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
-              {capitalize(relationshipType)}
-            </p>
-            <h3 className="mt-1 text-lg font-semibold text-slate-900">
-              {displayLabel}
-            </h3>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-              Parts Involved ({enrichedConnectedNodes.length})
-            </p>
-            {enrichedConnectedNodes.length === 0 ? (
+        <div className="space-y-3 text-sm text-slate-600">
+          {enrichedConnectedNodes.length === 0 ? (
               <div className="space-y-2">
                 <p className="rounded-lg bg-slate-100/80 px-3 py-2 text-sm text-slate-600">
                   No parts linked to this {relationshipType} yet.
@@ -792,6 +779,35 @@ export default function JournalDrawer() {
                 const partData = part.data as PartNodeData | undefined;
                 const partLabel = partData?.label || part.data?.label || "Unnamed part";
                 
+                const partType = partData?.partType === "custom" ? partData.customPartType : partData?.partType;
+                const partTypeMapping: Record<string, { icon: React.ReactNode; className: string }> = {
+                  manager: {
+                    icon: <Brain className="w-3.5 h-3.5" />,
+                    className: darkMode
+                      ? "bg-sky-500/15 text-sky-100"
+                      : "bg-sky-100 text-sky-600",
+                  },
+                  firefighter: {
+                    icon: <Shield className="w-3.5 h-3.5" />,
+                    className: darkMode
+                      ? "bg-rose-500/15 text-rose-100"
+                      : "bg-rose-100 text-rose-600",
+                  },
+                  exile: {
+                    icon: <Heart className="w-3.5 h-3.5" />,
+                    className: darkMode
+                      ? "bg-purple-500/15 text-purple-100"
+                      : "bg-purple-100 text-purple-600",
+                  },
+                };
+
+                const partTypePill = partType && partTypeMapping[partType] ? partTypeMapping[partType] : {
+                  icon: <User className="w-3.5 h-3.5" />,
+                  className: darkMode
+                    ? "bg-slate-800/60 text-slate-200"
+                    : "bg-slate-100 text-slate-600",
+                };
+
                 return (
                   <div
                     key={part.id}
@@ -801,9 +817,6 @@ export default function JournalDrawer() {
                       <p className="font-semibold text-slate-900">
                         {partLabel}
                       </p>
-                      {isFromWorkspace && (
-                        <span className="text-xs text-slate-400">✓ Live</span>
-                      )}
                     </div>
                     {tensionDescription ? (
                       <p className="mt-1 text-sm text-slate-600 leading-relaxed">
@@ -815,10 +828,17 @@ export default function JournalDrawer() {
                       </p>
                     )}
                     {partData && (
-                      <div className="mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
-                        <p>Part Type: {partData.partType === "custom" ? partData.customPartType || "Custom" : capitalize(partData.partType)}</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${partTypePill.className}`}
+                        >
+                          {partTypePill.icon}
+                          {partType || "No type set"}
+                        </span>
                         {partData.needs && partData.needs.length > 0 && (
-                          <p className="mt-1">Needs: {partData.needs.slice(0, 2).join(", ")}{partData.needs.length > 2 ? "..." : ""}</p>
+                          <span className="text-xs text-slate-500">
+                            Needs: {partData.needs.slice(0, 2).join(", ")}{partData.needs.length > 2 ? "..." : ""}
+                          </span>
                         )}
                       </div>
                     )}
@@ -826,7 +846,6 @@ export default function JournalDrawer() {
                 );
               })
             )}
-          </div>
         </div>
       );
     }
@@ -837,15 +856,7 @@ export default function JournalDrawer() {
       const label = (targetNode.data as { label?: string })?.label;
 
       return (
-        <div className="space-y-4 text-sm text-slate-600">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-500">
-              Impression
-            </p>
-            <h3 className="mt-2 text-lg font-semibold text-slate-900">
-              {capitalize(targetNode.type)}
-            </h3>
-          </div>
+        <div className="space-y-3 text-sm text-slate-600">
           <div className="rounded-xl border border-slate-200/70 bg-white px-3.5 py-3 text-base leading-relaxed text-slate-800 shadow-sm">
             {label || "No text added to this impression yet."}
           </div>
@@ -955,7 +966,7 @@ export default function JournalDrawer() {
       >
         <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-2xl">
           <header className="border-b border-slate-200/80 bg-white/85 px-6 py-5 shadow-sm backdrop-blur">
-            <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
               <div className="space-y-2">
                 <h2 className="text-2xl font-semibold text-slate-900">
                   {nodeLabel}
@@ -963,12 +974,14 @@ export default function JournalDrawer() {
                 <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   {nodeType && (
                     <span
-                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600"
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.28em]"
                       style={{
-                        borderColor: withAlpha(
-                          accentColor ?? NodeBackgroundColors.default,
-                          0.4
-                        ),
+                        backgroundColor: darkMode 
+                          ? "rgba(255,255,255,0.12)" 
+                          : withAlpha(accentColor ?? NodeBackgroundColors.default, 0.22),
+                        color: darkMode 
+                          ? "#ffffff" 
+                          : (NodeTextColors[nodeType as keyof typeof NodeTextColors] ?? NodeTextColors.default),
                       }}
                     >
                       {capitalize(nodeType)}
@@ -1003,39 +1016,39 @@ export default function JournalDrawer() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowContext((prev) => !prev)}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition flex-shrink-0 ${
                     showContext
                       ? "border-slate-900 bg-slate-900 text-white shadow-sm"
                       : "border-slate-300 bg-white text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  <Layers size={14} />
+                  <Layers size={13} />
                   Info
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setShowHistory((prev) => !prev)}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition flex-shrink-0 ${
                     showHistory
                       ? "border-slate-900 bg-slate-900 text-white shadow-sm"
                       : "border-slate-300 bg-white text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  <History size={14} />
+                  <History size={13} />
                   History
                 </button>
 
                 <button
                   type="button"
                   onClick={() => void handleStartNewEntry()}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 flex-shrink-0"
                 >
-                  <FilePlus2 size={14} />
+                  <FilePlus2 size={13} />
                   New entry
                 </button>
 
@@ -1043,22 +1056,22 @@ export default function JournalDrawer() {
                   type="button"
                   onClick={() => void handleSave()}
                   disabled={!hasUnsavedChanges || isSaving}
-                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition flex-shrink-0 ${
                     hasUnsavedChanges && !isSaving
                       ? "bg-blue-600 text-white shadow hover:bg-blue-700"
                       : "bg-slate-200 text-slate-500"
                   } ${isSaving ? "animate-pulse" : ""}`}
                 >
-                  <Save size={16} />
+                  <Save size={14} />
                   {isSaving ? "Saving…" : "Save"}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => void attemptClose()}
-                  className="rounded-full border border-transparent p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                  className="rounded-full border border-transparent p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 flex-shrink-0"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
             </div>
@@ -1071,10 +1084,7 @@ export default function JournalDrawer() {
                 <>
                   <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 px-4 py-5 shadow-inner" style={{ left: 'calc((100% - 3rem - 56rem) / 2 - 20rem)', top: '1.5rem' }}>
                     <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: accentColor }}
-                      />
+                      <Layers size={14} />
                       Info
                     </div>
                     {renderContextPanel()}
@@ -1083,10 +1093,7 @@ export default function JournalDrawer() {
                   <div className="block lg:hidden">
                     <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-5 shadow-sm">
                       <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                        <span
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: accentColor }}
-                        />
+                        <Layers size={14} />
                         Info
                       </div>
                       {renderContextPanel()}

@@ -111,8 +111,8 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
       return (
         <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${
           darkMode
-            ? "border border-slate-700/70 text-slate-300"
-            : "border border-slate-200 text-slate-500"
+            ? "text-slate-300"
+            : "text-slate-500"
         }`}>
           <User className="w-3.5 h-3.5" />
           No type set
@@ -124,28 +124,28 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
       manager: {
         icon: <Brain className="w-3.5 h-3.5" />,
         className: darkMode
-          ? "bg-sky-500/15 border border-sky-500/40 text-sky-100"
-          : "bg-sky-100 border border-sky-200 text-sky-600",
+          ? "bg-sky-500/15 text-sky-100"
+          : "bg-sky-100 text-sky-600",
       },
       firefighter: {
         icon: <Shield className="w-3.5 h-3.5" />,
         className: darkMode
-          ? "bg-rose-500/15 border border-rose-500/40 text-rose-100"
-          : "bg-rose-100 border border-rose-200 text-rose-600",
+          ? "bg-rose-500/15 text-rose-100"
+          : "bg-rose-100 text-rose-600",
       },
       exile: {
         icon: <Heart className="w-3.5 h-3.5" />,
         className: darkMode
-          ? "bg-purple-500/15 border border-purple-500/40 text-purple-100"
-          : "bg-purple-100 border border-purple-200 text-purple-600",
+          ? "bg-purple-500/15 text-purple-100"
+          : "bg-purple-100 text-purple-600",
       },
     };
 
     const pill = mapping[partType] || {
       icon: <User className="w-3.5 h-3.5" />,
       className: darkMode
-        ? "bg-slate-800/60 border border-slate-700 text-slate-200"
-        : "bg-slate-100 border border-slate-200 text-slate-600",
+        ? "bg-slate-800/60 text-slate-200"
+        : "bg-slate-100 text-slate-600",
     };
 
     return (
