@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import JournalEditor from "./JournalEditor";
+import TextThreadEditor from "./TextThreadEditor";
 import { useSaveJournalEntry } from "../../state/hooks/useSaveJournalEntry";
 import { useAllJournalEntries } from "../../state/hooks/useAllJournalEntries";
 import { JournalEntry } from "@/features/workspace/types/Journal";
@@ -17,7 +19,7 @@ import {
   WorkshopNode,
 } from "@/features/workspace/types/Nodes";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import { Brain, Clock, FilePlus2, Heart, History, Layers, Save, Shield, Sparkles, SquareUserRound, User, X } from "lucide-react";
+import { Brain, Book, Clock, FilePlus2, Heart, History, Layers, MessageSquare, Save, Shield, Sparkles, SquareUserRound, User, X } from "lucide-react";
 import { NodeBackgroundColors, NodeTextColors } from "../../constants/Nodes";
 import { ImpressionList } from "../../constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
@@ -32,20 +34,101 @@ const IMPRESSION_NODE_TYPES: ImpressionType[] = [
   "default",
 ];
 
-const extractPlainText = (html: string) => {
-  if (!html) return "";
+// Check if content is a text thread (JSON array)
+const isTextThread = (content: string): boolean => {
+  if (!content) return false;
+  try {
+    const parsed = JSON.parse(content);
+    return Array.isArray(parsed);
+  } catch {
+    return false;
+  }
+};
 
+// Extract preview from text thread messages
+const extractTextThreadPreview = (content: string, partNodes: Array<{ id: string; label: string }> = []): string => {
+  if (!content) return "";
+  try {
+    const messages = JSON.parse(content);
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return "Empty conversation";
+    }
+    // Get the last few messages for preview
+    const recentMessages = messages.slice(-3);
+    return recentMessages
+      .map((msg: any) => {
+        let speaker = "Unknown";
+        if (msg.speakerId === "self") {
+          speaker = "Self";
+        } else if (msg.speakerId === "unknown" || msg.speakerId === "?") {
+          speaker = "Unknown";
+        } else {
+          // Look up part label by ID
+          const part = partNodes.find(p => p.id === msg.speakerId);
+          speaker = part?.label || "Part";
+        }
+        const text = msg.text || "";
+        return `${speaker}: ${text}`;
+      })
+      .join(" • ");
+  } catch {
+    return "";
+  }
+};
+
+// Extract title from text thread
+const extractTextThreadTitle = (content: string): string => {
+  if (!content) return "Text Thread";
+  try {
+    const messages = JSON.parse(content);
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return "Empty Text Thread";
+    }
+    const firstMessage = messages[0];
+    const text = firstMessage?.text || "";
+    if (text) {
+      return text.slice(0, 50) + (text.length > 50 ? "..." : "");
+    }
+    return "Text Thread";
+  } catch {
+    return "Text Thread";
+  }
+};
+
+const extractPlainText = (content: string, partNodes: Array<{ id: string; label: string }> = []) => {
+  if (!content) return "";
+
+  // Check if it's a text thread first
+  if (isTextThread(content)) {
+    return extractTextThreadPreview(content, partNodes);
+  }
+
+  // Otherwise treat as HTML
   if (typeof window === "undefined") {
-    return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    return content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   }
 
   const temp = document.createElement("div");
-  temp.innerHTML = html;
+  temp.innerHTML = content;
   return (temp.textContent || temp.innerText || "").trim();
 };
 
-const deriveTitleFromContent = (html: string, fallback: string) => {
-  const text = extractPlainText(html);
+const deriveTitleFromContent = (content: string, fallback: string) => {
+  // Check if it's a text thread
+  if (isTextThread(content)) {
+    return extractTextThreadTitle(content);
+  }
+
+  // For HTML content, extract plain text
+  let text = "";
+  if (typeof window === "undefined") {
+    text = content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  } else {
+    const temp = document.createElement("div");
+    temp.innerHTML = content;
+    text = (temp.textContent || temp.innerText || "").trim();
+  }
+  
   if (!text) return fallback;
 
   const firstLine =
@@ -98,6 +181,7 @@ const withAlpha = (hex: string, alpha: number) => {
 export default function JournalDrawer() {
   useDebouncedJournalSave();
   const { darkMode } = useThemeContext();
+  const queryClient = useQueryClient();
 
   const isOpen = useJournalStore((s) => s.isOpen);
   const closeJournal = useJournalStore((s) => s.closeJournal);
@@ -106,6 +190,10 @@ export default function JournalDrawer() {
   const setJournalData = useJournalStore((s) => s.setJournalData);
   const loadEntry = useJournalStore((s) => s.loadEntry);
   const activeEntryId = useJournalStore((s) => s.activeEntryId);
+  const selectedSpeakers = useJournalStore((s) => s.selectedSpeakers);
+  const setSelectedSpeakers = useJournalStore((s) => s.setSelectedSpeakers);
+  // Ensure selectedSpeakers is always an array
+  const speakersArray = Array.isArray(selectedSpeakers) ? selectedSpeakers : [];
   const lastSavedJournalData = useJournalStore(
     (s) => s.lastSavedJournalData
   );
@@ -119,17 +207,17 @@ export default function JournalDrawer() {
   const { mutateAsync: saveJournalEntry, isPending: isSaving } =
     useSaveJournalEntry();
 
-  const [showContext, setShowContext] = useState(true);
-  const [showHistory, setShowHistory] = useState(true);
-  const hasSidePanels = showContext || showHistory;
-  const layoutIsCompact = !hasSidePanels;
+  const [leftPanelTab, setLeftPanelTab] = useState<"info" | "history">("info");
+  const [showLeftPanel, setShowLeftPanel] = useState(true);
+  const [journalMode, setJournalMode] = useState<"normal" | "textThread" | null>(null);
+  const [showModeSelection, setShowModeSelection] = useState(false);
+  const [isStartingNewEntry, setIsStartingNewEntry] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     // Only auto-hide on very small screens, but allow user to toggle
     if (window.innerWidth < 768) {
-      setShowContext(false);
-      setShowHistory(false);
+      setShowLeftPanel(false);
     }
   }, []);
 
@@ -222,8 +310,8 @@ export default function JournalDrawer() {
           finalNodesCount: nodes.length,
         },
         uiState: {
-          showContext,
-          showHistory,
+          leftPanelTab,
+          showLeftPanel,
         },
         searchResult: {
           targetNodeFound: !!targetNode,
@@ -238,7 +326,7 @@ export default function JournalDrawer() {
         })),
       });
     }
-  }, [isOpen, journalTarget, flowNodesContext, workingStoreNodes.length, nodes.length, showContext, showHistory, targetNode]);
+  }, [isOpen, journalTarget, flowNodesContext, workingStoreNodes.length, nodes.length, leftPanelTab, showLeftPanel, targetNode]);
 
   const relevantEntries = useMemo(() => {
     if (!journalTarget) return [] as JournalEntry[];
@@ -250,12 +338,36 @@ export default function JournalDrawer() {
     return allEntries.filter((entry) => !entry.nodeId);
   }, [allEntries, journalTarget, nodeId]);
 
+  // Get all part nodes for speaker selection
+  const partNodes = useMemo(() => {
+    return nodes
+      .filter((node) => node.type === "part")
+      .map((node) => ({
+        id: node.id,
+        label: (node.data as PartNodeData)?.label || "Unnamed Part",
+      }));
+  }, [nodes]);
+
   const activeEntry = useMemo(() => {
     if (!activeEntryId) return null;
     return relevantEntries.find((entry) => entry.id === activeEntryId) ?? null;
   }, [activeEntryId, relevantEntries]);
 
   const hasUnsavedChanges = journalData !== lastSavedJournalData;
+
+  // Detect mode from content (JSON array = textThread, otherwise normal)
+  const detectModeFromContent = useCallback((content: string | null | undefined): "normal" | "textThread" => {
+    if (!content) return "normal";
+    try {
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        return "textThread";
+      }
+    } catch {
+      // Not JSON, assume normal journal
+    }
+    return "normal";
+  }, []);
 
   // Clear journal data when switching to a different node
   const previousNodeIdRef = useRef<string | undefined>(undefined);
@@ -268,50 +380,40 @@ export default function JournalDrawer() {
     // Only clear if we're switching to a different node
     if (previousNodeIdRef.current !== undefined && previousNodeIdRef.current !== nodeId) {
       setJournalData("");
-      loadEntry({ entryId: null, content: "" });
+      loadEntry({ entryId: null, content: "", speakers: [] });
+      setJournalMode(null); // Reset mode when switching nodes
     }
     
     previousNodeIdRef.current = nodeId;
   }, [nodeId, isOpen, journalTarget, setJournalData, loadEntry]);
 
+  // Auto-load the last entry when opening if there's history and no active entry
   useEffect(() => {
     if (!journalTarget) return;
     if (hasUnsavedChanges) return;
-
-    if (relevantEntries.length === 0) {
-      if (activeEntryId !== null) {
-        loadEntry({ entryId: null, content: "" });
-      }
-      return;
+    if (activeEntryId !== null) return; // Already have an entry loaded
+    if (isStartingNewEntry) return; // Don't auto-load if user is starting a new entry
+    if (showModeSelection) return; // Don't auto-load if mode selection is showing
+    // Don't auto-load if we have a mode set but no entry ID (means it's a new entry)
+    if (journalMode !== null && activeEntryId === null) return;
+    
+    // If we have entries, load the most recent one
+    if (relevantEntries.length > 0) {
+      const latestEntry = relevantEntries[0]; // Already sorted by updatedAt desc
+      const content = latestEntry.content ?? "";
+      const detectedMode = detectModeFromContent(content);
+      setJournalMode(detectedMode);
+      setShowModeSelection(false);
+      loadEntry({ 
+        entryId: latestEntry.id, 
+        content, 
+        speakers: Array.isArray(latestEntry.speakers) ? latestEntry.speakers : [] 
+      });
+    } else if (journalMode === null) {
+      // No entries, show mode selection
+      setShowModeSelection(true);
     }
-
-    const matching = activeEntryId
-      ? relevantEntries.find((entry) => entry.id === activeEntryId)
-    : null;
-
-    const fallback = matching ?? relevantEntries[0];
-
-    if (!matching) {
-      loadEntry({ entryId: fallback.id, content: fallback.content ?? "" });
-      return;
-    }
-
-    if (
-      fallback &&
-      fallback.id === matching.id &&
-      fallback.content !== undefined &&
-      fallback.content !== journalData
-    ) {
-      loadEntry({ entryId: fallback.id, content: fallback.content });
-    }
-  }, [
-    activeEntryId,
-    hasUnsavedChanges,
-    journalData,
-    journalTarget,
-    loadEntry,
-    relevantEntries,
-  ]);
+  }, [journalTarget, relevantEntries, activeEntryId, hasUnsavedChanges, journalMode, loadEntry, detectModeFromContent, isStartingNewEntry, showModeSelection]);
 
   const handleSave = useCallback(
     async (options?: { createNewVersion?: boolean }) => {
@@ -323,6 +425,7 @@ export default function JournalDrawer() {
       }
 
       try {
+        console.log("💾 Saving journal entry with speakers:", speakersArray);
         const entry = await saveJournalEntry({
           nodeId,
           content: journalData,
@@ -330,19 +433,46 @@ export default function JournalDrawer() {
           entryId:
             options?.createNewVersion || !activeEntryId ? undefined : activeEntryId,
           createNewVersion: options?.createNewVersion || !activeEntryId,
+          speakers: speakersArray,
         });
-
-        if (entry) {
-          loadEntry({
-            entryId: entry.id ?? null,
-            content: entry.content ?? "",
-          });
+        
+        if (!entry || !entry.id) {
+          console.error("Save returned invalid entry:", entry);
+          alert("We had trouble saving that entry. The server response was invalid.");
+          return false;
         }
+        
+        // Reset the new entry flag when saving (entry now has an ID)
+        setIsStartingNewEntry(false);
+        
+        console.log("✅ Saved entry:", entry);
+
+        // Determine mode from entry content
+        let mode: "normal" | "textThread" = "normal";
+        try {
+          const contentToParse = entry.content || journalData || "";
+          if (contentToParse) {
+            const parsed = JSON.parse(contentToParse);
+            if (Array.isArray(parsed)) {
+              mode = "textThread";
+            }
+          }
+        } catch {
+          // Not JSON, keep as normal
+        }
+        setJournalMode(mode);
+        loadEntry({
+          entryId: entry.id,
+          content: entry.content ?? journalData,
+          speakers: Array.isArray(entry.speakers) ? entry.speakers : speakersArray,
+        });
 
         return true;
       } catch (error) {
         console.error("Failed to save journal entry", error);
-        alert("We had trouble saving that entry. Please try again.");
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Error details:", { errorMessage, error });
+        alert(`We had trouble saving that entry: ${errorMessage}`);
         return false;
       }
     },
@@ -354,6 +484,7 @@ export default function JournalDrawer() {
       nodeId,
       nodeLabel,
       saveJournalEntry,
+      speakersArray,
     ]
   );
 
@@ -366,55 +497,150 @@ export default function JournalDrawer() {
     await handleSave({ createNewVersion: true });
   }, [handleSave, journalData, journalTarget]);
 
-  const handleStartNewEntry = useCallback(async () => {
-    if (hasUnsavedChanges) {
-      const shouldSave = window.confirm(
-        "Save your current journal before starting a new entry?"
-      );
-      if (shouldSave) {
-        const saved = await handleSave();
-        if (!saved) return;
-      } else {
-        return;
+  const handleStartNewEntry = useCallback(() => {
+    // Allow starting new entry freely - don't block
+    // Reset mode and show mode selection modal
+    setIsStartingNewEntry(true);
+    setJournalMode(null);
+    setShowModeSelection(true);
+    loadEntry({ entryId: null, content: "", speakers: [] });
+    // Flag will be reset when mode is selected in handleModeSelect
+  }, [loadEntry]);
+
+  const handleModeSelect = useCallback((mode: "normal" | "textThread") => {
+    setJournalMode(mode);
+    setShowModeSelection(false);
+    loadEntry({ entryId: null, content: mode === "textThread" ? "[]" : "", speakers: [] });
+    // Keep isStartingNewEntry true until user actually starts typing or saves
+    // This prevents auto-load from running
+  }, [loadEntry]);
+
+  // Listen for mode setting from external sources (like PartDetailPanel)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleSetMode = (e: Event) => {
+      const customEvent = e as CustomEvent<{ mode: "normal" | "textThread" }>;
+      if (customEvent.detail && customEvent.detail.mode) {
+        setJournalMode(customEvent.detail.mode);
+        setShowModeSelection(false);
       }
-    }
-    loadEntry({ entryId: null, content: "" });
-  }, [handleSave, hasUnsavedChanges, loadEntry]);
+    };
+    
+    window.addEventListener('journal-set-mode', handleSetMode);
+    return () => {
+      window.removeEventListener('journal-set-mode', handleSetMode);
+    };
+  }, []);
 
   const handleSelectEntry = useCallback(
-    async (entry: JournalEntry) => {
+    (entry: JournalEntry) => {
       if (entry.id === activeEntryId) return;
 
-      if (hasUnsavedChanges) {
-        const shouldSave = window.confirm(
-          "Save your current journal before switching entries? Press Cancel to keep editing."
-        );
-        if (!shouldSave) return;
-
-        const saved = await handleSave();
-        if (!saved) return;
-      }
-
-      loadEntry({ entryId: entry.id, content: entry.content ?? "" });
+      // Allow switching freely - don't block
+      setIsStartingNewEntry(false); // Reset flag when selecting an existing entry
+      const content = entry.content ?? "";
+      const detectedMode = detectModeFromContent(content);
+      setJournalMode(detectedMode);
+      setShowModeSelection(false); // Hide mode selection when loading an entry
+      loadEntry({ entryId: entry.id, content, speakers: Array.isArray(entry.speakers) ? entry.speakers : [] });
     },
-    [activeEntryId, handleSave, hasUnsavedChanges, loadEntry]
+    [activeEntryId, loadEntry, detectModeFromContent]
+  );
+
+  const handleDeleteEntry = useCallback(
+    async (entryId: string) => {
+      if (!journalTarget) return;
+      
+      const confirmed = window.confirm("Are you sure you want to delete this journal entry?");
+      if (!confirmed) return;
+      
+      try {
+        const url = nodeId 
+          ? `/api/journal/node/${nodeId}?entryId=${entryId}`
+          : `/api/journal/global?entryId=${entryId}`;
+        
+        const response = await fetch(url, {
+          method: "DELETE",
+        });
+        
+        if (response.ok || response.status === 204) {
+          // Invalidate the journal entries query to refresh the list
+          await queryClient.invalidateQueries({ queryKey: ["journal", "all"] });
+          if (nodeId) {
+            await queryClient.invalidateQueries({ queryKey: ["journal", "node", nodeId] });
+          }
+          
+          // If we deleted the active entry, wait for refetch then load the most recent remaining entry or clear
+          if (entryId === activeEntryId) {
+            // Refetch and wait for the data to update
+            await queryClient.refetchQueries({ queryKey: ["journal", "all"] });
+            
+            // Get the updated entries from cache
+            const updatedEntries = queryClient.getQueryData<JournalEntry[]>(["journal", "all"]) ?? [];
+            const remainingEntries = updatedEntries.filter(e => 
+              nodeId 
+                ? (e.nodeId === nodeId || (!e.nodeId && !nodeId))
+                : !e.nodeId
+            );
+            
+            if (remainingEntries.length > 0) {
+              const latestEntry = remainingEntries[0];
+              const content = latestEntry.content ?? "";
+              const detectedMode = detectModeFromContent(content);
+              setJournalMode(detectedMode);
+              loadEntry({ 
+                entryId: latestEntry.id, 
+                content, 
+                speakers: Array.isArray(latestEntry.speakers) ? latestEntry.speakers : [] 
+              });
+            } else {
+              // No entries left, show mode selection
+              setJournalMode(null);
+              setShowModeSelection(true);
+              loadEntry({ entryId: null, content: "", speakers: [] });
+            }
+          }
+        } else {
+          alert("Failed to delete journal entry. Please try again.");
+        }
+      } catch (error) {
+        console.error("Failed to delete journal entry:", error);
+        alert("Failed to delete journal entry. Please try again.");
+      }
+    },
+    [journalTarget, nodeId, activeEntryId, relevantEntries, loadEntry, detectModeFromContent, queryClient]
   );
 
   const attemptClose = useCallback(async () => {
+    // Only prompt for save when closing, don't block - always allow closing
     if (hasUnsavedChanges) {
       const shouldSave = window.confirm(
-        "Save your current journal before closing?"
+        "You have unsaved changes. Save before closing?"
       );
       if (shouldSave) {
-        const saved = await handleSave();
-        if (!saved) return;
-    } else {
-        return;
+        await handleSave();
+        // Continue closing even if save fails
       }
+      // If user clicks Cancel, still close (don't block)
     }
 
+    setJournalMode(null);
+    setShowModeSelection(false);
     closeJournal();
   }, [closeJournal, handleSave, hasUnsavedChanges]);
+
+  const toggleSpeaker = useCallback((speakerId: string) => {
+    console.log("🎤 toggleSpeaker called with:", speakerId);
+    setSelectedSpeakers((prev) => {
+      const prevArray = Array.isArray(prev) ? prev : [];
+      const newArray = prevArray.includes(speakerId)
+        ? prevArray.filter((id) => id !== speakerId)
+        : [...prevArray, speakerId];
+      console.log("🎤 Toggle speaker state update:", { speakerId, prevArray, newArray });
+      return newArray;
+    });
+  }, [setSelectedSpeakers]);
 
   const renderContextPanel = () => {
     console.log("🎨 renderContextPanel called", {
@@ -580,7 +806,7 @@ export default function JournalDrawer() {
                       </span>
                     );
                   })()}
-                  {data.age && (
+                  {data.age && data.age.toLowerCase() !== "unknown" && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500">
                       Age{" "}
                       <span className="font-semibold text-slate-700">
@@ -588,7 +814,7 @@ export default function JournalDrawer() {
                       </span>
                     </span>
                   )}
-                  {data.gender && (
+                  {data.gender && data.gender.toLowerCase() !== "unknown" && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500">
                       Gender{" "}
                       <span className="font-semibold text-slate-700">
@@ -880,72 +1106,118 @@ export default function JournalDrawer() {
       );
     }
 
-    if (relevantEntries.length === 0) {
-      return (
-        <div className="space-y-3 text-sm text-slate-600">
-          <p>No saved journal entries yet.</p>
-          <p>Use the save button to capture your first entry.</p>
-        </div>
-      );
-    }
-
     return (
       <div className="space-y-3">
-        {relevantEntries.map((entry) => {
-          const preview = extractPlainText(entry.content);
-          const title =
-            entry.title?.trim() ||
-            deriveTitleFromContent(entry.content, "Untitled entry");
-          const isActive = entry.id === activeEntryId;
-
-          return (
-            <button
-              key={entry.id}
-              type="button"
-              onClick={() => void handleSelectEntry(entry)}
-              className={`w-full rounded-xl border px-4 py-3 text-left transition ${
-                isActive
-                  ? "border-slate-900 bg-slate-900 text-white shadow-lg"
-                  : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
-              }`}
-            >
-              <div className="flex items-center justify-between text-xs uppercase tracking-wide">
-                <span
-                  className={
-                    isActive ? "text-slate-200" : "text-slate-500"
-                  }
-                >
-                  {formatTimestamp(entry.updatedAt)}
-                </span>
-                {isActive && (
-                  <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-900">
-                    Current
-                  </span>
-                )}
-              </div>
-              <h4
-                className={`mt-2 text-sm font-semibold ${
-                  isActive ? "text-white" : "text-slate-900"
-                }`}
-              >
-                {title}
+        {/* New Entry Button */}
+        <button
+          type="button"
+          onClick={() => void handleStartNewEntry()}
+          className="w-full rounded-xl border-2 border-dashed border-slate-300 bg-white px-4 py-3 text-left transition hover:border-blue-500 hover:bg-blue-50/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-blue-100 p-2">
+              <FilePlus2 className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-slate-900">
+                New Entry
               </h4>
-              <p
-                className={`mt-1 text-sm leading-relaxed ${
-                  isActive ? "text-slate-200" : "text-slate-600"
-                }`}
-                style={{
-                  display: "-webkit-box",
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                }}
-              >
-                {preview || "This entry is currently empty."}
+              <p className="text-xs text-slate-500">
+                Start a new journal entry
               </p>
-            </button>
-          );
-        })}
+            </div>
+          </div>
+        </button>
+
+        {/* History List */}
+        {relevantEntries.length === 0 ? (
+          <div className="space-y-3 text-sm text-slate-600 py-4">
+            <p>No saved journal entries yet.</p>
+            <p className="text-xs text-slate-500">
+              Click "New Entry" to start, then save your first entry.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {relevantEntries.map((entry) => {
+              const preview = extractPlainText(entry.content, partNodes);
+              const title =
+                entry.title?.trim() ||
+                deriveTitleFromContent(entry.content, "Untitled entry");
+              const isActive = entry.id === activeEntryId;
+
+              return (
+                <div
+                  key={entry.id}
+                  className={`w-full rounded-xl border transition ${
+                    isActive
+                      ? "border-slate-900 bg-slate-900 text-white shadow-lg"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => void handleSelectEntry(entry)}
+                    className="w-full px-4 py-3 text-left"
+                  >
+                    <div className="flex items-center justify-between text-xs uppercase tracking-wide">
+                      <span
+                        className={
+                          isActive ? "text-slate-200" : "text-slate-500"
+                        }
+                      >
+                        {formatTimestamp(entry.updatedAt)}
+                      </span>
+                      {isActive && (
+                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-900">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <h4
+                      className={`mt-2 text-sm font-semibold ${
+                        isActive ? "text-white" : "text-slate-900"
+                      }`}
+                    >
+                      {title}
+                    </h4>
+                    <p
+                      className={`mt-1 text-sm leading-relaxed ${
+                        isActive ? "text-slate-200" : "text-slate-600"
+                      }`}
+                      style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {preview || "This entry is currently empty."}
+                    </p>
+                  </button>
+                  <div className="px-4 pb-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleDeleteEntry(entry.id);
+                      }}
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition ${
+                        isActive
+                          ? "text-slate-300 hover:text-red-300 hover:bg-red-900/20"
+                          : "text-slate-500 hover:text-red-600 hover:bg-red-50"
+                      }`}
+                      title="Delete entry"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   };
@@ -965,91 +1237,24 @@ export default function JournalDrawer() {
         }`}
       >
         <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-2xl">
-          <header className="border-b border-slate-200/80 bg-white/85 px-6 py-5 shadow-sm backdrop-blur">
-            <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold text-slate-900">
-                  {nodeLabel}
-                </h2>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  {nodeType && (
-                    <span
-                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.28em]"
-                      style={{
-                        backgroundColor: darkMode 
-                          ? "rgba(255,255,255,0.12)" 
-                          : withAlpha(accentColor ?? NodeBackgroundColors.default, 0.22),
-                        color: darkMode 
-                          ? "#ffffff" 
-                          : (NodeTextColors[nodeType as keyof typeof NodeTextColors] ?? NodeTextColors.default),
-                      }}
-                    >
-                      {capitalize(nodeType)}
-                    </span>
-                  )}
-                  <span
-                    className={`flex items-center gap-1 font-medium ${
-                      hasUnsavedChanges ? "text-amber-600" : "text-emerald-600"
-                    }`}
-                  >
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{
-                        backgroundColor: hasUnsavedChanges
-                          ? "#f97316"
-                          : "#047857",
-                      }}
-                    />
-                    {hasUnsavedChanges ? "Unsaved changes" : "Saved"}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={12} />
-                    {activeEntry
-                      ? `Updated ${formatTimestamp(activeEntry.updatedAt)}`
-                      : "Not saved yet"}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <History size={12} />
-                    {relevantEntries.length}{" "}
-                    {relevantEntries.length === 1 ? "version" : "versions"}
-                  </span>
-                </div>
-              </div>
-
+          <header className="border-b border-slate-200/80 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
+            <div className="flex items-center justify-between gap-3 max-w-4xl mx-auto">
+              <h2 className="text-lg font-semibold text-slate-900 truncate flex-1">
+                {nodeLabel}
+              </h2>
+              
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                   type="button"
-                  onClick={() => setShowContext((prev) => !prev)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition flex-shrink-0 ${
-                    showContext
-                      ? "border-slate-900 bg-slate-900 text-white shadow-sm"
-                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-100"
+                  onClick={() => setShowLeftPanel((prev) => !prev)}
+                  className={`rounded-full p-1.5 transition flex-shrink-0 ${
+                    showLeftPanel
+                      ? "bg-slate-900 text-white"
+                      : "text-slate-500 hover:bg-slate-100"
                   }`}
+                  title="Toggle sidebar"
                 >
-                  <Layers size={13} />
-                  Info
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowHistory((prev) => !prev)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition flex-shrink-0 ${
-                    showHistory
-                      ? "border-slate-900 bg-slate-900 text-white shadow-sm"
-                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  <History size={13} />
-                  History
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => void handleStartNewEntry()}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 flex-shrink-0"
-                >
-                  <FilePlus2 size={13} />
-                  New entry
+                  <Layers size={16} />
                 </button>
 
                 <button
@@ -1069,9 +1274,10 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void attemptClose()}
-                  className="rounded-full border border-transparent p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 flex-shrink-0"
+                  className="rounded-full p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 flex-shrink-0"
+                  title="Close"
                 >
-                  <X size={16} />
+                  <X size={18} />
                 </button>
               </div>
             </div>
@@ -1079,89 +1285,216 @@ export default function JournalDrawer() {
 
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto px-6 pb-6 pt-6">
-              {/* Side panels positioned relative to centered content */}
-              {showContext && (
+              {/* Left panel with tabs */}
+              {showLeftPanel && (
                 <>
-                  <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 px-4 py-5 shadow-inner" style={{ left: 'calc((100% - 3rem - 56rem) / 2 - 20rem)', top: '1.5rem' }}>
-                    <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                      <Layers size={14} />
-                      Info
+                  <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white/85 shadow-inner" style={{ left: '1.5rem', top: '1.5rem' }}>
+                    {/* Tab buttons */}
+                    <div className="flex border-b border-slate-200/70 bg-slate-50/50">
+                      <button
+                        type="button"
+                        onClick={() => setLeftPanelTab("info")}
+                        className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition ${
+                          leftPanelTab === "info"
+                            ? "border-b-2 border-slate-900 bg-white text-slate-900"
+                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <Layers size={14} />
+                          Info
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLeftPanelTab("history")}
+                        className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition ${
+                          leftPanelTab === "history"
+                            ? "border-b-2 border-slate-900 bg-white text-slate-900"
+                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <History size={14} />
+                          History
+                        </div>
+                      </button>
                     </div>
-                    {renderContextPanel()}
+                    {/* Tab content */}
+                    <div className="flex-1 overflow-y-auto px-4 py-5">
+                      {leftPanelTab === "info" ? (
+                        renderContextPanel()
+                      ) : (
+                        <div>
+                          <div className="mb-4 flex items-center justify-between">
+                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                              History
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => void handleSaveNewVersion()}
+                              disabled={isSaving}
+                              title="Save current content as a new version (keeps history)"
+                              className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
+                            >
+                              <Sparkles size={14} />
+                              Snapshot
+                            </button>
+                          </div>
+                          {renderHistoryPanel()}
+                        </div>
+                      )}
+                    </div>
                   </aside>
 
                   <div className="block lg:hidden">
-                    <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-5 shadow-sm">
-                      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                        <Layers size={14} />
-                        Info
+                    <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200/70 bg-white/90 shadow-sm">
+                      {/* Tab buttons for mobile */}
+                      <div className="flex border-b border-slate-200/70 bg-slate-50/50">
+                        <button
+                          type="button"
+                          onClick={() => setLeftPanelTab("info")}
+                          className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition ${
+                            leftPanelTab === "info"
+                              ? "border-b-2 border-slate-900 bg-white text-slate-900"
+                              : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <Layers size={14} />
+                            Info
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLeftPanelTab("history")}
+                          className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition ${
+                            leftPanelTab === "history"
+                              ? "border-b-2 border-slate-900 bg-white text-slate-900"
+                              : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <History size={14} />
+                            History
+                          </div>
+                        </button>
                       </div>
-                      {renderContextPanel()}
+                      {/* Tab content for mobile */}
+                      <div className="px-4 py-5">
+                        {leftPanelTab === "info" ? (
+                          renderContextPanel()
+                        ) : (
+                          <div>
+                            <div className="mb-4 flex items-center justify-between">
+                              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                                History
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => void handleSaveNewVersion()}
+                                disabled={isSaving}
+                                title="Save current content as a new version (keeps history)"
+                                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
+                              >
+                                <Sparkles size={14} />
+                                Snapshot
+                              </button>
+                            </div>
+                            {renderHistoryPanel()}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </>
               )}
 
-              {showHistory && (
-                <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-y-auto rounded-2xl border border-slate-200/70 bg-white/85 px-4 py-5 shadow-inner" style={{ right: 'calc((100% - 3rem - 56rem) / 2 - 20rem)', top: '1.5rem' }}>
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                      History
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void handleSaveNewVersion()}
-                      disabled={isSaving}
-                      title="Save current content as a new version (keeps history)"
-                      className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
-                    >
-                      <Sparkles size={14} />
-                      Snapshot
-                    </button>
-                  </div>
-                  {renderHistoryPanel()}
-                </aside>
-              )}
-
-              {/* Main content area - always centered */}
-              <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 overflow-hidden">
-                <div className="flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-xl">
-                  <JournalEditor
-                    content={journalData}
-                    onContentChange={setJournalData}
-                    nodeType={
-                      nodeType as
-                        | ImpressionType
-                        | "part"
-                        | "tension"
-                        | "interaction"
-                        | undefined
-                    }
-                  />
+              {/* Main content area - expands to fill space */}
+              <main className={`flex flex-1 flex-col gap-6 overflow-hidden ${showLeftPanel ? 'lg:ml-[19.5rem] lg:mr-6' : 'items-center'}`}>
+                <div className={`flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-xl w-full ${showLeftPanel ? '' : journalMode === 'textThread' ? 'max-w-[600px]' : 'max-w-4xl'}`}>
+                  {/* Mode Selection Modal */}
+                  {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="max-w-2xl w-full p-8">
+                        <div className="text-center mb-8">
+                          <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                            Choose Journal Type
+                          </h3>
+                          <p className="text-slate-600">
+                            Select how you'd like to record this journal entry
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <button
+                            type="button"
+                            onClick={() => handleModeSelect("normal")}
+                            className="group relative p-6 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-white hover:bg-blue-50/50 transition-all text-left"
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className="p-3 rounded-xl bg-blue-100 group-hover:bg-blue-200 transition">
+                                <Book className="w-6 h-6 text-blue-600" />
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-lg font-semibold text-slate-900 mb-1">
+                                  Normal Journal
+                                </h4>
+                                <p className="text-sm text-slate-600">
+                                  Traditional rich text editor with inline speaker notation. Perfect for structured journaling and notes.
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleModeSelect("textThread")}
+                            className="group relative p-6 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-white hover:bg-blue-50/50 transition-all text-left"
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className="p-3 rounded-xl bg-blue-100 group-hover:bg-blue-200 transition">
+                                <MessageSquare className="w-6 h-6 text-blue-600" />
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-lg font-semibold text-slate-900 mb-1">
+                                  Text Thread
+                                </h4>
+                                <p className="text-sm text-slate-600">
+                                  Chat-style conversation interface. Great for IFS parts dialogues and back-and-forth exchanges.
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : journalMode === "textThread" ? (
+                    <TextThreadEditor
+                      content={journalData}
+                      onContentChange={setJournalData}
+                      partNodes={partNodes}
+                      targetPartId={nodeType === "part" ? nodeId : undefined}
+                    />
+                  ) : (
+                    <JournalEditor
+                      content={journalData}
+                      onContentChange={setJournalData}
+                      nodeType={
+                        nodeType as
+                          | ImpressionType
+                          | "part"
+                          | "tension"
+                          | "interaction"
+                          | undefined
+                      }
+                      selectedSpeakers={speakersArray}
+                      onToggleSpeaker={(id) => {
+                        console.log("📞 onToggleSpeaker prop called with:", id);
+                        toggleSpeaker(id);
+                      }}
+                      partNodes={partNodes}
+                    />
+                  )}
                 </div>
-
-                {showHistory && (
-                  <div className="block lg:hidden">
-                    <div className="mb-3 flex items-center justify-between">
-                      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                        History
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => void handleSaveNewVersion()}
-                        disabled={isSaving}
-                        title="Save current content as a new version (keeps history)"
-                        className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
-                      >
-                        <Sparkles size={14} />
-                        Snapshot
-                      </button>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-5 shadow-sm">
-                      {renderHistoryPanel()}
-                    </div>
-                  </div>
-                )}
               </main>
             </div>
           </div>

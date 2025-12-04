@@ -114,6 +114,7 @@ model JournalEntry {
 
   title   String?
   content String
+  speakers String[] @default([]) // Array of part IDs or "self"
   tags    Tag[]   @relation("JournalTags")
 
   conflictId String?

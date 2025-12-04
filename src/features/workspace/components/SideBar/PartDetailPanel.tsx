@@ -3,6 +3,36 @@
 import React, { useState, useMemo, useEffect, useRef, memo } from "react";
 import Image from "next/image";
 import { useThemeContext } from "@/state/context/ThemeContext";
+
+// Helper to safely create CustomEvent
+const createCustomEvent = (type: string, detail: any): Event | null => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    // Can't create events in SSR
+    return null;
+  }
+  
+  try {
+    // Try using CustomEvent constructor
+    if (typeof CustomEvent !== 'undefined' && typeof window.CustomEvent !== 'undefined') {
+      return new window.CustomEvent(type, { detail });
+    }
+    // Fallback for older browsers
+    if (typeof document.createEvent !== 'undefined') {
+      const event = document.createEvent('CustomEvent');
+      event.initCustomEvent(type, false, false, detail);
+      return event;
+    }
+    // Final fallback
+    if (typeof Event !== 'undefined') {
+      const event = new Event(type);
+      (event as any).detail = detail;
+      return event;
+    }
+  } catch (error) {
+    console.error('Failed to create custom event:', error);
+  }
+  return null;
+};
 import { 
   Eye, 
   Heart,
@@ -21,7 +51,8 @@ import {
   Clock,
   Upload,
   Pencil,
-  Trash2
+  Trash2,
+  History
 } from "lucide-react";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
@@ -156,6 +187,7 @@ const PartDetailPanel = () => {
   const [isLoadingJournal, setIsLoadingJournal] = useState(false);
   const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
   const [showInfoEditModal, setShowInfoEditModal] = useState(false);
+  const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -182,19 +214,19 @@ const PartDetailPanel = () => {
     
     setIsLoadingJournal(true);
     try {
-      // Use the existing journal API that works with nodeId
-      const response = await fetch(`/api/journal/node/${selectedPartId}`);
+      // Fetch all journal entries with history
+      const response = await fetch(`/api/journal/node/${selectedPartId}?history=true`);
       if (response.ok) {
-        const entry = await response.json();
-        // Convert single entry to array format for consistency
-        // Only show entries that have actual content
-        if (entry && entry.content && entry.content.trim().length > 0) {
-          setJournalEntries([entry]);
-        } else {
-          setJournalEntries([]);
-        }
+        const data = await response.json();
+        // Handle both single entry and entries array response formats
+        const entries = data.entries || (data.id ? [data] : []);
+        // Filter out empty entries
+        const validEntries = entries.filter((entry: any) => 
+          entry && entry.content && entry.content.trim().length > 0
+        );
+        setJournalEntries(validEntries);
       } else if (response.status === 404) {
-        // No journal entry exists yet
+        // No journal entries exist yet
         setJournalEntries([]);
       }
     } catch (error) {
@@ -202,6 +234,29 @@ const PartDetailPanel = () => {
       setJournalEntries([]);
     } finally {
       setIsLoadingJournal(false);
+    }
+  };
+
+  const deleteJournalEntry = async (entryId: string) => {
+    if (!selectedPartId) return;
+    
+    const confirmed = window.confirm("Are you sure you want to delete this journal entry?");
+    if (!confirmed) return;
+    
+    try {
+      const response = await fetch(`/api/journal/node/${selectedPartId}?entryId=${entryId}`, {
+        method: "DELETE",
+      });
+      
+      if (response.ok || response.status === 204) {
+        // Reload entries after deletion
+        await loadJournalEntries();
+      } else {
+        alert("Failed to delete journal entry. Please try again.");
+      }
+    } catch (error) {
+      console.error("Failed to delete journal entry:", error);
+      alert("Failed to delete journal entry. Please try again.");
     }
   };
 
@@ -905,16 +960,17 @@ const PartDetailPanel = () => {
                           );
                         })()}
                         {/* Age and Gender Display - To the right of part type */}
-                        {(data.age as string) || (data.gender as string) ? (
+                        {((data.age as string) && (data.age as string).toLowerCase() !== "unknown") || 
+                         ((data.gender as string) && (data.gender as string).toLowerCase() !== "unknown") ? (
                           <>
-                            {(data.age as string) && (data.age as string) !== "Unknown" && (
+                            {(data.age as string) && (data.age as string).toLowerCase() !== "unknown" && (
                               <span className={`px-2 py-1 rounded text-xs ${
                                 darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
                               }`}>
                                 {data.age as string}
                               </span>
                             )}
-                            {(data.gender as string) && (
+                            {(data.gender as string) && (data.gender as string).toLowerCase() !== "unknown" && (
                               <span className={`px-2 py-1 rounded text-xs ${
                                 darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
                               }`}>
@@ -1202,54 +1258,273 @@ const PartDetailPanel = () => {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {journalEntries.map((entry) => (
-                    <div key={entry.id} className={`${subCardClasses} p-5 shadow-sm`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Clock className={`w-4 h-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
-                          <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
-                            {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString()}
-                          </span>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
+                      {journalEntries.length} {journalEntries.length === 1 ? "entry" : "entries"}
+                    </span>
+                    <button
+                      onClick={() => setShowJournalHistoryModal(true)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                        darkMode
+                          ? "border border-slate-700 text-slate-200 hover:bg-slate-800/60"
+                          : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      <History className="w-3.5 h-3.5" />
+                      <span>View All</span>
+                    </button>
+                  </div>
+                  {/* Show only the 3 most recent entries */}
+                  <div className="space-y-3">
+                  {journalEntries.map((entry) => {
+                    // Determine if it's a text thread
+                    const isTextThread = (() => {
+                      try {
+                        const parsed = JSON.parse(entry.content);
+                        return Array.isArray(parsed);
+                      } catch {
+                        return false;
+                      }
+                    })();
+
+                    // Get speaker names for display
+                    const speakerNames = (() => {
+                      if (!entry.speakers || entry.speakers.length === 0) return [];
+                      return entry.speakers.map((speakerId: string) => {
+                        if (speakerId === "self") return "Self";
+                        if (speakerId === "unknown" || speakerId === "?") return "Unknown";
+                        // Try to find the part node
+                        const partNode = nodes.find(n => n.id === speakerId);
+                        return partNode?.data?.label || partNode?.data?.name || speakerId;
+                      });
+                    })();
+
+                    // Check if entry was updated (different from created)
+                    const wasUpdated = entry.updatedAt && entry.createdAt && 
+                      new Date(entry.updatedAt).getTime() !== new Date(entry.createdAt).getTime();
+
+                    // Get content preview
+                    const contentPreview = (() => {
+                      if (isTextThread) {
+                        try {
+                          const parsed = JSON.parse(entry.content);
+                          if (Array.isArray(parsed) && parsed.length > 0) {
+                            // Get part nodes for speaker name resolution
+                            const partNodesMap = new Map(nodes.filter(n => n.type === "part").map(n => [n.id, n]));
+                            
+                            return parsed.slice(0, 8).map((msg: any) => {
+                              let speakerLabel = "Unknown";
+                              if (msg.speakerId === "self") {
+                                speakerLabel = "Self";
+                              } else if (msg.speakerId === "unknown" || msg.speakerId === "?") {
+                                speakerLabel = "Unknown";
+                              } else {
+                                const partNode = partNodesMap.get(msg.speakerId);
+                                speakerLabel = partNode?.data?.label || partNode?.data?.name || msg.speakerId;
+                              }
+                              return `${speakerLabel}: ${msg.text || ""}`;
+                            }).join("\n") + (parsed.length > 8 ? `\n... (${parsed.length - 8} more messages)` : "");
+                          }
+                        } catch {
+                          // Fall through to regular content
+                        }
+                      }
+                      // Regular content - show first 500 chars
+                      const text = entry.content || "";
+                      return text.length > 500 ? text.substring(0, 500) + "..." : text;
+                    })();
+
+                    // Get word/character count
+                    const wordCount = isTextThread ? 
+                      (() => {
+                        try {
+                          const parsed = JSON.parse(entry.content);
+                          if (Array.isArray(parsed)) {
+                            return parsed.reduce((acc: number, msg: any) => {
+                              return acc + (msg.text || "").split(/\s+/).filter((w: string) => w.length > 0).length;
+                            }, 0);
+                          }
+                        } catch {}
+                        return 0;
+                      })() :
+                      (entry.content || "").split(/\s+/).filter(w => w.length > 0).length;
+                    const charCount = entry.content?.length || 0;
+
+                    return (
+                      <div key={entry.id} className={`${subCardClasses} p-5 shadow-sm hover:shadow-md transition-shadow`}>
+                        {/* Header with dates and actions */}
+                        <div className="flex items-start justify-between mb-3 gap-4">
+                          <div className="flex-1 space-y-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Clock className={`w-4 h-4 flex-shrink-0 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                              <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                Created: {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              {wasUpdated && (
+                                <>
+                                  <span className={darkMode ? "text-slate-600" : "text-slate-400"}>•</span>
+                                  <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                    Updated: {new Date(entry.updatedAt).toLocaleDateString()} at {new Date(entry.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            
+                            {/* Entry type and metadata */}
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                                isTextThread
+                                  ? darkMode
+                                    ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
+                                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                                  : darkMode
+                                    ? "bg-slate-800/60 text-slate-300 border border-slate-700/50"
+                                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                              }`}>
+                                {isTextThread ? "💬 Text Thread" : "📝 Journal"}
+                              </span>
+                              
+                              {speakerNames.length > 0 && (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`text-[10px] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                    Speakers:
+                                  </span>
+                                  {speakerNames.map((name, idx) => (
+                                    <span key={idx} className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${
+                                      darkMode
+                                        ? "bg-slate-800/60 text-slate-300"
+                                        : "bg-slate-100 text-slate-600"
+                                    }`}>
+                                      {name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              <span className={`text-[10px] ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                {wordCount} words • {charCount.toLocaleString()} chars
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => {
+                                // Open this entry in the main journal drawer
+                                if (selectedPartId && partNode) {
+                                  // Detect mode from content
+                                  const detectMode = (content: string): "normal" | "textThread" => {
+                                    if (!content) return "normal";
+                                    try {
+                                      const parsed = JSON.parse(content);
+                                      if (Array.isArray(parsed)) {
+                                        return "textThread";
+                                      }
+                                    } catch {
+                                      // Not JSON, assume normal journal
+                                    }
+                                    return "normal";
+                                  };
+                                  
+                                  const mode = detectMode(entry.content);
+                                  
+                                  setJournalTarget({
+                                    type: "node",
+                                    nodeId: selectedPartId,
+                                    nodeType: "part",
+                                    title: partNode.data?.label || "Part",
+                                  });
+                                  
+                                  // Set mode and load entry - we need to trigger this after the drawer opens
+                                  setTimeout(() => {
+                                    if (typeof window === 'undefined') return;
+                                    
+                                    const store = useJournalStore.getState();
+                                    store.loadEntry({
+                                      entryId: entry.id,
+                                      content: entry.content,
+                                      speakers: Array.isArray(entry.speakers) ? entry.speakers : [],
+                                    });
+                                    
+                                    // Dispatch a custom event to set the mode
+                                    try {
+                                      const event = createCustomEvent('journal-set-mode', { mode });
+                                      if (event && typeof window !== 'undefined') {
+                                        window.dispatchEvent(event);
+                                      }
+                                    } catch (error) {
+                                      console.error('Failed to dispatch journal-set-mode event:', error);
+                                    }
+                                  }, 100);
+                                }
+                              }}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                                darkMode
+                                  ? "border border-slate-700 text-slate-200 hover:bg-slate-800/60"
+                                  : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                              }`}
+                              title="Open in journal"
+                            >
+                              <BookOpen className="w-3 h-3" />
+                              <span>Open</span>
+                            </button>
+                            <button
+                              onClick={() => extractImpressionsFromEntry(entry.id)}
+                              disabled={isExtractingImpressions}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${
+                                isExtractingImpressions
+                                  ? darkMode
+                                    ? "bg-slate-800 text-slate-400"
+                                    : "bg-slate-200 text-slate-500"
+                                  : darkMode
+                                    ? "bg-slate-100/10 text-white hover:bg-slate-100/20"
+                                    : "bg-slate-900 text-white hover:bg-slate-800"
+                              }`}
+                            >
+                              {isExtractingImpressions ? (
+                                <>
+                                  <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                                  <span>Extracting...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="w-3 h-3" />
+                                  <span>Extract</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => deleteJournalEntry(entry.id)}
+                              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                                darkMode
+                                  ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
+                                  : "text-slate-500 hover:text-red-600 hover:bg-red-50"
+                              }`}
+                              title="Delete entry"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => extractImpressionsFromEntry(entry.id)}
-                          disabled={isExtractingImpressions}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${
-                            isExtractingImpressions
-                              ? darkMode
-                                ? "bg-slate-800 text-slate-400"
-                                : "bg-slate-200 text-slate-500"
-                              : darkMode
-                                ? "bg-slate-100/10 text-white hover:bg-slate-100/20"
-                                : "bg-slate-900 text-white hover:bg-slate-800"
-                          }`}
-                        >
-                          {isExtractingImpressions ? (
-                            <>
-                              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                              <span>Extracting...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-3 h-3" />
-                              <span>Extract impressions</span>
-                            </>
-                          )}
-                        </button>
+                        
+                        {/* Title */}
+                        {entry.title && (
+                          <h4 className={`font-semibold mb-2 text-base ${darkMode ? "text-slate-100" : "text-slate-800"}`}>
+                            {entry.title}
+                          </h4>
+                        )}
+                        
+                        {/* Content Preview */}
+                        <div className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
+                          darkMode ? "text-slate-300" : "text-slate-700"
+                        }`}>
+                          {contentPreview}
+                        </div>
                       </div>
-                      {entry.title && (
-                        <h4 className={`font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-800"}`}>
-                          {entry.title}
-                        </h4>
-                      )}
-                      <div className={`whitespace-pre-wrap text-sm leading-relaxed ${
-                        darkMode ? "text-slate-300" : "text-slate-700"
-                      }`}>
-                        {entry.content}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                  </div>
                 </div>
               )}
             </div>
@@ -1664,6 +1939,293 @@ const PartDetailPanel = () => {
                       <span className="text-xs">Cancel</span>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Journal History Modal */}
+        {showJournalHistoryModal && (
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-[2px] flex items-center justify-center z-[60] p-4"
+            onClick={() => setShowJournalHistoryModal(false)}
+          >
+            <div
+              className={`${modalContainerClasses} rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-4xl max-h-[85vh] mx-4 overflow-hidden flex flex-col`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-5 border-b border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between">
+                <div>
+                  <h3 className={`text-xl font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
+                    Journal History
+                  </h3>
+                  <p className={`text-sm mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    {journalEntries.length} {journalEntries.length === 1 ? "entry" : "entries"} for {(data.name as string) || (data.label as string) || "this part"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowJournalHistoryModal(false)}
+                  className={`p-2 rounded-full border ${
+                    darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-900/60" : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                  }`}
+                  aria-label="Close"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto px-6 py-5">
+                <div className="space-y-4">
+                  {journalEntries.map((entry) => {
+                    // Determine if it's a text thread
+                    const isTextThread = (() => {
+                      try {
+                        const parsed = JSON.parse(entry.content);
+                        return Array.isArray(parsed);
+                      } catch {
+                        return false;
+                      }
+                    })();
+
+                    // Get speaker names for display
+                    const speakerNames = (() => {
+                      if (!entry.speakers || entry.speakers.length === 0) return [];
+                      return entry.speakers.map((speakerId: string) => {
+                        if (speakerId === "self") return "Self";
+                        if (speakerId === "unknown" || speakerId === "?") return "Unknown";
+                        // Try to find the part node
+                        const partNode = nodes.find(n => n.id === speakerId);
+                        return partNode?.data?.label || partNode?.data?.name || speakerId;
+                      });
+                    })();
+
+                    // Check if entry was updated (different from created)
+                    const wasUpdated = entry.updatedAt && entry.createdAt && 
+                      new Date(entry.updatedAt).getTime() !== new Date(entry.createdAt).getTime();
+
+                    // Get content preview
+                    const contentPreview = (() => {
+                      if (isTextThread) {
+                        try {
+                          const parsed = JSON.parse(entry.content);
+                          if (Array.isArray(parsed) && parsed.length > 0) {
+                            // Get part nodes for speaker name resolution
+                            const partNodesMap = new Map(nodes.filter(n => n.type === "part").map(n => [n.id, n]));
+                            
+                            return parsed.slice(0, 8).map((msg: any) => {
+                              let speakerLabel = "Unknown";
+                              if (msg.speakerId === "self") {
+                                speakerLabel = "Self";
+                              } else if (msg.speakerId === "unknown" || msg.speakerId === "?") {
+                                speakerLabel = "Unknown";
+                              } else {
+                                const partNode = partNodesMap.get(msg.speakerId);
+                                speakerLabel = partNode?.data?.label || partNode?.data?.name || msg.speakerId;
+                              }
+                              return `${speakerLabel}: ${msg.text || ""}`;
+                            }).join("\n") + (parsed.length > 8 ? `\n... (${parsed.length - 8} more messages)` : "");
+                          }
+                        } catch {
+                          // Fall through to regular content
+                        }
+                      }
+                      // Regular content - show first 500 chars
+                      const text = entry.content || "";
+                      return text.length > 500 ? text.substring(0, 500) + "..." : text;
+                    })();
+
+                    // Get word/character count
+                    const wordCount = isTextThread ? 
+                      (() => {
+                        try {
+                          const parsed = JSON.parse(entry.content);
+                          if (Array.isArray(parsed)) {
+                            return parsed.reduce((acc: number, msg: any) => {
+                              return acc + (msg.text || "").split(/\s+/).filter((w: string) => w.length > 0).length;
+                            }, 0);
+                          }
+                        } catch {}
+                        return 0;
+                      })() :
+                      (entry.content || "").split(/\s+/).filter(w => w.length > 0).length;
+                    const charCount = entry.content?.length || 0;
+
+                    return (
+                      <div key={entry.id} className={`${subCardClasses} p-5 shadow-sm hover:shadow-md transition-shadow`}>
+                        {/* Header with dates and actions */}
+                        <div className="flex items-start justify-between mb-3 gap-4">
+                          <div className="flex-1 space-y-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Clock className={`w-4 h-4 flex-shrink-0 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                              <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                Created: {new Date(entry.createdAt).toLocaleDateString()} at {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              {wasUpdated && (
+                                <>
+                                  <span className={darkMode ? "text-slate-600" : "text-slate-400"}>•</span>
+                                  <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                    Updated: {new Date(entry.updatedAt).toLocaleDateString()} at {new Date(entry.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            
+                            {/* Entry type and metadata */}
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                                isTextThread
+                                  ? darkMode
+                                    ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
+                                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                                  : darkMode
+                                    ? "bg-slate-800/60 text-slate-300 border border-slate-700/50"
+                                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                              }`}>
+                                {isTextThread ? "💬 Text Thread" : "📝 Journal"}
+                              </span>
+                              
+                              {speakerNames.length > 0 && (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`text-[10px] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                                    Speakers:
+                                  </span>
+                                  {speakerNames.map((name, idx) => (
+                                    <span key={idx} className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${
+                                      darkMode
+                                        ? "bg-slate-800/60 text-slate-300"
+                                        : "bg-slate-100 text-slate-600"
+                                    }`}>
+                                      {name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              <span className={`text-[10px] ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                {wordCount} words • {charCount.toLocaleString()} chars
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => {
+                                // Open this entry in the main journal drawer
+                                if (selectedPartId && partNode) {
+                                  // Detect mode from content
+                                  const detectMode = (content: string): "normal" | "textThread" => {
+                                    if (!content) return "normal";
+                                    try {
+                                      const parsed = JSON.parse(content);
+                                      if (Array.isArray(parsed)) {
+                                        return "textThread";
+                                      }
+                                    } catch {
+                                      // Not JSON, assume normal journal
+                                    }
+                                    return "normal";
+                                  };
+                                  
+                                  const mode = detectMode(entry.content);
+                                  
+                                  setJournalTarget({
+                                    type: "node",
+                                    nodeId: selectedPartId,
+                                    nodeType: "part",
+                                    title: partNode.data?.label || "Part",
+                                  });
+                                  
+                                  // Set mode and load entry - we need to trigger this after the drawer opens
+                                  setTimeout(() => {
+                                    if (typeof window === 'undefined') return;
+                                    
+                                    const store = useJournalStore.getState();
+                                    store.loadEntry({
+                                      entryId: entry.id,
+                                      content: entry.content,
+                                      speakers: Array.isArray(entry.speakers) ? entry.speakers : [],
+                                    });
+                                    
+                                    // Dispatch a custom event to set the mode
+                                    try {
+                                      const event = createCustomEvent('journal-set-mode', { mode });
+                                      if (event && typeof window !== 'undefined') {
+                                        window.dispatchEvent(event);
+                                      }
+                                    } catch (error) {
+                                      console.error('Failed to dispatch journal-set-mode event:', error);
+                                    }
+                                  }, 100);
+                                  
+                                  setShowJournalHistoryModal(false);
+                                }
+                              }}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                                darkMode
+                                  ? "border border-slate-700 text-slate-200 hover:bg-slate-800/60"
+                                  : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                              }`}
+                              title="Open in journal"
+                            >
+                              <BookOpen className="w-3 h-3" />
+                              <span>Open</span>
+                            </button>
+                            <button
+                              onClick={() => extractImpressionsFromEntry(entry.id)}
+                              disabled={isExtractingImpressions}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${
+                                isExtractingImpressions
+                                  ? darkMode
+                                    ? "bg-slate-800 text-slate-400"
+                                    : "bg-slate-200 text-slate-500"
+                                  : darkMode
+                                    ? "bg-slate-100/10 text-white hover:bg-slate-100/20"
+                                    : "bg-slate-900 text-white hover:bg-slate-800"
+                              }`}
+                            >
+                              {isExtractingImpressions ? (
+                                <>
+                                  <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                                  <span>Extracting...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="w-3 h-3" />
+                                  <span>Extract</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => deleteJournalEntry(entry.id)}
+                              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                                darkMode
+                                  ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
+                                  : "text-slate-500 hover:text-red-600 hover:bg-red-50"
+                              }`}
+                              title="Delete entry"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Title */}
+                        {entry.title && (
+                          <h4 className={`font-semibold mb-2 text-base ${darkMode ? "text-slate-100" : "text-slate-800"}`}>
+                            {entry.title}
+                          </h4>
+                        )}
+                        
+                        {/* Content Preview */}
+                        <div className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
+                          darkMode ? "text-slate-300" : "text-slate-700"
+                        }`}>
+                          {contentPreview}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

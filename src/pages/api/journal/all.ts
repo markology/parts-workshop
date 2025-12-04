@@ -14,14 +14,6 @@ export default async function handler(
 
   const entries = await prisma.journalEntry.findMany({
     where: { userId },
-    select: {
-      id: true,
-      nodeId: true,
-      content: true,
-      updatedAt: true,
-      createdAt: true,
-      title: true,
-    },
     orderBy: {
       updatedAt: "desc",
     },

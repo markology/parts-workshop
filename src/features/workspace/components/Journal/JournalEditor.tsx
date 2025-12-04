@@ -1,16 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { NodeBackgroundColors } from "../../constants/Nodes";
+import { User, SquareUserRound } from "lucide-react";
 
 interface JournalEditorProps {
   content: string;
   onContentChange: (html: string) => void;
   readOnly?: boolean;
   nodeType?: ImpressionType | "part" | "tension" | "interaction";
+  selectedSpeakers?: string[];
+  onToggleSpeaker?: (speakerId: string) => void;
+  partNodes?: Array<{ id: string; label: string }>;
 }
+
 
 const FONT_SIZE_OPTIONS = [
   { label: "Small", value: "1" },
@@ -33,10 +38,105 @@ export default function JournalEditor({
   onContentChange,
   readOnly = false,
   nodeType,
+  selectedSpeakers = [],
+  onToggleSpeaker,
+  partNodes = [],
 }: JournalEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const isProgrammaticUpdate = useRef(false);
   const { darkMode } = useThemeContext();
+  const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
+  
+  // Convert HTML to plain text for storage (parseable string)
+  const htmlToText = useCallback((html: string): string => {
+    if (!html) return "";
+    if (typeof window === "undefined") {
+      // Server-side: simple regex strip
+      return html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    }
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    // Preserve line breaks from <br> and <p> tags
+    const text = temp.innerText || temp.textContent || "";
+    return text;
+  }, []);
+
+  const handleContentChange = useCallback(() => {
+    if (readOnly) return;
+    const rawHTML = editorRef.current?.innerHTML ?? "";
+    // Convert HTML to plain text for storage
+    const textContent = htmlToText(rawHTML);
+    isProgrammaticUpdate.current = true;
+    onContentChange(textContent);
+  }, [onContentChange, readOnly, htmlToText]);
+  
+  // Get all available speakers including "?" and "self"
+  const allAvailableSpeakers = useMemo(() => {
+    const speakers: Array<{ id: string; label: string; isSelf: boolean; isUnknown: boolean }> = [
+      { id: "self", label: "Self", isSelf: true, isUnknown: false },
+      { id: "?", label: "?", isSelf: false, isUnknown: true },
+      ...partNodes.map(part => ({ id: part.id, label: part.label, isSelf: false, isUnknown: false })),
+    ];
+    return speakers;
+  }, [partNodes]);
+  
+  // Generate consistent color for each speaker
+  const getSpeakerColor = useCallback((speakerId: string) => {
+    if (speakerId === "self") {
+      return darkMode ? "#3B82F6" : "#2563EB"; // Calm blue for Self
+    }
+    if (speakerId === "?") {
+      return darkMode ? "#6B7280" : "#9CA3AF"; // Grey for Unknown
+    }
+    // Generate consistent color from ID
+    let hash = 0;
+    for (let i = 0; i < speakerId.length; i++) {
+      hash = speakerId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash % 360);
+    const saturation = 65;
+    const lightness = darkMode ? 55 : 50;
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  }, [darkMode]);
+  
+  // Handle speaker selection - inserts inline notation like "[Speaker Name:] "
+  const handleSpeakerSelect = useCallback((speakerId: string) => {
+    if (!editorRef.current || readOnly) return;
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      editorRef.current.focus();
+      return;
+    }
+    
+    const range = selection.getRangeAt(0);
+    const speaker = allAvailableSpeakers.find(s => s.id === speakerId);
+    const speakerLabel = speaker?.label || "Unknown";
+    
+    // Create inline notation span
+    const span = document.createElement("span");
+    span.style.cssText = `
+      font-weight: 600;
+      color: ${getSpeakerColor(speakerId)};
+      margin-right: 4px;
+    `;
+    span.textContent = `[${speakerLabel}:] `;
+    
+    // Insert at cursor position
+    range.deleteContents();
+    range.insertNode(span);
+    
+    // Move cursor after the notation
+    range.setStartAfter(span);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    setActiveSpeaker(speakerId);
+    editorRef.current.focus();
+    handleContentChange();
+  }, [readOnly, getSpeakerColor, allAvailableSpeakers, handleContentChange]);
+
 
   const [formats, setFormats] = useState<FormatState>({
     bold: false,
@@ -72,15 +172,6 @@ export default function JournalEditor({
     },
     []
   );
-
-  const handleContentChange = useCallback(() => {
-    if (readOnly) return;
-    const rawHTML = editorRef.current?.innerHTML ?? "";
-    // Only sanitize periodically or on blur, not on every keystroke
-    // This reduces lag significantly
-    isProgrammaticUpdate.current = true;
-    onContentChange(rawHTML);
-  }, [onContentChange, readOnly]);
 
   // Debounced sanitization - only clean HTML when user stops typing
   const sanitizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -177,7 +268,7 @@ export default function JournalEditor({
 
     const range = document.createRange();
     let charIndex = 0;
-    let nodeStack = [editorRef.current];
+    let nodeStack: Node[] = [editorRef.current];
     let node: Node | undefined;
     let foundStart = false;
     let stop = false;
@@ -376,11 +467,57 @@ export default function JournalEditor({
             <ColorButton color="rgb(34, 197, 94)" />
             <ColorButton color="rgb(250, 204, 21)" />
           </div>
+
+          {!readOnly && onToggleSpeaker && (
+            <>
+              <div className="h-5 w-px bg-slate-200 dark:bg-slate-700" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs text-slate-500 font-medium">Assign to:</span>
+                {allAvailableSpeakers.map((speaker) => {
+                  const isActive = activeSpeaker === speaker.id;
+                  const speakerColor = getSpeakerColor(speaker.id);
+                  
+                  return (
+                    <button
+                      key={speaker.id}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSpeakerSelect(speaker.id);
+                      }}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                        isActive
+                          ? "ring-2 ring-offset-2 scale-105"
+                          : "hover:scale-102"
+                      }`}
+                      style={{
+                        backgroundColor: isActive ? speakerColor : (darkMode ? "rgba(30, 41, 59, 0.8)" : "rgba(255, 255, 255, 0.9)"),
+                        color: isActive ? "white" : (darkMode ? "rgb(203, 213, 225)" : "rgb(71, 85, 105)"),
+                        borderColor: isActive ? speakerColor : (darkMode ? "rgba(148, 163, 184, 0.3)" : "rgba(148, 163, 184, 0.2)"),
+                        boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                      }}
+                      title={`Start message as ${speaker.label}`}
+                    >
+                      {speaker.isSelf ? (
+                        <User size={12} />
+                      ) : speaker.isUnknown ? (
+                        <span className="text-sm font-bold">?</span>
+                      ) : (
+                        <SquareUserRound size={12} />
+                      )}
+                      {speaker.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
 
       <div
-        className={`relative flex-1 overflow-hidden rounded-2xl border shadow-inner ${
+        className={`relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex ${
           darkMode
             ? "border-slate-700 bg-slate-900/80"
             : "border-slate-200 bg-white"
@@ -389,23 +526,36 @@ export default function JournalEditor({
           boxShadow: `0 0 0 1.5px ${accentColor}20`,
         }}
       >
-        <div
-          ref={editorRef}
-          contentEditable={!readOnly}
-          suppressContentEditableWarning
-          className={`prose prose-slate h-full w-full min-w-full max-w-none px-6 py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert ${
-            darkMode ? "text-slate-100" : "text-slate-800"
-          }`}
-          style={{ whiteSpace: "pre-wrap", caretColor: accentColor }}
-          onInput={handleContentChange}
-          onBlur={handleContentChangeWithSanitization}
-        />
+        <div className="flex-1 relative overflow-hidden">
+          <div className="h-full relative overflow-y-auto">
+            <div
+              ref={editorRef}
+              contentEditable={!readOnly}
+              suppressContentEditableWarning
+              className={`prose prose-slate w-full min-w-full max-w-none py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert ${
+                darkMode ? "text-slate-100" : "text-slate-800"
+              }`}
+              style={{ 
+                whiteSpace: "pre-wrap", 
+                caretColor: accentColor, 
+                minHeight: "100%", 
+                paddingLeft: "24px", 
+                paddingRight: "24px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0",
+              }}
+              onInput={handleContentChange}
+              onBlur={handleContentChangeWithSanitization}
+            />
 
-        {!readOnly && (!content || content.length === 0) && (
-          <div className="pointer-events-none absolute left-6 top-5 text-sm text-slate-400">
-            {PLACEHOLDER_TEXT}
+            {!readOnly && (!content || content.length === 0) && (
+              <div className="pointer-events-none absolute left-6 top-5 text-sm text-slate-400">
+                {PLACEHOLDER_TEXT}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

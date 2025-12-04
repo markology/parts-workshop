@@ -73,6 +73,7 @@ export default async function handler(
         data: {
           content,
           title: typeof title === "string" ? title : undefined,
+          speakers: Array.isArray(req.body.speakers) ? req.body.speakers : undefined,
         },
       });
 
@@ -85,6 +86,7 @@ export default async function handler(
         content,
         nodeId: null,
         title: typeof title === "string" ? title : null,
+        speakers: Array.isArray(req.body.speakers) ? req.body.speakers : [],
       },
     });
 

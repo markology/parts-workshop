@@ -11,12 +11,14 @@ export const useSaveJournalEntry = () => {
       title,
       entryId,
       createNewVersion,
+      speakers,
     }: {
       nodeId?: string;
       content: string;
       title?: string;
       entryId?: string;
       createNewVersion?: boolean;
+      speakers?: string[];
     }) => {
       const url = nodeId
         ? `/api/journal/node/${nodeId}`
@@ -29,11 +31,28 @@ export const useSaveJournalEntry = () => {
           title,
           entryId,
           createNewVersion,
+          speakers,
         }),
       });
-      if (!res.ok) throw new Error("Had trouble saving journal entry");
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorMessage = "Had trouble saving journal entry";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(`${errorMessage} (${res.status})`);
+      }
 
-      return res.json();
+      const result = await res.json();
+      if (!result || !result.id) {
+        throw new Error("Server returned invalid response");
+      }
+      
+      return result;
     },
     onSuccess: (newEntry) => {
       queryClient.setQueryData(
