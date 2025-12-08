@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useThemeContext } from "@/state/context/ThemeContext";
-import { User, SquareUserRound, Plus, ChevronDown } from "lucide-react";
+import { User, SquareUserRound, Plus, ChevronDown, X } from "lucide-react";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 
 interface TextThreadEditorProps {
   content: string;
   onContentChange: (html: string) => void;
   readOnly?: boolean;
   partNodes?: Array<{ id: string; label: string }>;
-  targetPartId?: string; // The part ID that the journal is about (if journal is for a part)
+  allPartNodes?: Array<{ id: string; label: string }>;
+  nodeId?: string;
+  nodeType?: ImpressionType | "part" | "tension" | "interaction";
 }
 
 interface Message {
@@ -24,7 +27,9 @@ export default function TextThreadEditor({
   onContentChange,
   readOnly = false,
   partNodes = [],
-  targetPartId,
+  allPartNodes,
+  nodeId,
+  nodeType,
 }: TextThreadEditorProps) {
   const { darkMode } = useThemeContext();
   const [activeSpeaker, setActiveSpeaker] = useState<string>("self");
@@ -73,25 +78,37 @@ export default function TextThreadEditor({
     return [];
   }, [content]);
 
-  // Get default speakers (Self + target part if available)
+  // Get default speakers (Self + relevant parts)
+  // Unknown stays in dropdown, not in defaults
   const defaultSpeakers = useMemo(() => {
     const speakers = [
       { id: "self", label: "Self", isSelf: true, isUnknown: false },
-      { id: "unknown", label: "Unknown", isSelf: false, isUnknown: true },
     ];
     
-    // Add target part if it exists
-    if (targetPartId) {
-      const targetPart = partNodes.find(p => p.id === targetPartId);
+    // Add target part if journal is about a part
+    if (nodeType === "part" && nodeId && partNodes) {
+      const targetPart = partNodes.find(p => p.id === nodeId);
       if (targetPart) {
         speakers.push({ id: targetPart.id, label: targetPart.label, isSelf: false, isUnknown: false });
       }
     }
     
+    // For tension/interaction, parts are already filtered in partNodes prop
+    // Add all relevant parts from partNodes (these are already filtered to be relevant)
+    if (partNodes && nodeType !== "part") {
+      // For tension/interaction, add all parts in partNodes
+      partNodes.forEach((part) => {
+        if (!speakers.find(s => s.id === part.id)) {
+          speakers.push({ id: part.id, label: part.label, isSelf: false, isUnknown: false });
+        }
+      });
+    }
+    
     return speakers;
-  }, [partNodes, targetPartId]);
+  }, [partNodes, nodeId, nodeType]);
 
   // Auto-add parts that are used in messages but not in default speakers
+  // This ensures parts used in existing messages are available even if not in defaults
   useEffect(() => {
     if (messages.length === 0) return;
     
@@ -112,27 +129,70 @@ export default function TextThreadEditor({
 
   // Get all available speakers (default + added parts)
   const allSpeakers = useMemo(() => {
-    const addedParts = partNodes
-      .filter(p => addedPartIds.includes(p.id))
-      .map(p => ({ id: p.id, label: p.label, isSelf: false, isUnknown: false }));
+    const speakerMap = new Map<string, { id: string; label: string; isSelf: boolean; isUnknown: boolean }>();
     
-    return [...defaultSpeakers, ...addedParts];
-  }, [defaultSpeakers, addedPartIds, partNodes]);
+    // Add default speakers
+    defaultSpeakers.forEach((s) => speakerMap.set(s.id, s));
+    
+    // Add parts that were added from dropdown
+    // Need to look in allPartNodes, not just partNodes, since added parts might not be in partNodes
+    addedPartIds.forEach((partId) => {
+      if (!speakerMap.has(partId)) {
+        if (partId === "unknown") {
+          speakerMap.set("unknown", { id: "unknown", label: "Unknown", isSelf: false, isUnknown: true });
+        } else {
+          // Look in allPartNodes first, then partNodes as fallback
+          const part = allPartNodes?.find(p => p.id === partId) || partNodes?.find(p => p.id === partId);
+          if (part) {
+            speakerMap.set(part.id, { id: part.id, label: part.label, isSelf: false, isUnknown: false });
+          }
+        }
+      }
+    });
+    
+    return Array.from(speakerMap.values());
+  }, [defaultSpeakers, addedPartIds, partNodes, allPartNodes]);
 
-  // Get parts available to add (not already in default or added)
+  // Get parts available to add (not already in defaults or added)
+  // Unknown is always in the dropdown, not in defaults
   const availablePartsToAdd = useMemo(() => {
-    const defaultPartIds = defaultSpeakers.map(s => s.id);
-    const allUsedIds = [...defaultPartIds, ...addedPartIds];
-    return partNodes.filter(p => !allUsedIds.includes(p.id));
-  }, [partNodes, defaultSpeakers, addedPartIds]);
+    const defaultPartIds = new Set(defaultSpeakers.map(s => s.id));
+    const currentPartIds = new Set(partNodes?.map(p => p.id) || []);
+    const allShownIds = new Set([...Array.from(defaultPartIds), ...addedPartIds]);
+    
+    // Get parts from allPartNodes that are not already shown
+    const otherParts = (allPartNodes || [])
+      .filter(p => !allShownIds.has(p.id) && !currentPartIds.has(p.id))
+      .map(p => ({ 
+        id: p.id, 
+        label: p.label, 
+        isUnknown: false 
+      }));
+    
+    // Always include Unknown in dropdown (not in defaults)
+    const unknownAvailable = !addedPartIds.includes("unknown");
+    
+    return [
+      ...otherParts,
+      ...(unknownAvailable ? [{ id: "unknown", label: "Unknown", isUnknown: true }] : []),
+    ];
+  }, [partNodes, allPartNodes, defaultSpeakers, addedPartIds]);
 
-  // Add part from dropdown
+  // Add part from dropdown (including Unknown)
   const handleAddPart = useCallback((partId: string) => {
-    if (!addedPartIds.includes(partId)) {
-      setAddedPartIds(prev => [...prev, partId]);
+    if (partId === "unknown") {
+      // Unknown is special - add it to addedPartIds
+      if (!addedPartIds.includes("unknown")) {
+        setAddedPartIds(prev => [...prev, "unknown"]);
+      }
+    } else {
+      // Regular part
+      if (!addedPartIds.includes(partId)) {
+        setAddedPartIds(prev => [...prev, partId]);
+      }
     }
     setShowAddPartDropdown(false);
-    // Optionally switch to the newly added part
+    // Switch to the newly added part
     setPreviousSpeaker(activeSpeaker);
     setActiveSpeaker(partId);
     setTimeout(() => {
@@ -157,16 +217,22 @@ export default function TextThreadEditor({
   // Get speaker color
   const getSpeakerColor = useCallback((speakerId: string): string => {
     if (speakerId === "self") {
-      return darkMode ? "rgb(59, 130, 246)" : "rgb(37, 99, 235)"; // Peaceful blue
+      return darkMode ? "rgb(59, 130, 246)" : "rgb(37, 99, 235)"; // Peaceful blue - always blue
     }
     if (speakerId === "unknown") {
       return darkMode ? "rgb(107, 114, 128)" : "rgb(156, 163, 175)"; // Grey
     }
-    // Generate color for parts
-    const partIndex = partNodes.findIndex((p) => p.id === speakerId);
-    const hue = (partIndex * 137.508) % 360; // Golden angle for color distribution
-    return `hsl(${hue}, 65%, ${darkMode ? "55%" : "60%"})`;
-  }, [darkMode, partNodes]);
+    // Generate color for parts - use allPartNodes for consistent color across all parts
+    const allParts = allPartNodes || partNodes || [];
+    const partIndex = allParts.findIndex((p) => p.id === speakerId);
+    if (partIndex >= 0) {
+      // Use golden angle for color distribution to ensure different colors
+      const hue = (partIndex * 137.508) % 360;
+      return `hsl(${hue}, 65%, ${darkMode ? "55%" : "60%"})`;
+    }
+    // Fallback color if part not found
+    return darkMode ? "rgb(239, 68, 68)" : "rgb(220, 38, 38)"; // Red fallback
+  }, [darkMode, partNodes, allPartNodes]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -193,17 +259,18 @@ export default function TextThreadEditor({
     onContentChange(newContent);
     setInputText("");
     
-    // Switch to previous speaker, or default to self/target part
+    // Switch to previous speaker, or default to first non-self default speaker or self
     let nextSpeaker = previousSpeaker;
     if (!nextSpeaker) {
-      // Default to target part if journal is about a part, otherwise self
-      nextSpeaker = targetPartId || "self";
+      // Default to first non-self default speaker, or self if none
+      const firstPart = defaultSpeakers.find(s => !s.isSelf);
+      nextSpeaker = firstPart?.id || "self";
     }
     setPreviousSpeaker(activeSpeaker); // Save current as previous for next time
     setActiveSpeaker(nextSpeaker);
     
     inputRef.current?.focus();
-  }, [inputText, activeSpeaker, previousSpeaker, targetPartId, readOnly, messages, onContentChange]);
+  }, [inputText, activeSpeaker, previousSpeaker, defaultSpeakers, readOnly, messages, onContentChange]);
 
 
   // Handle Enter key (Shift+Enter for new line, Enter to send) and Tab (to cycle speakers)
@@ -361,6 +428,21 @@ export default function TextThreadEditor({
                         <SquareUserRound size={12} />
                       )}
                       {speaker.label}
+                      {addedPartIds.includes(speaker.id) && !speaker.isSelf && (
+                        <X
+                          size={10}
+                          className="ml-0.5 opacity-70 hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAddedPartIds(prev => prev.filter(id => id !== speaker.id));
+                            if (activeSpeaker === speaker.id) {
+                              // Switch to self if removing active speaker
+                              setPreviousSpeaker(activeSpeaker);
+                              setActiveSpeaker("self");
+                            }
+                          }}
+                        />
+                      )}
                     </button>
                   );
                 })}
@@ -392,9 +474,9 @@ export default function TextThreadEditor({
                         <div className="max-h-60 overflow-y-auto">
                           {availablePartsToAdd.map((part) => (
                             <button
-                              key={part.id}
+                              key={part.id || (part.isUnknown ? "unknown" : "")}
                               type="button"
-                              onClick={() => handleAddPart(part.id)}
+                              onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
                               className={`w-full text-left px-3 py-2 text-xs font-medium transition hover:bg-opacity-80 ${
                                 darkMode
                                   ? "text-slate-200 hover:bg-slate-700"
@@ -402,7 +484,13 @@ export default function TextThreadEditor({
                               }`}
                             >
                               <div className="flex items-center gap-2">
-                                <SquareUserRound size={14} />
+                                <div className="w-3.5 flex items-center justify-center">
+                                  {part.isUnknown ? (
+                                    <span className="text-sm font-bold">?</span>
+                                  ) : (
+                                    <SquareUserRound size={14} />
+                                  )}
+                                </div>
                                 <span>{part.label}</span>
                               </div>
                             </button>

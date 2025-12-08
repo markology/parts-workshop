@@ -52,7 +52,9 @@ import {
   Upload,
   Pencil,
   Trash2,
-  History
+  History,
+  Book,
+  MessagesSquare
 } from "lucide-react";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
@@ -1159,49 +1161,59 @@ const PartDetailPanel = () => {
                         </div>
 
                         <div className="space-y-2 mb-2">
-                          {impressions.map((imp, index) => {
-                            const accent = NodeBackgroundColors[impression];
-                            const accentText = NodeTextColors[impression] || accent;
-                            const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
-                            const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
-                            const iconColor = darkMode ? "rgba(255,255,255,0.75)" : accentText;
+                          {impressions.length > 0 ? (
+                            impressions.map((imp, index) => {
+                              const accent = NodeBackgroundColors[impression];
+                              const accentText = NodeTextColors[impression] || accent;
+                              const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
+                              const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
+                              const iconColor = darkMode ? "rgba(255,255,255,0.75)" : accentText;
 
-                            return (
-                              <div
-                                key={index}
-                                className={`${listItemClasses} group flex items-center justify-between rounded-xl border px-3 py-2 shadow-sm`}
-                                style={{
-                                  backgroundColor: chipBackground,
-                                  borderColor: chipBorder,
-                                  color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
-                                }}
-                              >
-                                <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                                  <button
-                                    onClick={() => handleReturnToSidebar(impression, imp.id)}
-                                    className="p-1"
-                                    style={{
-                                      color: iconColor,
-                                    }}
-                                    title="Return to sidebar"
-                                  >
-                                    <ListRestart size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleRemoveImpression(impression, imp.id)}
-                                    className="p-1"
-                                    style={{
-                                      color: iconColor,
-                                    }}
-                                    title="Delete"
-                                  >
-                                    <X size={14} />
-                                  </button>
+                              return (
+                                <div
+                                  key={index}
+                                  className={`${listItemClasses} group flex items-center justify-between rounded-xl border px-3 py-2 shadow-sm`}
+                                  style={{
+                                    backgroundColor: chipBackground,
+                                    borderColor: chipBorder,
+                                    color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+                                  }}
+                                >
+                                  <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
+                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                                    <button
+                                      onClick={() => handleReturnToSidebar(impression, imp.id)}
+                                      className="p-1"
+                                      style={{
+                                        color: iconColor,
+                                      }}
+                                      title="Return to sidebar"
+                                    >
+                                      <ListRestart size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleRemoveImpression(impression, imp.id)}
+                                      className="p-1"
+                                      style={{
+                                        color: iconColor,
+                                      }}
+                                      title="Delete"
+                                    >
+                                      <X size={14} />
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })
+                          ) : (
+                            <div
+                              className={`rounded-xl border px-3 py-2 ${darkMode ? "border-slate-700/50 bg-slate-800/30" : "border-slate-200/50 bg-slate-50/50"}`}
+                            >
+                              <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-400"}`}>
+                                No {impression} impressions
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -1231,13 +1243,12 @@ const PartDetailPanel = () => {
                     });
                   }
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium border ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition ${
                   darkMode
-                    ? "border-purple-400/60 text-purple-200 bg-slate-950/60 hover:bg-slate-900/60"
-                    : "border-purple-300/70 text-purple-600 bg-white hover:bg-purple-50"
+                    ? "bg-slate-700 text-slate-100 hover:bg-slate-600 border border-slate-600"
+                    : "bg-slate-700 text-white hover:bg-slate-800 border border-slate-600"
                 }`}
               >
-                <Sparkles className={`w-3 h-3 ${darkMode ? "text-purple-300" : "text-purple-500"}`} />
                 <span>New Entry</span>
               </button>
             </div>
@@ -1330,8 +1341,17 @@ const PartDetailPanel = () => {
                           // Fall through to regular content
                         }
                       }
-                      // Regular content - show first 500 chars
-                      const text = entry.content || "";
+                      // Regular content - extract plain text from HTML and show first 500 chars
+                      let text = entry.content || "";
+                      // Remove HTML tags and extract plain text
+                      if (typeof window !== "undefined") {
+                        const temp = document.createElement("div");
+                        temp.innerHTML = text;
+                        text = (temp.textContent || temp.innerText || "").trim();
+                      } else {
+                        // Server-side fallback
+                        text = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+                      }
                       return text.length > 500 ? text.substring(0, 500) + "..." : text;
                     })();
 
@@ -1373,16 +1393,26 @@ const PartDetailPanel = () => {
                             
                             {/* Entry type and metadata */}
                             <div className="flex items-center gap-3 flex-wrap">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
                                 isTextThread
                                   ? darkMode
+                                    ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
+                                    : "bg-purple-50 text-purple-700 border border-purple-200"
+                                  : darkMode
                                     ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
                                     : "bg-blue-50 text-blue-700 border border-blue-200"
-                                  : darkMode
-                                    ? "bg-slate-800/60 text-slate-300 border border-slate-700/50"
-                                    : "bg-slate-100 text-slate-600 border border-slate-200"
                               }`}>
-                                {isTextThread ? "💬 Text Thread" : "📝 Journal"}
+                                {isTextThread ? (
+                                  <>
+                                    <MessagesSquare className="w-3 h-3" />
+                                    Text Thread
+                                  </>
+                                ) : (
+                                  <>
+                                    <Book className="w-3 h-3" />
+                                    Journal
+                                  </>
+                                )}
                               </span>
                               
                               {speakerNames.length > 0 && (
@@ -1461,8 +1491,8 @@ const PartDetailPanel = () => {
                               }}
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
                                 darkMode
-                                  ? "border border-slate-700 text-slate-200 hover:bg-slate-800/60"
-                                  : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                                  ? "bg-slate-700 border border-slate-600 text-slate-200 hover:bg-slate-600"
+                                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                               }`}
                               title="Open in journal"
                             >
@@ -1471,28 +1501,16 @@ const PartDetailPanel = () => {
                             </button>
                             <button
                               onClick={() => extractImpressionsFromEntry(entry.id)}
-                              disabled={isExtractingImpressions}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${
-                                isExtractingImpressions
-                                  ? darkMode
-                                    ? "bg-slate-800 text-slate-400"
-                                    : "bg-slate-200 text-slate-500"
-                                  : darkMode
-                                    ? "bg-slate-100/10 text-white hover:bg-slate-100/20"
-                                    : "bg-slate-900 text-white hover:bg-slate-800"
+                              disabled={true}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50 ${
+                                darkMode
+                                  ? "bg-slate-800 text-slate-500"
+                                  : "bg-slate-200 text-slate-400"
                               }`}
+                              title="Coming soon"
                             >
-                              {isExtractingImpressions ? (
-                                <>
-                                  <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                                  <span>Extracting...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Sparkles className="w-3 h-3" />
-                                  <span>Extract</span>
-                                </>
-                              )}
+                              <Sparkles className="w-3 h-3" />
+                              <span>Extract</span>
                             </button>
                             <button
                               onClick={() => deleteJournalEntry(entry.id)}
@@ -1507,13 +1525,6 @@ const PartDetailPanel = () => {
                             </button>
                           </div>
                         </div>
-                        
-                        {/* Title */}
-                        {entry.title && (
-                          <h4 className={`font-semibold mb-2 text-base ${darkMode ? "text-slate-100" : "text-slate-800"}`}>
-                            {entry.title}
-                          </h4>
-                        )}
                         
                         {/* Content Preview */}
                         <div className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
@@ -2030,8 +2041,17 @@ const PartDetailPanel = () => {
                           // Fall through to regular content
                         }
                       }
-                      // Regular content - show first 500 chars
-                      const text = entry.content || "";
+                      // Regular content - extract plain text from HTML and show first 500 chars
+                      let text = entry.content || "";
+                      // Remove HTML tags and extract plain text
+                      if (typeof window !== "undefined") {
+                        const temp = document.createElement("div");
+                        temp.innerHTML = text;
+                        text = (temp.textContent || temp.innerText || "").trim();
+                      } else {
+                        // Server-side fallback
+                        text = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+                      }
                       return text.length > 500 ? text.substring(0, 500) + "..." : text;
                     })();
 
@@ -2073,16 +2093,26 @@ const PartDetailPanel = () => {
                             
                             {/* Entry type and metadata */}
                             <div className="flex items-center gap-3 flex-wrap">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
                                 isTextThread
                                   ? darkMode
+                                    ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
+                                    : "bg-purple-50 text-purple-700 border border-purple-200"
+                                  : darkMode
                                     ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
                                     : "bg-blue-50 text-blue-700 border border-blue-200"
-                                  : darkMode
-                                    ? "bg-slate-800/60 text-slate-300 border border-slate-700/50"
-                                    : "bg-slate-100 text-slate-600 border border-slate-200"
                               }`}>
-                                {isTextThread ? "💬 Text Thread" : "📝 Journal"}
+                                {isTextThread ? (
+                                  <>
+                                    <MessagesSquare className="w-3 h-3" />
+                                    Text Thread
+                                  </>
+                                ) : (
+                                  <>
+                                    <Book className="w-3 h-3" />
+                                    Journal
+                                  </>
+                                )}
                               </span>
                               
                               {speakerNames.length > 0 && (
@@ -2163,8 +2193,8 @@ const PartDetailPanel = () => {
                               }}
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
                                 darkMode
-                                  ? "border border-slate-700 text-slate-200 hover:bg-slate-800/60"
-                                  : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                                  ? "bg-slate-700 border border-slate-600 text-slate-200 hover:bg-slate-600"
+                                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                               }`}
                               title="Open in journal"
                             >
@@ -2173,28 +2203,16 @@ const PartDetailPanel = () => {
                             </button>
                             <button
                               onClick={() => extractImpressionsFromEntry(entry.id)}
-                              disabled={isExtractingImpressions}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${
-                                isExtractingImpressions
-                                  ? darkMode
-                                    ? "bg-slate-800 text-slate-400"
-                                    : "bg-slate-200 text-slate-500"
-                                  : darkMode
-                                    ? "bg-slate-100/10 text-white hover:bg-slate-100/20"
-                                    : "bg-slate-900 text-white hover:bg-slate-800"
+                              disabled={true}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50 ${
+                                darkMode
+                                  ? "bg-slate-800 text-slate-500"
+                                  : "bg-slate-200 text-slate-400"
                               }`}
+                              title="Coming soon"
                             >
-                              {isExtractingImpressions ? (
-                                <>
-                                  <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                                  <span>Extracting...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Sparkles className="w-3 h-3" />
-                                  <span>Extract</span>
-                                </>
-                              )}
+                              <Sparkles className="w-3 h-3" />
+                              <span>Extract</span>
                             </button>
                             <button
                               onClick={() => deleteJournalEntry(entry.id)}
@@ -2209,13 +2227,6 @@ const PartDetailPanel = () => {
                             </button>
                           </div>
                         </div>
-                        
-                        {/* Title */}
-                        {entry.title && (
-                          <h4 className={`font-semibold mb-2 text-base ${darkMode ? "text-slate-100" : "text-slate-800"}`}>
-                            {entry.title}
-                          </h4>
-                        )}
                         
                         {/* Content Preview */}
                         <div className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${

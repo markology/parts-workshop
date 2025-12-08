@@ -19,7 +19,7 @@ import {
   WorkshopNode,
 } from "@/features/workspace/types/Nodes";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import { Brain, Book, Clock, FilePlus2, Heart, History, Layers, MessageSquare, Save, Shield, Sparkles, SquareUserRound, User, X } from "lucide-react";
+import { Brain, Book, Clock, FilePlus2, Heart, History, Layers, MessagesSquare, Save, Shield, SquareUserRound, User, X, Trash2 } from "lucide-react";
 import { NodeBackgroundColors, NodeTextColors } from "../../constants/Nodes";
 import { ImpressionList } from "../../constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
@@ -103,14 +103,21 @@ const extractPlainText = (content: string, partNodes: Array<{ id: string; label:
     return extractTextThreadPreview(content, partNodes);
   }
 
-  // Otherwise treat as HTML
+  // Otherwise treat as HTML and extract text
+  let text = "";
   if (typeof window === "undefined") {
-    return content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    text = content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  } else {
+    const temp = document.createElement("div");
+    temp.innerHTML = content;
+    text = (temp.textContent || temp.innerText || "").trim();
   }
-
-  const temp = document.createElement("div");
-  temp.innerHTML = content;
-  return (temp.textContent || temp.innerText || "").trim();
+  
+  // Return a snippet (first 150 characters)
+  if (text.length > 150) {
+    return text.slice(0, 150) + "...";
+  }
+  return text;
 };
 
 const deriveTitleFromContent = (content: string, fallback: string) => {
@@ -425,33 +432,18 @@ export default function JournalDrawer() {
     previousNodeIdRef.current = nodeId;
   }, [nodeId, isOpen, journalTarget, setJournalData, loadEntry]);
 
-  // Auto-load the last entry when opening if there's history and no active entry
+  // Show mode selection when opening journal with no specific entry
   useEffect(() => {
-    if (!journalTarget) return;
-    if (hasUnsavedChanges) return;
-    if (activeEntryId !== null) return; // Already have an entry loaded
-    if (isStartingNewEntry) return; // Don't auto-load if user is starting a new entry
-    if (showModeSelection) return; // Don't auto-load if mode selection is showing
-    // Don't auto-load if we have a mode set but no entry ID (means it's a new entry)
-    if (journalMode !== null && activeEntryId === null) return;
+    if (!isOpen || !journalTarget) return;
+    if (activeEntryId !== null) return; // Already have a specific entry loaded
+    if (isStartingNewEntry) return; // Don't change if user is starting a new entry
+    if (hasUnsavedChanges) return; // Don't change if there are unsaved changes
     
-    // If we have entries, load the most recent one
-    if (relevantEntries.length > 0) {
-      const latestEntry = relevantEntries[0]; // Already sorted by updatedAt desc
-      const content = latestEntry.content ?? "";
-      const detectedMode = detectModeFromContent(content);
-      setJournalMode(detectedMode);
-      setShowModeSelection(false);
-      loadEntry({ 
-        entryId: latestEntry.id, 
-        content, 
-        speakers: Array.isArray(latestEntry.speakers) ? latestEntry.speakers : [] 
-      });
-    } else if (journalMode === null) {
-      // No entries, show mode selection
+    // If no mode is set and no entry is loaded, show mode selection
+    if (journalMode === null && activeEntryId === null) {
       setShowModeSelection(true);
     }
-  }, [journalTarget, relevantEntries, activeEntryId, hasUnsavedChanges, journalMode, loadEntry, detectModeFromContent, isStartingNewEntry, showModeSelection]);
+  }, [isOpen, journalTarget, activeEntryId, journalMode, isStartingNewEntry, hasUnsavedChanges]);
 
   const handleSave = useCallback(
     async (options?: { createNewVersion?: boolean }) => {
@@ -464,10 +456,15 @@ export default function JournalDrawer() {
 
       try {
         console.log("💾 Saving journal entry with speakers:", speakersArray);
+        // Only derive title if there's actual content
+        const textContent = extractPlainText(journalData);
+        const hasContent = textContent && textContent.trim().length > 0;
+        const title = hasContent ? deriveTitleFromContent(journalData, "") : "";
+        
         const entry = await saveJournalEntry({
           nodeId,
           content: journalData,
-          title: deriveTitleFromContent(journalData, nodeLabel),
+          title: title || undefined, // Don't save empty title
           entryId:
             options?.createNewVersion || !activeEntryId ? undefined : activeEntryId,
           createNewVersion: options?.createNewVersion || !activeEntryId,
@@ -526,14 +523,6 @@ export default function JournalDrawer() {
     ]
   );
 
-  const handleSaveNewVersion = useCallback(async () => {
-    if (!journalTarget) return;
-    if (!extractPlainText(journalData)) {
-      alert("Write something before saving a snapshot.");
-      return;
-    }
-    await handleSave({ createNewVersion: true });
-  }, [handleSave, journalData, journalTarget]);
 
   const handleStartNewEntry = useCallback(() => {
     // Allow starting new entry freely - don't block
@@ -573,17 +562,18 @@ export default function JournalDrawer() {
 
   const handleSelectEntry = useCallback(
     (entry: JournalEntry) => {
-      if (entry.id === activeEntryId) return;
-
-      // Allow switching freely - don't block
+      console.log("📖 Selecting entry:", entry.id, entry.title);
+      // Always load the entry, even if it's the same one (allows re-opening)
       setIsStartingNewEntry(false); // Reset flag when selecting an existing entry
       const content = entry.content ?? "";
       const detectedMode = detectModeFromContent(content);
+      console.log("📖 Detected mode:", detectedMode, "Content length:", content.length);
       setJournalMode(detectedMode);
       setShowModeSelection(false); // Hide mode selection when loading an entry
       loadEntry({ entryId: entry.id, content, speakers: Array.isArray(entry.speakers) ? entry.speakers : [] });
+      console.log("📖 Entry loaded, activeEntryId should be:", entry.id);
     },
-    [activeEntryId, loadEntry, detectModeFromContent]
+    [loadEntry, detectModeFromContent]
   );
 
   const handleDeleteEntry = useCallback(
@@ -895,11 +885,11 @@ export default function JournalDrawer() {
             )}
           </section>
 
-          {hasImpressions && (
-            <section className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Impressions
-              </p>
+          <section className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Impressions
+            </p>
+            {hasImpressions ? (
               <div className="flex flex-wrap gap-2">
                 {allImpressions.map((item) => {
                   const impressionType = item.impressionType as ImpressionType;
@@ -925,8 +915,14 @@ export default function JournalDrawer() {
                   );
                 })}
               </div>
-            </section>
-          )}
+            ) : (
+              <div className={`rounded-xl border px-3 py-2 ${darkMode ? "border-slate-700/50 bg-slate-800/30" : "border-slate-200/50 bg-slate-50/50"}`}>
+                <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-400"}`}>
+                  No impressions
+                </span>
+              </div>
+            )}
+          </section>
 
           {data.needs && data.needs.length > 0 && (
             <section className="space-y-2">
@@ -1149,82 +1145,130 @@ export default function JournalDrawer() {
 
     return (
       <div className="space-y-3">
-        {/* New Entry Button */}
-        <button
-          type="button"
-          onClick={() => void handleStartNewEntry()}
-          className="w-full rounded-xl border-2 border-dashed border-slate-300 bg-white px-4 py-3 text-left transition hover:border-blue-500 hover:bg-blue-50/50"
-        >
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-100 p-2">
-              <FilePlus2 className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-slate-900">
-                New Entry
-              </h4>
-              <p className="text-xs text-slate-500">
-                Start a new journal entry
-              </p>
-            </div>
-          </div>
-        </button>
-
         {/* History List */}
         {relevantEntries.length === 0 ? (
           <div className="space-y-3 text-sm text-slate-600 py-4">
             <p>No saved journal entries yet.</p>
             <p className="text-xs text-slate-500">
-              Click "New Entry" to start, then save your first entry.
+              Click "New Entry" in the header to start, then save your first entry.
             </p>
           </div>
         ) : (
           <div className="space-y-2">
             {relevantEntries.map((entry) => {
               const preview = extractPlainText(entry.content, partNodes);
-              const title =
-                entry.title?.trim() ||
-                deriveTitleFromContent(entry.content, "Untitled entry");
               const isActive = entry.id === activeEntryId;
+              const entryIsTextThread = isTextThread(entry.content || "");
+              
+              // Calculate word and character counts
+              const wordCount = entryIsTextThread ? 
+                (() => {
+                  try {
+                    const parsed = JSON.parse(entry.content || "[]");
+                    if (Array.isArray(parsed)) {
+                      return parsed.reduce((acc: number, msg: any) => {
+                        return acc + (msg.text || "").split(/\s+/).filter((w: string) => w.length > 0).length;
+                      }, 0);
+                    }
+                  } catch {}
+                  return 0;
+                })() :
+                (entry.content || "").split(/\s+/).filter(w => w.length > 0).length;
+              const charCount = entry.content?.length || 0;
 
               return (
                 <div
                   key={entry.id}
                   className={`w-full rounded-xl border transition ${
                     isActive
-                      ? "border-slate-900 bg-slate-900 text-white shadow-lg"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
-                  }`}
+                      ? darkMode
+                        ? "border-slate-700 bg-slate-800 shadow-lg"
+                        : "border-slate-900 bg-slate-900 text-white shadow-lg"
+                      : darkMode
+                        ? "border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:shadow-md"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+                  } p-5 shadow-sm hover:shadow-md transition-shadow`}
                 >
-                  <button
-                    type="button"
-                    onClick={() => void handleSelectEntry(entry)}
-                    className="w-full px-4 py-3 text-left"
-                  >
-                    <div className="flex items-center justify-between text-xs uppercase tracking-wide">
-                      <span
-                        className={
-                          isActive ? "text-slate-200" : "text-slate-500"
-                        }
-                      >
-                        {formatTimestamp(entry.updatedAt)}
-                      </span>
+                  {/* Header with dates and actions */}
+                  <div className="flex items-start justify-between mb-3 gap-4">
+                    <div className="flex-1 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${
+                          isActive 
+                            ? darkMode ? "text-slate-300" : "text-slate-200"
+                            : darkMode ? "text-slate-400" : "text-slate-500"
+                        }`} />
+                        <span className={`${
+                          isActive 
+                            ? darkMode ? "text-slate-300" : "text-slate-200"
+                            : darkMode ? "text-slate-400" : "text-slate-500"
+                        }`}>
+                          {new Date(entry.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(entry.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      
+                      {/* Entry type */}
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
+                          entryIsTextThread
+                            ? isActive
+                              ? darkMode
+                                ? "bg-purple-900/60 text-purple-200 border border-purple-700/70"
+                                : "bg-purple-200/30 text-purple-100 border border-purple-300/50"
+                              : darkMode
+                                ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
+                                : "bg-purple-50 text-purple-700 border border-purple-200"
+                            : isActive
+                              ? darkMode
+                                ? "bg-blue-900/60 text-blue-200 border border-blue-700/70"
+                                : "bg-blue-200/30 text-blue-100 border border-blue-300/50"
+                              : darkMode
+                                ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
+                                : "bg-blue-50 text-blue-700 border border-blue-200"
+                        }`}>
+                          {entryIsTextThread ? (
+                            <>
+                              <MessagesSquare className="w-3 h-3" />
+                              Text Thread
+                            </>
+                          ) : (
+                            <>
+                              <Book className="w-3 h-3" />
+                              Journal
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {isActive && (
-                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-900">
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                          darkMode 
+                            ? "bg-slate-700 text-slate-200"
+                            : "bg-white text-slate-900"
+                        }`}>
                           Current
                         </span>
                       )}
                     </div>
-                    <h4
-                      className={`mt-2 text-sm font-semibold ${
-                        isActive ? "text-white" : "text-slate-900"
-                      }`}
-                    >
-                      {title}
-                    </h4>
+                  </div>
+                  
+                  {/* Preview content */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSelectEntry(entry);
+                    }}
+                    className="w-full text-left"
+                  >
                     <p
-                      className={`mt-1 text-sm leading-relaxed ${
-                        isActive ? "text-slate-200" : "text-slate-600"
+                      className={`text-sm leading-relaxed mb-2 ${
+                        isActive 
+                          ? darkMode ? "text-slate-200" : "text-slate-200"
+                          : darkMode ? "text-slate-300" : "text-slate-600"
                       }`}
                       style={{
                         display: "-webkit-box",
@@ -1236,22 +1280,34 @@ export default function JournalDrawer() {
                       {preview || "This entry is currently empty."}
                     </p>
                   </button>
-                  <div className="px-4 pb-3 flex justify-end">
+                  
+                  {/* Word and character count with delete button */}
+                  <div className="pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
+                    <span className={`text-[10px] ${
+                      isActive 
+                        ? darkMode ? "text-slate-400" : "text-slate-300"
+                        : darkMode ? "text-slate-500" : "text-slate-400"
+                    }`}>
+                      {wordCount} words • {charCount.toLocaleString()} chars
+                    </span>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         void handleDeleteEntry(entry.id);
                       }}
-                      className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition ${
+                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition ${
                         isActive
-                          ? "text-slate-300 hover:text-red-300 hover:bg-red-900/20"
-                          : "text-slate-500 hover:text-red-600 hover:bg-red-50"
+                          ? darkMode
+                            ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
+                            : "text-slate-300 hover:text-red-300 hover:bg-red-900/20"
+                          : darkMode
+                            ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
+                            : "text-slate-500 hover:text-red-600 hover:bg-red-50"
                       }`}
                       title="Delete entry"
                     >
-                      <X className="w-3.5 h-3.5" />
-                      <span>Delete</span>
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -1280,7 +1336,7 @@ export default function JournalDrawer() {
         <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-2xl">
           <header className="border-b border-slate-200/80 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
             <div className="flex items-center justify-between gap-3 max-w-4xl mx-auto">
-              <h2 className="text-lg font-semibold text-slate-900 truncate flex-1">
+              <h2 className="text-lg font-semibold text-slate-900 truncate flex-1 min-w-0">
                 {nodeLabel}
               </h2>
               
@@ -1296,6 +1352,16 @@ export default function JournalDrawer() {
                   title="Toggle sidebar"
                 >
                   <Layers size={16} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => void handleStartNewEntry()}
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0 bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  title="Start a new journal entry"
+                >
+                  <FilePlus2 size={14} />
+                  New Entry
                 </button>
 
                 <button
@@ -1367,21 +1433,6 @@ export default function JournalDrawer() {
                         renderContextPanel()
                       ) : (
                         <div>
-                          <div className="mb-4 flex items-center justify-between">
-                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                              History
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => void handleSaveNewVersion()}
-                              disabled={isSaving}
-                              title="Save current content as a new version (keeps history)"
-                              className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
-                            >
-                              <Sparkles size={14} />
-                              Snapshot
-                            </button>
-                          </div>
                           {renderHistoryPanel()}
                         </div>
                       )}
@@ -1427,21 +1478,6 @@ export default function JournalDrawer() {
                           renderContextPanel()
                         ) : (
                           <div>
-                            <div className="mb-4 flex items-center justify-between">
-                              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                                History
-                              </p>
-                              <button
-                                type="button"
-                                onClick={() => void handleSaveNewVersion()}
-                                disabled={isSaving}
-                                title="Save current content as a new version (keeps history)"
-                                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
-                              >
-                                <Sparkles size={14} />
-                                Snapshot
-                              </button>
-                            </div>
                             {renderHistoryPanel()}
                           </div>
                         )}
@@ -1478,7 +1514,7 @@ export default function JournalDrawer() {
                               </div>
                               <div className="flex-1">
                                 <h4 className="text-lg font-semibold text-slate-900 mb-1">
-                                  Normal Journal
+                                  Journal
                                 </h4>
                                 <p className="text-sm text-slate-600">
                                   Traditional rich text editor with inline speaker notation. Perfect for structured journaling and notes.
@@ -1489,11 +1525,11 @@ export default function JournalDrawer() {
                           <button
                             type="button"
                             onClick={() => handleModeSelect("textThread")}
-                            className="group relative p-6 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-white hover:bg-blue-50/50 transition-all text-left"
+                            className="group relative p-6 rounded-2xl border-2 border-slate-200 hover:border-purple-500 bg-white hover:bg-purple-50/50 transition-all text-left"
                           >
                             <div className="flex items-start gap-4">
-                              <div className="p-3 rounded-xl bg-blue-100 group-hover:bg-blue-200 transition">
-                                <MessageSquare className="w-6 h-6 text-blue-600" />
+                              <div className="p-3 rounded-xl bg-purple-100 group-hover:bg-purple-200 transition">
+                                <MessagesSquare className="w-6 h-6 text-purple-600" />
                               </div>
                               <div className="flex-1">
                                 <h4 className="text-lg font-semibold text-slate-900 mb-1">
@@ -1513,10 +1549,13 @@ export default function JournalDrawer() {
                       content={journalData}
                       onContentChange={setJournalData}
                       partNodes={partNodes}
-                      targetPartId={nodeType === "part" ? nodeId : undefined}
+                      allPartNodes={allPartNodes}
+                      nodeId={nodeId}
+                      nodeType={nodeType}
                     />
                   ) : (
                     <JournalEditor
+                      key={activeEntryId || "new-entry"}
                       content={journalData}
                       onContentChange={setJournalData}
                       nodeType={

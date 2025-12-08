@@ -29,7 +29,7 @@ import {
   $patchStyleText,
   $getSelectionStyleValueForProperty,
 } from "@lexical/selection";
-import { $generateHtmlFromNodes } from "@lexical/html";
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import {
   ListNode,
   ListItemNode,
@@ -90,6 +90,48 @@ function ChangeHandler({
       }}
     />
   );
+}
+
+function ContentSyncPlugin({ content }: { content: string }) {
+  const [editor] = useLexicalComposerContext();
+  const previousContentRef = useRef<string>("");
+  const isUpdatingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    // Skip if we're already updating or content hasn't changed
+    if (isUpdatingRef.current || content === previousContentRef.current) return;
+    
+    // Check if editor content already matches (prevents unnecessary updates)
+    let shouldUpdate = true;
+    editor.getEditorState().read(() => {
+      const currentHtml = $generateHtmlFromNodes(editor, null);
+      if (currentHtml === content || (currentHtml === "<p></p>" && !content)) {
+        shouldUpdate = false;
+        previousContentRef.current = content;
+      }
+    });
+
+    if (!shouldUpdate) return;
+
+    // Update editor with new content
+    isUpdatingRef.current = true;
+    editor.update(() => {
+      const parser = new DOMParser();
+      const dom = parser.parseFromString(content || "<p></p>", "text/html");
+      const nodes = $generateNodesFromDOM(editor, dom);
+      const root = $getRoot();
+      root.clear();
+      root.append(...nodes);
+    }, { discrete: true });
+    
+    // Reset flag after update completes
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+      previousContentRef.current = content;
+    }, 0);
+  }, [content, editor]);
+
+  return null;
 }
 
 // Preset colors for quick selection
@@ -215,15 +257,15 @@ function ColorPicker({
                   }}
                   className={`relative h-8 w-8 rounded-full border transition-all duration-150 ${
                     activeColor === color
-                      ? "ring-1 ring-offset-2 scale-105 shadow-md z-10"
+                      ? "scale-105 shadow-sm"
                       : "hover:scale-105 hover:shadow-sm"
                   } ${
                     darkMode
                       ? activeColor === color
-                        ? "border-white ring-white ring-offset-slate-900"
+                        ? "border-slate-400"
                         : "border-slate-700 hover:border-slate-500"
                       : activeColor === color
-                      ? "border-slate-900 ring-slate-900 ring-offset-white"
+                      ? "border-slate-500"
                       : "border-slate-300 hover:border-slate-400"
                   }`}
                   style={{ backgroundColor: color }}
@@ -561,8 +603,8 @@ function Toolbar({
       if ($isRangeSelection(selection)) {
         selection.formatText(format);
       }
-    });
-  };
+      });
+    };
 
   const toggleList = () => {
     editor.update(() => {
@@ -607,30 +649,30 @@ function Toolbar({
           : "border-slate-200 bg-white/90"
       }`}
     >
-      <button
-        type="button"
-        onMouseDown={(e) => {
-          e.preventDefault();
+    <button
+      type="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
           formatText("bold");
-        }}
-        className={`rounded-md px-2.5 py-1 text-sm font-medium transition ${
+      }}
+      className={`rounded-md px-2.5 py-1 text-sm font-medium transition ${
           formats.bold
-            ? darkMode
-              ? "bg-slate-100 text-slate-900 shadow"
-              : "bg-slate-900 text-white shadow"
-            : darkMode
+          ? darkMode
+            ? "bg-slate-100 text-slate-900 shadow"
+            : "bg-slate-900 text-white shadow"
+          : darkMode
             ? "hover:bg-slate-800 text-slate-200"
             : "hover:bg-slate-200 text-slate-700"
-        }`}
+      }`}
         title="Bold"
-      >
+    >
         <span className="font-semibold">B</span>
-      </button>
+    </button>
 
-      <button
+    <button
         type="button"
-        onMouseDown={(e) => {
-          e.preventDefault();
+      onMouseDown={(e) => {
+        e.preventDefault();
           formatText("italic");
         }}
         className={`rounded-md px-2.5 py-1 text-sm font-medium transition ${
@@ -663,8 +705,8 @@ function Toolbar({
             : "hover:bg-slate-200 text-slate-700"
         }`}
         title="Underline"
-      >
-        <span className="underline underline-offset-2">U</span>
+          >
+            <span className="underline underline-offset-2">U</span>
       </button>
 
       <button
@@ -683,11 +725,11 @@ function Toolbar({
             : "hover:bg-slate-200 text-slate-700"
         }`}
         title="Bullet List"
-      >
-        • List
+          >
+            • List
       </button>
 
-      <div className="h-5 w-px bg-slate-200 dark:bg-slate-700" />
+          <div className="h-5 w-px bg-slate-200 dark:bg-slate-700" />
 
       <ColorPicker
         darkMode={darkMode}
@@ -854,7 +896,7 @@ function Toolbar({
                   type="button"
                   onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102 ${
-                    darkMode
+              darkMode
                       ? "border-slate-600 bg-slate-800/60 text-slate-300 hover:bg-slate-700/60"
                       : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                   }`}
@@ -883,19 +925,21 @@ function Toolbar({
                               : "text-slate-700 hover:bg-slate-100"
                           }`}
                         >
-                          <div className="flex items-center gap-2">
-                            {part.isUnknown ? (
-                              <span className="text-sm font-bold">?</span>
-                            ) : (
-                              <SquareUserRound size={14} />
-                            )}
+          <div className="flex items-center gap-2">
+                            <div className="w-3.5 flex items-center justify-center">
+                              {part.isUnknown ? (
+                                <span className="text-sm font-bold">?</span>
+                              ) : (
+                                <SquareUserRound size={14} />
+                              )}
+                            </div>
                             <span>{part.label}</span>
                           </div>
                         </button>
                       ))}
-                    </div>
-                  </div>
-                )}
+          </div>
+        </div>
+      )}
               </div>
             )}
           </div>
@@ -957,22 +1001,22 @@ export default function JournalEditor({
          )}
         <div
           className={`relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex ${
-            darkMode
-              ? "border-slate-700 bg-slate-900/80"
-              : "border-slate-200 bg-white"
-          }`}
-          style={{
-            boxShadow: `0 0 0 1.5px ${accentColor}20`,
-          }}
-        >
+          darkMode
+            ? "border-slate-700 bg-slate-900/80"
+            : "border-slate-200 bg-white"
+        }`}
+        style={{
+          boxShadow: `0 0 0 1.5px ${accentColor}20`,
+        }}
+      >
           <div className="flex-1 relative overflow-hidden">
             <div className="h-full relative overflow-y-auto">
               <RichTextPlugin
                 contentEditable={
                   <ContentEditable
                     className={`prose prose-slate w-full min-w-full max-w-none py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert ${
-                      darkMode ? "text-slate-100" : "text-slate-800"
-                    }`}
+            darkMode ? "text-slate-100" : "text-slate-800"
+          }`}
                     style={{
                       whiteSpace: "pre-wrap",
                       caretColor: accentColor,
@@ -983,22 +1027,23 @@ export default function JournalEditor({
                   />
                 }
                 placeholder={
-                  <div className="pointer-events-none absolute left-6 top-5 text-sm text-slate-400">
-                    {PLACEHOLDER_TEXT}
-                  </div>
+          <div className="pointer-events-none absolute left-6 top-5 text-sm text-slate-400">
+            {PLACEHOLDER_TEXT}
+          </div>
                 }
                 ErrorBoundary={({ children }) => <>{children}</>}
               />
               <HistoryPlugin />
               <ListPlugin />
+              <ContentSyncPlugin content={content} />
               <ChangeHandler
                 onContentChange={onContentChange}
                 readOnly={readOnly}
               />
             </div>
           </div>
-        </div>
       </div>
+    </div>
     </LexicalComposer>
   );
 }
