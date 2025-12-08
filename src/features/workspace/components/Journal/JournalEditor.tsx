@@ -149,17 +149,20 @@ function ColorPicker({
           e.preventDefault();
           setIsOpen(!isOpen);
         }}
-        className={`relative h-8 w-8 rounded-md border-2 transition-all duration-200 ${
+        className={`relative w-8 rounded-md transition-all duration-200 ${
           isOpen
             ? darkMode
-              ? "border-slate-500 bg-slate-800 shadow-md"
-              : "border-slate-400 bg-slate-50 shadow-md"
+              ? "bg-slate-800 shadow-md"
+              : "bg-slate-50 shadow-md"
             : darkMode
-            ? "border-slate-700 hover:border-slate-600 hover:bg-slate-800/50"
-            : "border-slate-300 hover:border-slate-400 hover:bg-slate-50/50"
+            ? "hover:bg-slate-800/50"
+            : "hover:bg-slate-50/50"
         }`}
         style={{
           backgroundColor: displayColor,
+          border: "none",
+          height: "24px",
+          verticalAlign: "bottom",
         }}
         title="Text Color"
       >
