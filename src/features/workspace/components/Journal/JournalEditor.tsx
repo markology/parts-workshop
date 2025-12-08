@@ -20,6 +20,10 @@ import {
   $getSelection,
   $isRangeSelection,
   $getRoot,
+  $createTextNode,
+  $insertNodes,
+  $createRangeSelection,
+  $setSelection,
 } from "lexical";
 import {
   $patchStyleText,
@@ -399,9 +403,75 @@ function Toolbar({
       }
     }
     setShowAddPartDropdown(false);
+    
+    // Get speaker label and color
+    const speakerLabel = partId === "unknown" 
+      ? "Unknown" 
+      : (allPartNodes?.find(p => p.id === partId)?.label || partNodes?.find(p => p.id === partId)?.label || "Part");
+    const speakerColor = getSpeakerColor(partId);
+    
+    // Insert [part name]: with the speaker's color and bold
+    editor.update(() => {
+      // Focus the editor if it's not focused
+      editor.focus();
+      
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        // Clear any existing color formatting first
+        $patchStyleText(selection, { color: null });
+        
+        // Insert the speaker label with color and bold
+        const textNode = $createTextNode(`[${speakerLabel}]: `);
+        textNode.setStyle(`color: ${speakerColor}`);
+        textNode.setFormat("bold");
+        selection.insertNodes([textNode]);
+        
+        // Apply color to future typing (but not bold - only the label is bold)
+        $patchStyleText(selection, { color: speakerColor });
+      } else {
+        // If no selection, try to get one after focusing, or create at end
+        const root = $getRoot();
+        const rangeSelection = $createRangeSelection();
+        const lastChild = root.getLastChild();
+        
+        if (lastChild && lastChild.getTextContentSize() > 0) {
+          // Select the end of the last child
+          const textContentSize = lastChild.getTextContentSize();
+          rangeSelection.anchor.set(lastChild.getKey(), textContentSize, "text");
+          rangeSelection.focus.set(lastChild.getKey(), textContentSize, "text");
+        } else if (lastChild) {
+          // Last child exists but is empty
+          rangeSelection.anchor.set(lastChild.getKey(), 0, "element");
+          rangeSelection.focus.set(lastChild.getKey(), 0, "element");
+        } else {
+          // Empty editor - select root
+          rangeSelection.anchor.set(root.getKey(), 0, "element");
+          rangeSelection.focus.set(root.getKey(), 0, "element");
+        }
+        
+        // Set the selection
+        $setSelection(rangeSelection);
+        
+        // Insert the speaker label with color and bold
+        const textNode = $createTextNode(`[${speakerLabel}]: `);
+        textNode.setStyle(`color: ${speakerColor}`);
+        textNode.setFormat("bold");
+        rangeSelection.insertNodes([textNode]);
+        
+        // Apply color to future typing
+        const newSelection = $getSelection();
+        if ($isRangeSelection(newSelection)) {
+          $patchStyleText(newSelection, { color: speakerColor });
+        }
+      }
+    });
+    
+    // Update active color for toolbar indicator
+    setActiveColor(speakerColor);
+    
     // Switch to the newly added part
     onToggleSpeaker?.(partId);
-  }, [addedPartIds, onToggleSpeaker]);
+  }, [addedPartIds, onToggleSpeaker, allPartNodes, partNodes, getSpeakerColor, editor, setActiveColor]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -458,7 +528,7 @@ function Toolbar({
           const color = $getSelectionStyleValueForProperty(
             selection,
             "color",
-            null
+            undefined
           );
           setActiveColor(color || null);
         } else {
@@ -633,13 +703,96 @@ function Toolbar({
               const isActive = activeSpeaker === speaker.id;
               const speakerColor = getSpeakerColor(speaker.id);
 
+              const handleSpeakerClick = () => {
+                // If clicking on an already active speaker, deselect it and remove styles
+                if (isActive) {
+                  editor.update(() => {
+                    // Keep focus in the editor
+                    editor.focus();
+                    
+                    const selection = $getSelection();
+                    if ($isRangeSelection(selection)) {
+                      // Remove color formatting from current position
+                      $patchStyleText(selection, { color: null });
+                    }
+                  });
+                  
+                  // Reset active color in toolbar
+                  setActiveColor(null);
+                  
+                  // Toggle speaker off
+                  onToggleSpeaker?.(speaker.id);
+                  return;
+                }
+                
+                // Insert [part name]: with the speaker's color and bold
+                editor.update(() => {
+                  // Focus the editor if it's not focused
+                  editor.focus();
+                  
+                  const selection = $getSelection();
+                  if ($isRangeSelection(selection)) {
+                    // Clear any existing color formatting first
+                    $patchStyleText(selection, { color: null });
+                    
+                    // Insert the speaker label with color and bold
+                    const textNode = $createTextNode(`[${speaker.label}]: `);
+                    textNode.setStyle(`color: ${speakerColor}`);
+                    textNode.setFormat("bold");
+                    selection.insertNodes([textNode]);
+                    
+                    // Apply color to future typing (but not bold - only the label is bold)
+                    $patchStyleText(selection, { color: speakerColor });
+                  } else {
+                    // If no selection, try to get one after focusing, or create at end
+                    const root = $getRoot();
+                    const rangeSelection = $createRangeSelection();
+                    const lastChild = root.getLastChild();
+                    
+                    if (lastChild && lastChild.getTextContentSize() > 0) {
+                      // Select the end of the last child
+                      const textContentSize = lastChild.getTextContentSize();
+                      rangeSelection.anchor.set(lastChild.getKey(), textContentSize, "text");
+                      rangeSelection.focus.set(lastChild.getKey(), textContentSize, "text");
+                    } else if (lastChild) {
+                      // Last child exists but is empty
+                      rangeSelection.anchor.set(lastChild.getKey(), 0, "element");
+                      rangeSelection.focus.set(lastChild.getKey(), 0, "element");
+                    } else {
+                      // Empty editor - select root
+                      rangeSelection.anchor.set(root.getKey(), 0, "element");
+                      rangeSelection.focus.set(root.getKey(), 0, "element");
+                    }
+                    
+                    // Set the selection
+                    $setSelection(rangeSelection);
+                    
+                    // Insert the speaker label with color and bold
+                    const textNode = $createTextNode(`[${speaker.label}]: `);
+                    textNode.setStyle(`color: ${speakerColor}`);
+                    textNode.setFormat("bold");
+                    rangeSelection.insertNodes([textNode]);
+                    
+                    // Apply color to future typing
+                    const newSelection = $getSelection();
+                    if ($isRangeSelection(newSelection)) {
+                      $patchStyleText(newSelection, { color: speakerColor });
+                    }
+                  }
+                });
+                
+                // Update active color for toolbar indicator
+                setActiveColor(speakerColor);
+                
+                // Toggle speaker in parent state
+                onToggleSpeaker?.(speaker.id);
+              };
+
               return (
                 <button
                   key={speaker.id}
                   type="button"
-                  onClick={() => {
-                    onToggleSpeaker?.(speaker.id);
-                  }}
+                  onClick={handleSpeakerClick}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                     isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
                   }`}
@@ -663,10 +816,30 @@ function Toolbar({
                       className="ml-0.5 opacity-70 hover:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setAddedPartIds(prev => prev.filter(id => id !== speaker.id));
-                        if (activeSpeaker === speaker.id) {
-                          onToggleSpeaker?.(speaker.id); // Deselect if it was active
+                        const wasActive = activeSpeaker === speaker.id;
+                        
+                        // If the pill was active, remove styles first
+                        if (wasActive) {
+                          editor.update(() => {
+                            // Keep focus in the editor
+                            editor.focus();
+                            
+                            const selection = $getSelection();
+                            if ($isRangeSelection(selection)) {
+                              // Remove color formatting from current position
+                              $patchStyleText(selection, { color: null });
+                            }
+                          });
+                          
+                          // Reset active color in toolbar
+                          setActiveColor(null);
+                          
+                          // Deselect the speaker
+                          onToggleSpeaker?.(speaker.id);
                         }
+                        
+                        // Remove the part from the toolbar
+                        setAddedPartIds(prev => prev.filter(id => id !== speaker.id));
                       }}
                     />
                   )}
