@@ -338,8 +338,8 @@ export default function JournalDrawer() {
     return allEntries.filter((entry) => !entry.nodeId);
   }, [allEntries, journalTarget, nodeId]);
 
-  // Get all part nodes for speaker selection
-  const partNodes = useMemo(() => {
+  // Get all part nodes
+  const allPartNodes = useMemo(() => {
     return nodes
       .filter((node) => node.type === "part")
       .map((node) => ({
@@ -347,6 +347,44 @@ export default function JournalDrawer() {
         label: (node.data as PartNodeData)?.label || "Unnamed Part",
       }));
   }, [nodes]);
+
+  // Get relevant parts for the current journal entry
+  const partNodes = useMemo(() => {
+    if (!targetNode) {
+      // Global journal - show all parts
+      return allPartNodes;
+    }
+
+    if (targetNode.type === "part") {
+      // Part journal - show only that part
+      const partData = targetNode.data as PartNodeData;
+      return [{
+        id: targetNode.id,
+        label: partData?.label || "Unnamed Part",
+      }];
+    }
+
+    if (targetNode.type === "tension" || targetNode.type === "interaction" || targetNode.type === "relationship") {
+      // Tension/Interaction journal - show only parts in connectedNodes
+      const data = targetNode.data as TensionNodeData | { connectedNodes?: ConnectedNodeType[]; [key: string]: unknown };
+      const connectedNodes: ConnectedNodeType[] = Array.isArray(data.connectedNodes)
+        ? data.connectedNodes
+        : [];
+      
+      // Get part IDs from connectedNodes
+      const relevantPartIds = new Set(
+        connectedNodes
+          .map((cn) => cn.part?.id)
+          .filter((id): id is string => !!id)
+      );
+
+      // Return only the parts that are in connectedNodes
+      return allPartNodes.filter((part) => relevantPartIds.has(part.id));
+    }
+
+    // For other node types (impressions, etc.), show all parts
+    return allPartNodes;
+  }, [targetNode, allPartNodes]);
 
   const activeEntry = useMemo(() => {
     if (!activeEntryId) return null;
@@ -630,17 +668,20 @@ export default function JournalDrawer() {
     closeJournal();
   }, [closeJournal, handleSave, hasUnsavedChanges]);
 
+  // Single active speaker (like text thread)
+  const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
+  
   const toggleSpeaker = useCallback((speakerId: string) => {
     console.log("🎤 toggleSpeaker called with:", speakerId);
-    setSelectedSpeakers((prev) => {
-      const prevArray = Array.isArray(prev) ? prev : [];
-      const newArray = prevArray.includes(speakerId)
-        ? prevArray.filter((id) => id !== speakerId)
-        : [...prevArray, speakerId];
-      console.log("🎤 Toggle speaker state update:", { speakerId, prevArray, newArray });
-      return newArray;
-    });
-  }, [setSelectedSpeakers]);
+    // Toggle: if already active, deselect; otherwise, set as active
+    if (activeSpeaker === speakerId) {
+      setActiveSpeaker(null);
+      setSelectedSpeakers([]);
+    } else {
+      setActiveSpeaker(speakerId);
+      setSelectedSpeakers([speakerId]); // Keep as array for compatibility but only one item
+    }
+  }, [activeSpeaker, setSelectedSpeakers]);
 
   const renderContextPanel = () => {
     console.log("🎨 renderContextPanel called", {
@@ -1487,11 +1528,14 @@ export default function JournalDrawer() {
                           | undefined
                       }
                       selectedSpeakers={speakersArray}
+                      activeSpeaker={activeSpeaker}
                       onToggleSpeaker={(id) => {
                         console.log("📞 onToggleSpeaker prop called with:", id);
                         toggleSpeaker(id);
                       }}
                       partNodes={partNodes}
+                      allPartNodes={allPartNodes}
+                      nodeId={nodeId}
                     />
                   )}
                 </div>

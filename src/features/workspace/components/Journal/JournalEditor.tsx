@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { NodeBackgroundColors } from "../../constants/Nodes";
+import { SquareUserRound, Plus, ChevronDown, X } from "lucide-react";
 
 // Lexical imports
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
@@ -39,8 +40,11 @@ interface JournalEditorProps {
   readOnly?: boolean;
   nodeType?: ImpressionType | "part" | "tension" | "interaction";
   selectedSpeakers?: string[];
+  activeSpeaker?: string | null;
   onToggleSpeaker?: (speakerId: string) => void;
   partNodes?: Array<{ id: string; label: string }>;
+  allPartNodes?: Array<{ id: string; label: string }>;
+  nodeId?: string;
 }
 
 const PLACEHOLDER_TEXT = "Start writing your journal entry...";
@@ -251,10 +255,24 @@ function Toolbar({
   darkMode,
   activeColor,
   setActiveColor,
+  selectedSpeakers,
+  activeSpeaker,
+  onToggleSpeaker,
+  partNodes,
+  allPartNodes,
+  nodeId,
+  nodeType,
 }: {
   darkMode: boolean;
   activeColor: string | null;
   setActiveColor: (color: string | null) => void;
+  selectedSpeakers?: string[];
+  activeSpeaker?: string | null;
+  onToggleSpeaker?: (speakerId: string) => void;
+  partNodes?: Array<{ id: string; label: string }>;
+  allPartNodes?: Array<{ id: string; label: string }>;
+  nodeId?: string;
+  nodeType?: ImpressionType | "part" | "tension" | "interaction";
 }) {
   const [editor] = useLexicalComposerContext();
   const [formats, setFormats] = useState({
@@ -263,6 +281,141 @@ function Toolbar({
     underline: false,
     list: false,
   });
+  const [showAddPartDropdown, setShowAddPartDropdown] = useState(false);
+  const [addedPartIds, setAddedPartIds] = useState<string[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get default speakers (Self + relevant parts)
+  // Unknown stays in dropdown, not in defaults
+  const defaultSpeakers = useMemo(() => {
+    const speakers = [
+      { id: "self", label: "Self", isSelf: true, isUnknown: false },
+    ];
+    
+    // Add target part if journal is about a part
+    if (nodeType === "part" && nodeId && partNodes) {
+      const targetPart = partNodes.find(p => p.id === nodeId);
+      if (targetPart) {
+        speakers.push({ id: targetPart.id, label: targetPart.label, isSelf: false, isUnknown: false });
+      }
+    }
+    
+    // For tension/interaction, parts are already filtered in partNodes prop
+    // Add all relevant parts from partNodes (these are already filtered to be relevant)
+    if (partNodes && nodeType !== "part") {
+      // For tension/interaction, add all parts in partNodes
+      partNodes.forEach((part) => {
+        if (!speakers.find(s => s.id === part.id)) {
+          speakers.push({ id: part.id, label: part.label, isSelf: false, isUnknown: false });
+        }
+      });
+    }
+    
+    return speakers;
+  }, [partNodes, nodeId, nodeType]);
+
+  // Get all available speakers (default + added parts)
+  const allSpeakers = useMemo(() => {
+    const speakerMap = new Map<string, { id: string; label: string; isSelf: boolean; isUnknown: boolean }>();
+    
+    // Add default speakers
+    defaultSpeakers.forEach((s) => speakerMap.set(s.id, s));
+    
+    // Add parts that were added from dropdown
+    // Need to look in allPartNodes, not just partNodes, since added parts might not be in partNodes
+    addedPartIds.forEach((partId) => {
+      if (!speakerMap.has(partId)) {
+        if (partId === "unknown") {
+          speakerMap.set("unknown", { id: "unknown", label: "Unknown", isSelf: false, isUnknown: true });
+        } else {
+          // Look in allPartNodes first, then partNodes as fallback
+          const part = allPartNodes?.find(p => p.id === partId) || partNodes?.find(p => p.id === partId);
+          if (part) {
+            speakerMap.set(part.id, { id: part.id, label: part.label, isSelf: false, isUnknown: false });
+          }
+        }
+      }
+    });
+    
+    return Array.from(speakerMap.values());
+  }, [defaultSpeakers, addedPartIds, partNodes, allPartNodes]);
+
+  // Get parts available to add (not already in defaults or added)
+  // Unknown is always in the dropdown, not in defaults
+  const availablePartsToAdd = useMemo(() => {
+    const defaultPartIds = new Set(defaultSpeakers.map(s => s.id));
+    const currentPartIds = new Set(partNodes?.map(p => p.id) || []);
+    const allShownIds = new Set([...Array.from(defaultPartIds), ...addedPartIds]);
+    
+    // Get parts from allPartNodes that are not already shown
+    const otherParts = (allPartNodes || [])
+      .filter(p => !allShownIds.has(p.id) && !currentPartIds.has(p.id))
+      .map(p => ({ 
+        id: p.id, 
+        label: p.label, 
+        isUnknown: false 
+      }));
+    
+    // Always include Unknown in dropdown (not in defaults)
+    const unknownAvailable = !addedPartIds.includes("unknown");
+    
+    return [
+      ...otherParts,
+      ...(unknownAvailable ? [{ id: "unknown", label: "Unknown", isUnknown: true }] : []),
+    ];
+  }, [partNodes, allPartNodes, defaultSpeakers, addedPartIds]);
+
+  // Get speaker color
+  const getSpeakerColor = useCallback((speakerId: string): string => {
+    if (speakerId === "self") {
+      return darkMode ? "rgb(59, 130, 246)" : "rgb(37, 99, 235)"; // Peaceful blue - always blue
+    }
+    if (speakerId === "unknown") {
+      return darkMode ? "rgb(107, 114, 128)" : "rgb(156, 163, 175)"; // Grey
+    }
+    // Generate color for parts - use allPartNodes for consistent color across all parts
+    const allParts = allPartNodes || partNodes || [];
+    const partIndex = allParts.findIndex((p) => p.id === speakerId);
+    if (partIndex >= 0) {
+      // Use golden angle for color distribution to ensure different colors
+      const hue = (partIndex * 137.508) % 360;
+      return `hsl(${hue}, 65%, ${darkMode ? "55%" : "60%"})`;
+    }
+    // Fallback color if part not found
+    return darkMode ? "rgb(239, 68, 68)" : "rgb(220, 38, 38)"; // Red fallback
+  }, [darkMode, partNodes, allPartNodes]);
+
+  // Add part from dropdown (including Unknown)
+  const handleAddPart = useCallback((partId: string) => {
+    if (partId === "unknown") {
+      // Unknown is special - add it to addedPartIds
+      if (!addedPartIds.includes("unknown")) {
+        setAddedPartIds(prev => [...prev, "unknown"]);
+      }
+    } else {
+      // Regular part
+      if (!addedPartIds.includes(partId)) {
+        setAddedPartIds(prev => [...prev, partId]);
+      }
+    }
+    setShowAddPartDropdown(false);
+    // Switch to the newly added part
+    onToggleSpeaker?.(partId);
+  }, [addedPartIds, onToggleSpeaker]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowAddPartDropdown(false);
+      }
+    };
+    
+    if (showAddPartDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showAddPartDropdown]);
 
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState, prevEditorState }) => {
@@ -471,6 +624,110 @@ function Toolbar({
         activeColor={activeColor}
         onColorChange={applyColor}
       />
+
+      {allSpeakers.length > 0 && (
+        <>
+          <div className="h-5 w-px bg-slate-200 dark:bg-slate-700" />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {allSpeakers.map((speaker) => {
+              const isActive = activeSpeaker === speaker.id;
+              const speakerColor = getSpeakerColor(speaker.id);
+
+              return (
+                <button
+                  key={speaker.id}
+                  type="button"
+                  onClick={() => {
+                    onToggleSpeaker?.(speaker.id);
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
+                  }`}
+                  style={{
+                    backgroundColor: isActive ? speakerColor : (darkMode ? "rgba(30, 41, 59, 0.8)" : "rgba(255, 255, 255, 0.9)"),
+                    color: isActive ? "white" : (darkMode ? "rgb(203, 213, 225)" : "rgb(71, 85, 105)"),
+                    borderColor: isActive ? speakerColor : (darkMode ? "rgba(148, 163, 184, 0.3)" : "rgba(148, 163, 184, 0.2)"),
+                    boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                  }}
+                  title={`Switch to ${speaker.label}`}
+                >
+                  {speaker.isUnknown ? (
+                    <span className="text-sm font-bold">?</span>
+                  ) : (
+                    <SquareUserRound size={12} />
+                  )}
+                  {speaker.label}
+                  {addedPartIds.includes(speaker.id) && !speaker.isSelf && (
+                    <X
+                      size={10}
+                      className="ml-0.5 opacity-70 hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAddedPartIds(prev => prev.filter(id => id !== speaker.id));
+                        if (activeSpeaker === speaker.id) {
+                          onToggleSpeaker?.(speaker.id); // Deselect if it was active
+                        }
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+            
+            {/* Add Part Dropdown */}
+            {availablePartsToAdd.length > 0 && (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102 ${
+                    darkMode
+                      ? "border-slate-600 bg-slate-800/60 text-slate-300 hover:bg-slate-700/60"
+                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                  title="Add another part"
+                >
+                  <Plus size={12} />
+                  <span>Add Part</span>
+                  <ChevronDown size={10} className={showAddPartDropdown ? "rotate-180" : ""} />
+                </button>
+                
+                {showAddPartDropdown && (
+                  <div className={`absolute top-full left-0 mt-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden ${
+                    darkMode
+                      ? "border-slate-700 bg-slate-800"
+                      : "border-slate-200 bg-white"
+                  }`}>
+                    <div className="max-h-60 overflow-y-auto">
+                      {availablePartsToAdd.map((part) => (
+                        <button
+                          key={part.id || (part.isUnknown ? "unknown" : "")}
+                          type="button"
+                          onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
+                          className={`w-full text-left px-3 py-2 text-xs font-medium transition hover:bg-opacity-80 ${
+                            darkMode
+                              ? "text-slate-200 hover:bg-slate-700"
+                              : "text-slate-700 hover:bg-slate-100"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {part.isUnknown ? (
+                              <span className="text-sm font-bold">?</span>
+                            ) : (
+                              <SquareUserRound size={14} />
+                            )}
+                            <span>{part.label}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -480,6 +737,12 @@ export default function JournalEditor({
   onContentChange,
   readOnly = false,
   nodeType,
+  selectedSpeakers,
+  activeSpeaker,
+  onToggleSpeaker,
+  partNodes,
+  allPartNodes,
+  nodeId,
 }: JournalEditorProps) {
   const { darkMode } = useThemeContext();
   const [activeColor, setActiveColor] = useState<string | null>(null);
@@ -505,13 +768,20 @@ export default function JournalEditor({
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="flex h-full flex-col gap-4">
-        {!readOnly && (
-          <Toolbar
-            darkMode={darkMode}
-            activeColor={activeColor}
-            setActiveColor={setActiveColor}
-          />
-        )}
+         {!readOnly && (
+           <Toolbar
+             darkMode={darkMode}
+             activeColor={activeColor}
+             setActiveColor={setActiveColor}
+             selectedSpeakers={selectedSpeakers}
+             activeSpeaker={activeSpeaker}
+             onToggleSpeaker={onToggleSpeaker}
+             partNodes={partNodes}
+             allPartNodes={allPartNodes}
+             nodeId={nodeId}
+             nodeType={nodeType}
+           />
+         )}
         <div
           className={`relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex ${
             darkMode
