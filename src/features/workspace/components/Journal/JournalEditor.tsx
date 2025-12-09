@@ -659,7 +659,7 @@ function Toolbar({
           formats.bold
           ? darkMode
             ? "bg-slate-100 text-slate-900 shadow"
-            : "bg-slate-900 text-white shadow"
+            : "bg-slate-700 text-white shadow"
           : darkMode
             ? "hover:bg-slate-800 text-slate-200"
             : "hover:bg-slate-200 text-slate-700"
@@ -679,7 +679,7 @@ function Toolbar({
           formats.italic
             ? darkMode
               ? "bg-slate-100 text-slate-900 shadow"
-              : "bg-slate-900 text-white shadow"
+              : "bg-slate-700 text-white shadow"
             : darkMode
             ? "hover:bg-slate-800 text-slate-200"
             : "hover:bg-slate-200 text-slate-700"
@@ -699,7 +699,7 @@ function Toolbar({
           formats.underline
             ? darkMode
               ? "bg-slate-100 text-slate-900 shadow"
-              : "bg-slate-900 text-white shadow"
+              : "bg-slate-700 text-white shadow"
             : darkMode
             ? "hover:bg-slate-800 text-slate-200"
             : "hover:bg-slate-200 text-slate-700"
@@ -719,7 +719,7 @@ function Toolbar({
           formats.list
             ? darkMode
               ? "bg-slate-100 text-slate-900 shadow"
-              : "bg-slate-900 text-white shadow"
+              : "bg-slate-700 text-white shadow"
             : darkMode
             ? "hover:bg-slate-800 text-slate-200"
             : "hover:bg-slate-200 text-slate-700"

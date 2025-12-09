@@ -1177,9 +1177,15 @@ export default function JournalDrawer() {
               const charCount = entry.content?.length || 0;
 
               return (
-                <div
+                <button
                   key={entry.id}
-                  className={`w-full rounded-xl border transition ${
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSelectEntry(entry);
+                  }}
+                  className={`w-full rounded-xl border transition text-left ${
                     isActive
                       ? darkMode
                         ? "border-slate-700 bg-slate-800 shadow-lg"
@@ -1187,7 +1193,7 @@ export default function JournalDrawer() {
                       : darkMode
                         ? "border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:shadow-md"
                         : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
-                  } p-5 shadow-sm hover:shadow-md transition-shadow`}
+                  } p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
                 >
                   {/* Header with dates and actions */}
                   <div className="flex items-start justify-between mb-3 gap-4">
@@ -1255,31 +1261,21 @@ export default function JournalDrawer() {
                   </div>
                   
                   {/* Preview content */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleSelectEntry(entry);
+                  <p
+                    className={`text-sm leading-relaxed mb-2 ${
+                      isActive 
+                        ? darkMode ? "text-slate-200" : "text-slate-200"
+                        : darkMode ? "text-slate-300" : "text-slate-600"
+                    }`}
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
                     }}
-                    className="w-full text-left"
                   >
-                    <p
-                      className={`text-sm leading-relaxed mb-2 ${
-                        isActive 
-                          ? darkMode ? "text-slate-200" : "text-slate-200"
-                          : darkMode ? "text-slate-300" : "text-slate-600"
-                      }`}
-                      style={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {preview || "This entry is currently empty."}
-                    </p>
-                  </button>
+                    {preview || "This entry is currently empty."}
+                  </p>
                   
                   {/* Word and character count with delete button */}
                   <div className="pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
@@ -1293,6 +1289,7 @@ export default function JournalDrawer() {
                     <button
                       type="button"
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         void handleDeleteEntry(entry.id);
                       }}
@@ -1310,7 +1307,7 @@ export default function JournalDrawer() {
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -1346,8 +1343,8 @@ export default function JournalDrawer() {
                   onClick={() => setShowLeftPanel((prev) => !prev)}
                   className={`rounded-full p-1.5 transition flex-shrink-0 ${
                     showLeftPanel
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-500 hover:bg-slate-100"
+                      ? "bg-slate-700 text-white"
+                      : "bg-slate-700 text-white hover:bg-slate-600"
                   }`}
                   title="Toggle sidebar"
                 >
