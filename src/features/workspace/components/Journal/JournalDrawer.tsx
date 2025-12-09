@@ -1185,11 +1185,11 @@ export default function JournalDrawer() {
                     e.stopPropagation();
                     handleSelectEntry(entry);
                   }}
-                  className={`w-full rounded-xl border transition text-left ${
+                  className={`w-full rounded-xl border-2 transition text-left ${
                     isActive
                       ? darkMode
-                        ? "border-slate-700 bg-slate-800 shadow-lg"
-                        : "border-slate-900 bg-slate-900 text-white shadow-lg"
+                        ? "border-blue-500 bg-slate-800/80 shadow-lg ring-2 ring-blue-500/20"
+                        : "border-blue-500 bg-blue-50/50 shadow-lg ring-2 ring-blue-500/10"
                       : darkMode
                         ? "border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:shadow-md"
                         : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
@@ -1201,12 +1201,12 @@ export default function JournalDrawer() {
                       <div className="flex items-center gap-1.5 text-xs">
                         <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${
                           isActive 
-                            ? darkMode ? "text-slate-300" : "text-slate-200"
+                            ? darkMode ? "text-slate-300" : "text-slate-700"
                             : darkMode ? "text-slate-400" : "text-slate-500"
                         }`} />
                         <span className={`${
                           isActive 
-                            ? darkMode ? "text-slate-300" : "text-slate-200"
+                            ? darkMode ? "text-slate-300" : "text-slate-700"
                             : darkMode ? "text-slate-400" : "text-slate-500"
                         }`}>
                           {new Date(entry.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(entry.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1220,14 +1220,14 @@ export default function JournalDrawer() {
                             ? isActive
                               ? darkMode
                                 ? "bg-purple-900/60 text-purple-200 border border-purple-700/70"
-                                : "bg-purple-200/30 text-purple-100 border border-purple-300/50"
+                                : "bg-purple-100 text-purple-700 border border-purple-300"
                               : darkMode
                                 ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
                                 : "bg-purple-50 text-purple-700 border border-purple-200"
                             : isActive
                               ? darkMode
                                 ? "bg-blue-900/60 text-blue-200 border border-blue-700/70"
-                                : "bg-blue-200/30 text-blue-100 border border-blue-300/50"
+                                : "bg-blue-100 text-blue-700 border border-blue-300"
                               : darkMode
                                 ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
                                 : "bg-blue-50 text-blue-700 border border-blue-200"
@@ -1264,7 +1264,7 @@ export default function JournalDrawer() {
                   <p
                     className={`text-sm leading-relaxed mb-2 ${
                       isActive 
-                        ? darkMode ? "text-slate-200" : "text-slate-200"
+                        ? darkMode ? "text-slate-200" : "text-slate-700"
                         : darkMode ? "text-slate-300" : "text-slate-600"
                     }`}
                     style={{
@@ -1281,7 +1281,7 @@ export default function JournalDrawer() {
                   <div className="pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
                     <span className={`text-[10px] ${
                       isActive 
-                        ? darkMode ? "text-slate-400" : "text-slate-300"
+                        ? darkMode ? "text-slate-400" : "text-slate-600"
                         : darkMode ? "text-slate-500" : "text-slate-400"
                     }`}>
                       {wordCount} words • {charCount.toLocaleString()} chars
@@ -1297,7 +1297,7 @@ export default function JournalDrawer() {
                         isActive
                           ? darkMode
                             ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
-                            : "text-slate-300 hover:text-red-300 hover:bg-red-900/20"
+                            : "text-slate-600 hover:text-red-600 hover:bg-red-50"
                           : darkMode
                             ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
                             : "text-slate-500 hover:text-red-600 hover:bg-red-50"

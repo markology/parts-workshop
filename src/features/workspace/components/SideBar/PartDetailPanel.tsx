@@ -480,6 +480,10 @@ const PartDetailPanel = () => {
       const connectedNodeId = edge.source === selectedPartId ? edge.target : edge.source;
       const connectedNode = nodes.find((node) => node.id === connectedNodeId);
       
+      // For tensions and interactions, get the connectedNodes data
+      const nodeData = connectedNode?.data as any;
+      const connectedNodes = nodeData?.connectedNodes || [];
+      
       return {
         id: edge.id,
         nodeId: connectedNodeId,
@@ -487,6 +491,7 @@ const PartDetailPanel = () => {
         nodeLabel: connectedNode?.data?.label || "Unknown",
         nodeDescription: (connectedNode?.data?.scratchpad as string) || (connectedNode?.data?.description as string) || "",
         relationshipType: edge.data?.relationshipType || "tension",
+        connectedNodes: connectedNodes, // Include the parts and their statements
       };
     });
   }, [relatedEdges, nodes, selectedPartId]);
@@ -1556,71 +1561,103 @@ const PartDetailPanel = () => {
                   {relationships.map((rel) => {
                     const isTension = rel.relationshipType === "tension";
                     const isInteraction = rel.relationshipType === "interaction";
+                    const connectedNodes = (rel as any).connectedNodes || [];
 
                     return (
                       <div key={rel.id} className={`${subCardClasses} p-5 shadow-sm`}>
                         <div
-                          className={`px-3 py-3 rounded-xl border ${
+                          className={`rounded-2xl border p-4 ${
                             isTension
                               ? darkMode
-                                ? "border-purple-400/70 bg-purple-900/40"
-                                : "border-purple-300/80 bg-purple-50"
+                                ? "border-purple-500/40 bg-purple-900/25"
+                                : "border-purple-300/70 bg-purple-50/70"
                               : isInteraction
                                 ? darkMode
-                                  ? "border-sky-400/70 bg-sky-900/35"
-                                  : "border-sky-300/80 bg-sky-50"
+                                  ? "border-sky-500/40 bg-sky-900/25"
+                                  : "border-sky-300/70 bg-sky-50/70"
                                 : darkMode
-                                  ? "border-slate-700 bg-slate-900/50"
+                                  ? "border-slate-700 bg-slate-900/40"
                                   : "border-slate-200 bg-white"
                           }`}
                         >
-                          <div className={`font-semibold text-sm mb-2 ${
-                            isTension
-                              ? darkMode
-                                ? "text-purple-200"
-                                : "text-purple-900"
-                              : isInteraction
-                                ? darkMode
-                                  ? "text-sky-200"
-                                  : "text-sky-900"
-                                : darkMode
-                                  ? "text-slate-100"
-                                  : "text-slate-900"
-                          }`}>
-                            {rel.nodeLabel}
-                          </div>
-                          {rel.nodeDescription && String(rel.nodeDescription).trim() ? (
-                            <div className={`text-xs mb-2 leading-relaxed whitespace-pre-wrap ${
-                              isTension
-                                ? darkMode
-                                  ? "text-purple-300"
-                                  : "text-purple-700"
-                                : isInteraction
-                                  ? darkMode
-                                    ? "text-sky-300"
-                                    : "text-sky-700"
-                                  : darkMode
-                                    ? "text-slate-300"
-                                    : "text-slate-700"
-                            }`}>
-                              {String(rel.nodeDescription)}
+                          {/* Header */}
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1 space-y-1">
+                              <div
+                                className={`text-sm font-semibold ${
+                                  isTension
+                                    ? darkMode
+                                      ? "text-purple-100"
+                                      : "text-purple-900"
+                                    : isInteraction
+                                      ? darkMode
+                                        ? "text-sky-100"
+                                        : "text-sky-900"
+                                      : darkMode
+                                        ? "text-slate-100"
+                                        : "text-slate-900"
+                                }`}
+                              >
+                                {rel.nodeLabel}
+                              </div>
+                              {rel.nodeDescription && String(rel.nodeDescription).trim() ? (
+                                <div
+                                  className={`text-sm leading-relaxed whitespace-pre-wrap ${
+                                    isTension
+                                      ? darkMode
+                                        ? "text-purple-200"
+                                        : "text-purple-700"
+                                      : isInteraction
+                                        ? darkMode
+                                          ? "text-sky-200"
+                                          : "text-sky-700"
+                                        : darkMode
+                                          ? "text-slate-300"
+                                          : "text-slate-700"
+                                  }`}
+                                >
+                                  {String(rel.nodeDescription)}
+                                </div>
+                              ) : null}
                             </div>
-                          ) : null}
-                          <div className={`text-xs font-medium capitalize mt-2 ${
-                            isTension
-                              ? darkMode
-                                ? "text-purple-300"
-                                : "text-purple-700"
-                              : isInteraction
-                                ? darkMode
-                                  ? "text-sky-300"
-                                  : "text-sky-700"
-                                : darkMode
-                                  ? "text-slate-400"
-                                  : "text-slate-600"
-                          }`}>
-                            {isTension ? "⚔️ Tension" : isInteraction ? "🤝 Interaction" : rel.nodeType}
                           </div>
+
+                          {/* Display parts involved and their messages */}
+                          {connectedNodes.length > 0 && (
+                            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                              {connectedNodes.map((connectedNode: any, index: number) => {
+                                const part = connectedNode?.part;
+                                const statement = connectedNode?.tensionDescription || "";
+                                if (!part) return null;
+
+                                return (
+                                  <div
+                                    key={index}
+                                    className="rounded-lg border border-slate-200/70 dark:border-slate-700/60 bg-white/80 dark:bg-slate-900/40 px-3 py-2.5 shadow-sm hover:shadow-md transition"
+                                  >
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div
+                                        className={`text-sm font-semibold ${
+                                          darkMode ? "text-slate-50" : "text-slate-900"
+                                        }`}
+                                      >
+                                        {part?.data?.label || part?.data?.name || "Unknown Part"}
+                                      </div>
+                                    </div>
+                                    {statement && (
+                                      <div
+                                        className={`mt-1.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                                          darkMode ? "text-slate-200" : "text-slate-700"
+                                        }`}
+                                      >
+                                        {statement}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
