@@ -929,38 +929,38 @@ const PartDetailPanel = () => {
                             );
                           }
                           
+                          const pillBase =
+                            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide";
                           const partTypeMapping: Record<string, { icon: React.ReactNode; className: string }> = {
                             manager: {
                               icon: <Brain className="w-3.5 h-3.5" />,
                               className: darkMode
-                                ? "bg-sky-500/15 text-sky-100"
-                                : "bg-sky-100 text-sky-600",
+                                ? "bg-sky-600 text-white"
+                                : "bg-sky-100 text-sky-800",
                             },
                             firefighter: {
                               icon: <Shield className="w-3.5 h-3.5" />,
                               className: darkMode
-                                ? "bg-rose-500/15 text-rose-100"
-                                : "bg-rose-100 text-rose-600",
+                                ? "bg-rose-600 text-white"
+                                : "bg-rose-100 text-rose-800",
                             },
                             exile: {
                               icon: <Heart className="w-3.5 h-3.5" />,
                               className: darkMode
-                                ? "bg-purple-500/15 text-purple-100"
-                                : "bg-purple-100 text-purple-600",
+                                ? "bg-purple-600 text-white"
+                                : "bg-purple-100 text-purple-800",
                             },
                           };
 
                           const pill = partTypeMapping[currentType] || {
                             icon: <User className="w-3.5 h-3.5" />,
                             className: darkMode
-                              ? "bg-slate-800/60 text-slate-200"
-                              : "bg-slate-100 text-slate-600",
+                              ? "bg-slate-700 text-white"
+                              : "bg-slate-100 text-slate-800",
                           };
 
                           return (
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${pill.className}`}
-                            >
+                            <span className={`${pillBase} ${pill.className}`}>
                               {pill.icon}
                               {currentType.charAt(0).toUpperCase() + currentType.slice(1)}
                             </span>
@@ -2329,27 +2329,59 @@ const PartDetailPanel = () => {
                       <div className="space-y-3">
                         <label className={`text-sm font-medium ${modalLabelClasses}`}>Part type</label>
                         <div className="flex flex-wrap gap-2">
-                          {['manager', 'firefighter', 'exile'].map((type) => {
-                            const currentType = tempPartType || (data.customPartType as string) || (data.partType as string) || "";
+                          {["manager", "firefighter", "exile"].map((type) => {
+                            const currentType =
+                              tempPartType ||
+                              (data.customPartType as string) ||
+                              (data.partType as string) ||
+                              "";
                             const isSelected = currentType === type;
+
+                            const pillBase =
+                              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide border transition";
+                            const typeStyles: Record<
+                              string,
+                              { selected: string; idle: string }
+                            > = {
+                              manager: {
+                                selected: "bg-sky-600 text-white border-sky-600 shadow-sm",
+                                idle: darkMode
+                                  ? "bg-slate-900/50 border-slate-700 text-slate-200 hover:bg-slate-900"
+                                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100",
+                              },
+                              firefighter: {
+                                selected: "bg-rose-600 text-white border-rose-600 shadow-sm",
+                                idle: darkMode
+                                  ? "bg-slate-900/50 border-slate-700 text-slate-200 hover:bg-slate-900"
+                                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100",
+                              },
+                              exile: {
+                                selected: "bg-purple-600 text-white border-purple-600 shadow-sm",
+                                idle: darkMode
+                                  ? "bg-slate-900/50 border-slate-700 text-slate-200 hover:bg-slate-900"
+                                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100",
+                              },
+                            };
+
+                            const typeIcons: Record<string, React.ReactNode> = {
+                              manager: <Brain className="w-3.5 h-3.5" />,
+                              firefighter: <Shield className="w-3.5 h-3.5" />,
+                              exile: <Heart className="w-3.5 h-3.5" />,
+                            };
+
+                            const styles = typeStyles[type];
+
                             return (
                               <button
                                 key={type}
                                 onClick={() => {
                                   setTempPartType(type);
                                 }}
-                                className={`px-3.5 py-2 rounded-full text-xs font-semibold ${
-                                  isSelected
-                                    ? type === "manager"
-                                      ? "bg-blue-600 text-white shadow-sm"
-                                      : type === "firefighter"
-                                        ? "bg-red-500 text-white shadow-sm"
-                                        : "bg-purple-500 text-white shadow-sm"
-                                    : darkMode
-                                      ? "bg-slate-900/50 border border-slate-700 text-slate-200 hover:bg-slate-900"
-                                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                                className={`${pillBase} ${
+                                  isSelected ? styles.selected : styles.idle
                                 }`}
                               >
+                                {typeIcons[type]}
                                 {type.charAt(0).toUpperCase() + type.slice(1)}
                               </button>
                             );

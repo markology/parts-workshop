@@ -129,9 +129,33 @@ export const useFlowNodes = () => {
     style?: unknown
   ) => {
     const viewport = getViewport();
-    const defaultPosition = viewport && typeof viewport.x === 'number' && typeof viewport.y === 'number' 
-      ? { x: viewport.x, y: viewport.y }
-      : { x: 0, y: 0 };
+    const currentNodes = getNodes.current ? getNodes.current() : [];
+
+    const paddingX = 220;
+    let rightmostX = -Infinity;
+    let rightmostY = viewport && typeof viewport.y === "number" ? viewport.y : 0;
+    let rightmostNodeFound = false;
+
+    currentNodes.forEach((n) => {
+      const width = (n as any)?.measured?.width ?? (n as any)?.width ?? 0;
+      const candidateX = n.position.x + width;
+      if (candidateX > rightmostX) {
+        rightmostX = candidateX;
+        rightmostY = n.position.y;
+        rightmostNodeFound = true;
+      }
+    });
+
+    const fallbackX =
+      viewport && typeof viewport.x === "number" ? viewport.x : 0;
+    const fallbackY =
+      viewport && typeof viewport.y === "number" ? viewport.y : 0;
+
+    const defaultPosition =
+      position ||
+      (rightmostNodeFound
+        ? { x: rightmostX + paddingX, y: rightmostY }
+        : { x: fallbackX, y: fallbackY });
     
     const newNode = createNodeFN({
       type,
