@@ -1646,7 +1646,7 @@ const PartDetailPanel = () => {
                                     </div>
                                     {statement && (
                                       <div
-                                        className={`mt-1.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                                    className={`mt-1.5 text-sm leading-relaxed whitespace-pre-wrap ${
                                           darkMode ? "text-slate-200" : "text-slate-700"
                                         }`}
                                       >

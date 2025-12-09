@@ -191,14 +191,14 @@ const TensionNode = ({
                       />
                     ) : tensionDescription ? (
                       <p
-                        className={`text-xs leading-relaxed ${
+                        className={`text-xs leading-relaxed text-right ${
                           darkMode ? "text-purple-100" : "text-purple-900"
                         }`}
                       >
                         {tensionDescription}
                       </p>
                     ) : (
-                      <p className={`text-xs italic ${placeholderText}`}>
+                      <p className={`text-xs italic text-right ${placeholderText}`}>
                         Click edit to add context.
                       </p>
                     )}
