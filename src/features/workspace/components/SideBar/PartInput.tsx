@@ -8,14 +8,21 @@ const PartInput = () => {
   const { createNode } = useFlowNodesContext();
 
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
+  const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
   const partInputRef = useRef<HTMLInputElement | null>(null);
   const [partType, setPartType] = useState("manager");
 
   const addPartNode = (e: { key: string }) => {
     if (e.key === "Enter" && partInputRef.current!.value.trim()) {
-      createNode("part", partInputRef.current!.value, undefined, undefined, { customPartType: partType });
+      const newNode = createNode("part", partInputRef.current!.value, undefined, undefined, { customPartType: partType });
       partInputRef.current!.value = "";
       setShowPartModal(false);
+      if (newNode && newNode.id) {
+        // Select the newly created part so the detail panel opens with edit modal
+        setTimeout(() => {
+          setSelectedPartId(newNode.id);
+        }, 100);
+      }
     }
   };
 

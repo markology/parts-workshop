@@ -51,6 +51,7 @@ import {
   Clock,
   Upload,
   Pencil,
+  Check,
   Trash2,
   History,
   Book,
@@ -71,6 +72,8 @@ import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
 const PartDetailPanel = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
+  const shouldAutoEditPart = useUIStore((s) => s.shouldAutoEditPart);
+  const setShouldAutoEditPart = useUIStore((s) => s.setShouldAutoEditPart);
   const [isCollapsing, setIsCollapsing] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   
@@ -152,7 +155,6 @@ const PartDetailPanel = () => {
   const [tempName, setTempName] = useState("");
   const [tempScratchpad, setTempScratchpad] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const modalFileInputRef = useRef<HTMLInputElement>(null);
   
   // Refs for scroll-to-section functionality
   const infoRef = useRef<HTMLDivElement>(null);
@@ -188,8 +190,8 @@ const PartDetailPanel = () => {
   const [showJournalHistory, setShowJournalHistory] = useState(false);
   const [isLoadingJournal, setIsLoadingJournal] = useState(false);
   const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
-  const [showInfoEditModal, setShowInfoEditModal] = useState(false);
   const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -202,12 +204,21 @@ const PartDetailPanel = () => {
   useEffect(() => {
     if (partNode && selectedPartId) {
       const data = partNode.data;
-      setTempName((data.name as string) || (data.label as string) || "");
+      const name = (data.name as string) || (data.label as string) || "";
+      setTempName(name);
       setTempScratchpad((data.scratchpad as string) || "");
       setTempPartType((data.customPartType as string) || (data.partType as string) || "");
       setTempAge((data.age as string) || "Unknown");
       setTempGender((data.gender as string) || "");
       setActiveSection("info"); // Reset to top section when part changes
+      
+      // Auto-enable edit mode only if flag is set (when created via "Add Part" button)
+      if (shouldAutoEditPart) {
+        setIsEditingInfo(true);
+        setShouldAutoEditPart(false); // Reset flag after using it
+      } else {
+        setIsEditingInfo(false);
+      }
     }
   }, [selectedPartId]); // Only sync when selectedPartId changes, not on every partNode update
 
@@ -612,23 +623,6 @@ const PartDetailPanel = () => {
     });
   };
 
-  const handleModalImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && selectedPartId && partNode) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imageDataUrl = event.target?.result as string;
-        updateNode(selectedPartId!, {
-          data: {
-            ...partNode!.data,
-            image: imageDataUrl,
-          },
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && selectedPartId && partNode) {
@@ -664,12 +658,12 @@ const PartDetailPanel = () => {
     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
 
   const sectionCardClasses = darkMode
-    ? "bg-slate-950/70 border border-slate-800/70 shadow-[0_16px_48px_rgba(8,15,30,0.36)] rounded-[22px]"
-    : "bg-white border border-slate-200 shadow-[0_20px_55px_rgba(15,23,42,0.12)] rounded-[22px]";
+    ? "bg-slate-950/70 border border-slate-800/70 shadow-[0_16px_40px_rgba(8,15,30,0.32)] rounded-3xl"
+    : "bg-white/95 border border-slate-200 shadow-[0_18px_45px_rgba(15,23,42,0.10)] rounded-3xl";
 
   const subCardClasses = darkMode
-    ? "bg-slate-950/60 border border-slate-800/70 rounded-xl"
-    : "bg-slate-50 border border-slate-200 rounded-xl";
+    ? "bg-slate-950/60 border border-slate-800/70 rounded-2xl"
+    : "bg-slate-50 border border-slate-200 rounded-2xl";
 
   const listItemClasses = darkMode
     ? "bg-slate-950/50 border border-slate-800/60 text-slate-200"
@@ -692,6 +686,13 @@ const PartDetailPanel = () => {
     : "bg-white border border-slate-200 text-slate-900 markymarktextarea placeholder-slate-400";
 
   const modalLabelClasses = darkMode ? "text-slate-200" : "text-slate-700";
+
+  // When adding an impression, softly blur the background card
+  const backdropCardClasses = addingImpressionType
+    ? darkMode
+      ? "backdrop-blur-sm"
+      : "backdrop-blur-sm bg-white"
+    : "";
 
   const handleDeletePart = () => {
     if (!selectedPartId) return;
@@ -724,7 +725,7 @@ const PartDetailPanel = () => {
       onClick={handleBackdropClick}
     >
       <div 
-        className={`relative w-full max-w-5xl ${addingImpressionType ? `backdrop-blur-sm ${darkMode ? '' : 'bg-white'}` : ''}`}
+        className={`relative w-full max-w-5xl ${backdropCardClasses}`}
         style={{
           transform: shiftAmount > 0 ? `translateX(${shiftAmount}px)` : 'none'
         }}
@@ -815,23 +816,33 @@ const PartDetailPanel = () => {
           <div ref={infoRef} className="relative space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
-                  darkMode ? "text-slate-400" : "text-slate-500"
-                }`}>
-                  <User className="w-3 h-3 text-emerald-600" />
-                  Info
-                </h3>
-                <button
-                  onClick={() => setShowInfoEditModal(true)}
-                  className={`p-2 rounded-full border transition-colors ${
-                    darkMode
-                      ? "border-slate-700 text-slate-300 hover:bg-slate-900/60"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-100"
-                  }`}
-                  aria-label="Edit info"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
+                <div className="flex items-center justify-between">
+                  <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+                    darkMode ? "text-slate-400" : "text-slate-500"
+                  }`}>
+                    <User className="w-3 h-3 text-emerald-600" />
+                    Info
+                  </h3>
+                  <button
+                    onClick={() => setIsEditingInfo(!isEditingInfo)}
+                    className={`p-2 rounded-full border transition-colors ${
+                      isEditingInfo
+                        ? darkMode
+                          ? "border-blue-500/50 bg-blue-500/20 text-blue-300"
+                          : "border-blue-500/50 bg-blue-100 text-blue-700"
+                        : darkMode
+                        ? "border-slate-700 text-slate-300 hover:bg-slate-900/60"
+                        : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                    }`}
+                    aria-label={isEditingInfo ? "Done editing" : "Edit info"}
+                  >
+                    {isEditingInfo ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Pencil className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -860,7 +871,13 @@ const PartDetailPanel = () => {
             </div>
             
             {/* Main Info Grid */}
-            <div className={`${sectionCardClasses} p-6 space-y-6`}>
+            <div className={`${sectionCardClasses} p-6 space-y-6 transition-all duration-200 ${
+              isEditingInfo 
+                ? darkMode 
+                  ? "ring-2 ring-blue-500/30 bg-slate-900/40" 
+                  : "ring-2 ring-blue-500/30 bg-blue-50/30"
+                : ""
+            }`}>
               {/* First Row: Image and Info */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Image - Left Column */}
@@ -909,96 +926,289 @@ const PartDetailPanel = () => {
                 <div className="lg:col-span-2 space-y-6">
                   {/* Name and Part Type Row */}
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h2 className={`text-3xl font-bold mb-2 ${darkMode ? "text-white" : "text-black"}`}>
-                        {(data.name as string) || (data.label as string) || "Untitled"}
-                      </h2>
-                      <div className="flex items-center gap-2">
-                        {(() => {
-                          const currentType = tempPartType || (data.customPartType as string) || (data.partType as string) || "";
-                          if (!currentType) {
-                            return (
-                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${
+                    <div className="flex-1 space-y-4">
+                      <div className="space-y-2">
+                        <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                          Name
+                        </label>
+                        {isEditingInfo ? (
+                          <input
+                            type="text"
+                            value={tempName}
+                            onChange={(e) => setTempName(e.target.value)}
+                            onBlur={() => {
+                              if (tempName !== ((data.name as string) || (data.label as string) || "")) {
+                                updateNode(selectedPartId, {
+                                  data: {
+                                    ...partNode.data,
+                                    name: tempName,
+                                    label: tempName,
+                                  },
+                                });
+                              }
+                            }}
+                            className={`w-full bg-transparent border-b border-dashed text-3xl font-semibold tracking-tight pb-1 focus:outline-none focus:border-slate-500 ${
+                              darkMode
+                                ? "text-slate-50 border-slate-600 placeholder:text-slate-500"
+                                : "text-slate-900 border-slate-300 placeholder:text-slate-400"
+                            }`}
+                            placeholder="Name this part"
+                            autoFocus
+                          />
+                        ) : (
+                          <h2
+                            className={`text-3xl font-semibold tracking-tight ${
+                              darkMode ? "text-slate-50" : "text-slate-900"
+                            }`}
+                          >
+                            {tempName || "Untitled"}
+                          </h2>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                          Part Type
+                        </label>
+                        {isEditingInfo ? (
+                          <div className="flex flex-wrap gap-2 pl-0.5">
+                            {["manager", "firefighter", "exile"].map((type) => {
+                              const currentType =
+                                tempPartType ||
+                                (data.customPartType as string) ||
+                                (data.partType as string) ||
+                                "";
+                              const isSelected = currentType === type;
+
+                              const pillBase =
+                                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize transition cursor-pointer";
+                              const typeStyles: Record<string, { selected: string; idle: string }> = {
+                                manager: {
+                                  selected: darkMode
+                                    ? "bg-sky-500/15 text-sky-100"
+                                    : "bg-sky-100 text-sky-600",
+                                  idle: darkMode
+                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
+                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                },
+                                firefighter: {
+                                  selected: darkMode
+                                    ? "bg-rose-500/15 text-rose-100"
+                                    : "bg-rose-100 text-rose-600",
+                                  idle: darkMode
+                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
+                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                },
+                                exile: {
+                                  selected: darkMode
+                                    ? "bg-purple-500/15 text-purple-100"
+                                    : "bg-purple-100 text-purple-600",
+                                  idle: darkMode
+                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
+                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                },
+                              };
+
+                              const typeIcons: Record<string, React.ReactNode> = {
+                                manager: <Brain className="w-3.5 h-3.5" />,
+                                firefighter: <Shield className="w-3.5 h-3.5" />,
+                                exile: <Heart className="w-3.5 h-3.5" />,
+                              };
+
+                              const styles = typeStyles[type] || typeStyles.manager;
+
+                              return (
+                                <button
+                                  key={type}
+                                  onClick={() => {
+                                    setTempPartType(type);
+                                    updateNode(selectedPartId, {
+                                      data: {
+                                        ...partNode.data,
+                                        customPartType: type,
+                                        partType: type,
+                                      },
+                                    });
+                                  }}
+                                  className={`${pillBase} ${isSelected ? styles.selected : styles.idle}`}
+                                >
+                                  {typeIcons[type]}
+                                  {type}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2 pl-0.5">
+                            {(() => {
+                              const currentType =
+                                tempPartType ||
+                                (data.customPartType as string) ||
+                                (data.partType as string) ||
+                                "";
+                              if (!currentType) {
+                                return (
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${
+                                      darkMode ? "text-slate-300" : "text-slate-500"
+                                    }`}
+                                  >
+                                    <User className="w-3.5 h-3.5" />
+                                    No type set
+                                  </span>
+                                );
+                              }
+
+                              const pillBase =
+                                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize";
+                              const partTypeMapping: Record<
+                                string,
+                                { icon: React.ReactNode; className: string }
+                              > = {
+                                manager: {
+                                  icon: <Brain className="w-3.5 h-3.5" />,
+                                  className: darkMode
+                                    ? "bg-sky-500/15 text-sky-100"
+                                    : "bg-sky-100 text-sky-600",
+                                },
+                                firefighter: {
+                                  icon: <Shield className="w-3.5 h-3.5" />,
+                                  className: darkMode
+                                    ? "bg-rose-500/15 text-rose-100"
+                                    : "bg-rose-100 text-rose-600",
+                                },
+                                exile: {
+                                  icon: <Heart className="w-3.5 h-3.5" />,
+                                  className: darkMode
+                                    ? "bg-purple-500/15 text-purple-100"
+                                    : "bg-purple-100 text-purple-600",
+                                },
+                              };
+
+                              const pill =
+                                partTypeMapping[currentType] || {
+                                  icon: <User className="w-3.5 h-3.5" />,
+                                  className: darkMode
+                                    ? "bg-slate-800/60 text-slate-200"
+                                    : "bg-slate-100 text-slate-600",
+                                };
+
+                              return (
+                                <span className={`${pillBase} ${pill.className}`}>
+                                  {pill.icon}
+                                  {currentType}
+                                </span>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                            Age
+                          </label>
+                          {isEditingInfo ? (
+                            <input
+                              type="number"
+                              value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
+                              onChange={(e) => setTempAge(e.target.value || "Unknown")}
+                              onBlur={() => {
+                                if (tempAge !== ((data.age as string) || "Unknown")) {
+                                  updateNode(selectedPartId, {
+                                    data: {
+                                      ...partNode.data,
+                                      age: tempAge === "Unknown" ? "" : tempAge,
+                                    },
+                                  });
+                                }
+                              }}
+                              className={`w-full bg-transparent border-b pb-1 text-base focus:outline-none focus:border-slate-500 ${
                                 darkMode
-                                  ? "text-slate-300"
-                                  : "text-slate-500"
-                              }`}>
-                                <User className="w-3.5 h-3.5" />
-                                No type set
-                              </span>
-                            );
-                          }
-                          
-                          const pillBase =
-                            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide";
-                          const partTypeMapping: Record<string, { icon: React.ReactNode; className: string }> = {
-                            manager: {
-                              icon: <Brain className="w-3.5 h-3.5" />,
-                              className: darkMode
-                                ? "bg-sky-600 text-white"
-                                : "bg-sky-100 text-sky-800",
-                            },
-                            firefighter: {
-                              icon: <Shield className="w-3.5 h-3.5" />,
-                              className: darkMode
-                                ? "bg-rose-600 text-white"
-                                : "bg-rose-100 text-rose-800",
-                            },
-                            exile: {
-                              icon: <Heart className="w-3.5 h-3.5" />,
-                              className: darkMode
-                                ? "bg-purple-600 text-white"
-                                : "bg-purple-100 text-purple-800",
-                            },
-                          };
-
-                          const pill = partTypeMapping[currentType] || {
-                            icon: <User className="w-3.5 h-3.5" />,
-                            className: darkMode
-                              ? "bg-slate-700 text-white"
-                              : "bg-slate-100 text-slate-800",
-                          };
-
-                          return (
-                            <span className={`${pillBase} ${pill.className}`}>
-                              {pill.icon}
-                              {currentType.charAt(0).toUpperCase() + currentType.slice(1)}
-                            </span>
-                          );
-                        })()}
-                        {/* Age and Gender Display - To the right of part type */}
-                        {((data.age as string) && (data.age as string).toLowerCase() !== "unknown") || 
-                         ((data.gender as string) && (data.gender as string).toLowerCase() !== "unknown") ? (
-                          <>
-                            {(data.age as string) && (data.age as string).toLowerCase() !== "unknown" && (
-                              <span className={`px-2 py-1 rounded text-xs ${
-                                darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
-                              }`}>
-                                {data.age as string}
-                              </span>
-                            )}
-                            {(data.gender as string) && (data.gender as string).toLowerCase() !== "unknown" && (
-                              <span className={`px-2 py-1 rounded text-xs ${
-                                darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
-                              }`}>
-                                {data.gender as string}
-                              </span>
-                            )}
-                          </>
-                        ) : null}
+                                  ? "text-slate-100 border-slate-600 placeholder:text-slate-500"
+                                  : "text-slate-900 border-slate-300 placeholder:text-slate-400"
+                              }`}
+                              placeholder="Unknown"
+                              min="0"
+                            />
+                          ) : (
+                            <div className={`text-base ${tempAge && tempAge !== "Unknown" ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
+                              {tempAge && tempAge !== "Unknown" ? tempAge : "—"}
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                            Gender
+                          </label>
+                          {isEditingInfo ? (
+                            <input
+                              type="text"
+                              value={tempGender}
+                              onChange={(e) => setTempGender(e.target.value)}
+                              onBlur={() => {
+                                if (tempGender !== ((data.gender as string) || "")) {
+                                  updateNode(selectedPartId, {
+                                    data: {
+                                      ...partNode.data,
+                                      gender: tempGender,
+                                    },
+                                  });
+                                }
+                              }}
+                              className={`w-full bg-transparent border-b pb-1 text-base focus:outline-none focus:border-slate-500 ${
+                                darkMode
+                                  ? "text-slate-100 border-slate-600 placeholder:text-slate-500"
+                                  : "text-slate-900 border-slate-300 placeholder:text-slate-400"
+                              }`}
+                              placeholder="Gender"
+                            />
+                          ) : (
+                            <div className={`text-base ${tempGender ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
+                              {tempGender || "—"}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <div>
-                    <p className={`text-base leading-relaxed ${darkMode ? "text-gray-300" : "text-gray-700"} whitespace-pre-wrap`}>
-                      {(data.scratchpad as string) || (
-                        <span className={darkMode ? "text-gray-500" : "text-gray-400"}>
-                          No description added yet.
-                        </span>
-                      )}
-                    </p>
+                  <div className="space-y-2">
+                    <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                      Description
+                    </label>
+                    {isEditingInfo ? (
+                      <textarea
+                        value={tempScratchpad}
+                        onChange={(e) => setTempScratchpad(e.target.value)}
+                        onBlur={() => {
+                          if (tempScratchpad !== ((data.scratchpad as string) || "")) {
+                            updateNode(selectedPartId, {
+                              data: {
+                                ...partNode.data,
+                                scratchpad: tempScratchpad,
+                              },
+                            });
+                          }
+                        }}
+                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-slate-500/60 ${
+                          darkMode
+                            ? "bg-slate-950/60 border border-slate-800 text-slate-100 placeholder:text-slate-500"
+                            : "bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400"
+                        }`}
+                        placeholder="Add a description..."
+                      />
+                    ) : (
+                      <p className={`text-base leading-relaxed whitespace-pre-wrap ${darkMode ? "text-slate-200" : "text-slate-800"}`}>
+                        {tempScratchpad || (
+                          <span className={darkMode ? "text-slate-500" : "text-slate-400"}>
+                            No description added yet.
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2280,230 +2490,8 @@ const PartDetailPanel = () => {
           </div>
         )}
 
-        {/* Info Edit Modal */}
-        {showInfoEditModal && (
-          <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-[2px] flex items-center justify-center z-[60] p-4"
-            onClick={() => setShowInfoEditModal(false)}
-          >
-            <div
-              className={`${modalContainerClasses} rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-2xl max-h-[80vh] mx-4 overflow-hidden flex flex-col`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="px-6 py-5 space-y-6 overflow-y-auto">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                      Info
-                    </p>
-                    <h3 className="text-2xl font-semibold mt-2">Edit details</h3>
-                    <p className={`text-sm mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                      Update the basics for {(data.name as string) || (data.label as string) || "your part"}.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setShowInfoEditModal(false)}
-                    className={`p-2 rounded-full border ${
-                      darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-900/60" : "border-slate-200 text-slate-500 hover:bg-slate-100"
-                    }`}
-                    aria-label="Close"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-5">
-                    <div className={`${modalFieldCardClasses} p-5 space-y-5`}>
-                      <div className="space-y-2">
-                        <label className={`text-sm font-medium ${modalLabelClasses}`}>Name</label>
-                        <input
-                          type="text"
-                          value={tempName}
-                          onChange={(e) => setTempName(e.target.value)}
-                          className={`w-full text-base rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent ${modalInputClasses}`}
-                          placeholder="Part name"
-                        />
-                      </div>
-
-                      <div className="space-y-3">
-                        <label className={`text-sm font-medium ${modalLabelClasses}`}>Part type</label>
-                        <div className="flex flex-wrap gap-2">
-                          {["manager", "firefighter", "exile"].map((type) => {
-                            const currentType =
-                              tempPartType ||
-                              (data.customPartType as string) ||
-                              (data.partType as string) ||
-                              "";
-                            const isSelected = currentType === type;
-
-                            const pillBase =
-                              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide border transition";
-                            const typeStyles: Record<
-                              string,
-                              { selected: string; idle: string }
-                            > = {
-                              manager: {
-                                selected: "bg-sky-600 text-white border-sky-600 shadow-sm",
-                                idle: darkMode
-                                  ? "bg-slate-900/50 border-slate-700 text-slate-200 hover:bg-slate-900"
-                                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100",
-                              },
-                              firefighter: {
-                                selected: "bg-rose-600 text-white border-rose-600 shadow-sm",
-                                idle: darkMode
-                                  ? "bg-slate-900/50 border-slate-700 text-slate-200 hover:bg-slate-900"
-                                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100",
-                              },
-                              exile: {
-                                selected: "bg-purple-600 text-white border-purple-600 shadow-sm",
-                                idle: darkMode
-                                  ? "bg-slate-900/50 border-slate-700 text-slate-200 hover:bg-slate-900"
-                                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100",
-                              },
-                            };
-
-                            const typeIcons: Record<string, React.ReactNode> = {
-                              manager: <Brain className="w-3.5 h-3.5" />,
-                              firefighter: <Shield className="w-3.5 h-3.5" />,
-                              exile: <Heart className="w-3.5 h-3.5" />,
-                            };
-
-                            const styles = typeStyles[type];
-
-                            return (
-                              <button
-                                key={type}
-                                onClick={() => {
-                                  setTempPartType(type);
-                                }}
-                                className={`${pillBase} ${
-                                  isSelected ? styles.selected : styles.idle
-                                }`}
-                              >
-                                {typeIcons[type]}
-                                {type.charAt(0).toUpperCase() + type.slice(1)}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-[0.9fr_1.1fr] gap-4">
-                        <div className="space-y-2">
-                          <label className={`text-sm font-medium ${modalLabelClasses}`}>Age</label>
-                          <input
-                            type="number"
-                            value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
-                            onChange={(e) => setTempAge(e.target.value || "Unknown")}
-                            className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent ${modalInputClasses}`}
-                            placeholder="Unknown"
-                            min="0"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className={`text-sm font-medium ${modalLabelClasses}`}>Gender</label>
-                          <input
-                            type="text"
-                            value={tempGender}
-                            onChange={(e) => setTempGender(e.target.value)}
-                            className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent ${modalInputClasses}`}
-                            placeholder="Gender"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={`${modalFieldCardClasses} p-5 space-y-4`}>
-                      <div className="space-y-2">
-                        <label className={`text-sm font-medium ${modalLabelClasses}`}>Image</label>
-                        <div
-                          className={`relative aspect-square rounded-2xl overflow-hidden flex items-center justify-center ${
-                            darkMode ? "bg-slate-900/60 border border-slate-700" : "bg-white border border-slate-200"
-                          }`}
-                        >
-                          {data.image ? (
-                            <>
-                              <Image
-                                src={data.image as string}
-                                alt="Part"
-                                width={320}
-                                height={320}
-                                className="w-full h-full object-cover"
-                              />
-                              <button
-                                onClick={() => modalFileInputRef.current?.click()}
-                                className="absolute inset-0 bg-slate-950/0 hover:bg-slate-950/50 flex items-center justify-center"
-                              >
-                                <Upload className="w-7 h-7 text-white" />
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => modalFileInputRef.current?.click()}
-                              className={`w-full h-full flex flex-col items-center justify-center gap-3 ${
-                                darkMode ? "text-slate-300 hover:bg-slate-900/40" : "text-slate-500 hover:bg-slate-100"
-                              }`}
-                            >
-                              <SquareUserRound size={60} />
-                              <span className="text-xs font-medium">Upload image</span>
-                            </button>
-                          )}
-                          <input
-                            ref={modalFileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleModalImageUpload}
-                            className="hidden"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={`${modalFieldCardClasses} p-5 space-y-3`}>
-                    <label className={`text-sm font-medium ${modalLabelClasses}`}>Description</label>
-                    <textarea
-                      value={tempScratchpad}
-                      onChange={(e) => setTempScratchpad(e.target.value)}
-                      className={`w-full rounded-xl px-4 py-3 min-h-[160px] resize-none focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent ${modalTextareaClasses}`}
-                      placeholder="Add a description..."
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    onClick={() => setShowInfoEditModal(false)}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-medium border ${
-                      darkMode
-                        ? "border-slate-700 text-slate-300 hover:bg-slate-900/60"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      saveInfo();
-                      setTimeout(() => {
-                        setShowInfoEditModal(false);
-                      }, 0);
-                    }}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-semibold ${
-                      darkMode
-                        ? "bg-slate-100/15 text-white hover:bg-slate-100/25"
-                        : "bg-slate-900 text-white hover:bg-slate-800"
-                    }`}
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      
+        </div>
     </div>
   );
 };

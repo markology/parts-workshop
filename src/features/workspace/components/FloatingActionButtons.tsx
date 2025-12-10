@@ -70,6 +70,9 @@ const FloatingActionButtons = () => {
   const shouldCollapseSidebar = useUIStore((s) => s.shouldCollapseSidebar);
   const setShouldCollapseSidebar = useUIStore((s) => s.setShouldCollapseSidebar);
   const selectedPartId = useUIStore((s) => s.selectedPartId);
+  const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
+  const setShouldAutoEditPart = useUIStore((s) => s.setShouldAutoEditPart);
+  const setShowInfoEditModal = useUIStore((s) => s.setShowInfoEditModal);
   const showPartDetailImpressionInput = useUIStore((s) => s.showPartDetailImpressionInput);
   const [showRelationshipTypeModal, setShowRelationshipTypeModal] = useState(true);
   const { isSaving, saveCheck } = useAutoSave();
@@ -128,6 +131,8 @@ const FloatingActionButtons = () => {
     return () => window.removeEventListener('resize', updateWindowWidth);
   }, []);
 
+  // When a part detail panel opens (selectedPartId), hide the action menu.
+  // When it closes, restore the action menu to its default visible state.
   // Measure input position when chatbox opens or window resizes
   useLayoutEffect(() => {
     const updatePosition = () => {
@@ -949,7 +954,15 @@ const FloatingActionButtons = () => {
               onMouseEnter={() => setHoveredOption('part')}
               onMouseLeave={() => setHoveredOption(null)}
               onClick={() => {
-                createNode("part", "New Part");
+                const newNode = createNode("part", "New Part");
+                if (newNode && newNode.id) {
+                  // Set flag to auto-enable editing when part details panel opens
+                  setShouldAutoEditPart(true);
+                  // Select the newly created part so the detail panel opens
+                  setTimeout(() => {
+                    setSelectedPartId(newNode.id);
+                  }, 100);
+                }
                 // Keep action button active so impressions sidebar stays open
                 // Keep options menu open
               }}

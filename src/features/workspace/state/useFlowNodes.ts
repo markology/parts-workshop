@@ -197,6 +197,8 @@ export const useFlowNodes = () => {
         }
       );
     }, 0);
+    
+    return newNode;
   }, [setNodes, getViewport, setCenter]);
 
   const deleteNode = useCallback(
