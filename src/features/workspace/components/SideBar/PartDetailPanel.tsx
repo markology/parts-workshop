@@ -211,16 +211,21 @@ const PartDetailPanel = () => {
       setTempAge((data.age as string) || "Unknown");
       setTempGender((data.gender as string) || "");
       setActiveSection("info"); // Reset to top section when part changes
-      
-      // Auto-enable edit mode only if flag is set (when created via "Add Part" button)
-      if (shouldAutoEditPart) {
-        setIsEditingInfo(true);
-        setShouldAutoEditPart(false); // Reset flag after using it
-      } else {
-        setIsEditingInfo(false);
-      }
     }
-  }, [selectedPartId]); // Only sync when selectedPartId changes, not on every partNode update
+  }, [selectedPartId, partNode]); // Only sync when selectedPartId or partNode changes
+
+  // Separate effect to handle auto-edit flag when part is selected
+  useEffect(() => {
+    if (partNode && selectedPartId && shouldAutoEditPart) {
+      // Enable edit mode and reset flag
+      // Use a small delay to ensure the component is fully rendered
+      const timer = setTimeout(() => {
+        setIsEditingInfo(true);
+        setShouldAutoEditPart(false);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedPartId, partNode, shouldAutoEditPart, setShouldAutoEditPart]);
 
   const loadJournalEntries = async () => {
     if (!selectedPartId) return;

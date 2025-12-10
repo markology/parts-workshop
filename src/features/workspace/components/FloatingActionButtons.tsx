@@ -954,7 +954,7 @@ const FloatingActionButtons = () => {
               onMouseEnter={() => setHoveredOption('part')}
               onMouseLeave={() => setHoveredOption(null)}
               onClick={() => {
-                const newNode = createNode("part", "New Part");
+                const newNode = createNode("part", "");
                 if (newNode && newNode.id) {
                   // Set flag to auto-enable editing when part details panel opens
                   setShouldAutoEditPart(true);
