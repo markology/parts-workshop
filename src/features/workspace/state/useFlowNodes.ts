@@ -224,6 +224,7 @@ export const useFlowNodes = () => {
     updateNode<PartNodeData>(partId, {
       data: {
         label: partName,
+        name: partName,
       },
     });
     updateTensionConnectedNodesPartName(partId, partName);

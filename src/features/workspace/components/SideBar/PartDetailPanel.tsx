@@ -79,6 +79,8 @@ const PartDetailPanel = () => {
   
   const setShouldCollapseSidebar = useUIStore((s) => s.setShouldCollapseSidebar);
   const setJournalTarget = useJournalStore((s) => s.setJournalTarget);
+  const journalIsOpen = useJournalStore((s) => s.isOpen);
+  const journalLastSaved = useJournalStore((s) => s.lastSavedJournalData);
   const { activeSidebarNode } = useSidebarStore();
 
   // Track window width for responsive positioning
@@ -99,7 +101,7 @@ const PartDetailPanel = () => {
     setSelectedPartId(undefined);
   };
   // Use selective subscriptions - only subscribe to updateNode function, not nodes/edges arrays
-  const { updateNode, deleteNode, deleteEdges, removePartFromAllTensions } = useFlowNodesContext();
+  const { updateNode, updatePartName, deleteNode, deleteEdges, removePartFromAllTensions } = useFlowNodesContext();
   
   // Get nodes and edges from store - Zustand handles this efficiently
   const nodes = useWorkingStore((s) => s.nodes);
@@ -200,6 +202,13 @@ const PartDetailPanel = () => {
       loadJournalEntries();
     }
   }, [selectedPartId]);
+
+  // Refresh journal entries after closing the journal drawer (e.g., after saving)
+  useEffect(() => {
+    if (!journalIsOpen && selectedPartId) {
+      loadJournalEntries();
+    }
+  }, [journalIsOpen, journalLastSaved, selectedPartId]);
 
   // Initialize temp values from part data when part changes (only on selection change, not on every render)
   useEffect(() => {
@@ -499,7 +508,15 @@ const PartDetailPanel = () => {
       
       // For tensions and interactions, get the connectedNodes data
       const nodeData = connectedNode?.data as any;
-      const connectedNodes = nodeData?.connectedNodes || [];
+      const connectedNodesRaw = nodeData?.connectedNodes || [];
+      // Rehydrate parts so names/types stay in sync with latest node state
+      const connectedNodes = connectedNodesRaw.map((cn: any) => {
+        const latestPart = nodes.find((n) => n.id === cn?.part?.id);
+        return {
+          ...cn,
+          part: latestPart || cn.part,
+        };
+      });
       
       return {
         id: edge.id,
@@ -579,13 +596,7 @@ const PartDetailPanel = () => {
   const saveName = () => {
     if (!selectedPartId || !partNode) return;
     const trimmedName = tempName.trim();
-    updateNode(selectedPartId, {
-      data: {
-        ...partNode.data,
-        name: trimmedName || "",
-        label: trimmedName || "",
-      },
-    });
+    updatePartName(selectedPartId, trimmedName || "");
     setTempName(trimmedName);
   };
 
@@ -960,14 +971,11 @@ const PartDetailPanel = () => {
                             value={tempName}
                             onChange={(e) => setTempName(e.target.value)}
                             onBlur={() => {
-                              if (tempName !== ((data.name as string) || (data.label as string) || "")) {
-                                updateNode(selectedPartId, {
-                                  data: {
-                                    ...partNode.data,
-                                    name: tempName,
-                                    label: tempName,
-                                  },
-                                });
+                              const currentName = (data.name as string) || (data.label as string) || "";
+                              const trimmed = tempName.trim();
+                              if (trimmed !== currentName) {
+                                updatePartName(selectedPartId, trimmed);
+                                setTempName(trimmed);
                               }
                             }}
                              className={`w-full bg-transparent text-3xl font-semibold tracking-tight pb-1 focus:outline-none ${
@@ -1524,9 +1532,9 @@ const PartDetailPanel = () => {
                       <span>View All</span>
                     </button>
                   </div>
-                  {/* Show only the 3 most recent entries */}
+                  {/* Show only the 2 most recent entries */}
                   <div className="space-y-3">
-                  {journalEntries.map((entry) => {
+                  {journalEntries.slice(0, 2).map((entry) => {
                     // Determine if it's a text thread
                     const isTextThread = (() => {
                       try {
