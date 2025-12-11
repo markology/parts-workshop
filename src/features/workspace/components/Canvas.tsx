@@ -28,6 +28,8 @@ const Workspace = () => {
   const [workspaceBgColor, setWorkspaceBgColor] = useState(defaultBg);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
+  const colorButtonRef = useRef<HTMLButtonElement>(null);
+  const hasDispatchedDragClose = useRef(false);
   // Call auto-save inside ReactFlow context
   useAutoSave();
 
@@ -51,6 +53,23 @@ const Workspace = () => {
     setWorkspaceBgColor(darkMode ? defaultDarkBg : defaultLightBg);
   }, [darkMode]);
 
+  const handlePaneClickWrapped = () => {
+    setShowColorPicker(false);
+    window.dispatchEvent(new CustomEvent("workspace-pane-click"));
+    handlePaneClick();
+  };
+
+  const handlePaneDragStart = () => {
+    if (hasDispatchedDragClose.current) return;
+    setShowColorPicker(false);
+    window.dispatchEvent(new CustomEvent("workspace-pane-click"));
+    hasDispatchedDragClose.current = true;
+    // reset after a brief moment to allow future drags to retrigger
+    setTimeout(() => {
+      hasDispatchedDragClose.current = false;
+    }, 500);
+  };
+
   useEffect(() => {
     if (!showColorPicker) return;
     const handleClickOutside = (e: MouseEvent) => {
@@ -61,6 +80,24 @@ const Workspace = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showColorPicker]);
+
+  useEffect(() => {
+    const handleGlobalPointer = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      const insidePicker = colorPickerRef.current && target instanceof Node && colorPickerRef.current.contains(target);
+      const insideButton = colorButtonRef.current && target instanceof Node && colorButtonRef.current.contains(target);
+      if (!insidePicker && !insideButton) {
+        setShowColorPicker(false);
+        window.dispatchEvent(new CustomEvent("workspace-pane-click"));
+        hasDispatchedDragClose.current = true;
+        setTimeout(() => {
+          hasDispatchedDragClose.current = false;
+        }, 500);
+      }
+    };
+    window.addEventListener("pointerdown", handleGlobalPointer, { capture: true });
+    return () => window.removeEventListener("pointerdown", handleGlobalPointer, { capture: true });
+  }, []);
 
   // Reset fitView when map changes
   useEffect(() => {
@@ -104,6 +141,7 @@ const Workspace = () => {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <button
+          ref={colorButtonRef}
           onClick={(e) => {
             e.stopPropagation();
             setShowColorPicker((prev) => !prev);
@@ -154,7 +192,8 @@ const Workspace = () => {
           onConnect={onConnect}
           onDrop={onDrop}
           onDragOver={onDragOver}
-          onPaneClick={handlePaneClick}
+          onPaneClick={handlePaneClickWrapped}
+          onMouseDown={handlePaneDragStart}
           nodeTypes={nodeTypes}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           minZoom={0}

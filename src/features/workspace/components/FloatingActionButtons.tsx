@@ -431,6 +431,15 @@ const FloatingActionButtons = () => {
     }
   }, [profileDropdownOpen]);
 
+  // Close dropdown when canvas pane is clicked
+  useEffect(() => {
+    const handlePaneClick = () => {
+      setProfileDropdownOpen(false);
+    };
+    window.addEventListener("workspace-pane-click", handlePaneClick);
+    return () => window.removeEventListener("workspace-pane-click", handlePaneClick);
+  }, []);
+
   useEffect(() => {}, []);
 
   // Close profile dropdown when clicking outside
