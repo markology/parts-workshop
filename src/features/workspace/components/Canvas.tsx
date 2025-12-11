@@ -231,6 +231,10 @@ const Workspace = () => {
           display: inline-flex;
           gap: 0.4rem;
           align-items: center;
+          background: transparent !important;
+          box-shadow: none !important;
+          border: none !important;
+          padding: 0;
         }
         .react-flow__controls button {
           width: 36px;

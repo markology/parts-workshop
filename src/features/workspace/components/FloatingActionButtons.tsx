@@ -879,7 +879,10 @@ const FloatingActionButtons = () => {
           />
           <div className="fixed inset-0 z-[90] bg-white">
             <div className="h-full flex flex-col items-center">
-              <div className="relative w-full max-w-6xl h-full px-6 sm:px-10 lg:px-16 py-6 flex flex-col">
+              <div
+                className="relative w-full max-w-6xl h-full px-6 sm:px-10 lg:px-16 py-6 flex flex-col"
+                style={{ animation: "optionsSlideIn 220ms ease-out" }}
+              >
                 <button
                   onClick={closeOptionsModal}
                   className="absolute top-4 right-4 rounded-full bg-gray-900 text-white p-2 hover:bg-gray-800 transition shadow-md"
@@ -1173,3 +1176,28 @@ const FloatingActionButtons = () => {
 };
 
 export default FloatingActionButtons;
+
+// Slide-in animation for options panel
+const optionsSlideIn = `
+@keyframes optionsSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+`;
+
+// Inject keyframes globally
+if (typeof document !== "undefined") {
+  const styleId = "fab-options-slidein";
+  if (!document.getElementById(styleId)) {
+    const styleEl = document.createElement("style");
+    styleEl.id = styleId;
+    styleEl.textContent = optionsSlideIn;
+    document.head.appendChild(styleEl);
+  }
+}
