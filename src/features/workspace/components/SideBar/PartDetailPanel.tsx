@@ -192,6 +192,7 @@ const PartDetailPanel = () => {
   const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
   const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -829,20 +830,38 @@ const PartDetailPanel = () => {
                     Info
                   </h3>
                   <button
-                    onClick={() => setIsEditingInfo(!isEditingInfo)}
-                    className={`p-2 rounded-full border transition-colors ${
+                    onClick={() => {
+                      if (isEditingInfo) {
+                        // When finishing editing, show "saved" for 1 second
+                        setIsEditingInfo(false);
+                        setShowSaved(true);
+                        setTimeout(() => {
+                          setShowSaved(false);
+                        }, 1000);
+                      } else {
+                        setIsEditingInfo(true);
+                        setShowSaved(false);
+                      }
+                    }}
+                    className={`p-2 rounded-full transition-colors ${
                       isEditingInfo
                         ? darkMode
-                          ? "border-blue-500/50 bg-blue-500/20 text-blue-300"
-                          : "border-blue-500/50 bg-blue-100 text-blue-700"
+                          ? "border border-blue-500/50 bg-blue-500/20 text-blue-300"
+                          : "border border-blue-500/50 bg-blue-100 text-blue-700"
                         : darkMode
-                        ? "border-slate-700 text-slate-300 hover:bg-slate-900/60"
-                        : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                        ? "text-slate-300 hover:text-slate-200"
+                        : "text-slate-500 hover:text-slate-700"
                     }`}
                     aria-label={isEditingInfo ? "Done editing" : "Edit info"}
                   >
                     {isEditingInfo ? (
                       <Check className="w-4 h-4" />
+                    ) : showSaved ? (
+                      <span className={`text-sm font-medium px-2 py-0.5 rounded ${
+                        darkMode
+                          ? "bg-green-500/20 text-green-300"
+                          : "bg-green-100 text-green-700"
+                      }`}>Saved</span>
                     ) : (
                       <Pencil className="w-4 h-4" />
                     )}
@@ -863,14 +882,13 @@ const PartDetailPanel = () => {
                 </button>
                 <button
                   onClick={handleDeletePart}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold ${
+                  className={`flex items-center justify-center px-3 py-2 rounded-full text-sm font-medium border border-transparent hover:bg-rose-500/20 ${
                     darkMode
-                      ? "bg-rose-600/80 text-white hover:bg-rose-500"
-                      : "bg-rose-600 text-white hover:bg-rose-500"
+                      ? "text-rose-300 hover:text-rose-200"
+                      : "text-rose-400 hover:text-rose-500"
                   }`}
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Delete</span>
                 </button>
               </div>
             </div>
@@ -952,11 +970,11 @@ const PartDetailPanel = () => {
                                 });
                               }
                             }}
-                            className={`w-full bg-transparent border-b border-dashed text-3xl font-semibold tracking-tight pb-1 focus:outline-none focus:border-slate-500 ${
-                              darkMode
-                                ? "text-slate-50 border-slate-600 placeholder:text-slate-500"
-                                : "text-slate-900 border-slate-300 placeholder:text-slate-400"
-                            }`}
+                             className={`w-full bg-transparent text-3xl font-semibold tracking-tight pb-1 focus:outline-none ${
+                               darkMode
+                                 ? "text-slate-50 placeholder:text-slate-500"
+                                 : "text-slate-900 placeholder:text-slate-400"
+                             }`}
                             placeholder="Name this part"
                             autoFocus
                           />
@@ -1129,14 +1147,14 @@ const PartDetailPanel = () => {
                                   });
                                 }
                               }}
-                              className={`w-full bg-transparent border-b pb-1 text-base focus:outline-none focus:border-slate-500 ${
-                                darkMode
-                                  ? "text-slate-100 border-slate-600 placeholder:text-slate-500"
-                                  : "text-slate-900 border-slate-300 placeholder:text-slate-400"
-                              }`}
-                              placeholder="Unknown"
-                              min="0"
-                            />
+                               className={`block w-auto max-w-[100px] bg-transparent text-base focus:outline-none ${
+                                 darkMode
+                                   ? "text-slate-100 placeholder:text-slate-500"
+                                   : "text-slate-900 placeholder:text-slate-400"
+                               }`}
+                               placeholder="Unknown"
+                               min="0"
+                             />
                           ) : (
                             <div className={`text-base ${tempAge && tempAge !== "Unknown" ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
                               {tempAge && tempAge !== "Unknown" ? tempAge : "—"}
@@ -1162,13 +1180,13 @@ const PartDetailPanel = () => {
                                   });
                                 }
                               }}
-                              className={`w-full bg-transparent border-b pb-1 text-base focus:outline-none focus:border-slate-500 ${
-                                darkMode
-                                  ? "text-slate-100 border-slate-600 placeholder:text-slate-500"
-                                  : "text-slate-900 border-slate-300 placeholder:text-slate-400"
-                              }`}
-                              placeholder="Gender"
-                            />
+                               className={`w-auto max-w-[200px] bg-transparent text-base focus:outline-none ${
+                                 darkMode
+                                   ? "text-slate-100 placeholder:text-slate-500"
+                                   : "text-slate-900 placeholder:text-slate-400"
+                               }`}
+                               placeholder="Gender"
+                             />
                           ) : (
                             <div className={`text-base ${tempGender ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
                               {tempGender || "—"}
