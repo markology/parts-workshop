@@ -194,7 +194,6 @@ const PartDetailPanel = () => {
   const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
   const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
-  const [showSaved, setShowSaved] = useState(false);
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -612,6 +611,15 @@ const PartDetailPanel = () => {
     setTempScratchpad(trimmedScratchpad);
   };
 
+  const saveAllInfo = () => {
+    saveName();
+    savePartType();
+    saveAge();
+    saveGender();
+    saveScratchpad();
+    setIsEditingInfo(false);
+  };
+
   const saveInfo = () => {
     if (!selectedPartId || !partNode) return;
     const trimmedName = tempName.trim();
@@ -842,44 +850,51 @@ const PartDetailPanel = () => {
                   </h3>
                   <button
                     onClick={() => {
-                      if (isEditingInfo) {
-                        // When finishing editing, show "saved" for 1 second
-                        setIsEditingInfo(false);
-                        setShowSaved(true);
-                        setTimeout(() => {
-                          setShowSaved(false);
-                        }, 1000);
-                      } else {
-                        setIsEditingInfo(true);
-                        setShowSaved(false);
-                      }
+                      setIsEditingInfo((prev) => !prev);
                     }}
                     className={`p-2 rounded-full transition-colors ${
-                      isEditingInfo
-                        ? darkMode
-                          ? "border border-blue-500/50 bg-blue-500/20 text-blue-300"
-                          : "border border-blue-500/50 bg-blue-100 text-blue-700"
-                        : darkMode
-                        ? "text-slate-300 hover:text-slate-200"
-                        : "text-slate-500 hover:text-slate-700"
+                      darkMode ? "text-slate-300 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"
                     }`}
-                    aria-label={isEditingInfo ? "Done editing" : "Edit info"}
+                    aria-label={isEditingInfo ? "Stop editing" : "Edit info"}
                   >
-                    {isEditingInfo ? (
-                      <Check className="w-4 h-4" />
-                    ) : showSaved ? (
-                      <span className={`text-sm font-medium px-2 py-0.5 rounded ${
-                        darkMode
-                          ? "bg-green-500/20 text-green-300"
-                          : "bg-green-100 text-green-700"
-                      }`}>Saved</span>
-                    ) : (
-                      <Pencil className="w-4 h-4" />
-                    )}
+                    <Pencil className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {isEditingInfo && (
+                  <button
+                    type="button"
+                    onClick={saveAllInfo}
+                    className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition text-white shadow-sm"
+                    style={{
+                      backgroundColor: "#396bbc",
+                      boxShadow: "0 6px 16px rgba(57, 107, 188, 0.28)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2f5aa3";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#396bbc";
+                    }}
+                  >
+                    <Check className="w-4 h-4" />
+                    Save changes
+                  </button>
+                )}
+                {isEditingInfo && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingInfo(false)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition border ${
+                      darkMode
+                        ? "border-slate-600 text-slate-200 hover:bg-slate-800/60"
+                        : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                )}
                 <button
                   disabled
                   className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border cursor-not-allowed opacity-50 ${
@@ -1545,18 +1560,6 @@ const PartDetailPanel = () => {
                       }
                     })();
 
-                    // Get speaker names for display
-                    const speakerNames = (() => {
-                      if (!entry.speakers || entry.speakers.length === 0) return [];
-                      return entry.speakers.map((speakerId: string) => {
-                        if (speakerId === "self") return "Self";
-                        if (speakerId === "unknown" || speakerId === "?") return "Unknown";
-                        // Try to find the part node
-                        const partNode = nodes.find(n => n.id === speakerId);
-                        return partNode?.data?.label || partNode?.data?.name || speakerId;
-                      });
-                    })();
-
                     // Check if entry was updated (different from created)
                     const wasUpdated = entry.updatedAt && entry.createdAt && 
                       new Date(entry.updatedAt).getTime() !== new Date(entry.createdAt).getTime();
@@ -1660,24 +1663,6 @@ const PartDetailPanel = () => {
                                   </>
                                 )}
                               </span>
-                              
-                              {speakerNames.length > 0 && (
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className={`text-[10px] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    Speakers:
-                                  </span>
-                                  {speakerNames.map((name, idx) => (
-                                    <span key={idx} className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${
-                                      darkMode
-                                        ? "bg-slate-800/60 text-slate-300"
-                                        : "bg-slate-100 text-slate-600"
-                                    }`}>
-                                      {name}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                              
                               <span className={`text-[10px] ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                 {wordCount} words • {charCount.toLocaleString()} chars
                               </span>
@@ -2277,18 +2262,6 @@ const PartDetailPanel = () => {
                       }
                     })();
 
-                    // Get speaker names for display
-                    const speakerNames = (() => {
-                      if (!entry.speakers || entry.speakers.length === 0) return [];
-                      return entry.speakers.map((speakerId: string) => {
-                        if (speakerId === "self") return "Self";
-                        if (speakerId === "unknown" || speakerId === "?") return "Unknown";
-                        // Try to find the part node
-                        const partNode = nodes.find(n => n.id === speakerId);
-                        return partNode?.data?.label || partNode?.data?.name || speakerId;
-                      });
-                    })();
-
                     // Check if entry was updated (different from created)
                     const wasUpdated = entry.updatedAt && entry.createdAt && 
                       new Date(entry.updatedAt).getTime() !== new Date(entry.createdAt).getTime();
@@ -2392,24 +2365,6 @@ const PartDetailPanel = () => {
                                   </>
                                 )}
                               </span>
-                              
-                              {speakerNames.length > 0 && (
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className={`text-[10px] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                                    Speakers:
-                                  </span>
-                                  {speakerNames.map((name, idx) => (
-                                    <span key={idx} className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${
-                                      darkMode
-                                        ? "bg-slate-800/60 text-slate-300"
-                                        : "bg-slate-100 text-slate-600"
-                                    }`}>
-                                      {name}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                              
                               <span className={`text-[10px] ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                                 {wordCount} words • {charCount.toLocaleString()} chars
                               </span>

@@ -1343,8 +1343,8 @@ export default function JournalDrawer() {
                   onClick={() => setShowLeftPanel((prev) => !prev)}
                   className={`rounded-full p-1.5 transition flex-shrink-0 ${
                     showLeftPanel
-                      ? "bg-slate-700 text-white"
-                      : "bg-slate-700 text-white hover:bg-slate-600"
+                      ? "bg-slate-700 text-white hover:bg-slate-800"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
                   }`}
                   title="Toggle sidebar"
                 >
@@ -1354,7 +1354,7 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void handleStartNewEntry()}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0 bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0 bg-slate-700 text-white hover:bg-slate-800"
                   title="Start a new journal entry"
                 >
                   <FilePlus2 size={14} />

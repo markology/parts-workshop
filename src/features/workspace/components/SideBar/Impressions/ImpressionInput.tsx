@@ -191,6 +191,9 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
           </button>
         ))}
       </div>
+      <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+        Tab: next type • Shift+Tab: previous type • Enter: add impression
+      </p>
       <div className="relative">
         <textarea
           ref={textAreaRef as React.RefObject<HTMLTextAreaElement>}
