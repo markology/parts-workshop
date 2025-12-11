@@ -5,20 +5,29 @@ import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext
 import {
   Background,
   Controls,
-  Node,
+  type Node,
   OnNodesChange,
   ReactFlow,
   useReactFlow,
 } from "@xyflow/react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAutoSave } from "../state/hooks/useAutoSave";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
+import { ChromePicker, ColorResult } from "react-color";
+import { Paintbrush } from "lucide-react";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 const Workspace = () => {
   const isMobile = useIsMobile();
   const hasFitViewRun = useRef(false);
-  
+  const { darkMode } = useThemeContext();
+  const defaultLightBg = "#f8fafc";
+  const defaultDarkBg = "#0f172a";
+  const defaultBg = darkMode ? defaultDarkBg : defaultLightBg;
+  const [workspaceBgColor, setWorkspaceBgColor] = useState(defaultBg);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const colorPickerRef = useRef<HTMLDivElement>(null);
   // Call auto-save inside ReactFlow context
   useAutoSave();
 
@@ -37,6 +46,21 @@ const Workspace = () => {
   // Get mapId to reset fitView when map changes
   const mapId = useWorkingStore((s) => s.mapId);
   const prevMapIdRef = useRef<string>("");
+
+  useEffect(() => {
+    setWorkspaceBgColor(darkMode ? defaultDarkBg : defaultLightBg);
+  }, [darkMode]);
+
+  useEffect(() => {
+    if (!showColorPicker) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (colorPickerRef.current && e.target instanceof Node && !colorPickerRef.current.contains(e.target)) {
+        setShowColorPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showColorPicker]);
 
   // Reset fitView when map changes
   useEffect(() => {
@@ -73,10 +97,55 @@ const Workspace = () => {
   };
 
   return (
-    <div id="canvas" className="h-full flex-grow">
+    <div id="canvas" className="h-full flex-grow relative">
+      <div 
+        className="fixed bottom-4 left-[140px] z-[200] pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowColorPicker((prev) => !prev);
+          }}
+          className="w-10 h-10 rounded-full shadow-md transition hover:scale-105 border border-gray-300 bg-white text-gray-700 flex items-center justify-center"
+          aria-label="Pick workspace background color"
+        >
+          <Paintbrush className="w-5 h-5" />
+        </button>
+        {showColorPicker && (
+          <div
+            ref={colorPickerRef}
+            className="absolute bottom-[56px] left-0 z-[205] bg-white rounded-xl shadow-2xl p-2"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 px-1">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <Paintbrush className="w-4 h-4" />
+                <span>Canvas color</span>
+              </div>
+              <button
+                className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-100"
+                onClick={() => setWorkspaceBgColor(defaultBg)}
+              >
+                Reset
+              </button>
+            </div>
+            <ChromePicker
+              color={workspaceBgColor}
+              onChange={(color: ColorResult) => {
+                setWorkspaceBgColor(color.hex);
+              }}
+              disableAlpha
+            />
+          </div>
+        )}
+      </div>
       {!isMobile ? (
         <ReactFlow
           className="h-[4000px] w-[4000px]"
+          style={{ background: workspaceBgColor }}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange as OnNodesChange<Node>}

@@ -107,6 +107,9 @@ importers:
       react:
         specifier: ^19.0.0
         version: 19.1.1
+      react-color:
+        specifier: ^2.19.3
+        version: 2.19.3(react@19.1.1)
       react-dnd:
         specifier: ^16.0.1
         version: 16.0.1(@types/node@20.19.18)(@types/react@19.1.15)(react@19.1.1)
@@ -569,6 +572,11 @@ packages:
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
+
+  '@icons/material@0.2.4':
+    resolution: {integrity: sha512-QPcGmICAPbGLGb6F/yNf/KzKqvFx8z5qx3D1yFqVAjoFmXK35EgyW+cJ57Te3CNsmzblwtzakLGFqHPqrfb4Tw==}
+    peerDependencies:
+      react: '*'
 
   '@img/sharp-darwin-arm64@0.33.5':
     resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
@@ -3148,6 +3156,9 @@ packages:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
 
+  lodash-es@4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
+
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
 
@@ -3186,6 +3197,9 @@ packages:
     resolution: {integrity: sha512-uIj4+faQ+MgHgwUW1l2PsPglZLOLOT1uErt06dAPtx2kjteLAkbsd/0FiYg/MGS+i7ZKLb7w2WClxHkzOOuryQ==}
     engines: {node: '>= 18'}
     hasBin: true
+
+  material-colors@1.2.6:
+    resolution: {integrity: sha512-6qE4B9deFBIa9YSpOc9O0Sgc43zTeVYbgDT5veRKSlB2+ZuHNoVVxA1L/ckMUayV9Ay9y7Z/SZCLcGteW9i7bg==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -3670,6 +3684,11 @@ packages:
   rc9@2.1.2:
     resolution: {integrity: sha512-btXCnMmRIBINM2LDZoEmOogIZU7Qe7zn4BpomSKZ/ykbLObuBdvG+mFq11DL6fjH1DRwHhrlgtYWG96bJiC7Cg==}
 
+  react-color@2.19.3:
+    resolution: {integrity: sha512-LEeGE/ZzNLIsFWa1TMe8y5VYqr7bibneWmvJwm1pCn/eNmrabWDh659JSPn9BuaMpEfU83WTOJfnCcjDZwNQTA==}
+    peerDependencies:
+      react: '*'
+
   react-colorful@5.6.1:
     resolution: {integrity: sha512-1exovf0uGTGyq5mXQT0zgQ80uvj2PCwvF8zY1RN9/vbJVSjSo3fsB/4L3ObbF7u70NduSiK4xu4Y6q1MHoUGEw==}
     peerDependencies:
@@ -3772,6 +3791,11 @@ packages:
   react@19.1.1:
     resolution: {integrity: sha512-w8nqGImo45dmMIfljjMwOGtbmC/mk4CMYhWIicdSflH91J9TyCyczcPFXJzrZ/ZXcgGRFeP6BU0BEJTw6tZdfQ==}
     engines: {node: '>=0.10.0'}
+
+  reactcss@1.2.3:
+    resolution: {integrity: sha512-KiwVUcFu1RErkI97ywr8nvx8dNOpT03rbnma0SSalTYjkrPYaEajR4a/MRt6DZ46K6arDRbWMNHF+xH7G7n/8A==}
+    peerDependencies:
+      react: '*'
 
   readdirp@3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
@@ -4077,6 +4101,9 @@ packages:
 
   three@0.180.0:
     resolution: {integrity: sha512-o+qycAMZrh+TsE01GqWUxUIKR1AL0S8pq7zDkYOQw8GqfX8b8VoCKYUoHbhiX5j+7hr8XsuHDVU6+gkQJQKg9w==}
+
+  tinycolor2@1.6.0:
+    resolution: {integrity: sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==}
 
   tinyexec@1.0.1:
     resolution: {integrity: sha512-5uC6DDlmeqiOwCPmK9jMSdOuZTh8bU39Ys6yidB+UTt5hfZUPGAypSgFRiEp+jbi9qH40BLDvy85jIU88wKSqw==}
@@ -4753,6 +4780,10 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/retry@0.4.3': {}
+
+  '@icons/material@0.2.4(react@19.1.1)':
+    dependencies:
+      react: 19.1.1
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
@@ -7667,6 +7698,8 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
+  lodash-es@4.17.21: {}
+
   lodash.debounce@4.0.8: {}
 
   lodash.merge@4.6.2: {}
@@ -7697,6 +7730,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   marked@14.0.0: {}
+
+  material-colors@1.2.6: {}
 
   math-intrinsics@1.1.0: {}
 
@@ -8359,6 +8394,17 @@ snapshots:
       defu: 6.1.4
       destr: 2.0.5
 
+  react-color@2.19.3(react@19.1.1):
+    dependencies:
+      '@icons/material': 0.2.4(react@19.1.1)
+      lodash: 4.17.21
+      lodash-es: 4.17.21
+      material-colors: 1.2.6
+      prop-types: 15.8.1
+      react: 19.1.1
+      reactcss: 1.2.3(react@19.1.1)
+      tinycolor2: 1.6.0
+
   react-colorful@5.6.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:
       react: 19.1.1
@@ -8465,6 +8511,11 @@ snapshots:
       react-dom: 19.1.1(react@19.1.1)
 
   react@19.1.1: {}
+
+  reactcss@1.2.3(react@19.1.1):
+    dependencies:
+      lodash: 4.17.21
+      react: 19.1.1
 
   readdirp@3.6.0:
     dependencies:
@@ -8827,6 +8878,8 @@ snapshots:
       three: 0.180.0
 
   three@0.180.0: {}
+
+  tinycolor2@1.6.0: {}
 
   tinyexec@1.0.1: {}
 

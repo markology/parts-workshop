@@ -21,8 +21,8 @@ import { cleanupOrphanedJournalEntriesFromMap } from "../state/lib/cleanupOrphan
 import { toast } from "react-hot-toast";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { HelpCircle } from "lucide-react";
-
 const FloatingActionButtons = () => {
+
   const router = useRouter();
   const [activeButton, setActiveButton] = useState<string | null>('action');
   const [windowWidth, setWindowWidth] = useState(0);
@@ -62,6 +62,7 @@ const FloatingActionButtons = () => {
   const { darkMode, toggleDarkMode } = useThemeContext();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const [workspaceBgColor, setWorkspaceBgColorState] = useState("#f8fafc");
   
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const showImpressionModal = useUIStore((s) => s.showImpressionModal);
@@ -72,13 +73,50 @@ const FloatingActionButtons = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
   const setShouldAutoEditPart = useUIStore((s) => s.setShouldAutoEditPart);
-  const setShowInfoEditModal = useUIStore((s) => s.setShowInfoEditModal);
   const showPartDetailImpressionInput = useUIStore((s) => s.showPartDetailImpressionInput);
   const [showRelationshipTypeModal, setShowRelationshipTypeModal] = useState(true);
   const { isSaving, saveCheck } = useAutoSave();
   const saveMap = useSaveMap();
   const [localIsSaving, setLocalIsSaving] = useState(false);
   const [localSaveCheck, setLocalSaveCheck] = useState(false);
+  const optionItems = [
+    {
+      key: "3d-body-map",
+      title: "3D Body Map",
+      description: "Place sensations and parts onto an interactive 3D body map.",
+      image: "/parts-hero-extended.png",
+    },
+    {
+      key: "ai-exploration",
+      title: "AI Exploration",
+      description: "Ask guided questions and explore parts with an AI companion.",
+      image: "/globe.svg",
+    },
+    {
+      key: "free-writing",
+      title: "Free Writing",
+      description: "Open a focused space to write without distractions or limits.",
+      image: "/parts-hero.jpg",
+    },
+    {
+      key: "journal-analysis",
+      title: "Journal Analysis",
+      description: "Surface insights, patterns, and tags across your journal entries.",
+      image: "/parts-hero-extended-blend.png",
+    },
+    {
+      key: "affirmations",
+      title: "Affirmations",
+      description: "Generate supportive statements tailored to how your parts feel.",
+      image: "/window.svg",
+    },
+    {
+      key: "resources",
+      title: "Resources",
+      description: "Keep practices, references, and links close to your current work.",
+      image: "/file.svg",
+    },
+  ];
   
   const impressions = useWorkingStore((s) => s.sidebarImpressions);
   const { setActiveSidebarNode } = useSidebarStore();
@@ -393,6 +431,8 @@ const FloatingActionButtons = () => {
     }
   }, [profileDropdownOpen]);
 
+  useEffect(() => {}, []);
+
   // Close profile dropdown when clicking outside
   useEffect(() => {
     if (!profileDropdownOpen) return;
@@ -411,6 +451,32 @@ const FloatingActionButtons = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [profileDropdownOpen]);
+
+  useEffect(() => {
+    if (!activeButton || activeButton !== "options") {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveButton(null);
+        setProfileDropdownOpen(false);
+        setShowRelationshipTypeModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [activeButton]);
+
+  const isOptionsOpen = activeButton === "options";
+
+  const closeOptionsModal = () => {
+    // Restore left column/actions when closing options
+    setActiveButton('action');
+    setProfileDropdownOpen(false);
+    setShowRelationshipTypeModal(true);
+  };
 
   const handleActionClick = (action: string, event?: React.MouseEvent) => {
     if (event) {
@@ -465,9 +531,7 @@ const FloatingActionButtons = () => {
       // Toggle options button - if active, close everything. If not active, activate it and close action menu
       if (activeButton === 'options') {
         // Clicking X on options button closes everything
-        setActiveButton(null);
-        setShowRelationshipTypeModal(false);
-        setProfileDropdownOpen(false);
+        closeOptionsModal();
       } else {
         // Clicking options button activates it and closes action menu
         setActiveButton('options');
@@ -730,6 +794,8 @@ const FloatingActionButtons = () => {
               <Map className="w-4 h-4" />
               Workspaces
             </button>
+            
+            
             <button
               onClick={() => {
                 toggleDarkMode(!darkMode);
@@ -794,6 +860,73 @@ const FloatingActionButtons = () => {
           className="fixed inset-0 bg-black/35 backdrop-blur-[2px] transition-opacity duration-300 z-[76]"
           onClick={handleSearchClose}
         />
+      )}
+
+      {isOptionsOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[85]"
+            onClick={closeOptionsModal}
+          />
+          <div className="fixed inset-0 z-[90] bg-white">
+            <div className="h-full flex flex-col items-center">
+              <div className="relative w-full max-w-6xl h-full px-6 sm:px-10 lg:px-16 py-6 flex flex-col">
+                <button
+                  onClick={closeOptionsModal}
+                  className="absolute top-4 right-4 rounded-full bg-gray-900 text-white p-2 hover:bg-gray-800 transition shadow-md"
+                  aria-label="Close options"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="flex flex-col h-full gap-4">
+                  <div className="pb-3 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Quick options
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1 max-w-3xl">
+                      These spaces are coming soon. Pick where you want to go next and we’ll take you there when it’s ready.
+                    </p>
+                  </div>
+                  <div className="flex-1 overflow-y-auto pb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {optionItems.map((item) => (
+                        <div
+                          key={item.key}
+                          className="group h-full rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-b from-white to-gray-50/60 overflow-hidden"
+                        >
+                          <div className="relative aspect-[4/3] overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent" />
+                            <Image
+                              src={item.image}
+                              alt={item.title}
+                              fill
+                              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                              priority={false}
+                            />
+                            <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-black/60 backdrop-blur px-3 py-1 text-xs font-semibold text-white uppercase tracking-wide">
+                              Coming soon
+                            </div>
+                            {["free-writing", "ai-exploration", "journal-analysis"].includes(item.key) && (
+                              <div className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white/85 backdrop-blur px-3 py-1 text-xs font-semibold text-purple-600 shadow-sm">
+                                <Sparkles className="w-4 h-4" />
+                                AI
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-4 flex flex-col gap-2">
+                            <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">{item.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {isSearchExpanded && chatboxPosition && (

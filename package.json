@@ -44,6 +44,7 @@
     "posthog-node": "^4.14.0",
     "prisma": "^6.6.0",
     "react": "^19.0.0",
+    "react-color": "^2.19.3",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
