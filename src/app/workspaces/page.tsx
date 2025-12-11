@@ -603,6 +603,7 @@ export default function WorkspacesPage() {
                 >
                   <button
                     onClick={() => {
+                      router.push('/account');
                       setProfileDropdownOpen(false);
                     }}
                     className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg ${
