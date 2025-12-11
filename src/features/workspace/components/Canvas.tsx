@@ -73,31 +73,17 @@ const Workspace = () => {
   useEffect(() => {
     if (!showColorPicker) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (colorPickerRef.current && e.target instanceof Node && !colorPickerRef.current.contains(e.target)) {
+      const target = e.target as Node | null;
+      const insideButton = colorButtonRef.current && target instanceof Node && colorButtonRef.current.contains(target);
+      const insidePicker = colorPickerRef.current && target instanceof Node && colorPickerRef.current.contains(target);
+      if (insideButton) return; // button click is handled by its own onClick
+      if (!insidePicker) {
         setShowColorPicker(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showColorPicker]);
-
-  useEffect(() => {
-    const handleGlobalPointer = (e: PointerEvent) => {
-      const target = e.target as Node | null;
-      const insidePicker = colorPickerRef.current && target instanceof Node && colorPickerRef.current.contains(target);
-      const insideButton = colorButtonRef.current && target instanceof Node && colorButtonRef.current.contains(target);
-      if (!insidePicker && !insideButton) {
-        setShowColorPicker(false);
-        window.dispatchEvent(new CustomEvent("workspace-pane-click"));
-        hasDispatchedDragClose.current = true;
-        setTimeout(() => {
-          hasDispatchedDragClose.current = false;
-        }, 500);
-      }
-    };
-    window.addEventListener("pointerdown", handleGlobalPointer, { capture: true });
-    return () => window.removeEventListener("pointerdown", handleGlobalPointer, { capture: true });
-  }, []);
 
   // Reset fitView when map changes
   useEffect(() => {
@@ -136,7 +122,8 @@ const Workspace = () => {
   return (
     <div id="canvas" className="h-full flex-grow relative">
       <div 
-        className="fixed bottom-4 left-[140px] z-[200] pointer-events-auto"
+        className="fixed" 
+        style={{ left: "146px", bottom: "15px", zIndex: 200, pointerEvents: "auto", display: "flex", alignItems: "center" }}
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -144,9 +131,13 @@ const Workspace = () => {
           ref={colorButtonRef}
           onClick={(e) => {
             e.stopPropagation();
-            setShowColorPicker((prev) => !prev);
+            if (showColorPicker) {
+              setShowColorPicker(false);
+              return;
+            }
+            setShowColorPicker(true);
           }}
-          className="w-10 h-10 rounded-full shadow-md transition hover:scale-105 border border-gray-300 bg-white text-gray-700 flex items-center justify-center"
+          className="w-9 h-9 rounded-md shadow-md transition hover:scale-105 border border-gray-300 bg-white text-gray-700 flex items-center justify-center"
           aria-label="Pick workspace background color"
         >
           <Paintbrush className="w-5 h-5" />
@@ -235,6 +226,20 @@ const Workspace = () => {
           />
         </ReactFlow>
       )}
+      <style jsx global>{`
+        .react-flow__controls {
+          display: inline-flex;
+          gap: 0.4rem;
+          align-items: center;
+        }
+        .react-flow__controls button {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+          border: 1px solid #e5e7eb;
+        }
+      `}</style>
     </div>
   );
 };
