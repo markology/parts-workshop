@@ -18,6 +18,7 @@ import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
 import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
+import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
@@ -37,6 +38,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
   const { setJournalTarget } = useJournalStore();
 
   const { darkMode } = useThemeContext();
+  const palette = workspaceDarkPalette;
 
   const toRgba = (hex: string, opacity: number) => {
     const sanitized = hex.replace("#", "");
@@ -162,8 +164,14 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
 
   const isSelected = selectedPartId === partId;
   const cardBase = darkMode
-    ? "bg-slate-950/70 border border-slate-800/60 text-slate-100 shadow-[0_24px_60px_rgba(8,15,30,0.5)]"
+    ? "border text-slate-100 shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
     : "bg-white/90 border border-slate-200/70 text-slate-900 shadow-[0_26px_60px_rgba(15,23,42,0.14)]";
+  const cardStyle = darkMode
+    ? {
+        background: palette.surface,
+        borderColor: "rgba(255,255,255,0.06)",
+      }
+    : undefined;
 
 
   return (
@@ -180,6 +188,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
               ? "ring-2 ring-sky-400 border-sky-300"
               : ""
           }`}
+          style={cardStyle}
           onClick={() => setSelectedPartId(partId)}
         >
           <div className="relative p-6 lg:p-7 space-y-6">

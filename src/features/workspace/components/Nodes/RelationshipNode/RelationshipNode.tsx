@@ -103,7 +103,7 @@ const RelationshipNode = ({
   const shellStyle = darkMode
     ? {
         background: `linear-gradient(140deg, ${palette.elevated}, ${palette.surface})`,
-        borderColor: "rgba(255,255,255,0.05)",
+        borderColor: "rgba(59,130,246,0.25)",
       }
     : undefined;
 
@@ -122,8 +122,8 @@ const RelationshipNode = ({
             <span
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em]"
               style={{
-                backgroundColor: darkMode ? palette.highlight : "rgba(135,206,235,0.25)",
-                color: darkMode ? "#f8fafc" : accentText,
+                backgroundColor: darkMode ? "rgba(59,130,246,0.2)" : "rgba(135,206,235,0.25)",
+                color: darkMode ? "#dbeafe" : accentText,
               }}
             >
               <Users size={16} />
@@ -143,7 +143,7 @@ const RelationshipNode = ({
               }
               className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
                 darkMode
-                  ? "text-slate-100 border border-white/10 hover:bg-white/10"
+                  ? "text-blue-300 border border-blue-500/30 hover:bg-blue-500/20"
                   : "text-sky-700 hover:bg-sky-100"
               }`}
               title="Open journal"
@@ -164,7 +164,7 @@ const RelationshipNode = ({
                     darkMode
                       ? {
                           background: palette.surface,
-                          borderColor: "rgba(255,255,255,0.05)",
+                          borderColor: "rgba(59,130,246,0.15)",
                           boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
                         }
                       : undefined
@@ -174,8 +174,8 @@ const RelationshipNode = ({
                     <span
                       className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
                       style={{
-                        backgroundColor: darkMode ? "rgba(61,67,75,0.65)" : "rgba(135,206,235,0.18)",
-                        color: darkMode ? "#e9fbff" : accentText,
+                        backgroundColor: darkMode ? "rgba(59,130,246,0.25)" : "rgba(135,206,235,0.18)",
+                        color: darkMode ? "#dbeafe" : accentText,
                       }}
                     >
                       {part.data.label}
@@ -186,7 +186,7 @@ const RelationshipNode = ({
                         setEditingId(part.id);
                       }}
                       className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
-                        darkMode ? "text-slate-400 hover:text-white" : "text-sky-700 hover:text-sky-900"
+                        darkMode ? "text-blue-300 hover:text-blue-200" : "text-sky-700 hover:text-sky-900"
                       }`}
                     >
                       Edit
@@ -198,7 +198,7 @@ const RelationshipNode = ({
                       <input
                         className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 ${
                           darkMode
-                            ? "bg-[#212529] border-white/10 text-slate-100 focus:ring-[#3d434b]"
+                            ? "bg-[#212529] border-blue-500/30 text-slate-100 focus:ring-blue-500/50"
                             : "bg-white border-sky-300 text-sky-900 focus:ring-sky-300"
                         }`}
                         ref={inputRef}

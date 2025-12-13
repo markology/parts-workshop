@@ -103,7 +103,7 @@ const TensionNode = ({
   const shellStyle = darkMode
     ? {
         background: `linear-gradient(140deg, ${palette.elevated}, ${palette.surface})`,
-        borderColor: "rgba(255,255,255,0.05)",
+        borderColor: "rgba(168,85,247,0.25)",
       }
     : undefined;
 
@@ -124,8 +124,8 @@ const TensionNode = ({
             <span
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em]"
               style={{
-                backgroundColor: darkMode ? palette.highlight : "rgba(177,156,217,0.22)",
-                color: darkMode ? "#f8fafc" : accentText,
+                backgroundColor: darkMode ? "rgba(168,85,247,0.2)" : "rgba(177,156,217,0.22)",
+                color: darkMode ? "#e9d5ff" : accentText,
               }}
             >
               <MessageCircleWarning size={14} />
@@ -145,7 +145,7 @@ const TensionNode = ({
               }
               className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
                 darkMode
-                  ? "text-slate-100 border border-white/10 hover:bg-white/10"
+                  ? "text-purple-300 border border-purple-500/30 hover:bg-purple-500/20"
                   : "text-purple-800 hover:bg-purple-50"
               }`}
               title="Open journal"
@@ -166,7 +166,7 @@ const TensionNode = ({
                     darkMode
                       ? {
                           background: palette.surface,
-                          borderColor: "rgba(255,255,255,0.05)",
+                          borderColor: "rgba(168,85,247,0.15)",
                           boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
                         }
                       : undefined
@@ -176,8 +176,8 @@ const TensionNode = ({
                     <span
                       className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
                       style={{
-                        backgroundColor: darkMode ? "rgba(61,67,75,0.65)" : "rgba(177,156,217,0.25)",
-                        color: darkMode ? "#f9f5ff" : accentText,
+                        backgroundColor: darkMode ? "rgba(168,85,247,0.25)" : "rgba(177,156,217,0.25)",
+                        color: darkMode ? "#e9d5ff" : accentText,
                       }}
                     >
                       {part.data.label}
@@ -188,7 +188,7 @@ const TensionNode = ({
                         setEditingId(part.id);
                       }}
                       className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
-                        darkMode ? "text-slate-300 hover:text-white" : "text-purple-700 hover:text-purple-900"
+                        darkMode ? "text-purple-300 hover:text-purple-200" : "text-purple-700 hover:text-purple-900"
                       }`}
                     >
                       Edit
@@ -200,7 +200,7 @@ const TensionNode = ({
                       <input
                         className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 ${
                           darkMode
-                            ? "bg-[#212529] border-white/10 text-slate-100 focus:ring-[#3d434b]"
+                            ? "bg-[#212529] border-purple-500/30 text-slate-100 focus:ring-purple-500/50"
                             : "bg-white border-purple-300 text-purple-900 focus:ring-purple-300"
                         }`}
                         ref={inputRef}
