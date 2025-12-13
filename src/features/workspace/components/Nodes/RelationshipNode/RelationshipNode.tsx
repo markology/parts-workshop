@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import type { CSSProperties } from "react";
+import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 
 const RelationshipNode = ({
   connectedNodes,
@@ -93,13 +94,18 @@ const RelationshipNode = ({
   }, [editingId, editValue, handleSave]);
 
   const { darkMode } = useThemeContext();
+  const palette = workspaceDarkPalette;
   const accent = NodeBackgroundColors["interaction"];
   const accentText = NodeTextColors["interaction"];
   const shellClasses = darkMode
-    ? "bg-gradient-to-br from-[#1e3a5f] via-[#2a4a7a] to-[#1e3a5f] border border-sky-500/35 text-white shadow-[0_26px_70px_rgba(6,42,61,0.6)]"
+    ? "border border-transparent text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
     : "bg-gradient-to-br from-[#eaf7ff] via-[#e4f4ff] to-white border border-sky-200/70 text-slate-900 shadow-[0_26px_62px_rgba(28,102,143,0.16)]";
-  const cardBackground = darkMode ? "bg-white/10" : "bg-white";
-  const cardBorder = darkMode ? "border-sky-400/50" : "border-sky-200";
+  const shellStyle = darkMode
+    ? {
+        background: `linear-gradient(140deg, ${palette.elevated}, ${palette.surface})`,
+        borderColor: "rgba(255,255,255,0.05)",
+      }
+    : undefined;
 
   return (
     <>
@@ -110,13 +116,14 @@ const RelationshipNode = ({
       >
         <div
           className={`rounded-[26px] overflow-hidden p-5 space-y-5 ${shellClasses}`}
+          style={shellStyle}
         >
           <div className="flex items-center justify-between gap-3">
             <span
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em]"
               style={{
-                backgroundColor: darkMode ? "rgba(255,255,255,0.14)" : "rgba(135,206,235,0.25)",
-                color: darkMode ? "#ffffff" : accentText,
+                backgroundColor: darkMode ? palette.highlight : "rgba(135,206,235,0.25)",
+                color: darkMode ? "#f8fafc" : accentText,
               }}
             >
               <Users size={16} />
@@ -135,7 +142,9 @@ const RelationshipNode = ({
                 })
               }
               className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
-                darkMode ? "text-white hover:bg-white/10" : "text-sky-700 hover:bg-sky-100"
+                darkMode
+                  ? "text-slate-100 border border-white/10 hover:bg-white/10"
+                  : "text-sky-700 hover:bg-sky-100"
               }`}
               title="Open journal"
             >
@@ -148,14 +157,25 @@ const RelationshipNode = ({
               connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
-                  className={`rounded-2xl border px-4 py-3 shadow-sm ${cardBackground} ${cardBorder}`}
+                  className={`rounded-2xl border px-4 py-3 shadow-sm ${
+                    darkMode ? "border-transparent text-slate-100" : "bg-white border-sky-200"
+                  }`}
+                  style={
+                    darkMode
+                      ? {
+                          background: palette.surface,
+                          borderColor: "rgba(255,255,255,0.05)",
+                          boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
+                        }
+                      : undefined
+                  }
                 >
                   <div className="flex items-center justify-between">
                     <span
                       className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
                       style={{
-                        backgroundColor: darkMode ? "rgba(135,206,235,0.22)" : "rgba(135,206,235,0.18)",
-                        color: darkMode ? "#ecfbff" : accentText,
+                        backgroundColor: darkMode ? "rgba(61,67,75,0.65)" : "rgba(135,206,235,0.18)",
+                        color: darkMode ? "#e9fbff" : accentText,
                       }}
                     >
                       {part.data.label}
@@ -166,7 +186,7 @@ const RelationshipNode = ({
                         setEditingId(part.id);
                       }}
                       className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
-                        darkMode ? "text-sky-200 hover:text-white" : "text-sky-700 hover:text-sky-900"
+                        darkMode ? "text-slate-400 hover:text-white" : "text-sky-700 hover:text-sky-900"
                       }`}
                     >
                       Edit
@@ -176,10 +196,10 @@ const RelationshipNode = ({
                   <div className="mt-3">
                     {part.id === editingId ? (
                       <input
-                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-300 ${
+                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 ${
                           darkMode
-                            ? "bg-white/5 border-sky-300/60 text-white"
-                            : "bg-white border-sky-300 text-sky-900"
+                            ? "bg-[#212529] border-white/10 text-slate-100 focus:ring-[#3d434b]"
+                            : "bg-white border-sky-300 text-sky-900 focus:ring-sky-300"
                         }`}
                         ref={inputRef}
                         value={editValue}
@@ -191,13 +211,13 @@ const RelationshipNode = ({
                     ) : tensionDescription ? (
                       <p
                         className={`text-xs leading-relaxed text-right ${
-                          darkMode ? "text-sky-100" : "text-sky-900"
+                          darkMode ? "text-slate-200" : "text-sky-900"
                         }`}
                       >
                         {tensionDescription}
                       </p>
                     ) : (
-                      <p className={`text-xs italic text-right ${darkMode ? "text-white/70" : "text-sky-900/55"}`}>
+                      <p className={`text-xs italic text-right ${darkMode ? "text-slate-400" : "text-sky-900/55"}`}>
                         Click edit to add notes.
                       </p>
                     )}
@@ -205,7 +225,7 @@ const RelationshipNode = ({
                 </div>
               ))
             ) : (
-              <p className={`text-xs ${darkMode ? "text-white/70" : "text-sky-900/70"}`}>
+              <p className={`text-xs ${darkMode ? "text-slate-400" : "text-sky-900/70"}`}>
                 Connect parts that collaborate closely.
               </p>
             )}

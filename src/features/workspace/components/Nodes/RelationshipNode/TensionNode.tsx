@@ -15,6 +15,7 @@ import { MessageCircleWarning, Trash2, BookOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 
 const TensionNode = ({
   connectedNodes,
@@ -50,6 +51,7 @@ const TensionNode = ({
   const [editValue, setEditValue] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { darkMode } = useThemeContext();
+  const palette = workspaceDarkPalette;
 
   // Handle Enter key or outside click save
   const handleSave = useCallback(() => {
@@ -95,12 +97,17 @@ const TensionNode = ({
   const accent = NodeBackgroundColors["tension"];
   const accentText = NodeTextColors["tension"];
   const shellClasses = darkMode
-    ? "bg-gradient-to-br from-[#2d1f4a] via-[#3d2a5f] to-[#2d1f4a] border border-purple-500/40 text-white shadow-[0_26px_70px_rgba(15,10,30,0.62)]"
+    ? "border border-transparent text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
     : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white border border-purple-200/70 text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
 
-  const cardBackground = darkMode ? "bg-white/10" : "bg-white";
-  const cardBorder = darkMode ? "border-purple-400/50" : "border-purple-200";
-  const placeholderText = darkMode ? "text-white/70" : "text-purple-900/55";
+  const shellStyle = darkMode
+    ? {
+        background: `linear-gradient(140deg, ${palette.elevated}, ${palette.surface})`,
+        borderColor: "rgba(255,255,255,0.05)",
+      }
+    : undefined;
+
+  const placeholderText = darkMode ? "text-slate-400" : "text-purple-900/55";
 
   return (
     <>
@@ -111,13 +118,14 @@ const TensionNode = ({
       >
         <div
           className={`rounded-[26px] overflow-hidden p-5 space-y-5 ${shellClasses}`}
+          style={shellStyle}
         >
           <div className="flex items-center justify-between gap-3">
             <span
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em]"
               style={{
-                backgroundColor: darkMode ? "rgba(255,255,255,0.12)" : "rgba(177,156,217,0.22)",
-                color: darkMode ? "#ffffff" : accentText,
+                backgroundColor: darkMode ? palette.highlight : "rgba(177,156,217,0.22)",
+                color: darkMode ? "#f8fafc" : accentText,
               }}
             >
               <MessageCircleWarning size={14} />
@@ -136,7 +144,9 @@ const TensionNode = ({
                 })
               }
               className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
-                darkMode ? "text-white hover:bg-white/10" : "text-purple-800 hover:bg-purple-50"
+                darkMode
+                  ? "text-slate-100 border border-white/10 hover:bg-white/10"
+                  : "text-purple-800 hover:bg-purple-50"
               }`}
               title="Open journal"
             >
@@ -149,13 +159,24 @@ const TensionNode = ({
               connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
-                  className={`rounded-2xl border px-4 py-3 shadow-sm ${cardBackground} ${cardBorder}`}
+                  className={`rounded-2xl border px-4 py-3 shadow-sm ${
+                    darkMode ? "border-transparent text-slate-100" : "bg-white border-purple-200"
+                  }`}
+                  style={
+                    darkMode
+                      ? {
+                          background: palette.surface,
+                          borderColor: "rgba(255,255,255,0.05)",
+                          boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
+                        }
+                      : undefined
+                  }
                 >
                   <div className="flex items-center justify-between">
                     <span
                       className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
                       style={{
-                        backgroundColor: darkMode ? "rgba(177,156,217,0.22)" : "rgba(177,156,217,0.25)",
+                        backgroundColor: darkMode ? "rgba(61,67,75,0.65)" : "rgba(177,156,217,0.25)",
                         color: darkMode ? "#f9f5ff" : accentText,
                       }}
                     >
@@ -167,7 +188,7 @@ const TensionNode = ({
                         setEditingId(part.id);
                       }}
                       className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
-                        darkMode ? "text-purple-200 hover:text-white" : "text-purple-700 hover:text-purple-900"
+                        darkMode ? "text-slate-300 hover:text-white" : "text-purple-700 hover:text-purple-900"
                       }`}
                     >
                       Edit
@@ -177,10 +198,10 @@ const TensionNode = ({
                   <div className="mt-3">
                     {part.id === editingId ? (
                       <input
-                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-300 ${
+                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 ${
                           darkMode
-                            ? "bg-white/5 border-purple-300/60 text-white"
-                            : "bg-white border-purple-300 text-purple-900"
+                            ? "bg-[#212529] border-white/10 text-slate-100 focus:ring-[#3d434b]"
+                            : "bg-white border-purple-300 text-purple-900 focus:ring-purple-300"
                         }`}
                         ref={inputRef}
                         value={editValue}
@@ -192,7 +213,7 @@ const TensionNode = ({
                     ) : tensionDescription ? (
                       <p
                         className={`text-xs leading-relaxed text-right ${
-                          darkMode ? "text-purple-100" : "text-purple-900"
+                          darkMode ? "text-slate-200" : "text-purple-900"
                         }`}
                       >
                         {tensionDescription}
@@ -206,7 +227,7 @@ const TensionNode = ({
                 </div>
               ))
             ) : (
-              <p className={`text-xs ${darkMode ? "text-white/70" : "text-purple-900/70"}`}>
+              <p className={`text-xs ${darkMode ? "text-slate-400" : "text-purple-900/70"}`}>
                 Connect parts to describe this tension.
               </p>
             )}

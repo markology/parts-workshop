@@ -12,6 +12,7 @@ import { Handle, Position } from "@xyflow/react";
 import { Pencil, PencilIcon, SquareUserRound, Trash2, Palette } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
 import Part3DMappingModal from "../../Part3DMapping/Part3DMappingModal";
@@ -34,6 +35,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const setIsEditing = useUIStore((s) => s.setIsEditing);
   const inputRef = useRef<HTMLInputElement>(null);
   const { darkMode } = useThemeContext();
+  const palette = workspaceDarkPalette;
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -110,9 +112,17 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
         ref={nodeRef}
         className={`node part-node border rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl z-[-999] p-10 w-80 flex flex-col w-[1000px] h-auto text-left ${
           darkMode
-            ? "bg-[#253752] border-slate-600/50 hover:border-slate-500"
-            : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200/50 hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100"
+            ? "border-transparent text-slate-100 shadow-[0_35px_90px_rgba(0,0,0,0.65)]"
+            : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200/50 hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 text-slate-900"
         }`}
+        style={
+          darkMode
+            ? {
+                background: `linear-gradient(145deg, ${palette.elevated}, ${palette.surface})`,
+                borderColor: "rgba(255,255,255,0.05)",
+              }
+            : undefined
+        }
       >
         {/* Title */}
         <div className="flex justify-between items-start">
@@ -170,9 +180,9 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
           </div>
         </div>
         <div
-          className={
-            "flex flex-row gap-4 flex-grow space-evenly flex gap-2 flex-col min-h-[300px]"
-          }
+          className={`flex flex-row gap-4 flex-grow space-evenly flex gap-2 flex-col min-h-[300px] ${
+            darkMode ? "text-slate-200/90" : "text-gray-700"
+          }`}
         >
           {ImpressionList.map((impression) => (
             <PartImpressionList

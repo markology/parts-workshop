@@ -7,11 +7,13 @@ import { useReactFlow } from "@xyflow/react";
 import { MessageCircleWarning, Users, Trash2 } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 
 const RelationshipSelectionNode = ({ id }: { id: string }) => {
   const { updateNode, setNodes, deleteNode } = useFlowNodesContext();
   const { getNode } = useReactFlow();
   const { darkMode } = useThemeContext();
+  const palette = workspaceDarkPalette;
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -66,13 +68,21 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
         ref={nodeRef}
         className={`node relative w-[320px] rounded-[24px] border transition-all duration-200 ${
           darkMode
-            ? "border-slate-700 bg-slate-800 text-slate-100 shadow-[0_24px_60px_rgba(8,15,30,0.45)]"
+            ? "border border-transparent text-slate-100 shadow-[0_32px_85px_rgba(0,0,0,0.6)]"
             : "border-slate-200 bg-white text-slate-900 shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
         }`}
+        style={
+          darkMode
+            ? {
+                background: `linear-gradient(145deg, ${palette.elevated}, ${palette.surface})`,
+                borderColor: "rgba(255,255,255,0.05)",
+              }
+            : undefined
+        }
       >
         <div className={`absolute inset-0 pointer-events-none rounded-[24px] ${
           darkMode
-            ? "bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.15),transparent_60%)]"
+            ? "bg-[radial-gradient(circle_at_top,rgba(61,67,75,0.5),transparent_65%)]"
             : "bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.08),transparent_60%)]"
         }`} />
         <div className="relative p-6 space-y-5">
@@ -91,11 +101,20 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
               onClick={() => convertToRelationship("tension")}
               className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
                 darkMode
-                  ? "border-purple-400/40 bg-purple-500/15 hover:bg-purple-500/25"
+                  ? "border-white/10 bg-[#2a2e32]/80 hover:border-white/20"
                   : "border-purple-200 bg-purple-50 hover:bg-purple-100"
               }`}
+              style={
+                darkMode
+                  ? {
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+                    }
+                  : undefined
+              }
             >
-              <span className={`inline-flex h-9 w-9 items-center justify-center ${darkMode ? "text-purple-300" : "text-purple-600"}`}>
+              <span className={`inline-flex h-9 w-9 items-center justify-center rounded-full ${
+                darkMode ? "bg-[#3d434b] text-purple-100" : "text-purple-600"
+              }`}>
                 <MessageCircleWarning size={20} />
               </span>
               <div className="text-center">
@@ -108,11 +127,20 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
               onClick={() => convertToRelationship("interaction")}
               className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all duration-200 ${
                 darkMode
-                  ? "border-sky-400/40 bg-sky-500/15 hover:bg-sky-500/25"
+                  ? "border-white/10 bg-[#2a2e32]/80 hover:border-white/20"
                   : "border-sky-200 bg-sky-50 hover:bg-sky-100"
               }`}
+              style={
+                darkMode
+                  ? {
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+                    }
+                  : undefined
+              }
             >
-              <span className={`inline-flex h-9 w-9 items-center justify-center ${darkMode ? "text-sky-300" : "text-sky-600"}`}>
+              <span className={`inline-flex h-9 w-9 items-center justify-center rounded-full ${
+                darkMode ? "bg-[#3d434b] text-sky-100" : "text-sky-600"
+              }`}>
                 <Users size={20} />
               </span>
               <div className="text-center">

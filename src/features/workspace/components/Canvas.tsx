@@ -17,13 +17,15 @@ import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { ChromePicker, ColorResult } from "react-color";
 import { Paintbrush } from "lucide-react";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 
 const Workspace = () => {
   const isMobile = useIsMobile();
   const hasFitViewRun = useRef(false);
   const { darkMode } = useThemeContext();
+  const palette = workspaceDarkPalette;
   const defaultLightBg = "#f8fafc";
-  const defaultDarkBg = "#0f172a";
+  const defaultDarkBg = palette.base;
   const defaultBg = darkMode ? defaultDarkBg : defaultLightBg;
   const [workspaceBgColor, setWorkspaceBgColor] = useState(defaultBg);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -119,6 +121,24 @@ const Workspace = () => {
     return null;
   };
 
+  const colorButtonClasses = `w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center ${
+    darkMode
+      ? "bg-[#2a2e32] border-white/10 text-slate-200 shadow-[0_12px_28px_rgba(0,0,0,0.45)] hover:border-white/25"
+      : "border-gray-300 bg-white text-gray-700 shadow-md hover:border-gray-400"
+  }`;
+
+  const colorPickerClasses = `absolute bottom-[56px] left-0 z-[205] rounded-xl shadow-2xl p-2 border ${
+    darkMode
+      ? "bg-[#272b2f] border-white/10 text-slate-200 shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
+      : "bg-white border-gray-200 text-gray-700"
+  }`;
+
+  const resetButtonClasses = `text-xs px-2 py-1 rounded border transition ${
+    darkMode
+      ? "border-white/15 text-slate-300 hover:bg-[#3d434b] hover:text-white"
+      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+  }`;
+
   return (
     <div id="canvas" className="h-full flex-grow relative">
       <div 
@@ -137,7 +157,7 @@ const Workspace = () => {
             }
             setShowColorPicker(true);
           }}
-          className="w-9 h-9 rounded-md shadow-md transition hover:scale-105 border border-gray-300 bg-white text-gray-700 flex items-center justify-center"
+          className={colorButtonClasses}
           aria-label="Pick workspace background color"
         >
           <Paintbrush className="w-5 h-5" />
@@ -145,17 +165,17 @@ const Workspace = () => {
         {showColorPicker && (
           <div
             ref={colorPickerRef}
-            className="absolute bottom-[56px] left-0 z-[205] bg-white rounded-xl shadow-2xl p-2"
+            className={colorPickerClasses}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-2 px-1">
-              <div className="flex items-center gap-2 text-sm text-gray-700">
+              <div className={`flex items-center gap-2 text-sm ${darkMode ? "text-slate-200" : "text-gray-700"}`}>
                 <Paintbrush className="w-4 h-4" />
                 <span>Canvas color</span>
               </div>
               <button
-                className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-100"
+                className={resetButtonClasses}
                 onClick={() => setWorkspaceBgColor(defaultBg)}
               >
                 Reset
@@ -192,9 +212,13 @@ const Workspace = () => {
           maxZoom={2}
         >
           <FitViewOnLoad />
-          <Background />
+          <Background
+            color={darkMode ? "#30343a" : "#d4dae4"}
+            gap={32}
+            size={1.2}
+          />
           <Controls
-            className="absolute bottom-4 left-4 text-black"
+            className={`absolute bottom-4 left-4 ${darkMode ? "text-slate-100" : "text-black"}`}
             orientation="horizontal"
             showInteractive={false}
             style={{ flexDirection: 'row-reverse' }}
@@ -217,9 +241,13 @@ const Workspace = () => {
           maxZoom={2}
         >
           <FitViewOnLoad />
-          <Background />
+          <Background
+            color={darkMode ? "#30343a" : "#d4dae4"}
+            gap={32}
+            size={1.2}
+          />
           <Controls
-            className="absolute bottom-4 left-4 text-black"
+            className={`absolute bottom-4 left-4 ${darkMode ? "text-slate-100" : "text-black"}`}
             orientation="horizontal"
             showInteractive={false}
             style={{ flexDirection: 'row-reverse' }}
@@ -240,8 +268,16 @@ const Workspace = () => {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
-          border: 1px solid #e5e7eb;
+          box-shadow: ${darkMode ? "0 12px 28px rgba(0,0,0,0.55)" : "0 6px 12px rgba(0,0,0,0.12)"};
+          border: 1px solid ${darkMode ? "rgba(255,255,255,0.08)" : "#e5e7eb"};
+          background: ${darkMode ? palette.surface : "#ffffff"};
+          color: ${darkMode ? "rgba(248,250,252,0.85)" : "#111827"};
+          transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+        }
+        .react-flow__controls button:hover {
+          background: ${darkMode ? palette.highlight : "#f3f4f6"};
+          border-color: ${darkMode ? "rgba(255,255,255,0.18)" : "#d1d5db"};
+          color: ${darkMode ? "#f9fafb" : "#111827"};
         }
       `}</style>
     </div>
