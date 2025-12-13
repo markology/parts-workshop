@@ -95,7 +95,7 @@ const ConflictNode = ({
   const accent = NodeBackgroundColors["conflict"];
   const accentText = NodeTextColors["conflict"];
   const shellClasses = darkMode
-    ? "bg-gradient-to-br from-[#26143d] via-[#332152] to-[#160d29] border border-purple-500/40 text-white shadow-[0_26px_70px_rgba(15,10,30,0.62)]"
+    ? "bg-gradient-to-br from-[#2d1f4a] via-[#3d2a5f] to-[#2d1f4a] border border-purple-500/40 text-white shadow-[0_26px_70px_rgba(15,10,30,0.62)]"
     : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white border border-purple-200/70 text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
 
   const cardBackground = darkMode ? "bg-white/10" : "bg-white";

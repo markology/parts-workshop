@@ -64,19 +64,23 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
       <div
         onContextMenu={handleContextMenu}
         ref={nodeRef}
-        className={`node relative w-[320px] rounded-[24px] border transition-all duration-200 bg-white text-slate-900 ${
+        className={`node relative w-[320px] rounded-[24px] border transition-all duration-200 ${
           darkMode
-            ? "border-slate-700 shadow-[0_24px_60px_rgba(8,15,30,0.45)]"
-            : "border-slate-200 shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
+            ? "border-slate-700 bg-slate-800 text-slate-100 shadow-[0_24px_60px_rgba(8,15,30,0.45)]"
+            : "border-slate-200 bg-white text-slate-900 shadow-[0_24px_55px_rgba(15,23,42,0.12)]"
         }`}
       >
-        <div className="absolute inset-0 pointer-events-none rounded-[24px] bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.08),transparent_60%)]" />
+        <div className={`absolute inset-0 pointer-events-none rounded-[24px] ${
+          darkMode
+            ? "bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.15),transparent_60%)]"
+            : "bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.08),transparent_60%)]"
+        }`} />
         <div className="relative p-6 space-y-5">
           <div>
             <p className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
               Define Connection
             </p>
-            <h3 className="text-lg font-semibold">Choose Relationship Type</h3>
+            <h3 className={`text-lg font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>Choose Relationship Type</h3>
             <p className={`mt-1 text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
               Select whether these parts are in tension or interacting.
             </p>
@@ -91,12 +95,12 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
                   : "border-purple-200 bg-purple-50 hover:bg-purple-100"
               }`}
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center text-purple-600">
+              <span className={`inline-flex h-9 w-9 items-center justify-center ${darkMode ? "text-purple-300" : "text-purple-600"}`}>
                 <MessageCircleWarning size={20} />
               </span>
               <div className="text-center">
-                <p className="font-semibold text-sm text-purple-700">Tension</p>
-                <p className="text-xs text-purple-600">Parts in opposition</p>
+                <p className={`font-semibold text-sm ${darkMode ? "text-purple-200" : "text-purple-700"}`}>Tension</p>
+                <p className={`text-xs ${darkMode ? "text-purple-300" : "text-purple-600"}`}>Parts in opposition</p>
               </div>
             </button>
 
@@ -108,12 +112,12 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
                   : "border-sky-200 bg-sky-50 hover:bg-sky-100"
               }`}
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center text-sky-600">
+              <span className={`inline-flex h-9 w-9 items-center justify-center ${darkMode ? "text-sky-300" : "text-sky-600"}`}>
                 <Users size={20} />
               </span>
               <div className="text-center">
-                <p className="font-semibold text-sm text-sky-700">Interaction</p>
-                <p className="text-xs text-sky-600">Parts working together</p>
+                <p className={`font-semibold text-sm ${darkMode ? "text-sky-200" : "text-sky-700"}`}>Interaction</p>
+                <p className={`text-xs ${darkMode ? "text-sky-300" : "text-sky-600"}`}>Parts working together</p>
               </div>
             </button>
           </div>

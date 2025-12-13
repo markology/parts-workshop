@@ -11,6 +11,7 @@ import { ImpressionNode, PartNodeData } from "@/features/workspace/types/Nodes";
 import { Handle, Position } from "@xyflow/react";
 import { Pencil, PencilIcon, SquareUserRound, Trash2, Palette } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 import PartImpressionList from "./PartImpressionList/PartImpressionList";
 import Part3DMappingModal from "../../Part3DMapping/Part3DMappingModal";
@@ -32,6 +33,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const isEditing = useUIStore((s) => s.isEditing);
   const setIsEditing = useUIStore((s) => s.setIsEditing);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { darkMode } = useThemeContext();
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -106,14 +108,20 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
       <div
         onContextMenu={handleContextMenu}
         ref={nodeRef}
-        className="node part-node bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/50 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 z-[-999] p-10 w-80 flex flex-col w-[1000px] h-auto text-left"
+        className={`node part-node border rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl z-[-999] p-10 w-80 flex flex-col w-[1000px] h-auto text-left ${
+          darkMode
+            ? "bg-[#253752] border-slate-600/50 hover:border-slate-500"
+            : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200/50 hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100"
+        }`}
       >
         {/* Title */}
         <div className="flex justify-between items-start">
           <div className="flex-1">
             {isEditingTitle ? (
               <input
-                className="part-name font-semibold mb-2 text-gray-800 text-4xl pb-4 flex gap-[20px]"
+                className={`part-name font-semibold mb-2 text-4xl pb-4 flex gap-[20px] ${
+                  darkMode ? "text-slate-100 bg-transparent" : "text-gray-800"
+                }`}
                 ref={inputRef}
                 onKeyDown={handleEnter}
                 value={title}
@@ -126,12 +134,14 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                   setIsEditingTitle(true);
                   setIsEditing(true);
                 }} // TODO
-                className="part-name font-semibold mb-2 text-theme text-4xl pb-4 flex gap-[20px]"
+                className={`part-name font-semibold mb-2 text-4xl pb-4 flex gap-[20px] ${
+                  darkMode ? "text-slate-100" : "text-theme"
+                }`}
               >
                 {data.label}
                 <button>
                   <Pencil
-                    className="text-[#3d4f6a] cursor-default"
+                    className={darkMode ? "text-slate-300 cursor-default" : "text-[#3d4f6a] cursor-default"}
                     strokeWidth={3}
                     size={20}
                   />
@@ -143,13 +153,17 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
             {/* 3D Mapping Button */}
             <button
               onClick={() => setShow3DMapping(true)}
-              className="p-2 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
+              className={`p-2 rounded-lg transition-colors ${
+                darkMode
+                  ? "bg-purple-900/40 hover:bg-purple-900/60"
+                  : "bg-purple-100 hover:bg-purple-200"
+              }`}
               title="3D Body Mapping"
             >
-              <Palette className="w-5 h-5 text-purple-600" />
+              <Palette className={`w-5 h-5 ${darkMode ? "text-purple-300" : "text-purple-600"}`} />
             </button>
             <SquareUserRound
-              className="text-[#a7c0dd]"
+              className={darkMode ? "text-slate-400" : "text-[#a7c0dd]"}
               strokeWidth={2}
               size={40}
             />

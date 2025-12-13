@@ -96,7 +96,7 @@ const RelationshipNode = ({
   const accent = NodeBackgroundColors["interaction"];
   const accentText = NodeTextColors["interaction"];
   const shellClasses = darkMode
-    ? "bg-gradient-to-br from-[#0d2533] via-[#13425c] to-[#071720] border border-sky-500/35 text-white shadow-[0_26px_70px_rgba(6,42,61,0.6)]"
+    ? "bg-gradient-to-br from-[#1e3a5f] via-[#2a4a7a] to-[#1e3a5f] border border-sky-500/35 text-white shadow-[0_26px_70px_rgba(6,42,61,0.6)]"
     : "bg-gradient-to-br from-[#eaf7ff] via-[#e4f4ff] to-white border border-sky-200/70 text-slate-900 shadow-[0_26px_62px_rgba(28,102,143,0.16)]";
   const cardBackground = darkMode ? "bg-white/10" : "bg-white";
   const cardBorder = darkMode ? "border-sky-400/50" : "border-sky-200";
