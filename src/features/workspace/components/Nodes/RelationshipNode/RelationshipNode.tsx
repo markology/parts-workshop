@@ -102,8 +102,8 @@ const RelationshipNode = ({
     : "bg-gradient-to-br from-[#eaf7ff] via-[#e4f4ff] to-white border border-sky-200/70 text-slate-900 shadow-[0_26px_62px_rgba(28,102,143,0.16)]";
   const shellStyle = darkMode
     ? {
-        background: `linear-gradient(140deg, ${palette.elevated}, ${palette.surface})`,
-        borderColor: "rgba(59,130,246,0.25)",
+        background: `linear-gradient(140deg, #1f2a3d, #21272f)`,
+        borderColor: "rgba(59,130,246,0.35)",
       }
     : undefined;
 

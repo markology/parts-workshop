@@ -102,8 +102,8 @@ const TensionNode = ({
 
   const shellStyle = darkMode
     ? {
-        background: `linear-gradient(140deg, ${palette.elevated}, ${palette.surface})`,
-        borderColor: "rgba(168,85,247,0.25)",
+        background: `linear-gradient(140deg, #2a1f3d, #27212f)`,
+        borderColor: "rgba(168,85,247,0.35)",
       }
     : undefined;
 
