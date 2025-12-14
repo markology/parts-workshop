@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { User, SquareUserRound, Plus, ChevronDown, X } from "lucide-react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 
@@ -32,6 +33,7 @@ export default function TextThreadEditor({
   nodeType,
 }: TextThreadEditorProps) {
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
   const [activeSpeaker, setActiveSpeaker] = useState<string>("self");
   const [previousSpeaker, setPreviousSpeaker] = useState<string | null>(null);
   const [inputText, setInputText] = useState("");
@@ -217,7 +219,7 @@ export default function TextThreadEditor({
   // Get speaker color
   const getSpeakerColor = useCallback((speakerId: string): string => {
     if (speakerId === "self") {
-      return darkMode ? "rgb(59, 130, 246)" : "rgb(37, 99, 235)"; // Peaceful blue - always blue
+      return theme.info; // Use theme info color (blue) for self
     }
     if (speakerId === "unknown") {
       return darkMode ? "rgb(107, 114, 128)" : "rgb(156, 163, 175)"; // Grey
@@ -326,9 +328,12 @@ export default function TextThreadEditor({
           .message-bubble {
             animation: slideIn 0.2s ease-out;
           }
+          .text-thread-textarea::placeholder {
+            color: ${theme.textMuted};
+          }
         `}} />
         {messages.length === 0 ? (
-          <div className={`text-center text-sm ${darkMode ? "text-slate-400" : "text-slate-500"} py-8`}>
+          <div className="text-center text-sm py-8" style={{ color: theme.textMuted }}>
             Start a conversation...
           </div>
         ) : (
@@ -365,7 +370,7 @@ export default function TextThreadEditor({
                 <div
                   className="text-xs font-semibold uppercase tracking-wide mb-1 px-2"
                   style={{
-                    color: darkMode ? "rgba(148, 163, 184, 0.8)" : "rgba(71, 85, 105, 0.7)",
+                    color: theme.textSecondary,
                   }}
                 >
                   {speaker?.label || "Unknown"}
@@ -388,10 +393,10 @@ export default function TextThreadEditor({
 
       {/* Speaker Selector */}
       {!readOnly && (
-        <div className={`border-t ${darkMode ? "border-slate-700" : "border-slate-200"} p-3`}>
+        <div className="border-t p-3" style={{ borderColor: theme.border }}>
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2 flex-1">
-              <span className={`text-xs font-medium ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+              <span className="text-xs font-medium" style={{ color: theme.textSecondary }}>
                 Speaking as:
               </span>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -415,9 +420,9 @@ export default function TextThreadEditor({
                         isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
                       }`}
                       style={{
-                        backgroundColor: isActive ? speakerColor : (darkMode ? "rgba(30, 41, 59, 0.8)" : "rgba(255, 255, 255, 0.9)"),
-                        color: isActive ? "white" : (darkMode ? "rgb(203, 213, 225)" : "rgb(71, 85, 105)"),
-                        borderColor: isActive ? speakerColor : (darkMode ? "rgba(148, 163, 184, 0.3)" : "rgba(148, 163, 184, 0.2)"),
+                        backgroundColor: isActive ? speakerColor : theme.surface,
+                        color: isActive ? "white" : theme.textSecondary,
+                        borderColor: isActive ? speakerColor : theme.border,
                         boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
                       }}
                       title={`Switch to ${speaker.label}`}
@@ -453,11 +458,20 @@ export default function TextThreadEditor({
                     <button
                       type="button"
                       onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102 ${
-                        darkMode
-                          ? "border-slate-600 bg-slate-800/60 text-slate-300 hover:bg-slate-700/60"
-                          : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
-                      }`}
+                      className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102"
+                      style={{
+                        borderColor: theme.border,
+                        backgroundColor: theme.surface,
+                        color: theme.textSecondary,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.buttonHover;
+                        e.currentTarget.style.color = theme.textPrimary;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.surface;
+                        e.currentTarget.style.color = theme.textSecondary;
+                      }}
                       title="Add another part"
                     >
                       <Plus size={12} />
@@ -466,22 +480,23 @@ export default function TextThreadEditor({
                     </button>
                     
                     {showAddPartDropdown && (
-                      <div className={`absolute bottom-full left-0 mb-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden ${
-                        darkMode
-                          ? "border-slate-700 bg-slate-800"
-                          : "border-slate-200 bg-white"
-                      }`}>
+                      <div className="absolute bottom-full left-0 mb-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden" style={{ borderColor: theme.border, backgroundColor: theme.card }}>
                         <div className="max-h-60 overflow-y-auto">
                           {availablePartsToAdd.map((part) => (
                             <button
                               key={part.id || (part.isUnknown ? "unknown" : "")}
                               type="button"
                               onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
-                              className={`w-full text-left px-3 py-2 text-xs font-medium transition hover:bg-opacity-80 ${
-                                darkMode
-                                  ? "text-slate-200 hover:bg-slate-700"
-                                  : "text-slate-700 hover:bg-slate-100"
-                              }`}
+                              className="w-full text-left px-3 py-2 text-xs font-medium transition"
+                              style={{
+                                color: theme.textPrimary,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = theme.buttonHover;
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                              }}
                             >
                               <div className="flex items-center gap-2">
                                 <div className="w-3.5 flex items-center justify-center">
@@ -545,28 +560,43 @@ export default function TextThreadEditor({
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
-              className={`flex-1 resize-none rounded-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 ${
-                darkMode
-                  ? "border-slate-700 bg-slate-800 text-slate-100 focus:ring-blue-500"
-                  : "border-slate-300 bg-white text-slate-900 focus:ring-blue-500"
-              }`}
-              rows={1}
+              className="flex-1 resize-none rounded-lg border px-4 py-2 text-sm focus:outline-none text-thread-textarea"
               style={{
+                borderColor: theme.border,
+                backgroundColor: theme.surface,
+                color: theme.textPrimary,
                 minHeight: "40px",
                 maxHeight: "120px",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = theme.info;
+                e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.info}40`;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = theme.border;
+                e.currentTarget.style.boxShadow = 'none';
               }}
             />
             <button
               type="button"
               onClick={handleSend}
               disabled={!inputText.trim()}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-                inputText.trim()
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : darkMode
-                  ? "bg-slate-700 text-slate-500 cursor-not-allowed"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
-              }`}
+              className="px-4 py-2 rounded-lg font-medium text-sm transition"
+              style={{
+                backgroundColor: inputText.trim() ? theme.info : theme.button,
+                color: inputText.trim() ? theme.buttonText : theme.textMuted,
+                cursor: inputText.trim() ? 'pointer' : 'not-allowed',
+              }}
+              onMouseEnter={(e) => {
+                if (inputText.trim()) {
+                  e.currentTarget.style.backgroundColor = "#2563eb"; // Darker blue on hover
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (inputText.trim()) {
+                  e.currentTarget.style.backgroundColor = theme.info;
+                }
+              }}
             >
               Send
             </button>

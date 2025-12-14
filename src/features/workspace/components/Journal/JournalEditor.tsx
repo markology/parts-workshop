@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { NodeBackgroundColors } from "../../constants/Nodes";
 import { SquareUserRound, Plus, ChevronDown, X } from "lucide-react";
 
@@ -155,6 +156,7 @@ function ColorPicker({
   activeColor: string | null;
   onColorChange: (color: string | null) => void;
 }) {
+  const theme = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
 
@@ -199,20 +201,23 @@ function ColorPicker({
           e.preventDefault();
           setIsOpen(!isOpen);
         }}
-        className={`relative w-8 rounded-md transition-all duration-200 ${
-          isOpen
-            ? darkMode
-              ? "bg-slate-800 shadow-md"
-              : "bg-slate-50 shadow-md"
-            : darkMode
-            ? "hover:bg-slate-800/50"
-            : "hover:bg-slate-50/50"
-        }`}
+        className="relative w-8 rounded-md transition-all duration-200"
         style={{
           backgroundColor: displayColor,
           border: "none",
           height: "24px",
           verticalAlign: "bottom",
+          boxShadow: isOpen ? "0 2px 4px rgba(0, 0, 0, 0.1)" : "none",
+        }}
+        onMouseEnter={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.opacity = "0.9";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.opacity = "1";
+          }
         }}
         title="Text Color"
       >
@@ -234,12 +239,10 @@ function ColorPicker({
 
       {isOpen && (
         <div
-          className={`absolute top-full left-0 mt-2 z-50 rounded-xl border shadow-2xl backdrop-blur-sm p-3 min-w-[190px] ${
-            darkMode
-              ? "border-slate-700/70 bg-slate-900/95"
-              : "border-slate-200/80 bg-white/95"
-          }`}
+          className="absolute top-full left-0 mt-2 z-50 rounded-xl border shadow-2xl backdrop-blur-sm p-3 min-w-[190px]"
           style={{
+            borderColor: theme.border,
+            backgroundColor: theme.modal,
             boxShadow: darkMode
               ? "0 14px 42px rgba(0,0,0,0.45)"
               : "0 14px 42px rgba(0,0,0,0.18)",
@@ -259,33 +262,43 @@ function ColorPicker({
                     activeColor === color
                       ? "scale-105 shadow-sm"
                       : "hover:scale-105 hover:shadow-sm"
-                  } ${
-                    darkMode
-                      ? activeColor === color
-                        ? "border-slate-400"
-                        : "border-slate-700 hover:border-slate-500"
-                      : activeColor === color
-                      ? "border-slate-500"
-                      : "border-slate-300 hover:border-slate-400"
                   }`}
-                  style={{ backgroundColor: color }}
+                  style={{
+                    backgroundColor: color,
+                    borderColor: activeColor === color ? theme.accent : theme.border,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeColor !== color) {
+                      e.currentTarget.style.borderColor = theme.accent;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeColor !== color) {
+                      e.currentTarget.style.borderColor = theme.border;
+                    }
+                  }}
                   title={color}
                 />
               ))}
             </div>
 
-            <div className="pt-2 border-t border-slate-300/40 dark:border-slate-700/50">
+            <div className="pt-2 border-t" style={{ borderColor: theme.border }}>
               <button
                 type="button"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   handleColorSelect(null);
                 }}
-                className={`w-full rounded-md px-2.5 py-1.5 text-sm font-medium transition ${
-                  darkMode
-                    ? "hover:bg-slate-800 text-slate-200"
-                    : "hover:bg-slate-200 text-slate-700"
-                }`}
+                className="w-full rounded-md px-2.5 py-1.5 text-sm font-medium transition"
+                style={{
+                  color: theme.textPrimary,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = theme.buttonHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
                 Reset
               </button>
@@ -641,13 +654,15 @@ function Toolbar({
     setActiveColor(color);
   };
 
+  const theme = useTheme();
+
   return (
     <div
-      className={`sticky top-0 z-10 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 shadow-sm backdrop-blur ${
-        darkMode
-          ? "border-slate-700/80 bg-slate-900/80"
-          : "border-slate-200 bg-white/90"
-      }`}
+      className="sticky top-0 z-10 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 shadow-sm backdrop-blur"
+      style={{
+        borderColor: theme.border,
+        backgroundColor: theme.elevated,
+      }}
     >
     <button
       type="button"
@@ -655,15 +670,24 @@ function Toolbar({
         e.preventDefault();
           formatText("bold");
       }}
-      className={`rounded-md px-2.5 py-1 text-sm font-medium transition ${
-          formats.bold
-          ? darkMode
-            ? "bg-slate-100 text-slate-900 shadow"
-            : "bg-slate-700 text-white shadow"
-          : darkMode
-            ? "hover:bg-slate-800 text-slate-200"
-            : "hover:bg-slate-200 text-slate-700"
-      }`}
+      className="rounded-md px-2.5 py-1 text-sm font-medium transition"
+      style={{
+        backgroundColor: formats.bold ? theme.accent : 'transparent',
+        color: formats.bold ? theme.buttonText : theme.textSecondary,
+        boxShadow: formats.bold ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+      }}
+      onMouseEnter={(e) => {
+        if (!formats.bold) {
+          e.currentTarget.style.backgroundColor = theme.buttonHover;
+          e.currentTarget.style.color = theme.textPrimary;
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!formats.bold) {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = theme.textSecondary;
+        }
+      }}
         title="Bold"
     >
         <span className="font-semibold">B</span>
@@ -675,15 +699,24 @@ function Toolbar({
         e.preventDefault();
           formatText("italic");
         }}
-        className={`rounded-md px-2.5 py-1 text-sm font-medium transition ${
-          formats.italic
-            ? darkMode
-              ? "bg-slate-100 text-slate-900 shadow"
-              : "bg-slate-700 text-white shadow"
-            : darkMode
-            ? "hover:bg-slate-800 text-slate-200"
-            : "hover:bg-slate-200 text-slate-700"
-        }`}
+        className="rounded-md px-2.5 py-1 text-sm font-medium transition"
+        style={{
+          backgroundColor: formats.italic ? theme.accent : 'transparent',
+          color: formats.italic ? theme.buttonText : theme.textSecondary,
+          boxShadow: formats.italic ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+        }}
+        onMouseEnter={(e) => {
+          if (!formats.italic) {
+            e.currentTarget.style.backgroundColor = theme.buttonHover;
+            e.currentTarget.style.color = theme.textPrimary;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!formats.italic) {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = theme.textSecondary;
+          }
+        }}
         title="Italic"
       >
         <span className="italic">I</span>
@@ -695,15 +728,24 @@ function Toolbar({
           e.preventDefault();
           formatText("underline");
         }}
-        className={`rounded-md px-2.5 py-1 text-sm font-medium transition ${
-          formats.underline
-            ? darkMode
-              ? "bg-slate-100 text-slate-900 shadow"
-              : "bg-slate-700 text-white shadow"
-            : darkMode
-            ? "hover:bg-slate-800 text-slate-200"
-            : "hover:bg-slate-200 text-slate-700"
-        }`}
+        className="rounded-md px-2.5 py-1 text-sm font-medium transition"
+        style={{
+          backgroundColor: formats.underline ? theme.accent : 'transparent',
+          color: formats.underline ? theme.buttonText : theme.textSecondary,
+          boxShadow: formats.underline ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+        }}
+        onMouseEnter={(e) => {
+          if (!formats.underline) {
+            e.currentTarget.style.backgroundColor = theme.buttonHover;
+            e.currentTarget.style.color = theme.textPrimary;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!formats.underline) {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = theme.textSecondary;
+          }
+        }}
         title="Underline"
           >
             <span className="underline underline-offset-2">U</span>
@@ -715,21 +757,30 @@ function Toolbar({
           e.preventDefault();
           toggleList();
         }}
-        className={`rounded-md px-2.5 py-1 text-sm font-medium transition ${
-          formats.list
-            ? darkMode
-              ? "bg-slate-100 text-slate-900 shadow"
-              : "bg-slate-700 text-white shadow"
-            : darkMode
-            ? "hover:bg-slate-800 text-slate-200"
-            : "hover:bg-slate-200 text-slate-700"
-        }`}
+        className="rounded-md px-2.5 py-1 text-sm font-medium transition"
+        style={{
+          backgroundColor: formats.list ? theme.accent : 'transparent',
+          color: formats.list ? theme.buttonText : theme.textSecondary,
+          boxShadow: formats.list ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+        }}
+        onMouseEnter={(e) => {
+          if (!formats.list) {
+            e.currentTarget.style.backgroundColor = theme.buttonHover;
+            e.currentTarget.style.color = theme.textPrimary;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!formats.list) {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = theme.textSecondary;
+          }
+        }}
         title="Bullet List"
           >
             • List
       </button>
 
-          <div className="h-5 w-px bg-slate-200 dark:bg-slate-700" />
+          <div className="h-5 w-px" style={{ backgroundColor: theme.border }} />
 
       <ColorPicker
         darkMode={darkMode}
@@ -739,7 +790,7 @@ function Toolbar({
 
       {allSpeakers.length > 0 && (
         <>
-          <div className="h-5 w-px bg-slate-200 dark:bg-slate-700" />
+          <div className="h-5 w-px" style={{ backgroundColor: theme.border }} />
           <div className="flex items-center gap-1.5 flex-wrap">
             {allSpeakers.map((speaker) => {
               const isActive = activeSpeaker === speaker.id;
@@ -839,9 +890,9 @@ function Toolbar({
                     isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
                   }`}
                   style={{
-                    backgroundColor: isActive ? speakerColor : (darkMode ? "rgba(30, 41, 59, 0.8)" : "rgba(255, 255, 255, 0.9)"),
-                    color: isActive ? "white" : (darkMode ? "rgb(203, 213, 225)" : "rgb(71, 85, 105)"),
-                    borderColor: isActive ? speakerColor : (darkMode ? "rgba(148, 163, 184, 0.3)" : "rgba(148, 163, 184, 0.2)"),
+                    backgroundColor: isActive ? speakerColor : theme.surface,
+                    color: isActive ? "white" : theme.textSecondary,
+                    borderColor: isActive ? speakerColor : theme.border,
                     boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
                   }}
                   title={`Switch to ${speaker.label}`}
@@ -895,11 +946,20 @@ function Toolbar({
                 <button
                   type="button"
                   onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102 ${
-              darkMode
-                      ? "border-slate-600 bg-slate-800/60 text-slate-300 hover:bg-slate-700/60"
-                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102"
+                  style={{
+                    borderColor: theme.border,
+                    backgroundColor: theme.surface,
+                    color: theme.textSecondary,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.surface;
+                    e.currentTarget.style.color = theme.textSecondary;
+                  }}
                   title="Add another part"
                 >
                   <Plus size={12} />
@@ -908,22 +968,23 @@ function Toolbar({
                 </button>
                 
                 {showAddPartDropdown && (
-                  <div className={`absolute top-full left-0 mt-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden ${
-                    darkMode
-                      ? "border-slate-700 bg-slate-800"
-                      : "border-slate-200 bg-white"
-                  }`}>
+                  <div className="absolute top-full left-0 mt-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden" style={{ borderColor: theme.border, backgroundColor: theme.card }}>
                     <div className="max-h-60 overflow-y-auto">
                       {availablePartsToAdd.map((part) => (
                         <button
                           key={part.id || (part.isUnknown ? "unknown" : "")}
                           type="button"
                           onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
-                          className={`w-full text-left px-3 py-2 text-xs font-medium transition hover:bg-opacity-80 ${
-                            darkMode
-                              ? "text-slate-200 hover:bg-slate-700"
-                              : "text-slate-700 hover:bg-slate-100"
-                          }`}
+                          className="w-full text-left px-3 py-2 text-xs font-medium transition"
+                          style={{
+                            color: theme.textPrimary,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = theme.buttonHover;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
                         >
           <div className="flex items-center gap-2">
                             <div className="w-3.5 flex items-center justify-center">
@@ -962,6 +1023,7 @@ export default function JournalEditor({
   nodeId,
 }: JournalEditorProps) {
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
   const [activeColor, setActiveColor] = useState<string | null>(null);
 
   const accentColor = useMemo(() => {
@@ -1000,34 +1062,31 @@ export default function JournalEditor({
            />
          )}
         <div
-          className={`relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex ${
-          darkMode
-            ? "border-slate-700 bg-slate-900/80"
-            : "border-slate-200 bg-white"
-        }`}
-        style={{
-          boxShadow: `0 0 0 1.5px ${accentColor}20`,
-        }}
-      >
+          className="relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex"
+          style={{
+            borderColor: theme.border,
+            backgroundColor: theme.surface,
+            boxShadow: `0 0 0 1.5px ${accentColor}20`,
+          }}
+        >
           <div className="flex-1 relative overflow-hidden">
             <div className="h-full relative overflow-y-auto">
               <RichTextPlugin
                 contentEditable={
                   <ContentEditable
-                    className={`prose prose-slate w-full min-w-full max-w-none py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert ${
-            darkMode ? "text-slate-100" : "text-slate-800"
-          }`}
+                    className="prose prose-slate w-full min-w-full max-w-none py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert"
                     style={{
                       whiteSpace: "pre-wrap",
                       caretColor: accentColor,
                       minHeight: "100%",
                       paddingLeft: "24px",
                       paddingRight: "24px",
+                      color: theme.textPrimary,
                     }}
                   />
                 }
                 placeholder={
-          <div className="pointer-events-none absolute left-6 top-5 text-sm text-slate-400">
+          <div className="pointer-events-none absolute left-6 top-5 text-sm" style={{ color: theme.textMuted }}>
             {PLACEHOLDER_TEXT}
           </div>
                 }

@@ -8,7 +8,6 @@ import TextThreadEditor from "./TextThreadEditor";
 import { useSaveJournalEntry } from "../../state/hooks/useSaveJournalEntry";
 import { useAllJournalEntries } from "../../state/hooks/useAllJournalEntries";
 import { JournalEntry } from "@/features/workspace/types/Journal";
-import { useDebouncedJournalSave } from "../../state/hooks/useDebouncedJournalSave";
 import { useFlowNodesContextOptional } from "../../state/FlowNodesContext";
 import { useWorkingStore } from "../../state/stores/useWorkingStore";
 import {
@@ -24,6 +23,7 @@ import { NodeBackgroundColors, NodeTextColors } from "../../constants/Nodes";
 import { ImpressionList } from "../../constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 const IMPRESSION_NODE_TYPES: ImpressionType[] = [
   "emotion",
@@ -186,8 +186,8 @@ const withAlpha = (hex: string, alpha: number) => {
 };
 
 export default function JournalDrawer() {
-  useDebouncedJournalSave();
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
   const queryClient = useQueryClient();
 
   const isOpen = useJournalStore((s) => s.isOpen);
@@ -686,7 +686,7 @@ export default function JournalDrawer() {
     if (!journalTarget) {
       console.log("🎨 renderContextPanel: No journalTarget, returning default message");
       return (
-        <div className="space-y-3 text-sm text-slate-600">
+        <div className="space-y-3 text-sm" style={{ color: theme.textSecondary }}>
           <p>This journal entry is not linked to a specific node.</p>
           <p>
             Open a part, impression, or interaction to display its context here.
@@ -701,47 +701,47 @@ export default function JournalDrawer() {
       // Only show the "context not available" message if we also don't have any nodes
       if (!flowNodesContext && nodes.length === 0) {
         return (
-          <div className="space-y-3 text-sm text-slate-600">
-            <p className="font-semibold text-slate-800">Node context is not available.</p>
+          <div className="space-y-3 text-sm" style={{ color: theme.textSecondary }}>
+            <p className="font-semibold" style={{ color: theme.textPrimary }}>Node context is not available.</p>
             <p>The workspace may not be fully loaded yet.</p>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs mt-2" style={{ color: theme.textMuted }}>
               Make sure you&apos;re viewing a workspace with nodes.
             </p>
-            <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs">
-              <p className="font-semibold text-amber-800 mb-1">Debug Info:</p>
-              <p className="text-amber-700">flowNodesContext: {flowNodesContext ? "available" : "null"}</p>
-              <p className="text-amber-700">nodes.length: {nodes.length}</p>
-              <p className="text-amber-700">nodeId: {nodeId || "none"}</p>
+            <div className="mt-3 rounded-lg border p-3 text-xs" style={{ backgroundColor: theme.warning + '1a', borderColor: theme.warning + '33' }}>
+              <p className="font-semibold mb-1" style={{ color: theme.warning }}>Debug Info:</p>
+              <p style={{ color: theme.textSecondary }}>flowNodesContext: {flowNodesContext ? "available" : "null"}</p>
+              <p style={{ color: theme.textSecondary }}>nodes.length: {nodes.length}</p>
+              <p style={{ color: theme.textSecondary }}>nodeId: {nodeId || "none"}</p>
             </div>
           </div>
         );
       }
       return (
-        <div className="space-y-3 text-sm text-slate-600">
-          <p className="font-semibold text-slate-800">We couldn&apos;t find this node in the current workspace.</p>
+        <div className="space-y-3 text-sm" style={{ color: theme.textSecondary }}>
+          <p className="font-semibold" style={{ color: theme.textPrimary }}>We couldn&apos;t find this node in the current workspace.</p>
           <p>It may have been removed or moved to another map.</p>
           {nodeId && (
-            <p className="text-xs text-slate-500 mt-2">
-              Looking for node: <code className="bg-slate-100 px-1 rounded">{nodeId}</code>
+            <p className="text-xs mt-2" style={{ color: theme.textMuted }}>
+              Looking for node: <code className="px-1 rounded" style={{ backgroundColor: theme.surface }}>{nodeId}</code>
             </p>
           )}
           {nodes.length > 0 && (
-            <div className="mt-3 rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs">
-              <p className="font-semibold text-blue-800 mb-2">Found {nodes.length} node{nodes.length !== 1 ? "s" : ""} in workspace:</p>
-              <ul className="space-y-1 text-blue-700">
+            <div className="mt-3 rounded-lg border p-3 text-xs" style={{ backgroundColor: theme.info + '1a', borderColor: theme.info + '33' }}>
+              <p className="font-semibold mb-2" style={{ color: theme.info }}>Found {nodes.length} node{nodes.length !== 1 ? "s" : ""} in workspace:</p>
+              <ul className="space-y-1" style={{ color: theme.textSecondary }}>
                 {nodes.slice(0, 5).map((n) => (
                   <li key={n.id}>
-                    <code className="bg-blue-100 px-1 rounded">{n.id}</code> ({n.type})
+                    <code className="px-1 rounded" style={{ backgroundColor: theme.surface }}>{n.id}</code> ({n.type})
                   </li>
                 ))}
-                {nodes.length > 5 && <li className="text-blue-600">... and {nodes.length - 5} more</li>}
+                {nodes.length > 5 && <li style={{ color: theme.textMuted }}>... and {nodes.length - 5} more</li>}
               </ul>
             </div>
           )}
           {nodes.length === 0 && (
-            <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-3 text-xs">
-              <p className="font-semibold text-red-800">No nodes found in workspace</p>
-              <p className="text-red-700">The workspace appears to be empty or not loaded.</p>
+            <div className="mt-3 rounded-lg border p-3 text-xs" style={{ backgroundColor: theme.error + '1a', borderColor: theme.error + '33' }}>
+              <p className="font-semibold" style={{ color: theme.error }}>No nodes found in workspace</p>
+              <p style={{ color: theme.textSecondary }}>The workspace appears to be empty or not loaded.</p>
             </div>
           )}
         </div>
@@ -790,14 +790,14 @@ export default function JournalDrawer() {
       });
 
       return (
-        <div className="space-y-6 text-sm text-slate-600">
+        <div className="space-y-6 text-sm" style={{ color: theme.textSecondary }}>
           <section className="p-0">
             <div className="flex items-start gap-4">
               <div className="flex-1">
-                <h3 className="text-xl font-semibold text-slate-900">
+                <h3 className="text-xl font-semibold" style={{ color: theme.textPrimary }}>
                   {data.label}
                 </h3>
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs" style={{ color: theme.textMuted }}>
                   {(() => {
                     const partType = data.partType === "custom" ? data.customPartType : data.partType;
                     const mapping: Record<string, { icon: React.ReactNode; className: string }> = {
@@ -838,17 +838,17 @@ export default function JournalDrawer() {
                     );
                   })()}
                   {data.age && String(data.age).toLowerCase() !== "unknown" && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500">
+                    <span className="inline-flex items-center gap-1 rounded-full border px-3 py-0.5 font-medium" style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.textMuted }}>
                       Age{" "}
-                      <span className="font-semibold text-slate-700">
+                      <span className="font-semibold" style={{ color: theme.textPrimary }}>
                         {data.age}
                       </span>
                     </span>
                   )}
                   {data.gender && data.gender.toLowerCase() !== "unknown" && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500">
+                    <span className="inline-flex items-center gap-1 rounded-full border px-3 py-0.5 font-medium" style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.textMuted }}>
                       Gender{" "}
-                      <span className="font-semibold text-slate-700">
+                      <span className="font-semibold" style={{ color: theme.textPrimary }}>
                         {data.gender}
                       </span>
                     </span>
@@ -856,10 +856,11 @@ export default function JournalDrawer() {
                   {metadata.map((item) => (
                     <span
                       key={item.label}
-                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500"
+                      className="inline-flex items-center gap-1 rounded-full border px-3 py-0.5 font-medium"
+                      style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.textMuted }}
                     >
                       {item.label}{" "}
-                      <span className="font-semibold text-slate-700">
+                      <span className="font-semibold" style={{ color: theme.textPrimary }}>
                         {item.value}
                       </span>
                     </span>
@@ -868,7 +869,7 @@ export default function JournalDrawer() {
               </div>
 
               {data.image && (
-                <div className="relative h-24 w-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
+                <div className="relative h-24 w-24 overflow-hidden rounded-xl border shadow-sm" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
                   <img
                     src={data.image}
                     alt={`${data.label} image`}
@@ -879,14 +880,14 @@ export default function JournalDrawer() {
             </div>
 
             {data.scratchpad?.trim() && (
-              <div className="mt-4 rounded-xl bg-slate-50 px-3.5 py-3 text-sm leading-relaxed text-slate-600 shadow-inner">
+              <div className="mt-4 rounded-xl px-3.5 py-3 text-sm leading-relaxed shadow-inner" style={{ backgroundColor: theme.surface, color: theme.textSecondary }}>
                 {data.scratchpad}
               </div>
             )}
           </section>
 
           <section className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: theme.textMuted }}>
               Impressions
             </p>
             {hasImpressions ? (
@@ -916,8 +917,8 @@ export default function JournalDrawer() {
                 })}
               </div>
             ) : (
-              <div className={`rounded-xl border px-3 py-2 ${darkMode ? "border-slate-700/50 bg-slate-800/30" : "border-slate-200/50 bg-slate-50/50"}`}>
-                <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-400"}`}>
+              <div className="rounded-xl border px-3 py-2" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
+                <span className="text-xs" style={{ color: theme.textMuted }}>
                   No impressions
                 </span>
               </div>
@@ -926,7 +927,7 @@ export default function JournalDrawer() {
 
           {data.needs && data.needs.length > 0 && (
             <section className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: theme.textMuted }}>
                 Key Needs
               </p>
               <ul className="flex flex-wrap gap-2">
@@ -936,7 +937,8 @@ export default function JournalDrawer() {
                   .map((need, idx) => (
                     <li
                       key={`${need}-${idx}`}
-                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                      className="rounded-full px-3 py-1 text-xs font-medium"
+                      style={{ backgroundColor: theme.surface, color: theme.textPrimary }}
                     >
                       {need}
                     </li>
@@ -947,7 +949,7 @@ export default function JournalDrawer() {
 
           {data.insights && data.insights.length > 0 && (
             <section className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: theme.textMuted }}>
                 Insights
               </p>
               <ul className="flex flex-col gap-1.5">
@@ -957,7 +959,8 @@ export default function JournalDrawer() {
                   .map((insight, idx) => (
                     <li
                       key={`${insight}-${idx}`}
-                      className="rounded-lg bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm"
+                      className="rounded-lg px-3 py-1.5 text-sm shadow-sm"
+                      style={{ backgroundColor: theme.card, color: theme.textPrimary }}
                     >
                       {insight}
                     </li>
@@ -1022,19 +1025,19 @@ export default function JournalDrawer() {
                           "No summary yet";
 
       return (
-        <div className="space-y-3 text-sm text-slate-600">
+        <div className="space-y-3 text-sm" style={{ color: theme.textSecondary }}>
           {enrichedConnectedNodes.length === 0 ? (
               <div className="space-y-2">
-                <p className="rounded-lg bg-slate-100/80 px-3 py-2 text-sm text-slate-600">
+                <p className="rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: theme.surface, color: theme.textSecondary }}>
                   No parts linked to this {relationshipType} yet.
                 </p>
-                <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs">
-                  <p className="font-semibold text-amber-800 mb-1">Debug Info:</p>
-                  <p className="text-amber-700">connectedNodes extracted: {connectedNodes.length}</p>
-                  <p className="text-amber-700">data.connectedNodes type: {typeof (data as TensionNodeData).connectedNodes}</p>
-                  <p className="text-amber-700">data.connectedNodes isArray: {Array.isArray((data as TensionNodeData).connectedNodes)}</p>
-                  <p className="text-amber-700">nodeType: {targetNode.type}</p>
-                  <p className="text-amber-700">data keys: {Object.keys(data).join(", ")}</p>
+                <div className="rounded-lg border p-3 text-xs" style={{ backgroundColor: theme.warning + '1a', borderColor: theme.warning + '33' }}>
+                  <p className="font-semibold mb-1" style={{ color: theme.warning }}>Debug Info:</p>
+                  <p style={{ color: theme.textSecondary }}>connectedNodes extracted: {connectedNodes.length}</p>
+                  <p style={{ color: theme.textSecondary }}>data.connectedNodes type: {typeof (data as TensionNodeData).connectedNodes}</p>
+                  <p style={{ color: theme.textSecondary }}>data.connectedNodes isArray: {Array.isArray((data as TensionNodeData).connectedNodes)}</p>
+                  <p style={{ color: theme.textSecondary }}>nodeType: {targetNode.type}</p>
+                  <p style={{ color: theme.textSecondary }}>data keys: {Object.keys(data).join(", ")}</p>
                 </div>
               </div>
             ) : (
@@ -1074,19 +1077,20 @@ export default function JournalDrawer() {
                 return (
                   <div
                     key={part.id}
-                    className="rounded-xl border border-slate-200/70 bg-white px-3.5 py-3 shadow-sm"
+                    className="rounded-xl border px-3.5 py-3 shadow-sm"
+                    style={{ borderColor: theme.border, backgroundColor: theme.card }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold" style={{ color: theme.textPrimary }}>
                         {partLabel}
                       </p>
                     </div>
                     {tensionDescription ? (
-                      <p className="mt-1 text-sm text-slate-600 leading-relaxed">
+                      <p className="mt-1 text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
                         {tensionDescription}
                       </p>
                     ) : (
-                      <p className="mt-1 text-xs uppercase tracking-wide text-slate-400">
+                      <p className="mt-1 text-xs uppercase tracking-wide" style={{ color: theme.textMuted }}>
                         No notes yet
                       </p>
                     )}
@@ -1099,7 +1103,7 @@ export default function JournalDrawer() {
                           {partType || "No type set"}
                         </span>
                         {partData.needs && partData.needs.length > 0 && (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs" style={{ color: theme.textMuted }}>
                             Needs: {partData.needs.slice(0, 2).join(", ")}{partData.needs.length > 2 ? "..." : ""}
                           </span>
                         )}
@@ -1137,7 +1141,7 @@ export default function JournalDrawer() {
   const renderHistoryPanel = () => {
     if (isHistoryLoading) {
       return (
-        <div className="flex h-full items-center justify-center text-sm text-slate-500">
+        <div className="flex h-full items-center justify-center text-sm" style={{ color: theme.textMuted }}>
           Loading history…
         </div>
       );
@@ -1147,9 +1151,9 @@ export default function JournalDrawer() {
       <div className="space-y-3">
         {/* History List */}
         {relevantEntries.length === 0 ? (
-          <div className="space-y-3 text-sm text-slate-600 py-4">
+          <div className="space-y-3 text-sm py-4" style={{ color: theme.textSecondary }}>
             <p>No saved journal entries yet.</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs" style={{ color: theme.textMuted }}>
               Click "New Entry" in the header to start, then save your first entry.
             </p>
           </div>
@@ -1185,52 +1189,55 @@ export default function JournalDrawer() {
                     e.stopPropagation();
                     handleSelectEntry(entry);
                   }}
-                  className={`w-full rounded-xl border-2 transition text-left ${
-                    isActive
-                      ? darkMode
-                        ? "border-blue-500 bg-slate-800/80 shadow-lg ring-2 ring-blue-500/20"
-                        : "border-blue-500 bg-blue-50/50 shadow-lg ring-2 ring-blue-500/10"
-                      : darkMode
-                        ? "border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:shadow-md"
-                        : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
-                  } p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
+                  className="w-full rounded-xl border-2 transition text-left p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  style={{
+                    backgroundColor: isActive ? theme.elevated : theme.card,
+                    borderColor: isActive ? theme.accent : theme.border,
+                    ...(isActive ? {
+                      boxShadow: `0 0 0 2px ${theme.accent}33, 0 10px 15px -3px rgba(0, 0, 0, 0.1)`,
+                    } : {}),
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.borderColor = theme.border;
+                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.borderColor = theme.border;
+                      e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
+                    }
+                  }}
                 >
                   {/* Header with dates and actions */}
                   <div className="flex items-start justify-between mb-3 gap-4">
                     <div className="flex-1 space-y-1.5">
                       <div className="flex items-center gap-1.5 text-xs">
-                        <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${
-                          isActive 
-                            ? darkMode ? "text-slate-300" : "text-slate-700"
-                            : darkMode ? "text-slate-400" : "text-slate-500"
-                        }`} />
-                        <span className={`${
-                          isActive 
-                            ? darkMode ? "text-slate-300" : "text-slate-700"
-                            : darkMode ? "text-slate-400" : "text-slate-500"
-                        }`}>
+                        <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: isActive ? theme.textPrimary : theme.textSecondary }} />
+                        <span style={{ color: isActive ? theme.textPrimary : theme.textSecondary }}>
                           {new Date(entry.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(entry.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                       
                       {/* Entry type */}
                       <div className="flex items-center gap-3 flex-wrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border ${
                           entryIsTextThread
                             ? isActive
                               ? darkMode
-                                ? "bg-purple-900/60 text-purple-200 border border-purple-700/70"
-                                : "bg-purple-100 text-purple-700 border border-purple-300"
+                                ? "bg-purple-900/60 text-purple-200 border-purple-700/70"
+                                : "bg-purple-100 text-purple-700 border-purple-300"
                               : darkMode
-                                ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
-                                : "bg-purple-50 text-purple-700 border border-purple-200"
+                                ? "bg-purple-900/40 text-purple-200 border-purple-700/50"
+                                : "bg-purple-50 text-purple-700 border-purple-200"
                             : isActive
                               ? darkMode
-                                ? "bg-blue-900/60 text-blue-200 border border-blue-700/70"
-                                : "bg-blue-100 text-blue-700 border border-blue-300"
+                                ? "bg-blue-900/60 text-blue-200 border-blue-700/70"
+                                : "bg-blue-100 text-blue-700 border-blue-300"
                               : darkMode
-                                ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
-                                : "bg-blue-50 text-blue-700 border border-blue-200"
+                                ? "bg-blue-900/40 text-blue-200 border-blue-700/50"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
                         }`}>
                           {entryIsTextThread ? (
                             <>
@@ -1249,11 +1256,10 @@ export default function JournalDrawer() {
                     
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {isActive && (
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                          darkMode 
-                            ? "bg-slate-700 text-slate-200"
-                            : "bg-white text-slate-900"
-                        }`}>
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide" style={{
+                          backgroundColor: theme.elevated,
+                          color: theme.textPrimary,
+                        }}>
                           Current
                         </span>
                       )}
@@ -1262,12 +1268,9 @@ export default function JournalDrawer() {
                   
                   {/* Preview content */}
                   <p
-                    className={`text-sm leading-relaxed mb-2 ${
-                      isActive 
-                        ? darkMode ? "text-slate-200" : "text-slate-700"
-                        : darkMode ? "text-slate-300" : "text-slate-600"
-                    }`}
+                    className="text-sm leading-relaxed mb-2"
                     style={{
+                      color: isActive ? theme.textPrimary : theme.textSecondary,
                       display: "-webkit-box",
                       WebkitLineClamp: 3,
                       WebkitBoxOrient: "vertical",
@@ -1278,12 +1281,8 @@ export default function JournalDrawer() {
                   </p>
                   
                   {/* Word and character count with delete button */}
-                  <div className="pt-2 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
-                    <span className={`text-[10px] ${
-                      isActive 
-                        ? darkMode ? "text-slate-400" : "text-slate-600"
-                        : darkMode ? "text-slate-500" : "text-slate-400"
-                    }`}>
+                  <div className="pt-2 border-t flex items-center justify-between" style={{ borderColor: theme.border }}>
+                    <span className="text-[10px]" style={{ color: theme.textMuted }}>
                       {wordCount} words • {charCount.toLocaleString()} chars
                     </span>
                     <button
@@ -1293,15 +1292,16 @@ export default function JournalDrawer() {
                         e.stopPropagation();
                         void handleDeleteEntry(entry.id);
                       }}
-                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition ${
-                        isActive
-                          ? darkMode
-                            ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
-                            : "text-slate-600 hover:text-red-600 hover:bg-red-50"
-                          : darkMode
-                            ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
-                            : "text-slate-500 hover:text-red-600 hover:bg-red-50"
-                      }`}
+                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition"
+                      style={{ color: theme.textMuted }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = theme.error;
+                        e.currentTarget.style.backgroundColor = darkMode ? `${theme.error}33` : `${theme.error}1a`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = theme.textMuted;
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
                       title="Delete entry"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -1319,9 +1319,12 @@ export default function JournalDrawer() {
   return (
     <div className="pointer-events-none fixed inset-0 z-[9999]">
       <div
-        className={`absolute inset-0 bg-slate-900/45 transition-opacity duration-300 ${
-          isOpen ? "pointer-events-auto opacity-100" : "opacity-0"
-        }`}
+        className="absolute inset-0 transition-opacity duration-300"
+        style={{
+          backgroundColor: darkMode ? `${theme.modal}73` : `${theme.modal}73`,
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? "auto" : "none",
+        }}
         onClick={() => void attemptClose()}
       />
 
@@ -1330,10 +1333,10 @@ export default function JournalDrawer() {
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-full flex-col overflow-hidden bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-2xl">
-          <header className="border-b border-slate-200/80 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
+        <div className="flex h-full flex-col overflow-hidden shadow-2xl" style={{ backgroundColor: theme.modal }}>
+          <header className="border-b px-4 py-3 shadow-sm backdrop-blur" style={{ borderColor: theme.border, backgroundColor: theme.elevated }}>
             <div className="flex items-center justify-between gap-3 max-w-4xl mx-auto">
-              <h2 className="text-lg font-semibold text-slate-900 truncate flex-1 min-w-0">
+              <h2 className="text-lg font-semibold truncate flex-1 min-w-0" style={{ color: theme.textPrimary }}>
                 {nodeLabel}
               </h2>
               
@@ -1341,11 +1344,23 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => setShowLeftPanel((prev) => !prev)}
-                  className={`rounded-full p-1.5 transition flex-shrink-0 ${
-                    showLeftPanel
-                      ? "bg-slate-700 text-white hover:bg-slate-800"
-                      : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
-                  }`}
+                  className="rounded-full p-1.5 transition flex-shrink-0"
+                  style={{
+                    backgroundColor: showLeftPanel ? theme.card : 'transparent',
+                    color: showLeftPanel ? theme.textPrimary : theme.textSecondary,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!showLeftPanel) {
+                      e.currentTarget.style.backgroundColor = theme.card;
+                      e.currentTarget.style.color = theme.textPrimary;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!showLeftPanel) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = theme.textSecondary;
+                    }
+                  }}
                   title="Toggle sidebar"
                 >
                   <Layers size={16} />
@@ -1354,7 +1369,17 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void handleStartNewEntry()}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0 bg-slate-700 text-white hover:bg-slate-800"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0"
+                  style={{
+                    backgroundColor: theme.card,
+                    color: theme.textPrimary,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonHover;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.card;
+                  }}
                   title="Start a new journal entry"
                 >
                   <FilePlus2 size={14} />
@@ -1365,11 +1390,21 @@ export default function JournalDrawer() {
                   type="button"
                   onClick={() => void handleSave()}
                   disabled={!hasUnsavedChanges || isSaving}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition flex-shrink-0 ${
-                    hasUnsavedChanges && !isSaving
-                      ? "bg-blue-600 text-white shadow hover:bg-blue-700"
-                      : "bg-slate-200 text-slate-500"
-                  } ${isSaving ? "animate-pulse" : ""}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition flex-shrink-0 ${isSaving ? "animate-pulse" : ""}`}
+                  style={{
+                    backgroundColor: hasUnsavedChanges && !isSaving ? theme.info : theme.button,
+                    color: hasUnsavedChanges && !isSaving ? theme.buttonText : theme.textMuted,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (hasUnsavedChanges && !isSaving) {
+                      e.currentTarget.style.backgroundColor = "#2563eb"; // Darker blue on hover
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (hasUnsavedChanges && !isSaving) {
+                      e.currentTarget.style.backgroundColor = theme.info;
+                    }
+                  }}
                 >
                   <Save size={14} />
                   {isSaving ? "Saving…" : "Save"}
@@ -1378,7 +1413,18 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void attemptClose()}
-                  className="rounded-full p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 flex-shrink-0"
+                  className="rounded-full p-1.5 transition flex-shrink-0"
+                  style={{
+                    color: theme.textSecondary,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = theme.textSecondary;
+                  }}
                   title="Close"
                 >
                   <X size={18} />
@@ -1392,17 +1438,30 @@ export default function JournalDrawer() {
               {/* Left panel with tabs */}
               {showLeftPanel && (
                 <>
-                  <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white/85 shadow-inner" style={{ left: '1.5rem', top: '1.5rem' }}>
+                  <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-hidden rounded-2xl border shadow-inner" style={{ left: '1.5rem', top: '1.5rem', backgroundColor: theme.card, borderColor: theme.border }}>
                     {/* Tab buttons */}
-                    <div className="flex border-b border-slate-200/70 bg-slate-50/50">
+                    <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
                       <button
                         type="button"
                         onClick={() => setLeftPanelTab("info")}
-                        className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition ${
-                          leftPanelTab === "info"
-                            ? "border-b-2 border-slate-900 bg-white text-slate-900"
-                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
-                        }`}
+                        className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition"
+                        style={{
+                          borderBottom: leftPanelTab === "info" ? `2px solid ${theme.accent}` : 'none',
+                          backgroundColor: leftPanelTab === "info" ? theme.card : 'transparent',
+                          color: leftPanelTab === "info" ? theme.textPrimary : theme.textSecondary,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (leftPanelTab !== "info") {
+                            e.currentTarget.style.backgroundColor = theme.buttonHover;
+                            e.currentTarget.style.color = theme.textPrimary;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (leftPanelTab !== "info") {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = theme.textSecondary;
+                          }
+                        }}
                       >
                         <div className="flex items-center justify-center gap-2">
                           <Layers size={14} />
@@ -1412,11 +1471,24 @@ export default function JournalDrawer() {
                       <button
                         type="button"
                         onClick={() => setLeftPanelTab("history")}
-                        className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition ${
-                          leftPanelTab === "history"
-                            ? "border-b-2 border-slate-900 bg-white text-slate-900"
-                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
-                        }`}
+                        className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition"
+                        style={{
+                          borderBottom: leftPanelTab === "history" ? `2px solid ${theme.accent}` : 'none',
+                          backgroundColor: leftPanelTab === "history" ? theme.card : 'transparent',
+                          color: leftPanelTab === "history" ? theme.textPrimary : theme.textSecondary,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (leftPanelTab !== "history") {
+                            e.currentTarget.style.backgroundColor = theme.buttonHover;
+                            e.currentTarget.style.color = theme.textPrimary;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (leftPanelTab !== "history") {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = theme.textSecondary;
+                          }
+                        }}
                       >
                         <div className="flex items-center justify-center gap-2">
                           <History size={14} />
@@ -1437,17 +1509,30 @@ export default function JournalDrawer() {
                   </aside>
 
                   <div className="block lg:hidden">
-                    <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200/70 bg-white/90 shadow-sm">
+                    <div className="mx-auto max-w-4xl rounded-2xl border shadow-sm" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                       {/* Tab buttons for mobile */}
-                      <div className="flex border-b border-slate-200/70 bg-slate-50/50">
+                      <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
                         <button
                           type="button"
                           onClick={() => setLeftPanelTab("info")}
-                          className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition ${
-                            leftPanelTab === "info"
-                              ? "border-b-2 border-slate-900 bg-white text-slate-900"
-                              : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
-                          }`}
+                          className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition"
+                          style={{
+                            borderBottom: leftPanelTab === "info" ? `2px solid ${theme.accent}` : 'none',
+                            backgroundColor: leftPanelTab === "info" ? theme.card : 'transparent',
+                            color: leftPanelTab === "info" ? theme.textPrimary : theme.textSecondary,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (leftPanelTab !== "info") {
+                              e.currentTarget.style.backgroundColor = theme.buttonHover;
+                              e.currentTarget.style.color = theme.textPrimary;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (leftPanelTab !== "info") {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.color = theme.textSecondary;
+                            }
+                          }}
                         >
                           <div className="flex items-center justify-center gap-2">
                             <Layers size={14} />
@@ -1457,11 +1542,24 @@ export default function JournalDrawer() {
                         <button
                           type="button"
                           onClick={() => setLeftPanelTab("history")}
-                          className={`flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition ${
-                            leftPanelTab === "history"
-                              ? "border-b-2 border-slate-900 bg-white text-slate-900"
-                              : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
-                          }`}
+                          className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition"
+                          style={{
+                            borderBottom: leftPanelTab === "history" ? `2px solid ${theme.accent}` : 'none',
+                            backgroundColor: leftPanelTab === "history" ? theme.card : 'transparent',
+                            color: leftPanelTab === "history" ? theme.textPrimary : theme.textSecondary,
+                          }}
+                          onMouseEnter={(e) => {
+                            if (leftPanelTab !== "history") {
+                              e.currentTarget.style.backgroundColor = theme.buttonHover;
+                              e.currentTarget.style.color = theme.textPrimary;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (leftPanelTab !== "history") {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.color = theme.textSecondary;
+                            }
+                          }}
                         >
                           <div className="flex items-center justify-center gap-2">
                             <History size={14} />
@@ -1486,16 +1584,16 @@ export default function JournalDrawer() {
 
               {/* Main content area - expands to fill space */}
               <main className={`flex flex-1 flex-col gap-6 overflow-hidden ${showLeftPanel ? 'lg:ml-[19.5rem] lg:mr-6' : 'items-center'}`}>
-                <div className={`flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-xl w-full ${showLeftPanel ? '' : journalMode === 'textThread' ? 'max-w-[600px]' : 'max-w-4xl'}`}>
+                <div className={`flex-1 overflow-hidden rounded-3xl border p-6 shadow-xl w-full ${showLeftPanel ? '' : journalMode === 'textThread' ? 'max-w-[600px]' : 'max-w-4xl'}`} style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
                     <div className="flex items-center justify-center h-full">
                       <div className="max-w-2xl w-full p-8">
                         <div className="text-center mb-8">
-                          <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                          <h3 className="text-2xl font-bold mb-2" style={{ color: theme.textPrimary }}>
                             Choose Journal Type
                           </h3>
-                          <p className="text-slate-600">
+                          <p style={{ color: theme.textSecondary }}>
                             Select how you'd like to record this journal entry
                           </p>
                         </div>
@@ -1503,17 +1601,29 @@ export default function JournalDrawer() {
                           <button
                             type="button"
                             onClick={() => handleModeSelect("normal")}
-                            className="group relative p-6 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-white hover:bg-blue-50/50 transition-all text-left"
+                            className="group relative p-6 rounded-2xl border-2 transition-all text-left"
+                            style={{
+                              borderColor: theme.border,
+                              backgroundColor: theme.surface,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = "#3b82f6";
+                              e.currentTarget.style.backgroundColor = darkMode ? "rgba(59, 130, 246, 0.1)" : "rgba(59, 130, 246, 0.05)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = theme.border;
+                              e.currentTarget.style.backgroundColor = theme.surface;
+                            }}
                           >
                             <div className="flex items-start gap-4">
-                              <div className="p-3 rounded-xl bg-blue-100 group-hover:bg-blue-200 transition">
-                                <Book className="w-6 h-6 text-blue-600" />
+                              <div className={`p-3 rounded-xl transition ${darkMode ? "bg-blue-900/40" : "bg-blue-100"}`}>
+                                <Book className="w-6 h-6" style={{ color: darkMode ? "#93c5fd" : "#2563eb" }} />
                               </div>
                               <div className="flex-1">
-                                <h4 className="text-lg font-semibold text-slate-900 mb-1">
+                                <h4 className="text-lg font-semibold mb-1" style={{ color: theme.textPrimary }}>
                                   Journal
                                 </h4>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm" style={{ color: theme.textSecondary }}>
                                   Traditional rich text editor with inline speaker notation. Perfect for structured journaling and notes.
                                 </p>
                               </div>
@@ -1522,17 +1632,29 @@ export default function JournalDrawer() {
                           <button
                             type="button"
                             onClick={() => handleModeSelect("textThread")}
-                            className="group relative p-6 rounded-2xl border-2 border-slate-200 hover:border-purple-500 bg-white hover:bg-purple-50/50 transition-all text-left"
+                            className="group relative p-6 rounded-2xl border-2 transition-all text-left"
+                            style={{
+                              borderColor: theme.border,
+                              backgroundColor: theme.surface,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = "#a855f7";
+                              e.currentTarget.style.backgroundColor = darkMode ? "rgba(168, 85, 247, 0.1)" : "rgba(168, 85, 247, 0.05)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = theme.border;
+                              e.currentTarget.style.backgroundColor = theme.surface;
+                            }}
                           >
                             <div className="flex items-start gap-4">
-                              <div className="p-3 rounded-xl bg-purple-100 group-hover:bg-purple-200 transition">
-                                <MessagesSquare className="w-6 h-6 text-purple-600" />
+                              <div className={`p-3 rounded-xl transition ${darkMode ? "bg-purple-900/40" : "bg-purple-100"}`}>
+                                <MessagesSquare className="w-6 h-6" style={{ color: darkMode ? "#c4b5fd" : "#9333ea" }} />
                               </div>
                               <div className="flex-1">
-                                <h4 className="text-lg font-semibold text-slate-900 mb-1">
+                                <h4 className="text-lg font-semibold mb-1" style={{ color: theme.textPrimary }}>
                                   Text Thread
                                 </h4>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm" style={{ color: theme.textSecondary }}>
                                   Chat-style conversation interface. Great for IFS parts dialogues and back-and-forth exchanges.
                                 </p>
                               </div>
