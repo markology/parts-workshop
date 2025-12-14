@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef, memo } from "react";
 import Image from "next/image";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 // Helper to safely create CustomEvent
 const createCustomEvent = (type: string, detail: any): Event | null => {
@@ -120,6 +121,7 @@ const PartDetailPanel = () => {
     );
   }, [selectedPartId, edges]);
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
 
   const toRgba = (hex: string, opacity: number) => {
     const sanitized = hex.replace("#", "");
@@ -668,49 +670,56 @@ const PartDetailPanel = () => {
   if (!selectedPartId || !partNode) return null;
 
   const data = partNode.data;
-  const containerClasses = `${
-    darkMode
-      ? "bg-slate-950/95 border border-slate-800 text-slate-100"
-      : "bg-white border border-slate-200 text-slate-900"
-  } relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col rounded-[10px]`;
+  
+  const containerStyle = {
+    backgroundColor: theme.modal,
+    borderColor: theme.border,
+    color: theme.textPrimary,
+  };
 
-  const navContainerClasses = darkMode
-    ? "bg-slate-950/75 border-r border-slate-800/70"
-    : "bg-white/90 border-r border-slate-200/80";
+  const navContainerStyle = {
+    backgroundColor: darkMode ? `${theme.elevated}bf` : `${theme.card}e6`, // 75% opacity for dark, 90% for light
+    borderRightColor: theme.border,
+  };
 
-  const navButtonClasses = darkMode
-    ? "text-slate-300 hover:bg-slate-900/40 hover:text-white"
-    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+  const sectionCardStyle = {
+    backgroundColor: darkMode ? "#2a2e32" : `${theme.card}f2`, // #2a2e32 for dark, 95% opacity for light
+    borderColor: theme.border,
+  };
 
-  const sectionCardClasses = darkMode
-    ? "bg-slate-950/70 border border-slate-800/70 shadow-[0_16px_40px_rgba(8,15,30,0.32)] rounded-3xl"
-    : "bg-white/95 border border-slate-200 shadow-[0_18px_45px_rgba(15,23,42,0.10)] rounded-3xl";
+  const subCardStyle = {
+    backgroundColor: darkMode ? `${theme.card}99` : theme.surface, // 60% opacity for dark
+    borderColor: theme.border,
+  };
 
-  const subCardClasses = darkMode
-    ? "bg-slate-950/60 border border-slate-800/70 rounded-2xl"
-    : "bg-slate-50 border border-slate-200 rounded-2xl";
+  const listItemStyle = {
+    backgroundColor: darkMode ? `${theme.card}80` : theme.card, // 50% opacity for dark
+    borderColor: theme.border,
+    color: theme.textPrimary,
+  };
 
-  const listItemClasses = darkMode
-    ? "bg-slate-950/50 border border-slate-800/60 text-slate-200"
-    : "bg-white border border-slate-200 text-slate-700";
+  const modalContainerStyle = {
+    backgroundColor: theme.modal,
+    borderColor: theme.border,
+    color: theme.textPrimary,
+  };
 
-  const modalContainerClasses = darkMode
-    ? "bg-slate-950/95 border border-slate-800 text-slate-100"
-    : "bg-white border border-slate-200 text-slate-900 markymark";
+  const modalFieldCardStyle = {
+    backgroundColor: darkMode ? `${theme.elevated}bf` : theme.surface, // 75% opacity for dark
+    borderColor: theme.border,
+  };
 
-  const modalFieldCardClasses = darkMode
-    ? "bg-slate-950/75 border border-slate-800/70 rounded-2xl"
-    : "bg-slate-50 border border-slate-200 rounded-2xl";
+  const modalInputStyle = {
+    backgroundColor: darkMode ? `${theme.surface}99` : theme.card, // 60% opacity for dark
+    borderColor: theme.border,
+    color: theme.textPrimary,
+  };
 
-  const modalInputClasses = darkMode
-    ? "bg-slate-900/60 border border-slate-700 text-slate-100 placeholder-slate-500"
-    : "bg-white border border-slate-200 text-slate-900 placeholder-slate-400 markymarkinput";
-
-  const modalTextareaClasses = darkMode
-    ? "bg-slate-900/60 border border-slate-700 text-slate-100 placeholder-slate-500"
-    : "bg-white border border-slate-200 text-slate-900 markymarktextarea placeholder-slate-400";
-
-  const modalLabelClasses = darkMode ? "text-slate-200" : "text-slate-700";
+  const modalTextareaStyle = {
+    backgroundColor: darkMode ? `${theme.surface}99` : theme.card, // 60% opacity for dark
+    borderColor: theme.border,
+    color: theme.textPrimary,
+  };
 
   // When adding an impression, softly blur the background card
   const backdropCardClasses = addingImpressionType
@@ -773,7 +782,8 @@ const PartDetailPanel = () => {
         </button>
 
         <div
-          className={`${containerClasses} relative`}
+          className="relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col rounded-[10px]"
+          style={containerStyle}
           onClick={(e) => e.stopPropagation()}
         >
         {addingImpressionType && (
@@ -783,11 +793,22 @@ const PartDetailPanel = () => {
         <div className={`flex flex-row flex-1 overflow-hidden min-h-0 ${addingImpressionType ? 'pointer-events-none' : ''}`}>
           {/* Table of Contents - Left Column */}
           {windowWidth >= 800 && (
-          <div className={`w-52 flex-shrink-0 flex flex-col ${navContainerClasses}`}>
+          <div className="w-52 flex-shrink-0 flex flex-col border-r" style={navContainerStyle}>
             <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2">
               <button
                 onClick={() => scrollToSection(infoRef, 'info')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                style={{
+                  color: theme.textSecondary,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
+                  e.currentTarget.style.color = theme.textPrimary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = theme.textSecondary;
+                }}
               >
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-emerald-600" />
@@ -796,7 +817,18 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(insightsRef, 'insights')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                style={{
+                  color: theme.textSecondary,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
+                  e.currentTarget.style.color = theme.textPrimary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = theme.textSecondary;
+                }}
               >
                 <div className="flex items-center gap-2">
                   <Brain className="w-4 h-4" style={{ color: NodeBackgroundColors["thought"] }} />
@@ -805,7 +837,18 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(impressionsRef, 'impressions')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                style={{
+                  color: theme.textSecondary,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
+                  e.currentTarget.style.color = theme.textPrimary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = theme.textSecondary;
+                }}
               >
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4" style={{ color: NodeBackgroundColors["emotion"] }} />
@@ -814,7 +857,18 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(journalRef, 'journal')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                style={{
+                  color: theme.textSecondary,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
+                  e.currentTarget.style.color = theme.textPrimary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = theme.textSecondary;
+                }}
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-amber-600" />
@@ -823,7 +877,18 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(relationshipsRef, 'relationships')}
-                className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm ${navButtonClasses}`}
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                style={{
+                  color: theme.textSecondary,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
+                  e.currentTarget.style.color = theme.textPrimary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = theme.textSecondary;
+                }}
               >
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-rose-600" />
@@ -920,18 +985,21 @@ const PartDetailPanel = () => {
             </div>
             
             {/* Main Info Grid */}
-            <div className={`${sectionCardClasses} p-6 space-y-6 transition-all duration-200 ${
-              isEditingInfo 
-                ? darkMode 
-                  ? "ring-2 ring-blue-500/30 bg-slate-900/40" 
-                  : "ring-2 ring-blue-500/30 bg-blue-50/30"
-                : ""
-            }`}>
+            <div 
+              className="p-6 space-y-6 transition-all duration-200 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]"
+              style={{
+                ...sectionCardStyle,
+                ...(isEditingInfo ? {
+                  boxShadow: `0 0 0 2px ${toRgba("#3b82f6", 0.3)}, ${darkMode ? "0 16px 40px rgba(8,15,30,0.32)" : "0 18px 45px rgba(15,23,42,0.10)"}`,
+                  backgroundColor: darkMode ? `${theme.surface}66` : `${toRgba("#3b82f6", 0.1)}4d`,
+                } : {}),
+              }}
+            >
               {/* First Row: Image and Info */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Image - Left Column */}
                 <div className="lg:col-span-1">
-                  <div className={`${subCardClasses} w-full aspect-square relative shadow-sm overflow-hidden group`}>
+                  <div className="w-full aspect-square relative shadow-sm overflow-hidden group rounded-2xl border" style={subCardStyle}>
                     {data.image ? (
                       <>
                         <Image
@@ -1269,10 +1337,10 @@ const PartDetailPanel = () => {
               <Brain className="w-3 h-3" style={{ color: NodeBackgroundColors["thought"] }} />
               Insights
             </h4>
-            <div className={`${sectionCardClasses} p-6`}>
+            <div className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]" style={sectionCardStyle}>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 {/* Needs */}
-                <div className={`${subCardClasses} p-4 shadow-sm`}>
+                <div className="p-4 shadow-sm rounded-2xl border" style={subCardStyle}>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className={`font-semibold capitalize text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                       Needs
@@ -1295,7 +1363,8 @@ const PartDetailPanel = () => {
                     {((data.needs as string[]) || []).map((need: string, index: number) => (
                       <div
                         key={index}
-                        className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
+                        className="group flex items-center justify-between rounded-lg px-3 py-2 border"
+                        style={listItemStyle}
                       >
                         <span className="text-xs font-medium leading-relaxed">{need}</span>
                         <button
@@ -1316,7 +1385,7 @@ const PartDetailPanel = () => {
                 </div>
 
                 {/* Fears */}
-                <div className={`${subCardClasses} p-4 shadow-sm`}>
+                <div className="rounded-2xl border p-4 shadow-sm" style={subCardStyle}>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className={`font-semibold capitalize text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                       Fears
@@ -1339,7 +1408,8 @@ const PartDetailPanel = () => {
                     {((data.fears as string[]) || []).map((fear: string, index: number) => (
                       <div
                         key={index}
-                        className={`${listItemClasses} group flex items-center justify-between rounded-lg px-3 py-2`}
+                        className="group flex items-center justify-between rounded-lg px-3 py-2 border"
+                        style={listItemStyle}
                       >
                         <span className="text-xs font-medium leading-relaxed">{fear}</span>
                         <button
@@ -1373,7 +1443,8 @@ const PartDetailPanel = () => {
 
             {/* Flexible Layout for Impressions */}
             <div 
-              className={`${sectionCardClasses} p-6`}
+              className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]"
+              style={sectionCardStyle}
               onDrop={handleDropImpression}
               onDragOver={handleDragOver}
             >
@@ -1384,7 +1455,7 @@ const PartDetailPanel = () => {
                     const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
 
                     return (
-                      <div key={impression} className={`break-inside-avoid ${subCardClasses} p-4 shadow-sm mb-4`}>
+                      <div key={impression} className="break-inside-avoid rounded-2xl border p-4 shadow-sm mb-4" style={subCardStyle}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <h4
@@ -1433,8 +1504,9 @@ const PartDetailPanel = () => {
                               return (
                                 <div
                                   key={index}
-                                  className={`${listItemClasses} group flex items-center justify-between rounded-xl border px-3 py-2 shadow-sm`}
+                                  className="group flex items-center justify-between rounded-xl border px-3 py-2 shadow-sm"
                                   style={{
+                                    ...listItemStyle,
                                     backgroundColor: chipBackground,
                                     borderColor: chipBorder,
                                     color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
@@ -1514,13 +1586,13 @@ const PartDetailPanel = () => {
               </button>
             </div>
 
-            <div className={`${sectionCardClasses} p-6`}>
+            <div className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]" style={sectionCardStyle}>
               {isLoadingJournal ? (
-                <div className={`${subCardClasses} flex flex-col items-center justify-center gap-3 py-8`}>
+                <div className="rounded-2xl border flex flex-col items-center justify-center gap-3 py-8" style={subCardStyle}>
                   <LoadingSpinner variant="sparkles" size="md" message="Loading journal entries..." />
                 </div>
               ) : journalEntries.length === 0 ? (
-                <div className={`${subCardClasses} text-center py-8 px-4`}> 
+                <div className="rounded-2xl border text-center py-8 px-4" style={subCardStyle}> 
                   <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
                   <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
                     No journal entries yet
@@ -1621,7 +1693,7 @@ const PartDetailPanel = () => {
                     const charCount = entry.content?.length || 0;
 
                     return (
-                      <div key={entry.id} className={`${subCardClasses} p-5 shadow-sm hover:shadow-md transition-shadow`}>
+                      <div key={entry.id} className="rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow" style={subCardStyle}>
                         {/* Header with dates and actions */}
                         <div className="flex items-start justify-between mb-3 gap-4">
                           <div className="flex-1 space-y-1.5">
@@ -1781,7 +1853,7 @@ const PartDetailPanel = () => {
               Relationships
             </h3>
 
-            <div className={`${sectionCardClasses} p-6`}>
+            <div className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]" style={sectionCardStyle}>
               {relationships.length > 0 ? (
                 <div className="space-y-4">
                   {relationships.map((rel) => {
@@ -1790,7 +1862,7 @@ const PartDetailPanel = () => {
                     const connectedNodes = (rel as any).connectedNodes || [];
 
                     return (
-                      <div key={rel.id} className={`${subCardClasses} p-5 shadow-sm`}>
+                      <div key={rel.id} className="rounded-2xl border p-5 shadow-sm" style={subCardStyle}>
                         <div
                           className={`rounded-2xl border p-4 ${
                             isTension
@@ -1890,7 +1962,7 @@ const PartDetailPanel = () => {
                   })}
                 </div>
               ) : (
-                <div className={`${subCardClasses} text-center py-8`}> 
+                <div className="rounded-2xl border text-center py-8" style={subCardStyle}> 
                   <Users className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
                   <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
                     No relationships yet
@@ -2323,7 +2395,7 @@ const PartDetailPanel = () => {
                     const charCount = entry.content?.length || 0;
 
                     return (
-                      <div key={entry.id} className={`${subCardClasses} p-5 shadow-sm hover:shadow-md transition-shadow`}>
+                      <div key={entry.id} className="rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow" style={subCardStyle}>
                         {/* Header with dates and actions */}
                         <div className="flex items-start justify-between mb-3 gap-4">
                           <div className="flex-1 space-y-1.5">

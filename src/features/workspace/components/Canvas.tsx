@@ -54,6 +54,15 @@ const Workspace = () => {
     setWorkspaceBgColor(theme.workspace);
   }, [theme.workspace]);
 
+  // Get gradient background for dark theme
+  const getBackgroundStyle = () => {
+    if (themeName === "dark") {
+      // Subtle gradient from lighter to darker gray-blue
+      return "linear-gradient(135deg, #454b54 0%, #3d434b 50%, #353b43 100%)";
+    }
+    return workspaceBgColor;
+  };
+
   const handlePaneClickWrapped = () => {
     setShowColorPicker(false);
     window.dispatchEvent(new CustomEvent("workspace-pane-click"));
@@ -250,7 +259,7 @@ const Workspace = () => {
       {!isMobile ? (
         <ReactFlow
           className="h-[4000px] w-[4000px]"
-          style={{ background: workspaceBgColor }}
+          style={{ background: getBackgroundStyle() }}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange as OnNodesChange<Node>}
