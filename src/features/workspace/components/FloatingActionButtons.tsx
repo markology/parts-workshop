@@ -20,6 +20,7 @@ import { useSaveMap } from "../state/hooks/useSaveMap";
 import { cleanupOrphanedJournalEntriesFromMap } from "../state/lib/cleanupOrphanedJournalEntriesFromMap";
 import { toast } from "react-hot-toast";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { HelpCircle } from "lucide-react";
 const FloatingActionButtons = () => {
 
@@ -60,6 +61,7 @@ const FloatingActionButtons = () => {
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
   const { darkMode, toggleDarkMode } = useThemeContext();
+  const theme = useTheme();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const [workspaceBgColor, setWorkspaceBgColorState] = useState("#f8fafc");
@@ -695,24 +697,16 @@ const FloatingActionButtons = () => {
           className={`
             group
             w-12 h-12 rounded-full 
-            ${darkMode
-              ? (isActive && !isSaveAction && !isContactAction && !isActionButton
-                  ? 'bg-[#2a2e32] text-white' 
-                  : showXForAction || showXForOptions
-                  ? 'bg-[#2a2e32] text-white'
-                  : 'bg-[#2a2e32] text-white')
-              : (isActive && !isSaveAction && !isContactAction && !isActionButton
-                  ? 'bg-gray-800 text-white' 
-                  : showXForAction || showXForOptions
-                  ? 'bg-gray-800 text-white'
-                  : 'bg-white text-gray-700')
-            }
             shadow-sm
             flex items-center justify-center
             transition-all duration-200
             ${isSettingsAction ? 'overflow-hidden' : ''}
             ${isSaveAction || isContactAction ? 'relative' : ''}
           `}
+          style={{
+            backgroundColor: theme.button,
+            color: theme.buttonText,
+          }}
           title={label}
         >
           {showXForAction ? (
@@ -769,11 +763,11 @@ const FloatingActionButtons = () => {
                 (profileDropdownRef.current as any).dropdownMenu = el;
               }
             }}
-            className={`fixed rounded-lg shadow-lg z-[100] ${
-              darkMode 
-                ? 'bg-[#2a2e32] border border-white/10' 
-                : 'bg-white border border-gray-200'
-            }`}
+            className="fixed rounded-lg shadow-lg z-[100] border"
+            style={{
+              backgroundColor: theme.elevated,
+              borderColor: theme.border,
+            }}
             style={{ 
               minWidth: '150px',
               top: `${profileDropdownPosition.top}px`,
@@ -786,11 +780,14 @@ const FloatingActionButtons = () => {
                 router.push('/account');
                 setProfileDropdownOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg ${
-                darkMode 
-                  ? 'hover:bg-[#3d434b] text-white' 
-                  : 'hover:bg-gray-100 text-gray-900'
-              }`}
+              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg transition-colors"
+              style={{ color: theme.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.buttonHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               <Settings className="w-4 h-4" />
               Account
@@ -800,11 +797,14 @@ const FloatingActionButtons = () => {
                 router.push('/workspaces');
                 setProfileDropdownOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                darkMode 
-                  ? 'hover:bg-gray-700 text-white' 
-                  : 'hover:bg-gray-100 text-gray-900'
-              }`}
+              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
+              style={{ color: theme.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.buttonHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               <Map className="w-4 h-4" />
               Workspaces
@@ -816,11 +816,14 @@ const FloatingActionButtons = () => {
                 toggleDarkMode(!darkMode);
                 setProfileDropdownOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                darkMode 
-                  ? 'hover:bg-gray-700 text-white' 
-                  : 'hover:bg-gray-100 text-gray-900'
-              }`}
+              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
+              style={{ color: theme.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.buttonHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               {darkMode ? (
                 <>
@@ -839,11 +842,14 @@ const FloatingActionButtons = () => {
                 setShowFeedbackModal(true);
                 setProfileDropdownOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                darkMode 
-                  ? 'hover:bg-gray-700 text-white' 
-                  : 'hover:bg-gray-100 text-gray-900'
-              }`}
+              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
+              style={{ color: theme.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.buttonHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               <HelpCircle className="w-4 h-4" />
               Help
@@ -853,11 +859,14 @@ const FloatingActionButtons = () => {
                 await signOut({ callbackUrl: '/login' });
                 setProfileDropdownOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg ${
-                darkMode 
-                  ? 'hover:bg-gray-700 text-white' 
-                  : 'hover:bg-gray-100 text-gray-900'
-              }`}
+              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg transition-colors"
+              style={{ color: theme.textPrimary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.buttonHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -883,7 +892,7 @@ const FloatingActionButtons = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[85]"
             onClick={closeOptionsModal}
           />
-          <div className={`fixed inset-0 z-[90] ${darkMode ? "bg-[#212529]" : "bg-white"}`}>
+          <div className="fixed inset-0 z-[90]" style={{ backgroundColor: theme.modal }}>
             <div className="h-full flex flex-col items-center">
               <div
                 className="relative w-full max-w-6xl h-full px-6 sm:px-10 lg:px-16 py-6 flex flex-col"
@@ -891,21 +900,27 @@ const FloatingActionButtons = () => {
               >
                 <button
                   onClick={closeOptionsModal}
-                  className={`absolute top-4 right-4 rounded-full p-2 transition shadow-md ${
-                    darkMode 
-                      ? "bg-[#2a2e32] text-white hover:bg-[#3d434b]" 
-                      : "bg-gray-900 text-white hover:bg-gray-800"
-                  }`}
+                  className="absolute top-4 right-4 rounded-full p-2 transition shadow-md"
+                  style={{ 
+                    backgroundColor: theme.button, 
+                    color: theme.buttonText 
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonHover;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.button;
+                  }}
                   aria-label="Close options"
                 >
                   <X className="w-5 h-5" />
                 </button>
                 <div className="flex flex-col h-full gap-4">
-                  <div className={`pb-3 border-b ${darkMode ? "border-white/10" : "border-gray-200"}`}>
-                    <h2 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
+                  <div className="pb-3 border-b" style={{ borderColor: theme.border }}>
+                    <h2 className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
                       Quick options
                     </h2>
-                    <p className={`text-sm mt-1 max-w-3xl ${darkMode ? "text-white/70" : "text-gray-600"}`}>
+                    <p className="text-sm mt-1 max-w-3xl" style={{ color: theme.textSecondary }}>
                       These spaces are coming soon. Pick where you want to go next and we'll take you there when it's ready.
                     </p>
                   </div>
@@ -914,11 +929,11 @@ const FloatingActionButtons = () => {
                       {optionItems.map((item) => (
                         <div
                           key={item.key}
-                          className={`group h-full rounded-2xl border shadow-sm hover:shadow-md transition-shadow overflow-hidden ${
-                            darkMode
-                              ? "bg-[#2a2e32] border-white/10"
-                              : "bg-gradient-to-b from-white to-gray-50/60 border-gray-100"
-                          }`}
+                          className="group h-full rounded-2xl border shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                          style={{ 
+                            backgroundColor: theme.elevated, 
+                            borderColor: theme.border 
+                          }}
                         >
                           <div className="relative aspect-[4/3] overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent" />
@@ -941,8 +956,8 @@ const FloatingActionButtons = () => {
                             )}
                           </div>
                           <div className="p-4 flex flex-col gap-2">
-                            <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>{item.title}</h3>
-                            <p className={`text-sm leading-relaxed ${darkMode ? "text-white/70" : "text-gray-600"}`}>{item.description}</p>
+                            <h3 className="text-lg font-semibold" style={{ color: theme.textPrimary }}>{item.title}</h3>
+                            <p className="text-sm leading-relaxed" style={{ color: theme.textSecondary }}>{item.description}</p>
                           </div>
                         </div>
                       ))}
@@ -964,18 +979,23 @@ const FloatingActionButtons = () => {
             left: `${chatboxPosition.left}px`
           }}
         >
-          <div className={`relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col shadow-[0_18px_35px_rgba(105,99,255,0.18)] ${
-            darkMode
-              ? "bg-[#212529] border-white/10"
-              : "bg-white border-gray-200"
-          }`}>
+          <div className="relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col shadow-[0_18px_35px_rgba(105,99,255,0.18)]"
+            style={{ 
+              backgroundColor: theme.modal, 
+              borderColor: theme.border 
+            }}>
             <button
               onClick={handleSearchClose}
-              className={`absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10 ${
-                darkMode
-                  ? "hover:bg-[#2a2e32] text-white/70 hover:text-white"
-                  : "hover:bg-gray-100 text-gray-500 hover:text-gray-900"
-              }`}
+              className="absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10"
+              style={{ color: theme.textSecondary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = theme.buttonHover;
+                e.currentTarget.style.color = theme.textPrimary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = theme.textSecondary;
+              }}
             >
               <X className="w-4 h-4" />
             </button>
@@ -985,7 +1005,7 @@ const FloatingActionButtons = () => {
                 <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? "text-purple-500/80" : "text-purple-500/70"}`}>
                   Studio Assistant
                 </p>
-                <p className={`mt-3 text-sm leading-relaxed ${darkMode ? "text-white/70" : "text-gray-500"}`}>
+                <p className="mt-3 text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
                   Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
                 </p>
               </div>
@@ -1000,9 +1020,11 @@ const FloatingActionButtons = () => {
                       className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                         message.role === "user"
                           ? "bg-purple-500 text-white"
-                          : darkMode
-                          ? "bg-[#2a2e32] text-white border border-white/10"
-                          : "bg-gray-100 text-gray-800 border border-gray-200"
+                          : {
+                              backgroundColor: theme.elevated,
+                              color: theme.textPrimary,
+                              borderColor: theme.border,
+                            }
                       }`}
                     >
                       {message.content.trim().length > 0 ? message.content : "..."}
@@ -1030,11 +1052,13 @@ const FloatingActionButtons = () => {
                           }
                         }}
                         placeholder="Ask me anything..."
-                        className={`w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent border text-sm ${
-                          darkMode
-                            ? "bg-[#2a2e32] border-white/10 text-white placeholder-white/50"
-                            : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"
-                        }`}
+                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent border text-sm"
+                      style={{
+                        backgroundColor: theme.surface,
+                        borderColor: theme.border,
+                        color: theme.textPrimary,
+                      }}
+                      placeholder="Ask me anything..."
                       />
                     </div>
                   </div>
@@ -1083,9 +1107,8 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className={`absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col ${
-              darkMode ? "bg-[#212529]" : "bg-white"
-            }`}
+            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col"
+            style={{ backgroundColor: theme.sidebar }}
             style={{ 
               zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
               width: '313px',
@@ -1113,9 +1136,8 @@ const FloatingActionButtons = () => {
           }}
         >
           <div 
-            className={`rounded-full shadow-xl flex items-center overflow-hidden ${
-              darkMode ? "bg-[#212529]" : "bg-white"
-            }`}
+            className="rounded-full shadow-xl flex items-center overflow-hidden"
+            style={{ backgroundColor: theme.card }}
             style={{
               width: 'max-content',
               transform: 'scaleX(0)',
@@ -1140,23 +1162,56 @@ const FloatingActionButtons = () => {
                 // Keep action button active so impressions sidebar stays open
                 // Keep options menu open
               }}
-              className={`px-6 py-3 transition-colors font-medium flex items-center gap-2 relative ${
-                darkMode
-                  ? "text-white hover:bg-[#2a2e32]"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
+              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
+              style={{ 
+                backgroundColor: theme.button,
+                color: theme.buttonText 
+              }}
+              onMouseEnter={(e) => {
+                // Darken the button on hover by reducing RGB values
+                const hex = theme.button.replace('#', '');
+                const r = parseInt(hex.substr(0, 2), 16);
+                const g = parseInt(hex.substr(2, 2), 16);
+                const b = parseInt(hex.substr(4, 2), 16);
+                const darkerR = Math.max(0, r - 20);
+                const darkerG = Math.max(0, g - 20);
+                const darkerB = Math.max(0, b - 20);
+                e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+                
+                // Darken the Add pill when button is hovered
+                const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                if (pill) {
+                  const pillHex = theme.buttonActive.replace('#', '');
+                  const pillR = parseInt(pillHex.substr(0, 2), 16);
+                  const pillG = parseInt(pillHex.substr(2, 2), 16);
+                  const pillB = parseInt(pillHex.substr(4, 2), 16);
+                  const darkerPillR = Math.max(0, pillR - 10);
+                  const darkerPillG = Math.max(0, pillG - 10);
+                  const darkerPillB = Math.max(0, pillB - 10);
+                  pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = theme.button;
+                
+                // Reset the Add pill color
+                const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                if (pill) {
+                  pill.style.backgroundColor = theme.buttonActive;
+                }
+              }}
             >
               Part
-              <span className={`h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium ${
-                darkMode
-                  ? "bg-[#2a2e32] text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}>
+              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium"
+                style={{ 
+                  backgroundColor: theme.buttonActive, 
+                  color: theme.buttonText 
+                }}>
                 Add
               </span>
             </button>
             
-            <div className={`w-px h-6 ${darkMode ? "bg-white/10" : "bg-gray-200"}`} />
+            <div className="w-px h-6" style={{ backgroundColor: theme.borderSubtle }} />
             
             {/* Relationship option */}
             <button
@@ -1167,18 +1222,51 @@ const FloatingActionButtons = () => {
                 // Keep action button active so impressions sidebar stays open
                 // Keep options menu open
               }}
-              className={`px-6 py-3 transition-colors font-medium flex items-center gap-2 relative ${
-                darkMode
-                  ? "text-white hover:bg-[#2a2e32]"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
+              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
+              style={{ 
+                backgroundColor: theme.button,
+                color: theme.buttonText 
+              }}
+              onMouseEnter={(e) => {
+                // Darken the button on hover by reducing RGB values
+                const hex = theme.button.replace('#', '');
+                const r = parseInt(hex.substr(0, 2), 16);
+                const g = parseInt(hex.substr(2, 2), 16);
+                const b = parseInt(hex.substr(4, 2), 16);
+                const darkerR = Math.max(0, r - 20);
+                const darkerG = Math.max(0, g - 20);
+                const darkerB = Math.max(0, b - 20);
+                e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+                
+                // Darken the Add pill when button is hovered
+                const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                if (pill) {
+                  const pillHex = theme.buttonActive.replace('#', '');
+                  const pillR = parseInt(pillHex.substr(0, 2), 16);
+                  const pillG = parseInt(pillHex.substr(2, 2), 16);
+                  const pillB = parseInt(pillHex.substr(4, 2), 16);
+                  const darkerPillR = Math.max(0, pillR - 10);
+                  const darkerPillG = Math.max(0, pillG - 10);
+                  const darkerPillB = Math.max(0, pillB - 10);
+                  pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = theme.button;
+                
+                // Reset the Add pill color
+                const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                if (pill) {
+                  pill.style.backgroundColor = theme.buttonActive;
+                }
+              }}
             >
               Relationship
-              <span className={`h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium ${
-                darkMode
-                  ? "bg-[#2a2e32] text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}>
+              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium"
+                style={{ 
+                  backgroundColor: theme.buttonActive, 
+                  color: theme.buttonText 
+                }}>
                 Add
               </span>
             </button>

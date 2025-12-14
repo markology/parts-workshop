@@ -7,14 +7,14 @@ import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingSto
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { Plus } from "lucide-react";
-import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 const Impressions = () => {
   const { setActiveSidebarNode } = useSidebarStore();
   const impressions = useWorkingStore((s) => s.sidebarImpressions);
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const { deleteNode } = useFlowNodesContext();
-  const { darkMode } = useThemeContext();
+  const theme = useTheme();
   const totalImpressions = ImpressionList.reduce(
     (acc, type) => acc + Object.keys(impressions[type] || {}).length,
     0
@@ -94,23 +94,38 @@ const Impressions = () => {
   return (
     <div 
       className="flex h-full flex-col"
-      style={darkMode ? { background: "#212529" } : undefined}
+      style={{ background: theme.sidebar }}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
     >
       <div className="mx-1 mt-1 flex items-center justify-between rounded-2xl px-3 py-2.5">
         <div className="space-y-1">
-          <p className={`text-[11px] uppercase tracking-[0.28em] ${darkMode ? "text-white" : "text-black"}`}>Impressions</p>
-          <h2 className={`text-base font-semibold ${darkMode ? "text-white" : "text-black"}`}>Library</h2>
+          <p className="text-[11px] uppercase tracking-[0.28em]" style={{ color: theme.textPrimary }}>Impressions</p>
+          <h2 className="text-base font-semibold" style={{ color: theme.textPrimary }}>Library</h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`rounded-full border px-2 py-[2px] text-[11px] font-medium ${darkMode ? "border-white/20 text-white" : "border-slate-300 text-black"}`}>
+          <span className="rounded-full border px-2 py-[2px] text-[11px] font-medium"
+            style={{ 
+              borderColor: theme.border, 
+              color: theme.textPrimary 
+            }}>
             {totalImpressions} saved
           </span>
           <button
             onClick={() => setShowImpressionModal(true)}
-            className="inline-flex items-center gap-1 rounded-full border border-slate-400 bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-slate-900"
+            className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors"
+            style={{ 
+              borderColor: theme.border, 
+              backgroundColor: theme.button, 
+              color: theme.buttonText 
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = theme.buttonHover;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = theme.button;
+            }}
             title="Add Impression"
           >
             <Plus className="h-4 w-4" />

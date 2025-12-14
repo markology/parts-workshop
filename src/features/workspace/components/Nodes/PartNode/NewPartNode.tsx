@@ -276,7 +276,13 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                   </span>
                 )}
                 {allObservations.length > observationPreview.length && (
-                  <span className="inline-flex items-center rounded-full bg-slate-200/80 dark:bg-slate-800/80 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                  <span 
+                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap"
+                    style={{
+                      backgroundColor: darkMode ? "#3c424a" : "rgba(226, 232, 240, 0.8)",
+                      color: darkMode ? "rgba(255, 255, 255, 0.8)" : "#475569",
+                    }}
+                  >
                     +{allObservations.length - observationPreview.length} more
                   </span>
                 )}

@@ -16,17 +16,16 @@ import { useEffect, useRef, useState } from "react";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { ChromePicker, ColorResult } from "react-color";
 import { Paintbrush } from "lucide-react";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { useThemeContext } from "@/state/context/ThemeContext";
-import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
+import { ThemeName, getThemeByName } from "@/features/workspace/constants/theme";
 
 const Workspace = () => {
   const isMobile = useIsMobile();
   const hasFitViewRun = useRef(false);
-  const { darkMode } = useThemeContext();
-  const palette = workspaceDarkPalette;
-  const defaultLightBg = "#f8fafc";
-  const defaultDarkBg = "#3D434B";
-  const defaultBg = darkMode ? defaultDarkBg : defaultLightBg;
+  const theme = useTheme();
+  const { themeName, setThemeName } = useThemeContext();
+  const defaultBg = theme.workspace;
   const [workspaceBgColor, setWorkspaceBgColor] = useState(defaultBg);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
@@ -52,8 +51,8 @@ const Workspace = () => {
   const prevMapIdRef = useRef<string>("");
 
   useEffect(() => {
-    setWorkspaceBgColor(darkMode ? defaultDarkBg : defaultLightBg);
-  }, [darkMode]);
+    setWorkspaceBgColor(theme.workspace);
+  }, [theme.workspace]);
 
   const handlePaneClickWrapped = () => {
     setShowColorPicker(false);
@@ -121,23 +120,24 @@ const Workspace = () => {
     return null;
   };
 
-  const colorButtonClasses = `w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center ${
-    darkMode
-      ? "bg-[#2a2e32] border-white/10 text-slate-200 shadow-[0_12px_28px_rgba(0,0,0,0.45)] hover:border-white/25"
-      : "border-gray-300 bg-white text-gray-700 shadow-md hover:border-gray-400"
-  }`;
+  const colorButtonStyle = {
+    backgroundColor: theme.elevated,
+    borderColor: theme.border,
+    color: theme.textPrimary,
+    boxShadow: '0 12px 28px rgba(0,0,0,0.45)',
+  };
 
-  const colorPickerClasses = `absolute bottom-[56px] left-0 z-[205] rounded-xl shadow-2xl p-2 border ${
-    darkMode
-      ? "bg-[#272b2f] border-white/10 text-slate-200 shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
-      : "bg-white border-gray-200 text-gray-700"
-  }`;
+  const colorPickerStyle = {
+    backgroundColor: theme.surface,
+    borderColor: theme.border,
+    color: theme.textPrimary,
+    boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
+  };
 
-  const resetButtonClasses = `text-xs px-2 py-1 rounded border transition ${
-    darkMode
-      ? "border-white/15 text-slate-300 hover:bg-[#3d434b] hover:text-white"
-      : "border-gray-300 text-gray-700 hover:bg-gray-100"
-  }`;
+  const resetButtonStyle = {
+    borderColor: theme.border,
+    color: theme.textSecondary,
+  };
 
   return (
     <div id="canvas" className="h-full flex-grow relative">
@@ -157,7 +157,8 @@ const Workspace = () => {
             }
             setShowColorPicker(true);
           }}
-          className={colorButtonClasses}
+          className="w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center"
+          style={colorButtonStyle}
           aria-label="Pick workspace background color"
         >
           <Paintbrush className="w-5 h-5" />
@@ -165,29 +166,84 @@ const Workspace = () => {
         {showColorPicker && (
           <div
             ref={colorPickerRef}
-            className={colorPickerClasses}
+            className="absolute bottom-[56px] left-0 z-[205] rounded-xl shadow-2xl p-2 border"
+            style={colorPickerStyle}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-2 px-1">
-              <div className={`flex items-center gap-2 text-sm ${darkMode ? "text-slate-200" : "text-gray-700"}`}>
+            <div className="flex items-center justify-between pb-2 px-1 mb-3">
+              <div className={`flex items-center gap-2 text-sm`} style={{ color: theme.textSecondary }}>
                 <Paintbrush className="w-4 h-4" />
-                <span>Canvas color</span>
+                <span>Theme</span>
               </div>
-              <button
-                className={resetButtonClasses}
-                onClick={() => setWorkspaceBgColor(defaultBg)}
-              >
-                Reset
-              </button>
             </div>
-            <ChromePicker
-              color={workspaceBgColor}
-              onChange={(color: ColorResult) => {
-                setWorkspaceBgColor(color.hex);
-              }}
-              disableAlpha
-            />
+            
+            {/* Theme Selection */}
+            <div className="space-y-1 mb-4">
+              {(['light', 'dark', 'red'] as ThemeName[]).map((option) => {
+                const isActive = themeName === option;
+                return (
+                  <button
+                    key={option}
+                    onClick={() => {
+                      setThemeName(option);
+                      setWorkspaceBgColor(getThemeByName(option).workspace);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm rounded transition-colors flex items-center gap-2"
+                    style={{
+                      backgroundColor: isActive ? theme.accent : 'transparent',
+                      color: theme.textPrimary,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = theme.buttonHover;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
+                  >
+                    <span className="capitalize">{option}</span>
+                    {isActive && (
+                      <span className="ml-auto text-xs">✓</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="border-t pt-3" style={{ borderColor: theme.borderSubtle }}>
+              <div className="flex items-center justify-between pb-2 px-1">
+                <div className={`flex items-center gap-2 text-sm`} style={{ color: theme.textSecondary }}>
+                  <Paintbrush className="w-4 h-4" />
+                  <span>Canvas color</span>
+                </div>
+                <button
+                  className="text-xs px-2 py-1 rounded border transition hover:opacity-80"
+                  style={resetButtonStyle}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.accentHover;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = theme.textSecondary;
+                  }}
+                  onClick={() => setWorkspaceBgColor(defaultBg)}
+                >
+                  Reset
+                </button>
+              </div>
+              <ChromePicker
+                color={workspaceBgColor}
+                onChange={(color: ColorResult) => {
+                  setWorkspaceBgColor(color.hex);
+                }}
+                disableAlpha
+              />
+            </div>
           </div>
         )}
       </div>
@@ -213,15 +269,15 @@ const Workspace = () => {
         >
           <FitViewOnLoad />
           <Background
-            color={darkMode ? "#30343a" : "#d4dae4"}
+            color={theme.border}
             gap={32}
             size={1.2}
           />
           <Controls
-            className={`absolute bottom-4 left-4 ${darkMode ? "text-slate-100" : "text-black"}`}
+            className="absolute bottom-4 left-4"
             orientation="horizontal"
             showInteractive={false}
-            style={{ flexDirection: 'row-reverse' }}
+            style={{ flexDirection: 'row-reverse', color: theme.textPrimary }}
           />
         </ReactFlow>
       ) : (
@@ -242,15 +298,15 @@ const Workspace = () => {
         >
           <FitViewOnLoad />
           <Background
-            color={darkMode ? "#30343a" : "#d4dae4"}
+            color={theme.border}
             gap={32}
             size={1.2}
           />
           <Controls
-            className={`absolute bottom-4 left-4 ${darkMode ? "text-slate-100" : "text-black"}`}
+            className="absolute bottom-4 left-4"
             orientation="horizontal"
             showInteractive={false}
-            style={{ flexDirection: 'row-reverse' }}
+            style={{ flexDirection: 'row-reverse', color: theme.textPrimary }}
           />
         </ReactFlow>
       )}
@@ -268,16 +324,16 @@ const Workspace = () => {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          box-shadow: ${darkMode ? "0 12px 28px rgba(0,0,0,0.55)" : "0 6px 12px rgba(0,0,0,0.12)"};
-          border: 1px solid ${darkMode ? "rgba(255,255,255,0.08)" : "#e5e7eb"};
-          background: ${darkMode ? palette.surface : "#ffffff"};
-          color: ${darkMode ? "rgba(248,250,252,0.85)" : "#111827"};
+          box-shadow: 0 12px 28px rgba(0,0,0,0.55);
+          border: 1px solid ${theme.border};
+          background: ${theme.surface};
+          color: ${theme.textSecondary};
           transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
         }
         .react-flow__controls button:hover {
-          background: ${darkMode ? palette.highlight : "#f3f4f6"};
-          border-color: ${darkMode ? "rgba(255,255,255,0.18)" : "#d1d5db"};
-          color: ${darkMode ? "#f9fafb" : "#111827"};
+          background: ${theme.accent};
+          border-color: ${theme.border};
+          color: ${theme.textPrimary};
         }
       `}</style>
     </div>

@@ -10,17 +10,24 @@ import {
   useEffect,
   useRef,
 } from "react";
+import { ColorGroup, ThemeName, getThemeByName, themes } from "@/features/workspace/constants/theme";
 
 type Theme = "light" | "dark";
 
 interface ContextValue {
   darkMode: boolean;
   toggleDarkMode: Dispatch<SetStateAction<boolean>>;
+  theme: ColorGroup;
+  themeName: ThemeName;
+  setThemeName: (themeName: ThemeName) => void;
 }
 
 const ThemeContext = createContext<ContextValue>({
   darkMode: false,
   toggleDarkMode: () => {}, // will be overwritten in provider
+  theme: themes.light,
+  themeName: "light",
+  setThemeName: () => {},
 });
 
 export const ThemeContextProvider = ({
@@ -28,6 +35,7 @@ export const ThemeContextProvider = ({
 }: {
   children: ReactNode | ReactElement[];
 }) => {
+  const [themeName, setThemeNameState] = useState<ThemeName>("light");
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const themeRef = useRef<Theme>("light");
   const isInitialized = useRef(false);
@@ -38,19 +46,43 @@ export const ThemeContextProvider = ({
     isInitialized.current = true;
 
     try {
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme) {
-        setDarkMode(savedTheme === "dark");
+      const savedThemeName = localStorage.getItem("themeName") as ThemeName;
+      if (savedThemeName && themes[savedThemeName]) {
+        setThemeNameState(savedThemeName);
+        setDarkMode(savedThemeName === "dark");
       } else {
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)"
-        ).matches;
-        setDarkMode(prefersDark);
+        // Fallback to old theme system
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme) {
+          const theme = savedTheme === "dark" ? "dark" : "light";
+          setThemeNameState(theme);
+          setDarkMode(theme === "dark");
+        } else {
+          const prefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+          ).matches;
+          const defaultTheme: ThemeName = prefersDark ? "dark" : "light";
+          setThemeNameState(defaultTheme);
+          setDarkMode(prefersDark);
+        }
       }
     } catch (error) {
       console.error("Error reading theme preference:", error);
     }
   }, []);
+
+  // Set theme name function
+  const setThemeName = (newThemeName: ThemeName) => {
+    setThemeNameState(newThemeName);
+    setDarkMode(newThemeName === "dark");
+    try {
+      localStorage.setItem("themeName", newThemeName);
+      // Also update old theme for backward compatibility
+      localStorage.setItem("theme", newThemeName === "light" ? "light" : "dark");
+    } catch (error) {
+      console.error("Error saving theme:", error);
+    }
+  };
 
   // Handle theme changes
   useEffect(() => {
@@ -73,9 +105,9 @@ export const ThemeContextProvider = ({
       }
     };
 
-    // Apply theme
-    applyTheme(darkMode ? "dark" : "light");
-  }, [darkMode]);
+    // Apply theme class based on darkMode (red theme uses light class)
+    applyTheme(darkMode && themeName !== "red" ? "dark" : "light");
+  }, [darkMode, themeName]);
 
 
   // Listen for system theme changes
@@ -85,8 +117,9 @@ export const ThemeContextProvider = ({
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
     const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem("theme")) {
-        setDarkMode(e.matches);
+      if (!localStorage.getItem("themeName")) {
+        const defaultTheme: ThemeName = e.matches ? "dark" : "light";
+        setThemeName(defaultTheme);
       }
     };
 
@@ -105,7 +138,14 @@ export const ThemeContextProvider = ({
     };
   }, []);
 
-  const value = { darkMode, toggleDarkMode: setDarkMode };
+  const theme = getThemeByName(themeName);
+  const value = { 
+    darkMode, 
+    toggleDarkMode: setDarkMode, 
+    theme,
+    themeName,
+    setThemeName,
+  };
 
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

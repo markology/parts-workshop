@@ -15,6 +15,7 @@ import detachImpressionFromPart from "../../state/updaters/detachImpressionFromP
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useWorkingStore } from "../../state/stores/useWorkingStore";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 const ImpressionNode = ({
   id,
@@ -28,6 +29,7 @@ const ImpressionNode = ({
   const { deleteNode } = useFlowNodesContext();
   const { setJournalTarget } = useJournalStore();
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -72,26 +74,34 @@ const ImpressionNode = ({
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  // Calculate opaque color that matches translucent color on white background
-  // result = (1 - alpha) * white + alpha * color
-  const blendOnWhite = (hex: string, opacity: number) => {
+  // Calculate opaque color that matches translucent color on background
+  // result = (1 - alpha) * background + alpha * color
+  const blendOnBackground = (hex: string, opacity: number, backgroundHex: string) => {
     const sanitized = hex.replace("#", "");
     const bigint = parseInt(sanitized, 16);
     const r = (bigint >> 16) & 255;
     const g = (bigint >> 8) & 255;
     const b = bigint & 255;
     
-    const blendedR = Math.round((1 - opacity) * 255 + opacity * r);
-    const blendedG = Math.round((1 - opacity) * 255 + opacity * g);
-    const blendedB = Math.round((1 - opacity) * 255 + opacity * b);
+    // Parse background color
+    const bgSanitized = backgroundHex.replace("#", "");
+    const bgBigint = parseInt(bgSanitized, 16);
+    const bgR = (bgBigint >> 16) & 255;
+    const bgG = (bgBigint >> 8) & 255;
+    const bgB = bgBigint & 255;
+    
+    const blendedR = Math.round((1 - opacity) * bgR + opacity * r);
+    const blendedG = Math.round((1 - opacity) * bgG + opacity * g);
+    const blendedB = Math.round((1 - opacity) * bgB + opacity * b);
     
     return `rgb(${blendedR}, ${blendedG}, ${blendedB})`;
   };
 
   // Use sidebar opacity values: 0.24 for light mode, 0.45 for dark mode
   const sidebarOpacity = darkMode ? 0.45 : 0.24;
-  const chipBackground = blendOnWhite(accent, sidebarOpacity);
-  const chipBorder = blendOnWhite(accent, darkMode ? 0.65 : 0.32);
+  // Blend with workspace background (canvas background)
+  const chipBackground = blendOnBackground(accent, sidebarOpacity, theme.workspace);
+  const chipBorder = blendOnBackground(accent, darkMode ? 0.65 : 0.32, theme.workspace);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(
@@ -112,7 +122,7 @@ const ImpressionNode = ({
         style={{
           backgroundColor: chipBackground,
           borderColor: chipBorder,
-          color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+          color: darkMode ? theme.textPrimary : accentText,
         }}
       >
         <div className="flex items-center justify-between gap-2">
