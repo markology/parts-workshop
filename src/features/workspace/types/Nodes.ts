@@ -67,6 +67,7 @@ export type InteractionNode = Node<TensionNodeData> & {
   type: "interaction";
 };
 
+
 export type RelationshipSelectionNode = Node<RelationshipSelectionNodeData> & {
   type: "relationship";
 };

@@ -7,12 +7,14 @@ import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingSto
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { Plus } from "lucide-react";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 const Impressions = () => {
   const { setActiveSidebarNode } = useSidebarStore();
   const impressions = useWorkingStore((s) => s.sidebarImpressions);
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const { deleteNode } = useFlowNodesContext();
+  const { darkMode } = useThemeContext();
   const totalImpressions = ImpressionList.reduce(
     (acc, type) => acc + Object.keys(impressions[type] || {}).length,
     0
@@ -92,17 +94,18 @@ const Impressions = () => {
   return (
     <div 
       className="flex h-full flex-col"
+      style={darkMode ? { background: "#212529" } : undefined}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
     >
       <div className="mx-1 mt-1 flex items-center justify-between rounded-2xl px-3 py-2.5">
         <div className="space-y-1">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-black">Impressions</p>
-          <h2 className="text-base font-semibold text-black">Library</h2>
+          <p className={`text-[11px] uppercase tracking-[0.28em] ${darkMode ? "text-white" : "text-black"}`}>Impressions</p>
+          <h2 className={`text-base font-semibold ${darkMode ? "text-white" : "text-black"}`}>Library</h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full border border-slate-300 px-2 py-[2px] text-[11px] font-medium text-black">
+          <span className={`rounded-full border px-2 py-[2px] text-[11px] font-medium ${darkMode ? "border-white/20 text-white" : "border-slate-300 text-black"}`}>
             {totalImpressions} saved
           </span>
           <button

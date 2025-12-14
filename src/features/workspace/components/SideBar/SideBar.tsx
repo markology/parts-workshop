@@ -81,7 +81,7 @@ const SideBar = () => {
           <button
             id="create-relationship-button"
             onClick={() => setShowRelationshipTypeModal(true)}
-            style={{ background: NodeBackgroundColors["conflict"] }}
+            style={{ background: NodeBackgroundColors["tension"] }}
             className="flex-1 text-white font-medium rounded shadow-md shadow-black transition p-none flex justify-center items-center items-center p-[5px]"
           >
             <Users size={20} strokeWidth={2} />
@@ -126,27 +126,27 @@ const SideBar = () => {
             <div className="flex gap-4">
               <button
                 onClick={() => {
-                  createNode("conflict", "Conflict", undefined, undefined, { relationshipType: "conflict" });
+                  createNode("tension", "Tension", undefined, undefined, { relationshipType: "tension" });
                   setShowRelationshipTypeModal(false);
                 }}
                 className="flex-1 p-4 rounded-lg border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors"
               >
                 <div className="flex flex-col items-center gap-2">
                   <Sword size={24} className="text-purple-600" />
-                  <span className="font-semibold text-purple-800">Conflict</span>
+                  <span className="font-semibold text-purple-800">Tension</span>
                   <span className="text-xs text-purple-600">Parts in opposition</span>
                 </div>
               </button>
               <button
                 onClick={() => {
-                  createNode("ally", "Ally", undefined, undefined, { relationshipType: "ally" });
+                  createNode("interaction", "Interaction", undefined, undefined, { relationshipType: "interaction" });
                   setShowRelationshipTypeModal(false);
                 }}
                 className="flex-1 p-4 rounded-lg border-2 border-sky-200 bg-sky-50 hover:bg-sky-100 transition-colors"
               >
                 <div className="flex flex-col items-center gap-2">
                   <Users size={24} className="text-sky-600" />
-                  <span className="font-semibold text-sky-800">Ally</span>
+                  <span className="font-semibold text-sky-800">Interaction</span>
                   <span className="text-xs text-sky-600">Parts working together</span>
                 </div>
               </button>

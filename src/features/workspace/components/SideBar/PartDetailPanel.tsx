@@ -1617,7 +1617,7 @@ const PartDetailPanel = () => {
                         } catch {}
                         return 0;
                       })() :
-                      (entry.content || "").split(/\s+/).filter(w => w.length > 0).length;
+                      (entry.content || "").split(/\s+/).filter((w: string) => w.length > 0).length;
                     const charCount = entry.content?.length || 0;
 
                     return (
@@ -2319,7 +2319,7 @@ const PartDetailPanel = () => {
                         } catch {}
                         return 0;
                       })() :
-                      (entry.content || "").split(/\s+/).filter(w => w.length > 0).length;
+                      (entry.content || "").split(/\s+/).filter((w: string) => w.length > 0).length;
                     const charCount = entry.content?.length || 0;
 
                     return (

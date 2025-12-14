@@ -621,7 +621,7 @@ const FloatingActionButtons = () => {
             />
           )}
         </button>
-        <hr className="pb-2 border-gray-300" />
+        <hr className={`pb-2 ${darkMode ? "border-white/10" : "border-gray-300"}`} />
         <div className="flex flex-col gap-2">
           {open &&
             filteredImpressions &&
@@ -695,11 +695,17 @@ const FloatingActionButtons = () => {
           className={`
             group
             w-12 h-12 rounded-full 
-            ${isActive && !isSaveAction && !isContactAction && !isActionButton
-              ? 'bg-gray-800 text-white' 
-              : showXForAction || showXForOptions
-              ? 'bg-gray-800 text-white'
-              : 'bg-white text-gray-700'
+            ${darkMode
+              ? (isActive && !isSaveAction && !isContactAction && !isActionButton
+                  ? 'bg-[#2a2e32] text-white' 
+                  : showXForAction || showXForOptions
+                  ? 'bg-[#2a2e32] text-white'
+                  : 'bg-[#2a2e32] text-white')
+              : (isActive && !isSaveAction && !isContactAction && !isActionButton
+                  ? 'bg-gray-800 text-white' 
+                  : showXForAction || showXForOptions
+                  ? 'bg-gray-800 text-white'
+                  : 'bg-white text-gray-700')
             }
             shadow-sm
             flex items-center justify-center
@@ -765,7 +771,7 @@ const FloatingActionButtons = () => {
             }}
             className={`fixed rounded-lg shadow-lg z-[100] ${
               darkMode 
-                ? 'bg-gray-800 border border-gray-700' 
+                ? 'bg-[#2a2e32] border border-white/10' 
                 : 'bg-white border border-gray-200'
             }`}
             style={{ 
@@ -782,7 +788,7 @@ const FloatingActionButtons = () => {
               }}
               className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg ${
                 darkMode 
-                  ? 'hover:bg-gray-700 text-white' 
+                  ? 'hover:bg-[#3d434b] text-white' 
                   : 'hover:bg-gray-100 text-gray-900'
               }`}
             >
@@ -877,7 +883,7 @@ const FloatingActionButtons = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[85]"
             onClick={closeOptionsModal}
           />
-          <div className="fixed inset-0 z-[90] bg-white">
+          <div className={`fixed inset-0 z-[90] ${darkMode ? "bg-[#212529]" : "bg-white"}`}>
             <div className="h-full flex flex-col items-center">
               <div
                 className="relative w-full max-w-6xl h-full px-6 sm:px-10 lg:px-16 py-6 flex flex-col"
@@ -885,18 +891,22 @@ const FloatingActionButtons = () => {
               >
                 <button
                   onClick={closeOptionsModal}
-                  className="absolute top-4 right-4 rounded-full bg-gray-900 text-white p-2 hover:bg-gray-800 transition shadow-md"
+                  className={`absolute top-4 right-4 rounded-full p-2 transition shadow-md ${
+                    darkMode 
+                      ? "bg-[#2a2e32] text-white hover:bg-[#3d434b]" 
+                      : "bg-gray-900 text-white hover:bg-gray-800"
+                  }`}
                   aria-label="Close options"
                 >
                   <X className="w-5 h-5" />
                 </button>
                 <div className="flex flex-col h-full gap-4">
-                  <div className="pb-3 border-b border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-900">
+                  <div className={`pb-3 border-b ${darkMode ? "border-white/10" : "border-gray-200"}`}>
+                    <h2 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
                       Quick options
                     </h2>
-                    <p className="text-sm text-gray-600 mt-1 max-w-3xl">
-                      These spaces are coming soon. Pick where you want to go next and we’ll take you there when it’s ready.
+                    <p className={`text-sm mt-1 max-w-3xl ${darkMode ? "text-white/70" : "text-gray-600"}`}>
+                      These spaces are coming soon. Pick where you want to go next and we'll take you there when it's ready.
                     </p>
                   </div>
                   <div className="flex-1 overflow-y-auto pb-4">
@@ -904,7 +914,11 @@ const FloatingActionButtons = () => {
                       {optionItems.map((item) => (
                         <div
                           key={item.key}
-                          className="group h-full rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-b from-white to-gray-50/60 overflow-hidden"
+                          className={`group h-full rounded-2xl border shadow-sm hover:shadow-md transition-shadow overflow-hidden ${
+                            darkMode
+                              ? "bg-[#2a2e32] border-white/10"
+                              : "bg-gradient-to-b from-white to-gray-50/60 border-gray-100"
+                          }`}
                         >
                           <div className="relative aspect-[4/3] overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent" />
@@ -927,8 +941,8 @@ const FloatingActionButtons = () => {
                             )}
                           </div>
                           <div className="p-4 flex flex-col gap-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
-                            <p className="text-sm text-gray-600 leading-relaxed">{item.description}</p>
+                            <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>{item.title}</h3>
+                            <p className={`text-sm leading-relaxed ${darkMode ? "text-white/70" : "text-gray-600"}`}>{item.description}</p>
                           </div>
                         </div>
                       ))}
@@ -950,12 +964,16 @@ const FloatingActionButtons = () => {
             left: `${chatboxPosition.left}px`
           }}
         >
-          <div className="relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]">
+          <div className={`relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col shadow-[0_18px_35px_rgba(105,99,255,0.18)] ${
+            darkMode
+              ? "bg-[#212529] border-white/10"
+              : "bg-white border-gray-200"
+          }`}>
             <button
               onClick={handleSearchClose}
               className={`absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10 ${
                 darkMode
-                  ? "hover:bg-gray-700 text-gray-400 hover:text-white"
+                  ? "hover:bg-[#2a2e32] text-white/70 hover:text-white"
                   : "hover:bg-gray-100 text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -967,7 +985,7 @@ const FloatingActionButtons = () => {
                 <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? "text-purple-500/80" : "text-purple-500/70"}`}>
                   Studio Assistant
                 </p>
-                <p className={`mt-3 text-sm leading-relaxed ${darkMode ? "text-gray-600" : "text-gray-500"}`}>
+                <p className={`mt-3 text-sm leading-relaxed ${darkMode ? "text-white/70" : "text-gray-500"}`}>
                   Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
                 </p>
               </div>
@@ -982,6 +1000,8 @@ const FloatingActionButtons = () => {
                       className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                         message.role === "user"
                           ? "bg-purple-500 text-white"
+                          : darkMode
+                          ? "bg-[#2a2e32] text-white border border-white/10"
                           : "bg-gray-100 text-gray-800 border border-gray-200"
                       }`}
                     >
@@ -1010,7 +1030,11 @@ const FloatingActionButtons = () => {
                           }
                         }}
                         placeholder="Ask me anything..."
-                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400"
+                        className={`w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent border text-sm ${
+                          darkMode
+                            ? "bg-[#2a2e32] border-white/10 text-white placeholder-white/50"
+                            : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"
+                        }`}
                       />
                     </div>
                   </div>
@@ -1059,7 +1083,9 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 bg-white rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col" 
+            className={`absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col ${
+              darkMode ? "bg-[#212529]" : "bg-white"
+            }`}
             style={{ 
               zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
               width: '313px',
@@ -1087,7 +1113,9 @@ const FloatingActionButtons = () => {
           }}
         >
           <div 
-            className="bg-white rounded-full shadow-xl flex items-center overflow-hidden"
+            className={`rounded-full shadow-xl flex items-center overflow-hidden ${
+              darkMode ? "bg-[#212529]" : "bg-white"
+            }`}
             style={{
               width: 'max-content',
               transform: 'scaleX(0)',
@@ -1112,15 +1140,23 @@ const FloatingActionButtons = () => {
                 // Keep action button active so impressions sidebar stays open
                 // Keep options menu open
               }}
-              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
+              className={`px-6 py-3 transition-colors font-medium flex items-center gap-2 relative ${
+                darkMode
+                  ? "text-white hover:bg-[#2a2e32]"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
             >
               Part
-              <span className="h-6 px-2 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-700">
+              <span className={`h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium ${
+                darkMode
+                  ? "bg-[#2a2e32] text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}>
                 Add
               </span>
             </button>
             
-            <div className="w-px h-6 bg-gray-200" />
+            <div className={`w-px h-6 ${darkMode ? "bg-white/10" : "bg-gray-200"}`} />
             
             {/* Relationship option */}
             <button
@@ -1131,10 +1167,18 @@ const FloatingActionButtons = () => {
                 // Keep action button active so impressions sidebar stays open
                 // Keep options menu open
               }}
-              className="px-6 py-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium flex items-center gap-2 relative"
+              className={`px-6 py-3 transition-colors font-medium flex items-center gap-2 relative ${
+                darkMode
+                  ? "text-white hover:bg-[#2a2e32]"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
             >
               Relationship
-              <span className="h-6 px-2 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-700">
+              <span className={`h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium ${
+                darkMode
+                  ? "bg-[#2a2e32] text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}>
                 Add
               </span>
             </button>

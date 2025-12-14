@@ -85,7 +85,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
         nodeId: connectedNodeId,
         nodeType: connectedNode?.type || "unknown",
         nodeLabel: connectedNode?.data?.label || "Unknown",
-        relationshipType: edge.data?.relationshipType || "conflict",
+        relationshipType: edge.data?.relationshipType || "tension",
       };
     });
   }, [edges, nodes, partId]);
@@ -168,7 +168,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
     : "bg-white/90 border border-slate-200/70 text-slate-900 shadow-[0_26px_60px_rgba(15,23,42,0.14)]";
   const cardStyle = darkMode
     ? {
-        background: palette.surface,
+        background: "#212529",
         borderColor: "rgba(255,255,255,0.06)",
       }
     : undefined;
@@ -226,7 +226,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
 
             <div className="space-y-3">
               <div className="flex items-center justify-between pl-3 pr-2">
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500">Recent impressions</p>
+                <p className={`text-xs uppercase tracking-[0.28em] ${darkMode ? "text-white" : "text-slate-400"}`}>Recent impressions</p>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

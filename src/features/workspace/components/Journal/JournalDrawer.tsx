@@ -837,7 +837,7 @@ export default function JournalDrawer() {
                       </span>
                     );
                   })()}
-                  {data.age && data.age.toLowerCase() !== "unknown" && (
+                  {data.age && String(data.age).toLowerCase() !== "unknown" && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-0.5 font-medium text-slate-500">
                       Age{" "}
                       <span className="font-semibold text-slate-700">

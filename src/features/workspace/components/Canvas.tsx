@@ -25,7 +25,7 @@ const Workspace = () => {
   const { darkMode } = useThemeContext();
   const palette = workspaceDarkPalette;
   const defaultLightBg = "#f8fafc";
-  const defaultDarkBg = palette.base;
+  const defaultDarkBg = "#3D434B";
   const defaultBg = darkMode ? defaultDarkBg : defaultLightBg;
   const [workspaceBgColor, setWorkspaceBgColor] = useState(defaultBg);
   const [showColorPicker, setShowColorPicker] = useState(false);

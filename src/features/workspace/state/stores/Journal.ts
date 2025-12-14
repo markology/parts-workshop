@@ -23,7 +23,7 @@ type JournalStore = {
   setJournalData: (data: string) => void;
   setLastSavedJournalData: (data: string) => void;
   setActiveEntryId: (entryId: string | null) => void;
-  setSelectedSpeakers: (speakers: string[]) => void;
+  setSelectedSpeakers: (speakers: string[] | ((prev: string[]) => string[])) => void;
   loadEntry: (payload: { entryId: string | null; content: string; speakers?: string[] }) => void;
   markJournalSaved: () => void;
 };

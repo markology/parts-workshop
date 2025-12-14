@@ -8,6 +8,7 @@ import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import {
   InteractionNode as InteractionNodeType,
+  TensionNode,
   ConnectedNodeType,
 } from "@/features/workspace/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
@@ -56,7 +57,7 @@ const RelationshipNode = ({
   const handleSave = useCallback(() => {
     if (editingId) {
       updateTensionDescription(
-        getNode(id) as InteractionNodeType,
+        getNode(id) as TensionNode,
         editingId,
         editValue
       );

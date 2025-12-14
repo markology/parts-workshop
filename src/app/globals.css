@@ -129,9 +129,6 @@
   .bg-part-handle {
     background-color: var(--part-handle-bg);
   }
-  .bg-create-conflict {
-    background: var(--create-conflict-bg);
-  }
   .text-toggle-utilities {
     color: var(--toggle-utilities);
   }
@@ -143,9 +140,6 @@
   }
   .shadow-impression-button {
     box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
-  }
-  .shadow-conflict-button {
-    box-shadow: 1px 2px 4px 0px var(--tension-button-shadow);
   }
   .modal-overlay {
     background: var(--overlay-background);
@@ -203,10 +197,9 @@ body {
   border-radius: 12px !important;
 }
 
-.react-flow__node-conflict,
-.react-flow__node-ally,
 .react-flow__node-relationship,
-.react-flow__node-tension {
+.react-flow__node-tension,
+.react-flow__node-interaction {
   border-radius: 26px !important;
   background: transparent !important;
 }
@@ -267,11 +260,6 @@ button {
   height: calc(100vh - 100px);
 }
 
-.light #create-conflict-button {
-  background: var(--create-conflict-bg) !important;
-  box-shadow: 1px 2px 4px 0px var(--conflict-button-shadow);
-}
-
 #create-part-button {
   box-shadow: 0 4px 9px -4px var(--part-button-shadow);
 }
@@ -294,11 +282,23 @@ button {
 }
 
 @keyframes pulseRight {
-  0%, 100% { transform: translateX(0); }
-  10% { transform: translateX(4px); }
-  20% { transform: translateX(0); }
-  30% { transform: translateX(4px); }
-  40%, 100% { transform: translateX(0); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(4px);
+  }
+  20% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(4px);
+  }
+  40%,
+  100% {
+    transform: translateX(0);
+  }
 }
 
 .arrow-pulse:hover .arrow-icon {

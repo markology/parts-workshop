@@ -319,6 +319,7 @@ export const useFlowNodes = () => {
     });
   };
 
+
   function isTensionNode(node: WorkshopNode): node is TensionNode {
     return (node.type === "tension" || node.type === "interaction") && "connectedNodes" in node.data;
   }

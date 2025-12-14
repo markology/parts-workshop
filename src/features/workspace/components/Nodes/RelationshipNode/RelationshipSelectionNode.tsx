@@ -37,7 +37,7 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
       if (!node) return;
 
       // Update the node to the chosen relationship type
-      const nodeType = relationshipType === "tension" ? "tension" : "relationship";
+      const nodeType = relationshipType === "tension" ? "tension" : "interaction";
       const label = relationshipType === "tension" ? "Tension" : "Interaction";
 
       setNodes((nodes) =>

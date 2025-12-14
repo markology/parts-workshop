@@ -118,7 +118,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
         style={
           darkMode
             ? {
-                background: `linear-gradient(145deg, ${palette.elevated}, ${palette.surface})`,
+                background: "#212529",
                 borderColor: "rgba(255,255,255,0.05)",
               }
             : undefined
