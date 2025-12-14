@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 const isValidImpression = (text: string) => {
   const trimmed = text.trim();
@@ -149,6 +150,7 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
   }, [selectedType]);
 
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
 
   return (
     <div ref={containerRef} className="relative space-y-4">
@@ -179,9 +181,7 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
               backgroundColor: selectedType === type 
                 ? `${NodeBackgroundColors[type]}20` 
                 : "transparent",
-              color: selectedType === type 
-                ? NodeBackgroundColors[type] 
-                : undefined,
+              color: NodeBackgroundColors[type],
               border: selectedType === type 
                 ? `1.5px solid ${NodeBackgroundColors[type]}40` 
                 : "1.5px solid transparent",
@@ -191,17 +191,12 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
           </button>
         ))}
       </div>
-      <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-        Tab: next type • Shift+Tab: previous type • Enter: add impression
-      </p>
       <div className="relative">
         <textarea
           ref={textAreaRef as React.RefObject<HTMLTextAreaElement>}
-          className={`min-h-[120px] px-4 pb-4 pt-[30px] rounded-xl border-0 w-full focus:outline-none resize-none ${
-            darkMode ? "text-slate-200" : "text-slate-800"
-          }`}
+          className="min-h-[120px] px-4 pb-4 pt-[30px] rounded-xl border-0 w-full focus:outline-none resize-none"
           style={{
-            color: inputValue ? NodeBackgroundColors[selectedType] : (darkMode ? "#cbd5e1" : "#1e293b"),
+            color: inputValue ? NodeBackgroundColors[selectedType] : theme.textPrimary,
             backgroundColor: "transparent",
             fontSize: '16px',
             lineHeight: '1.6',

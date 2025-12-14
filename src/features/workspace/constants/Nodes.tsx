@@ -9,7 +9,7 @@ export const NodeColors = {
 };
 
 export const NodeBackgroundColors = {
-  emotion: "#8BCB8B", // Green (was behavior)
+  emotion: "#8BCB8B", // rgb(139, 203, 139) - Green (was behavior)
   thought: "#7AB3E0",
   sensation: "#F28C82", // Coral/salmon red (was emotion)
   behavior: "#F9B17A", // Orange (was sensation)

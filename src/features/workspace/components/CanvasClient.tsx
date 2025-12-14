@@ -23,6 +23,7 @@ import { NodeBackgroundColors, NodeTextColors } from "../constants/Nodes";
 import { ImpressionTextType, ImpressionType } from "../types/Impressions";
 import { Sparkles, X } from "lucide-react";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 // import TourOverlay from "./TourOverlay";
 
 // Function to normalize sidebarImpressions data structure
@@ -66,6 +67,7 @@ export default function CanvasClient({
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
   const [sidebarImpressionType, setSidebarImpressionType] = useState<ImpressionType>("emotion");
 
   useEffect(() => {
@@ -86,8 +88,9 @@ export default function CanvasClient({
 
   const accentHex =
     NodeBackgroundColors[sidebarImpressionType as keyof typeof NodeBackgroundColors] ?? "#6366f1";
-  const accentTextHex =
-    NodeTextColors[sidebarImpressionType as keyof typeof NodeTextColors] ?? "#312e81";
+  const accentTextHex = darkMode
+    ? NodeBackgroundColors[sidebarImpressionType as keyof typeof NodeBackgroundColors] ?? "#6366f1"
+    : NodeTextColors[sidebarImpressionType as keyof typeof NodeTextColors] ?? "#312e81";
   const accentSoftBg = toRgba(accentHex, darkMode ? 0.26 : 0.14);
   const accentBorder = toRgba(accentHex, darkMode ? 0.55 : 0.28);
   const impressionTypeLabel =
@@ -227,20 +230,21 @@ export default function CanvasClient({
           }}
         >
           <div
-            className={`absolute inset-0 pointer-events-none ${
-              darkMode ? "bg-slate-950/95" : "bg-slate-900/60"
-            } backdrop-blur-sm`}
+            className="absolute inset-0 pointer-events-none backdrop-blur-sm"
+            style={{
+              backgroundColor: darkMode ? `${theme.modal}f2` : `${theme.modal}99`,
+            }}
           />
           <div
             className="relative w-full max-w-3xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={`relative overflow-hidden rounded-[28px] border ${
-                darkMode
-                  ? "border-slate-700/60 bg-slate-900/85"
-                  : "border-slate-200/80 bg-white/95"
-              } shadow-[0_30px_70px_rgba(15,23,42,0.36)]`}
+              className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
+              style={{
+                backgroundColor: theme.modal,
+                borderColor: theme.border,
+              }}
             >
               <div className="relative px-8 pt-8 pb-6 space-y-7">
                 <div className="flex items-start justify-between gap-6">
@@ -257,16 +261,14 @@ export default function CanvasClient({
                     </span>
                     <div>
                       <h3
-                        className={`text-2xl font-semibold ${
-                          darkMode ? "text-white" : "text-slate-900"
-                        }`}
+                        className="text-2xl font-semibold"
+                        style={{ color: theme.textPrimary }}
                       >
                         Add a new {impressionTypeLabel.toLowerCase()} to the impressions library
                       </h3>
                       <p
-                        className={`mt-2 text-sm leading-relaxed ${
-                          darkMode ? "text-slate-300" : "text-slate-600"
-                        }`}
+                        className="mt-2 text-sm leading-relaxed"
+                        style={{ color: theme.textSecondary }}
                       >
                         Give the impressions library a voice by noting what you're sensing right now.
                       </p>
@@ -274,11 +276,17 @@ export default function CanvasClient({
                   </div>
                   <button
                     onClick={() => setShowImpressionModal(false)}
-                    className={`h-10 w-10 flex items-center justify-center rounded-full border transition-colors ${
-                      darkMode
-                        ? "border-slate-700 text-slate-300 hover:bg-slate-800/70"
-                        : "border-slate-200 text-slate-500 hover:bg-slate-100"
-                    }`}
+                    className="h-10 w-10 flex items-center justify-center rounded-full border transition-colors"
+                    style={{
+                      borderColor: theme.border,
+                      color: theme.textSecondary,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
                     aria-label="Close"
                   >
                     <X size={18} />
@@ -288,8 +296,8 @@ export default function CanvasClient({
                 <div
                   className="rounded-2xl border px-6 py-6 shadow-inner"
                   style={{
-                    backgroundColor: accentSoftBg,
-                    borderColor: accentBorder,
+                    backgroundColor: theme.surface,
+                    borderColor: theme.border,
                   }}
                 >
                   <ImpressionInput

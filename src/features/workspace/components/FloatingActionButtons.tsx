@@ -763,12 +763,9 @@ const FloatingActionButtons = () => {
                 (profileDropdownRef.current as any).dropdownMenu = el;
               }
             }}
-            className="fixed rounded-lg shadow-lg z-[100] border"
-            style={{
-              backgroundColor: theme.elevated,
-              borderColor: theme.border,
-            }}
+            className="fixed rounded-lg shadow-lg z-[100]"
             style={{ 
+              backgroundColor: theme.card,
               minWidth: '150px',
               top: `${profileDropdownPosition.top}px`,
               right: `${profileDropdownPosition.right}px`
@@ -924,7 +921,7 @@ const FloatingActionButtons = () => {
                       These spaces are coming soon. Pick where you want to go next and we'll take you there when it's ready.
                     </p>
                   </div>
-                  <div className="flex-1 overflow-y-auto pb-4">
+                  <div className="flex-1 overflow-y-auto pb-4 px-2">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                       {optionItems.map((item) => (
                         <div
@@ -1107,9 +1104,10 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col"
-            style={{ backgroundColor: theme.sidebar }}
+            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col border"
             style={{ 
+              backgroundColor: theme.sidebar,
+              borderColor: theme.border,
               zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
               width: '313px',
               transform: 'scaleX(0)',

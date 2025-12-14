@@ -140,10 +140,13 @@ const PartDetailPanel = () => {
     NodeBackgroundColors[
       currentImpressionType as keyof typeof NodeBackgroundColors
     ] ?? "#6366f1";
-  const accentTextHex =
-    NodeTextColors[
-      currentImpressionType as keyof typeof NodeTextColors
-    ] ?? "#312e81";
+  const accentTextHex = darkMode
+    ? NodeBackgroundColors[
+        currentImpressionType as keyof typeof NodeBackgroundColors
+      ] ?? "#6366f1"
+    : NodeTextColors[
+        currentImpressionType as keyof typeof NodeTextColors
+      ] ?? "#312e81";
   const accentSoftBg = toRgba(accentHex, darkMode ? 0.26 : 0.14);
   const accentBorder = toRgba(accentHex, darkMode ? 0.55 : 0.28);
   const accentGlow = toRgba(accentHex, darkMode ? 0.42 : 0.24);
@@ -1998,11 +2001,11 @@ const PartDetailPanel = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                className={`relative overflow-hidden rounded-[28px] border ${
-                  darkMode
-                    ? "border-slate-700/60 bg-slate-900/85"
-                    : "border-slate-200/80 bg-white/95"
-                } shadow-[0_30px_70px_rgba(15,23,42,0.36)]`}
+                className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
+                style={{
+                  backgroundColor: theme.modal,
+                  borderColor: theme.border,
+                }}
               >
                 <div className="relative px-8 pt-8 pb-6 space-y-7">
                   <div className="flex items-start justify-between gap-6">
@@ -2050,8 +2053,8 @@ const PartDetailPanel = () => {
                   <div
                     className="rounded-2xl border px-6 py-6 shadow-inner"
                     style={{
-                      backgroundColor: accentSoftBg,
-                      borderColor: accentBorder,
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
                     }}
                   >
                     <ImpressionInput
@@ -2298,7 +2301,8 @@ const PartDetailPanel = () => {
             onClick={() => setShowJournalHistoryModal(false)}
           >
             <div
-              className={`${modalContainerClasses} rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-4xl max-h-[85vh] mx-4 overflow-hidden flex flex-col`}
+              className="rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-4xl max-h-[85vh] mx-4 overflow-hidden flex flex-col border"
+              style={modalContainerStyle}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-6 py-5 border-b border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between">

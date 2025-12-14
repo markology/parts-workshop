@@ -94,7 +94,6 @@ const Impressions = () => {
   return (
     <div 
       className="flex h-full flex-col"
-      style={{ background: theme.sidebar }}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
