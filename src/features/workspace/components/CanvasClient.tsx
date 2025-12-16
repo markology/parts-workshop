@@ -135,6 +135,13 @@ export default function CanvasClient({
         hydrated: false,
       });
 
+      // Extract workspaceBgColor from sidebarImpressions metadata if it exists
+      const sidebarImpressionsData = data.sidebarImpressions || {};
+      const metadata = (typeof sidebarImpressionsData === 'object' && '_metadata' in sidebarImpressionsData)
+        ? (sidebarImpressionsData as any)._metadata
+        : {};
+      const workspaceBgColor = metadata?.workspaceBgColor;
+
       // Then set the new map data
       useWorkingStore.getState().setState({
         mapId: data.id,
@@ -142,6 +149,7 @@ export default function CanvasClient({
         edges: data.edges || [],
         sidebarImpressions: normalizedSidebarImpressions,
         journalEntries: data.journalEntries ?? [],
+        workspaceBgColor: workspaceBgColor || undefined,
         hydrated: true,
       });
 

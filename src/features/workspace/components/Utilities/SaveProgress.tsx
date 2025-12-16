@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useAutoSave } from "../../state/hooks/useAutoSave";
 import { cleanupOrphanedJournalEntriesFromMap } from "@/features/workspace/state/lib/cleanupOrphanedJournalEntriesFromMap";
 import { useWorkingStore } from "../../state/stores/useWorkingStore";
-import { toast } from "react-hot-toast";
 
 const SaveProgress = () => {
   const [isHovering, setIsHovering] = useState(false);
@@ -14,7 +13,6 @@ const SaveProgress = () => {
     await saveNow();
     const nodeIds = useWorkingStore.getState().nodes.map((n) => n.id);
     await cleanupOrphanedJournalEntriesFromMap(nodeIds);
-    toast.success("Orphaned journal entries cleaned up.");
   };
 
   return (

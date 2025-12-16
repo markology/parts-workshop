@@ -1934,22 +1934,28 @@ const PartDetailPanel = () => {
                                 return (
                                   <div
                                     key={index}
-                                    className="rounded-lg border border-slate-200/70 dark:border-slate-700/60 bg-white/80 dark:bg-slate-900/40 px-3 py-2.5 shadow-sm hover:shadow-md transition"
+                                    className="rounded-lg border px-3 py-2.5 shadow-sm hover:shadow-md transition"
+                                    style={{
+                                      backgroundColor: theme.surface,
+                                      borderColor: theme.border,
+                                    }}
                                   >
                                     <div className="flex items-start justify-between gap-2">
                                       <div
-                                        className={`text-sm font-semibold ${
-                                          darkMode ? "text-slate-50" : "text-slate-900"
-                                        }`}
+                                        className="text-sm font-semibold"
+                                        style={{
+                                          color: theme.textPrimary,
+                                        }}
                                       >
                                         {part?.data?.label || part?.data?.name || "Unknown Part"}
                                       </div>
                                     </div>
                                     {statement && (
                                       <div
-                                    className={`mt-1.5 text-sm leading-relaxed whitespace-pre-wrap ${
-                                          darkMode ? "text-slate-200" : "text-slate-700"
-                                        }`}
+                                        className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap"
+                                        style={{
+                                          color: theme.textSecondary,
+                                        }}
                                       >
                                         {statement}
                                       </div>

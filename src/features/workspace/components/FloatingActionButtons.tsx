@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map, Sparkles } from "lucide-react";
+import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map, Sparkles, Paintbrush } from "lucide-react";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -355,7 +355,6 @@ const FloatingActionButtons = () => {
       await cleanupOrphanedJournalEntriesFromMap(nodeIds);
       setLocalIsSaving(false);
       setLocalSaveCheck(true);
-      toast.success("Orphaned journal entries cleaned up.");
       setTimeout(() => setLocalSaveCheck(false), 1000);
     } catch (error) {
       setLocalIsSaving(false);
@@ -707,6 +706,38 @@ const FloatingActionButtons = () => {
             backgroundColor: theme.button,
             color: theme.buttonText,
           }}
+          onMouseEnter={(e) => {
+            // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
+            let r: number, g: number, b: number;
+            
+            if (theme.button.startsWith('#')) {
+              // Hex format
+              const hex = theme.button.replace('#', '');
+              r = parseInt(hex.substr(0, 2), 16);
+              g = parseInt(hex.substr(2, 2), 16);
+              b = parseInt(hex.substr(4, 2), 16);
+            } else if (theme.button.startsWith('rgb')) {
+              // RGB format
+              const matches = theme.button.match(/\d+/g);
+              if (matches && matches.length >= 3) {
+                r = parseInt(matches[0]);
+                g = parseInt(matches[1]);
+                b = parseInt(matches[2]);
+              } else {
+                return; // Can't parse, don't change color
+              }
+            } else {
+              return; // Unknown format, don't change color
+            }
+            
+            const darkerR = Math.max(0, r - 20);
+            const darkerG = Math.max(0, g - 20);
+            const darkerB = Math.max(0, b - 20);
+            e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = theme.button;
+          }}
           title={label}
         >
           {showXForAction ? (
@@ -810,7 +841,8 @@ const FloatingActionButtons = () => {
             
             <button
               onClick={() => {
-                toggleDarkMode(!darkMode);
+                // Dispatch custom event to open color picker
+                window.dispatchEvent(new CustomEvent("open-theme-picker"));
                 setProfileDropdownOpen(false);
               }}
               className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
@@ -822,17 +854,8 @@ const FloatingActionButtons = () => {
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
-              {darkMode ? (
-                <>
-                  <Sun className="w-4 h-4" />
-                  Light Mode
-                </>
-              ) : (
-                <>
-                  <Moon className="w-4 h-4" />
-                  Dark Mode
-                </>
-              )}
+              <Paintbrush className="w-4 h-4" />
+              Themes
             </button>
             <button
               onClick={() => {

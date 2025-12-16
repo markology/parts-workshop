@@ -15,6 +15,7 @@ import { MessageCircleWarning, Trash2, BookOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 
 const TensionNode = ({
@@ -51,6 +52,7 @@ const TensionNode = ({
   const [editValue, setEditValue] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
   const palette = workspaceDarkPalette;
 
   // Handle Enter key or outside click save
@@ -143,11 +145,22 @@ const TensionNode = ({
                   ""),
                 })
               }
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
-                darkMode
-                  ? "text-purple-300 border border-purple-500/30 hover:bg-purple-500/20"
-                  : "text-purple-800 hover:bg-purple-50"
-              }`}
+              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
+              style={{
+                backgroundColor: darkMode ? "#924949" : "white",
+                color: darkMode ? "#e7b8b8" : "#475569",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+              }}
+              onMouseEnter={(e) => {
+                if (darkMode) {
+                  e.currentTarget.style.backgroundColor = "#7a3a3a";
+                } else {
+                  e.currentTarget.style.backgroundColor = "#f1f5f9";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = darkMode ? "#924949" : "white";
+              }}
               title="Open journal"
             >
               <BookOpen size={16} />

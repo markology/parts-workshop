@@ -6,7 +6,7 @@ export const useSaveMap = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const { mapId, nodes, edges, sidebarImpressions } =
+      const { mapId, nodes, edges, sidebarImpressions, workspaceBgColor } =
         useWorkingStore.getState(); // ✅ pull latest state snapshot
       
       const res = await fetch(`/api/maps/${mapId}`, {
@@ -16,6 +16,7 @@ export const useSaveMap = () => {
           nodes,
           edges,
           sidebarImpressions,
+          workspaceBgColor,
         }),
       });
 

@@ -18,7 +18,7 @@ import {
   WorkshopNode,
 } from "@/features/workspace/types/Nodes";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import { Brain, Book, Clock, FilePlus2, Heart, History, Layers, MessagesSquare, Save, Shield, SquareUserRound, User, X, Trash2 } from "lucide-react";
+import { Brain, Book, Clock, FilePlus2, Heart, History, Layers, MessagesSquare, Plus, Save, Shield, SquareUserRound, User, X, Trash2 } from "lucide-react";
 import { NodeBackgroundColors, NodeTextColors } from "../../constants/Nodes";
 import { ImpressionList } from "../../constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
@@ -399,6 +399,24 @@ export default function JournalDrawer() {
   }, [activeEntryId, relevantEntries]);
 
   const hasUnsavedChanges = journalData !== lastSavedJournalData;
+  
+  // Check if there's actual content to save
+  const hasContentToSave = useMemo(() => {
+    if (!hasUnsavedChanges) return false;
+    const textContent = extractPlainText(journalData);
+    return textContent && textContent.trim().length > 0;
+  }, [journalData, hasUnsavedChanges]);
+  
+  // Don't allow saving if it's a new entry with no content
+  const canSave = useMemo(() => {
+    if (!hasUnsavedChanges) return false;
+    // If it's a new entry (never been saved), require content
+    if (!activeEntryId) {
+      return hasContentToSave;
+    }
+    // If it's an existing entry, allow saving even if empty (to clear it)
+    return true;
+  }, [hasUnsavedChanges, activeEntryId, hasContentToSave]);
 
   // Detect mode from content (JSON array = textThread, otherwise normal)
   const detectModeFromContent = useCallback((content: string | null | undefined): "normal" | "textThread" => {
@@ -450,9 +468,15 @@ export default function JournalDrawer() {
       if (!journalTarget) return false;
 
       const textContent = extractPlainText(journalData);
-      if (!activeEntryId && textContent.length === 0) {
-        return true;
+      const hasContent = textContent && textContent.trim().length > 0;
+      
+      // Don't allow saving if there's no content and it's a new entry (never been saved)
+      if (!activeEntryId && !hasContent) {
+        return false; // Don't save empty new entries
       }
+      
+      // If it's an existing entry but now empty, allow saving to clear it
+      // (This handles the case where user deletes all content from an existing entry)
 
       try {
         console.log("💾 Saving journal entry with speakers:", speakersArray);
@@ -1191,7 +1215,7 @@ export default function JournalDrawer() {
                   }}
                   className="w-full rounded-xl border-2 transition text-left p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                   style={{
-                    backgroundColor: isActive ? theme.elevated : theme.card,
+                    backgroundColor: isActive ? theme.elevated : (darkMode ? theme.surface : theme.card),
                     borderColor: isActive ? theme.accent : theme.border,
                     ...(isActive ? {
                       boxShadow: `0 0 0 2px ${theme.accent}33, 0 10px 15px -3px rgba(0, 0, 0, 0.1)`,
@@ -1344,26 +1368,22 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => setShowLeftPanel((prev) => !prev)}
-                  className="rounded-full p-1.5 transition flex-shrink-0"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0"
                   style={{
-                    backgroundColor: showLeftPanel ? theme.card : 'transparent',
-                    color: showLeftPanel ? theme.textPrimary : theme.textSecondary,
+                    backgroundColor: theme.card,
+                    color: theme.textPrimary,
+                    border: darkMode ? "1px solid #ef4444" : "none",
                   }}
                   onMouseEnter={(e) => {
-                    if (!showLeftPanel) {
-                      e.currentTarget.style.backgroundColor = theme.card;
-                      e.currentTarget.style.color = theme.textPrimary;
-                    }
+                    e.currentTarget.style.backgroundColor = theme.buttonHover;
                   }}
                   onMouseLeave={(e) => {
-                    if (!showLeftPanel) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = theme.textSecondary;
-                    }
+                    e.currentTarget.style.backgroundColor = theme.card;
                   }}
                   title="Toggle sidebar"
                 >
-                  <Layers size={16} />
+                  <Layers size={14} />
+                  Info
                 </button>
 
                 <button
@@ -1373,6 +1393,7 @@ export default function JournalDrawer() {
                   style={{
                     backgroundColor: theme.card,
                     color: theme.textPrimary,
+                    border: darkMode ? "1px solid #ef4444" : "none",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = theme.buttonHover;
@@ -1382,26 +1403,26 @@ export default function JournalDrawer() {
                   }}
                   title="Start a new journal entry"
                 >
-                  <FilePlus2 size={14} />
+                  <Plus size={14} />
                   New Entry
                 </button>
 
                 <button
                   type="button"
                   onClick={() => void handleSave()}
-                  disabled={!hasUnsavedChanges || isSaving}
+                  disabled={!canSave || isSaving}
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition flex-shrink-0 ${isSaving ? "animate-pulse" : ""}`}
                   style={{
-                    backgroundColor: hasUnsavedChanges && !isSaving ? theme.info : theme.button,
-                    color: hasUnsavedChanges && !isSaving ? theme.buttonText : theme.textMuted,
+                    backgroundColor: canSave && !isSaving ? theme.info : theme.button,
+                    color: canSave && !isSaving ? theme.buttonText : theme.textMuted,
                   }}
                   onMouseEnter={(e) => {
-                    if (hasUnsavedChanges && !isSaving) {
+                    if (canSave && !isSaving) {
                       e.currentTarget.style.backgroundColor = "#2563eb"; // Darker blue on hover
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (hasUnsavedChanges && !isSaving) {
+                    if (canSave && !isSaving) {
                       e.currentTarget.style.backgroundColor = theme.info;
                     }
                   }}

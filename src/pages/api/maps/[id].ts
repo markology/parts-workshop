@@ -104,12 +104,25 @@ export default async function handler(
         },
       });
 
+      // Store workspaceBgColor in sidebarImpressions as metadata for now
+      // TODO: Add dedicated workspaceBgColor field to schema
+      const sidebarImpressionsWithBg = body.sidebarImpressions || {};
+      const sidebarImpressionsData = {
+        ...sidebarImpressionsWithBg,
+        _metadata: {
+          ...(typeof sidebarImpressionsWithBg === 'object' && '_metadata' in sidebarImpressionsWithBg 
+            ? (sidebarImpressionsWithBg as any)._metadata 
+            : {}),
+          workspaceBgColor: body.workspaceBgColor,
+        },
+      };
+
       await prisma.map.update({
         where: { id },
         data: {
           nodes: body.nodes,
           edges: body.edges,
-          sidebarImpressions: body.sidebarImpressions,
+          sidebarImpressions: sidebarImpressionsData,
         },
       });
 

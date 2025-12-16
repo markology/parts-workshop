@@ -26,7 +26,9 @@ const Workspace = () => {
   const theme = useTheme();
   const { themeName, setThemeName } = useThemeContext();
   const defaultBg = theme.workspace;
-  const [workspaceBgColor, setWorkspaceBgColor] = useState(defaultBg);
+  const mapId = useWorkingStore((s) => s.mapId);
+  const savedBgColor = useWorkingStore((s) => (s as any).workspaceBgColor);
+  const [workspaceBgColor, setWorkspaceBgColor] = useState(savedBgColor || defaultBg);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const colorButtonRef = useRef<HTMLButtonElement>(null);
@@ -47,16 +49,44 @@ const Workspace = () => {
   } = useFlowNodesContext();
 
   // Get mapId to reset fitView when map changes
-  const mapId = useWorkingStore((s) => s.mapId);
   const prevMapIdRef = useRef<string>("");
 
+  // Load saved background color when map changes (but not when theme changes)
   useEffect(() => {
-    setWorkspaceBgColor(theme.workspace);
-  }, [theme.workspace]);
+    if (savedBgColor && savedBgColor !== defaultBg) {
+      // Only use saved color if it's different from the current theme's default
+      // This allows custom colors to persist within the same theme
+      setWorkspaceBgColor(savedBgColor);
+    } else {
+      setWorkspaceBgColor(defaultBg);
+    }
+  }, [mapId, savedBgColor]);
 
-  // Get gradient background for dark theme
+  // Reset to theme default when theme changes
+  useEffect(() => {
+    setWorkspaceBgColor(defaultBg);
+    // Clear saved background color when theme changes
+    useWorkingStore.setState({ workspaceBgColor: undefined } as any);
+  }, [themeName, defaultBg]);
+
+  // Save background color to store when it changes (only if it's a custom color)
+  useEffect(() => {
+    if (workspaceBgColor && workspaceBgColor !== defaultBg) {
+      useWorkingStore.setState({ workspaceBgColor } as any);
+    } else if (workspaceBgColor === defaultBg) {
+      // Clear saved color if it matches the default
+      useWorkingStore.setState({ workspaceBgColor: undefined } as any);
+    }
+  }, [workspaceBgColor, defaultBg]);
+
+  // Get gradient background for dark theme, but allow custom colors
   const getBackgroundStyle = () => {
-    if (themeName === "dark") {
+    // If user has selected a custom color, use it (even in dark mode)
+    if (workspaceBgColor && workspaceBgColor !== defaultBg && workspaceBgColor !== theme.workspace) {
+      return workspaceBgColor;
+    }
+    // Otherwise, use gradient for dark theme, or theme workspace color
+    if (themeName === "dark" && workspaceBgColor === defaultBg) {
       // Subtle gradient from lighter to darker gray-blue
       return "linear-gradient(135deg, #454b54 0%, #3d434b 50%, #353b43 100%)";
     }
@@ -95,6 +125,15 @@ const Workspace = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showColorPicker]);
 
+  // Listen for custom event to open theme picker
+  useEffect(() => {
+    const handleOpenThemePicker = () => {
+      setShowColorPicker(true);
+    };
+    window.addEventListener("open-theme-picker", handleOpenThemePicker);
+    return () => window.removeEventListener("open-theme-picker", handleOpenThemePicker);
+  }, []);
+
   // Reset fitView when map changes
   useEffect(() => {
     if (mapId && mapId !== prevMapIdRef.current) {
@@ -129,8 +168,24 @@ const Workspace = () => {
     return null;
   };
 
+  // Calculate button background color - darken when picker is open in dark mode
+  const getColorButtonBackground = () => {
+    if (showColorPicker && themeName === 'dark') {
+      // Apply same darkening effect as floating action buttons (reduce RGB by 20)
+      const hex = theme.elevated.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      const darkerR = Math.max(0, r - 20);
+      const darkerG = Math.max(0, g - 20);
+      const darkerB = Math.max(0, b - 20);
+      return `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+    }
+    return theme.elevated;
+  };
+
   const colorButtonStyle = {
-    backgroundColor: theme.elevated,
+    backgroundColor: getColorButtonBackground(),
     borderColor: theme.border,
     color: theme.textPrimary,
     boxShadow: '0 12px 28px rgba(0,0,0,0.45)',
@@ -245,13 +300,21 @@ const Workspace = () => {
                   Reset
                 </button>
               </div>
-              <ChromePicker
-                color={workspaceBgColor}
-                onChange={(color: ColorResult) => {
-                  setWorkspaceBgColor(color.hex);
-                }}
-                disableAlpha
-              />
+              <div style={{ 
+                position: 'relative', 
+                zIndex: 1000,
+                backgroundColor: theme.surface,
+                borderRadius: '8px',
+                padding: '4px',
+              }}>
+                <ChromePicker
+                  color={workspaceBgColor}
+                  onChange={(color: ColorResult) => {
+                    setWorkspaceBgColor(color.hex);
+                  }}
+                  disableAlpha
+                />
+              </div>
             </div>
           </div>
         )}

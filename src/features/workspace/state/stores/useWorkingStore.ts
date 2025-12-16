@@ -15,6 +15,7 @@ type WorkingState = {
   edges: Edge[];
   sidebarImpressions: Record<ImpressionType, Record<string, SidebarImpression>>;
   journalEntries: JournalEntry[];
+  workspaceBgColor?: string;
   updateJournalEntry: (entry: JournalEntry) => void;
   deleteJournalEntry: (args: { entryId?: string; nodeId?: string | null }) => void;
   addImpression: ({ id, label, type }: SidebarImpression) => void;
@@ -52,6 +53,7 @@ export const useWorkingStore = create<WorkingState>()(
       edges: [],
       sidebarImpressions: createEmptyImpressionGroups(),
       journalEntries: [],
+      workspaceBgColor: undefined,
       setState: (partial) => set((state) => ({ ...state, ...partial })),
       addImpression: ({ id, label, type }) =>
         set((state) => ({

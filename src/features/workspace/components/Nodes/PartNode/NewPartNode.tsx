@@ -26,6 +26,7 @@ import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { PartNodeData } from "@/features/workspace/types/Nodes";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const {
@@ -38,6 +39,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
   const { setJournalTarget } = useJournalStore();
 
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
   const palette = workspaceDarkPalette;
 
   const toRgba = (hex: string, opacity: number) => {
@@ -237,15 +239,25 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                       title: data.name || data.label,
                     });
                   }}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-colors ${
-                    darkMode
-                      ? "bg-slate-900/60 text-slate-200 hover:bg-slate-900/80"
-                      : "bg-white text-slate-600 hover:bg-slate-100"
-                  }`}
+                  className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: darkMode ? "#924949" : "white",
+                    color: darkMode ? "#e7b8b8" : "#475569",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = "#7a3a3a";
+                    } else {
+                      e.currentTarget.style.backgroundColor = "#f1f5f9";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = darkMode ? "#924949" : "white";
+                  }}
+                  title="Open journal"
                 >
-                  <BookOpen size={14} />
-                  Journal
-                  <Sparkles className="w-3 h-3 text-purple-400" />
+                  <BookOpen size={16} />
                 </button>
               </div>
 
@@ -279,7 +291,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                   <span 
                     className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap"
                     style={{
-                      backgroundColor: darkMode ? "#3c424a" : "rgba(226, 232, 240, 0.8)",
+                      backgroundColor: darkMode ? "#383838" : "rgba(226, 232, 240, 0.8)",
                       color: darkMode ? "rgba(255, 255, 255, 0.8)" : "#475569",
                     }}
                   >

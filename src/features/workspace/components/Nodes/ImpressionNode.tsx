@@ -1,6 +1,7 @@
 import {
   NodeBackgroundColors,
   NodeTextColors,
+  NodeTextColorsLight,
 } from "@/features/workspace/constants/Nodes";
 import { useCallback, useMemo } from "react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
@@ -64,6 +65,18 @@ const ImpressionNode = ({
 
   const accent = NodeBackgroundColors[type];
   const accentText = NodeTextColors[type] || accent;
+  
+  // Create darker version of the color for dark mode
+  const darkenColor = (hex: string, factor: number = 0.5) => {
+    const sanitized = hex.replace("#", "");
+    const bigint = parseInt(sanitized, 16);
+    const r = Math.max(0, Math.floor(((bigint >> 16) & 255) * factor));
+    const g = Math.max(0, Math.floor(((bigint >> 8) & 255) * factor));
+    const b = Math.max(0, Math.floor((bigint & 255) * factor));
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+  
+  const darkerAccentText = darkMode ? darkenColor(accent, 0.4) : accentText;
 
   const toRgba = (hex: string, opacity: number) => {
     const sanitized = hex.replace("#", "");
@@ -126,7 +139,12 @@ const ImpressionNode = ({
         }}
       >
         <div className="flex items-center justify-between gap-2">
-          <strong className="text-sm font-semibold">
+          <strong 
+            className="text-sm font-semibold"
+            style={{
+              color: darkerAccentText,
+            }}
+          >
             {`${ImpressionTextType[type]}`}
           </strong>
           <button
@@ -138,14 +156,29 @@ const ImpressionNode = ({
                 title: label,
               })
             }
-            className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs transition-colors hover:bg-white/20 flex-shrink-0"
+            className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors flex-shrink-0"
+            style={{
+              backgroundColor: darkMode ? "#924949" : "white",
+              color: darkMode ? "#e7b8b8" : "#475569",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+            }}
+            onMouseEnter={(e) => {
+              if (darkMode) {
+                e.currentTarget.style.backgroundColor = "#7a3a3a";
+              } else {
+                e.currentTarget.style.backgroundColor = "#f1f5f9";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = darkMode ? "#924949" : "white";
+            }}
             title="Open Journal"
           >
             <BookOpen size={16} />
           </button>
         </div>
 
-        <div className="text-sm leading-relaxed">
+        <div className="text-sm leading-relaxed mt-2">
           {label || "No label provided"}
         </div>
       </div>

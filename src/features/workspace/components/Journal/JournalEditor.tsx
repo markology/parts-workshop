@@ -25,6 +25,7 @@ import {
   $insertNodes,
   $createRangeSelection,
   $setSelection,
+  TextNode,
 } from "lexical";
 import {
   $patchStyleText,
@@ -600,12 +601,48 @@ function Toolbar({
       // If content was just cleared (had text, now empty), reset style & indicator
       if (!editorWasEmpty && editorIsEmpty) {
         editor.update(() => {
+          const root = $getRoot();
           const selection = $getSelection();
+          
+          // Clear all formatting by traversing all nodes recursively
+          function clearNodeFormatting(node: any) {
+            if (node instanceof TextNode) {
+              node.setStyle("");
+              node.setFormat(0);
+            }
+            const children = node.getChildren();
+            children.forEach((child: any) => clearNodeFormatting(child));
+          }
+          
+          // Clear formatting from all nodes
+          clearNodeFormatting(root);
+          
+          // Also clear formatting from the current selection if it exists
           if ($isRangeSelection(selection)) {
             $patchStyleText(selection, { color: null });
+            selection.formatText("bold", false);
+            selection.formatText("italic", false);
+            selection.formatText("underline", false);
           }
         });
+        
+        // Reset all format states and color
         setActiveColor(null);
+        setFormats({
+          bold: false,
+          italic: false,
+          underline: false,
+          list: false,
+        });
+        
+        // Clear all selected speakers when input is totally empty
+        if (selectedSpeakers && selectedSpeakers.length > 0) {
+          // Create a copy of the array to avoid mutation during iteration
+          const speakersToClear = [...selectedSpeakers];
+          speakersToClear.forEach((speakerId) => {
+            onToggleSpeaker?.(speakerId);
+          });
+        }
       }
     });
   }, [editor, setActiveColor]);
