@@ -56,7 +56,8 @@ import {
   Trash2,
   History,
   Book,
-  MessagesSquare
+  MessagesSquare,
+  Sword
 } from "lucide-react";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
@@ -136,6 +137,8 @@ const PartDetailPanel = () => {
   const [currentImpressionType, setCurrentImpressionType] = useState<string>("emotion");
   const [addingNeedsOrFears, setAddingNeedsOrFears] = useState<'needs' | 'fears' | null>(null);
   const [needsFearsInput, setNeedsFearsInput] = useState<string>("");
+  const [canAddImpression, setCanAddImpression] = useState(false);
+  const impressionAddRef = useRef<{ add: () => void; isValid: boolean } | null>(null);
   const accentHex =
     NodeBackgroundColors[
       currentImpressionType as keyof typeof NodeBackgroundColors
@@ -758,7 +761,10 @@ const PartDetailPanel = () => {
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/65 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+      style={{
+        backgroundColor: darkMode ? `${theme.modal}f2` : `${theme.modal}99`,
+      }}
       onClick={handleBackdropClick}
     >
       <div 
@@ -1355,9 +1361,12 @@ const PartDetailPanel = () => {
                       }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
                         darkMode
-                          ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
-                          : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
+                          ? "text-slate-200 hover:bg-slate-900/50"
+                          : "text-slate-600 bg-white hover:bg-slate-50"
                       }`}
+                      style={{
+                        borderColor: darkMode ? "rgba(16, 185, 129, 0.25)" : "rgba(16, 185, 129, 0.25)",
+                      }}
                     >
                       Add
                     </button>
@@ -1367,7 +1376,11 @@ const PartDetailPanel = () => {
                       <div
                         key={index}
                         className="group flex items-center justify-between rounded-lg px-3 py-2 border"
-                        style={listItemStyle}
+                        style={{
+                          ...listItemStyle,
+                          backgroundColor: darkMode ? "rgba(16, 185, 129, 0.15)" : "rgba(16, 185, 129, 0.08)",
+                          borderColor: darkMode ? "rgba(16, 185, 129, 0.3)" : "rgba(16, 185, 129, 0.25)",
+                        }}
                       >
                         <span className="text-xs font-medium leading-relaxed">{need}</span>
                         <button
@@ -1400,9 +1413,12 @@ const PartDetailPanel = () => {
                       }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
                         darkMode
-                          ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
-                          : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
+                          ? "text-slate-200 hover:bg-slate-900/50"
+                          : "text-slate-600 bg-white hover:bg-slate-50"
                       }`}
+                      style={{
+                        borderColor: darkMode ? "rgba(225, 29, 72, 0.25)" : "rgba(225, 29, 72, 0.25)",
+                      }}
                     >
                       Add
                     </button>
@@ -1412,7 +1428,11 @@ const PartDetailPanel = () => {
                       <div
                         key={index}
                         className="group flex items-center justify-between rounded-lg px-3 py-2 border"
-                        style={listItemStyle}
+                        style={{
+                          ...listItemStyle,
+                          backgroundColor: darkMode ? "rgba(225, 29, 72, 0.15)" : "rgba(225, 29, 72, 0.08)",
+                          borderColor: darkMode ? "rgba(225, 29, 72, 0.3)" : "rgba(225, 29, 72, 0.25)",
+                        }}
                       >
                         <span className="text-xs font-medium leading-relaxed">{fear}</span>
                         <button
@@ -1543,9 +1563,13 @@ const PartDetailPanel = () => {
                             })
                           ) : (
                             <div
-                              className={`rounded-xl border px-3 py-2 ${darkMode ? "border-slate-700/50 bg-slate-800/30" : "border-slate-200/50 bg-slate-50/50"}`}
+                              className="rounded-xl border px-3 py-2"
+                              style={{
+                                borderColor: theme.border,
+                                backgroundColor: darkMode ? theme.surface : theme.card,
+                              }}
                             >
-                              <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-400"}`}>
+                              <span className="text-xs" style={{ color: theme.textMuted }}>
                                 No {impression} impressions
                               </span>
                             </div>
@@ -1561,33 +1585,12 @@ const PartDetailPanel = () => {
 
           {/* Journal History Section */}
           <div ref={journalRef} className="relative space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
-                darkMode ? "text-slate-400" : "text-slate-500"
-              }`}>
-                <BookOpen className="w-3 h-3 text-amber-600" />
-                Journal
-              </h3>
-              <button
-                onClick={() => {
-                  if (selectedPartId && partNode) {
-                    setJournalTarget({
-                      type: "node",
-                      nodeId: selectedPartId,
-                      nodeType: "part",
-                      title: partNode.data?.label || "Part",
-                    });
-                  }
-                }}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium transition ${
-                  darkMode
-                    ? "bg-slate-700 text-slate-100 hover:bg-slate-600 border border-slate-600"
-                    : "bg-slate-700 text-white hover:bg-slate-800 border border-slate-600"
-                }`}
-              >
-                <span>New Entry</span>
-              </button>
-            </div>
+            <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+              darkMode ? "text-slate-400" : "text-slate-500"
+            }`}>
+              <BookOpen className="w-3 h-3 text-amber-600" />
+              Journal
+            </h3>
 
             <div className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]" style={sectionCardStyle}>
               {isLoadingJournal ? (
@@ -1610,17 +1613,54 @@ const PartDetailPanel = () => {
                     <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
                       {journalEntries.length} {journalEntries.length === 1 ? "entry" : "entries"}
                     </span>
-                    <button
-                      onClick={() => setShowJournalHistoryModal(true)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                        darkMode
-                          ? "border border-slate-700 text-slate-200 hover:bg-slate-800/60"
-                          : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      <History className="w-3.5 h-3.5" />
-                      <span>View All</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (selectedPartId && partNode) {
+                            setJournalTarget({
+                              type: "node",
+                              nodeId: selectedPartId,
+                              nodeType: "part",
+                              title: partNode.data?.label || "Part",
+                            });
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0"
+                        style={{
+                          borderColor: darkMode ? theme.border : "#e2e8f0",
+                          color: darkMode ? theme.textPrimary : "#475569",
+                          backgroundColor: darkMode ? theme.elevated : "#ffffff",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : "#ffffff";
+                        }}
+                        title="Start a new journal entry"
+                      >
+                        <Plus size={14} />
+                        New Entry
+                      </button>
+                      <button
+                        onClick={() => setShowJournalHistoryModal(true)}
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition"
+                        style={{
+                          borderColor: darkMode ? theme.border : "#e2e8f0",
+                          color: darkMode ? theme.textPrimary : "#475569",
+                          backgroundColor: darkMode ? theme.elevated : "#ffffff",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : "#ffffff";
+                        }}
+                      >
+                        <History className="w-3.5 h-3.5" />
+                        <span>View All</span>
+                      </button>
+                    </div>
                   </div>
                   {/* Show only the 2 most recent entries */}
                   <div className="space-y-3">
@@ -1795,11 +1835,18 @@ const PartDetailPanel = () => {
                                   }, 100);
                                 }
                               }}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                                darkMode
-                                  ? "bg-slate-700 border border-slate-600 text-slate-200 hover:bg-slate-600"
-                                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                              }`}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition"
+                              style={{
+                                backgroundColor: darkMode ? "transparent" : "white",
+                                borderColor: darkMode ? theme.border : "#e2e8f0",
+                                color: darkMode ? theme.textPrimary : "#475569",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = darkMode ? "transparent" : "white";
+                              }}
                               title="Open in journal"
                             >
                               <BookOpen className="w-3 h-3" />
@@ -1808,11 +1855,11 @@ const PartDetailPanel = () => {
                             <button
                               onClick={() => extractImpressionsFromEntry(entry.id)}
                               disabled={true}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50 ${
-                                darkMode
-                                  ? "bg-slate-800 text-slate-500"
-                                  : "bg-slate-200 text-slate-400"
-                              }`}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50"
+                              style={{
+                                backgroundColor: darkMode ? theme.surface : "#e2e8f0",
+                                color: darkMode ? theme.textMuted : "#94a3b8",
+                              }}
                               title="Coming soon"
                             >
                               <Sparkles className="w-3 h-3" />
@@ -1865,41 +1912,75 @@ const PartDetailPanel = () => {
                     const connectedNodes = (rel as any).connectedNodes || [];
 
                     return (
-                      <div key={rel.id} className="rounded-2xl border p-5 shadow-sm" style={subCardStyle}>
-                        <div
-                          className={`rounded-2xl border p-4 ${
-                            isTension
+                      <div
+                        key={rel.id}
+                        className="rounded-2xl border p-4"
+                        style={{
+                          borderColor: isTension
+                            ? darkMode
+                              ? "rgba(168,85,247,0.35)"
+                              : "rgba(196,181,253,0.7)"
+                            : isInteraction
                               ? darkMode
-                                ? "border-purple-500/40 bg-purple-900/25"
-                                : "border-purple-300/70 bg-purple-50/70"
-                              : isInteraction
-                                ? darkMode
-                                  ? "border-sky-500/40 bg-sky-900/25"
-                                  : "border-sky-300/70 bg-sky-50/70"
-                                : darkMode
-                                  ? "border-slate-700 bg-slate-900/40"
-                                  : "border-slate-200 bg-white"
-                          }`}
-                        >
+                                ? "rgba(59,130,246,0.35)"
+                                : "rgba(125,211,252,0.7)"
+                              : darkMode
+                                ? theme.border
+                                : "#e2e8f0",
+                          backgroundColor: isTension
+                            ? darkMode
+                              ? undefined
+                              : "rgba(247,242,255,0.7)"
+                            : isInteraction
+                              ? darkMode
+                                ? undefined
+                                : "rgba(224,242,254,0.7)"
+                              : darkMode
+                                ? theme.card
+                                : "#ffffff",
+                          background: isTension && darkMode
+                            ? "linear-gradient(140deg, rgb(42, 31, 61), rgb(39, 33, 47))"
+                            : isInteraction && darkMode
+                              ? "linear-gradient(140deg, rgb(31, 42, 61), rgb(33, 39, 47))"
+                              : undefined,
+                        }}
+                      >
                           {/* Header */}
                           <div className="flex items-start gap-3">
                             <div className="flex-1 space-y-1">
-                              <div
-                                className={`text-sm font-semibold ${
-                                  isTension
+                              <div 
+                                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em]"
+                                style={{
+                                  backgroundColor: isTension
                                     ? darkMode
-                                      ? "text-purple-100"
-                                      : "text-purple-900"
+                                      ? "rgba(168,85,247,0.2)"
+                                      : "rgba(177,156,217,0.22)"
                                     : isInteraction
                                       ? darkMode
-                                        ? "text-sky-100"
-                                        : "text-sky-900"
+                                        ? "rgba(59,130,246,0.2)"
+                                        : "rgba(135,206,235,0.25)"
                                       : darkMode
-                                        ? "text-slate-100"
-                                        : "text-slate-900"
-                                }`}
+                                        ? `${theme.surface}30`
+                                        : "#f1f5f9",
+                                  color: isTension
+                                    ? darkMode
+                                      ? "#e9d5ff"
+                                      : NodeTextColors.tension
+                                    : isInteraction
+                                      ? darkMode
+                                        ? "#dbeafe"
+                                        : NodeTextColors.interaction
+                                      : darkMode
+                                        ? theme.textPrimary
+                                        : "#1e293b",
+                                }}
                               >
-                                {rel.nodeLabel}
+                                {isTension ? (
+                                  <Sword className="w-3 h-3 flex-shrink-0" />
+                                ) : isInteraction ? (
+                                  <Users className="w-3 h-3 flex-shrink-0" />
+                                ) : null}
+                                <span>{rel.nodeLabel}</span>
                               </div>
                               {rel.nodeDescription && String(rel.nodeDescription).trim() ? (
                                 <div
@@ -1965,7 +2046,6 @@ const PartDetailPanel = () => {
                               })}
                             </div>
                           )}
-                        </div>
                       </div>
                     );
                   })}
@@ -1982,7 +2062,6 @@ const PartDetailPanel = () => {
                 </div>
               )}
             </div>
-          </div>
           </div>
         </div>
       </div>
@@ -2094,26 +2173,68 @@ const PartDetailPanel = () => {
                       }}
                       onTypeChange={(type) => setCurrentImpressionType(type)}
                       defaultType={addingImpressionType as ImpressionType}
+                      onInputChange={(value, isValid) => setCanAddImpression(isValid)}
+                      addButtonRef={impressionAddRef}
                     />
                   </div>
 
-                  <div className={`flex items-center gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                    <div className="flex items-center gap-1.5">
-                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                      }`}>
-                        Tab
-                      </kbd>
-                      <span className="text-xs">Switch types</span>
+                  <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                          darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                        }`}>
+                          Tab
+                        </kbd>
+                        <span className="text-xs">Switch types</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                          darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                        }`}>
+                          Enter
+                        </kbd>
+                        <span className="text-xs">Submit</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                      }`}>
-                        Enter
-                      </kbd>
-                      <span className="text-xs">Submit</span>
-                    </div>
+                    <button
+                      onClick={() => {
+                        if (impressionAddRef.current) {
+                          impressionAddRef.current.add();
+                        }
+                      }}
+                      disabled={!canAddImpression}
+                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{
+                        backgroundColor: canAddImpression 
+                          ? NodeBackgroundColors[currentImpressionType as keyof typeof NodeBackgroundColors]
+                          : darkMode 
+                            ? theme.elevated 
+                            : "#e2e8f0",
+                        color: canAddImpression 
+                          ? "#ffffff"
+                          : darkMode
+                            ? theme.textMuted
+                            : "#94a3b8",
+                        border: `1.5px solid ${canAddImpression 
+                          ? NodeBackgroundColors[currentImpressionType as keyof typeof NodeBackgroundColors]
+                          : darkMode
+                            ? theme.border
+                            : "#cbd5e1"}`,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (canAddImpression) {
+                          e.currentTarget.style.opacity = "0.9";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (canAddImpression) {
+                          e.currentTarget.style.opacity = "1";
+                        }
+                      }}
+                    >
+                      Add
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2142,11 +2263,14 @@ const PartDetailPanel = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                className={`relative overflow-hidden rounded-[28px] border ${
-                  darkMode
-                    ? "border-slate-700/60 bg-slate-900/85"
-                    : "border-slate-200/80 bg-white/95"
-                } shadow-[0_30px_70px_rgba(15,23,42,0.36)]`}
+                className={`relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]`}
+                style={darkMode ? {
+                  backgroundColor: theme.card,
+                  borderColor: theme.border,
+                } : {
+                  borderColor: "rgba(226, 232, 240, 0.8)",
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                }}
               >
                 <div className="relative px-8 pt-8 pb-6 space-y-7">
                   <div className="flex items-start justify-between gap-6">
@@ -2167,16 +2291,14 @@ const PartDetailPanel = () => {
                       </span>
                       <div>
                         <h3
-                          className={`text-2xl font-semibold ${
-                            darkMode ? "text-white" : "text-slate-900"
-                          }`}
+                          className="text-2xl font-semibold"
+                          style={{ color: darkMode ? theme.textPrimary : "#0f172a" }}
                         >
                           Add a new {addingNeedsOrFears === 'needs' ? 'need' : 'fear'} to {(data.name as string) || (data.label as string) || "this part"}
                         </h3>
                         <p
-                          className={`mt-2 text-sm leading-relaxed ${
-                            darkMode ? "text-slate-300" : "text-slate-600"
-                          }`}
+                          className="mt-2 text-sm leading-relaxed"
+                          style={{ color: darkMode ? theme.textSecondary : "#475569" }}
                         >
                           {addingNeedsOrFears === 'needs' 
                             ? "What does this part need to feel safe, heard, or supported?"
@@ -2189,94 +2311,130 @@ const PartDetailPanel = () => {
                         setAddingNeedsOrFears(null);
                         setNeedsFearsInput("");
                       }}
-                      className={`h-10 w-10 flex items-center justify-center rounded-full border ${
-                        darkMode
-                          ? "border-slate-700 text-slate-300 hover:bg-slate-800/70"
-                          : "border-slate-200 text-slate-500 hover:bg-slate-100"
-                      }`}
+                      className="h-10 w-10 flex items-center justify-center rounded-full border transition-colors"
+                      style={darkMode ? {
+                        borderColor: theme.border,
+                        color: theme.textSecondary,
+                      } : {
+                        borderColor: "#e2e8f0",
+                        color: "#64748b",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (darkMode) {
+                          e.currentTarget.style.backgroundColor = theme.elevated;
+                        } else {
+                          e.currentTarget.style.backgroundColor = "#f1f5f9";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
                       aria-label="Close"
                     >
                       <X size={18} />
                     </button>
                   </div>
 
-                  <div
-                    className={`rounded-2xl border px-6 py-6 shadow-inner ${
-                      addingNeedsOrFears === 'needs'
-                        ? darkMode
-                          ? "border-emerald-700/50 bg-emerald-900/20"
-                          : "border-emerald-200 bg-emerald-50/50"
-                        : darkMode
-                          ? "border-rose-700/50 bg-rose-900/20"
-                          : "border-rose-200 bg-rose-50/50"
-                    }`}
-                  >
-                    <textarea
-                      ref={(el) => {
-                        if (el) {
-                          el.focus();
-                          // Auto-resize textarea
-                          el.style.height = 'auto';
-                          el.style.height = `${el.scrollHeight}px`;
-                        }
-                      }}
-                      value={needsFearsInput}
-                      onChange={(e) => {
-                        setNeedsFearsInput(e.target.value);
-                        // Auto-resize
-                        e.target.style.height = 'auto';
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey && needsFearsInput.trim()) {
-                          e.preventDefault();
+                  <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.focus();
+                        // Auto-resize textarea
+                        el.style.height = 'auto';
+                        el.style.height = `${el.scrollHeight}px`;
+                      }
+                    }}
+                    value={needsFearsInput}
+                    onChange={(e) => {
+                      setNeedsFearsInput(e.target.value);
+                      // Auto-resize
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey && needsFearsInput.trim()) {
+                        e.preventDefault();
+                        addListItem(addingNeedsOrFears, needsFearsInput.trim());
+                        setNeedsFearsInput("");
+                        setAddingNeedsOrFears(null);
+                      }
+                      if (e.key === 'Escape') {
+                        setAddingNeedsOrFears(null);
+                        setNeedsFearsInput("");
+                      }
+                    }}
+                    placeholder={`Describe ${addingNeedsOrFears === 'needs' ? 'what this part needs' : 'what this part fears'}...`}
+                    className="w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none focus:ring-2 border"
+                    style={darkMode ? {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                      color: theme.textPrimary,
+                    } : {
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e2e8f0",
+                      color: "#0f172a",
+                    }}
+                    rows={4}
+                  />
+                  <div className="flex justify-end mt-4">
+                    <button
+                      onClick={() => {
+                        if (needsFearsInput.trim()) {
                           addListItem(addingNeedsOrFears, needsFearsInput.trim());
                           setNeedsFearsInput("");
                           setAddingNeedsOrFears(null);
                         }
-                        if (e.key === 'Escape') {
-                          setAddingNeedsOrFears(null);
-                          setNeedsFearsInput("");
+                      }}
+                      disabled={!needsFearsInput.trim()}
+                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{
+                        backgroundColor: needsFearsInput.trim()
+                          ? (addingNeedsOrFears === 'needs'
+                              ? darkMode
+                                ? "#059669"
+                                : "#10b981"
+                              : darkMode
+                                ? "#dc2626"
+                                : "#ef4444")
+                          : darkMode
+                            ? theme.elevated
+                            : "#e2e8f0",
+                        color: needsFearsInput.trim()
+                          ? "#ffffff"
+                          : darkMode
+                            ? theme.textMuted
+                            : "#94a3b8",
+                        border: `1.5px solid ${needsFearsInput.trim()
+                          ? (addingNeedsOrFears === 'needs'
+                              ? darkMode
+                                ? "#10b981"
+                                : "#059669"
+                              : darkMode
+                                ? "#ef4444"
+                                : "#dc2626")
+                          : darkMode
+                            ? theme.border
+                            : "#cbd5e1"}`,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (needsFearsInput.trim()) {
+                          e.currentTarget.style.opacity = "0.9";
                         }
                       }}
-                      placeholder={`Describe ${addingNeedsOrFears === 'needs' ? 'what this part needs' : 'what this part fears'}...`}
-                      className={`w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none focus:ring-0 border-transparent ${
-                        addingNeedsOrFears === 'needs'
-                          ? darkMode
-                            ? "bg-emerald-900/20 text-white placeholder-emerald-300/50"
-                            : "bg-emerald-50/50 text-slate-900 placeholder-slate-400"
-                          : darkMode
-                            ? "bg-rose-900/20 text-white placeholder-rose-300/50"
-                            : "bg-rose-50/50 text-slate-900 placeholder-slate-400"
-                      }`}
-                      rows={4}
-                    />
-                    <div className="flex justify-end mt-4">
-                      <button
-                        onClick={() => {
-                          if (needsFearsInput.trim()) {
-                            addListItem(addingNeedsOrFears, needsFearsInput.trim());
-                            setNeedsFearsInput("");
-                            setAddingNeedsOrFears(null);
-                          }
-                        }}
-                        disabled={!needsFearsInput.trim()}
-                        className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                          addingNeedsOrFears === 'needs'
-                            ? darkMode
-                              ? "bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-900/50 disabled:text-emerald-400/50"
-                              : "bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-200 disabled:text-emerald-400"
-                            : darkMode
-                              ? "bg-rose-600 text-white hover:bg-rose-700 disabled:bg-rose-900/50 disabled:text-rose-400/50"
-                              : "bg-rose-600 text-white hover:bg-rose-700 disabled:bg-rose-200 disabled:text-rose-400"
-                        }`}
-                      >
-                        Add {addingNeedsOrFears === 'needs' ? 'Need' : 'Fear'}
-                      </button>
-                    </div>
+                      onMouseLeave={(e) => {
+                        if (needsFearsInput.trim()) {
+                          e.currentTarget.style.opacity = "1";
+                        }
+                      }}
+                    >
+                      Add {addingNeedsOrFears === 'needs' ? 'Need' : 'Fear'}
+                    </button>
                   </div>
 
-                  <div className={`flex items-center gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  <div 
+                    className="flex items-center gap-3 flex-wrap"
+                    style={{ color: darkMode ? theme.textMuted : "#64748b" }}
+                  >
                     <div className="flex items-center gap-1.5">
                       <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
                         darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
@@ -2506,11 +2664,18 @@ const PartDetailPanel = () => {
                                   setShowJournalHistoryModal(false);
                                 }
                               }}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                                darkMode
-                                  ? "bg-slate-700 border border-slate-600 text-slate-200 hover:bg-slate-600"
-                                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                              }`}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition"
+                              style={{
+                                backgroundColor: darkMode ? "transparent" : "white",
+                                borderColor: darkMode ? theme.border : "#e2e8f0",
+                                color: darkMode ? theme.textPrimary : "#475569",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = darkMode ? "transparent" : "white";
+                              }}
                               title="Open in journal"
                             >
                               <BookOpen className="w-3 h-3" />
@@ -2519,11 +2684,11 @@ const PartDetailPanel = () => {
                             <button
                               onClick={() => extractImpressionsFromEntry(entry.id)}
                               disabled={true}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50 ${
-                                darkMode
-                                  ? "bg-slate-800 text-slate-500"
-                                  : "bg-slate-200 text-slate-400"
-                              }`}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50"
+                              style={{
+                                backgroundColor: darkMode ? theme.surface : "#e2e8f0",
+                                color: darkMode ? theme.textMuted : "#94a3b8",
+                              }}
                               title="Coming soon"
                             >
                               <Sparkles className="w-3 h-3" />
@@ -2560,6 +2725,7 @@ const PartDetailPanel = () => {
 
       
         </div>
+      </div>
     </div>
   );
 };

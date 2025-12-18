@@ -19,6 +19,7 @@ import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { ThemeName, getThemeByName } from "@/features/workspace/constants/theme";
 import { useSaveMap } from "../state/hooks/useSaveMap";
+import { useUIStore } from "../state/stores/UI";
 
 const themeDescriptions: Record<
   ThemeName,
@@ -41,6 +42,7 @@ const themeDescriptions: Record<
 const Workspace = () => {
   const isMobile = useIsMobile();
   const hasFitViewRun = useRef(false);
+  const selectedPartId = useUIStore((s) => s.selectedPartId);
   const theme = useTheme();
   const { themeName, setThemeName } = useThemeContext();
   const defaultBg = theme.workspace;
@@ -221,36 +223,37 @@ const Workspace = () => {
 
   return (
     <div id="canvas" className="h-full flex-grow relative">
-      <div 
-        className="fixed" 
-        style={{ left: "146px", bottom: "15px", zIndex: 75, pointerEvents: "auto", display: "flex", alignItems: "center" }}
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <button
-          ref={colorButtonRef}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (showColorPicker) {
-              setShowColorPicker(false);
-              return;
-            }
-            setShowColorPicker(true);
-          }}
-          className="w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center"
-          style={colorButtonStyle}
-          aria-label="Pick workspace background color"
+      {!selectedPartId && (
+        <div 
+          className="fixed" 
+          style={{ left: "146px", bottom: "15px", zIndex: 75, pointerEvents: "auto", display: "flex", alignItems: "center" }}
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
         >
-          <Paintbrush className="w-5 h-5" />
-        </button>
-        {showColorPicker && (
-          <div
-            ref={colorPickerRef}
-            className="absolute bottom-[56px] left-0 z-[80] rounded-xl shadow-2xl p-2 border"
-            style={colorPickerStyle}
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
+          <button
+            ref={colorButtonRef}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (showColorPicker) {
+                setShowColorPicker(false);
+                return;
+              }
+              setShowColorPicker(true);
+            }}
+            className="w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center"
+            style={colorButtonStyle}
+            aria-label="Pick workspace background color"
           >
+            <Paintbrush className="w-5 h-5" />
+          </button>
+          {showColorPicker && (
+            <div
+              ref={colorPickerRef}
+              className="absolute bottom-[56px] left-0 z-[80] rounded-xl shadow-2xl p-2 border"
+              style={colorPickerStyle}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
             <div className="flex items-center justify-between pb-2 px-1 mb-3">
               <div className={`flex items-center gap-2 text-sm`} style={{ color: theme.textSecondary }}>
                 <Paintbrush className="w-4 h-4" />
@@ -367,8 +370,9 @@ const Workspace = () => {
               })}
             </div>
           </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
       {!isMobile ? (
         <ReactFlow
           className="h-[4000px] w-[4000px]"

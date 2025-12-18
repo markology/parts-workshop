@@ -72,6 +72,8 @@ export default function CanvasClient({
   const theme = useTheme();
   const pathname = usePathname();
   const [sidebarImpressionType, setSidebarImpressionType] = useState<ImpressionType>("emotion");
+  const [canAddImpression, setCanAddImpression] = useState(false);
+  const impressionAddRef = useRef<{ add: () => void; isValid: boolean } | null>(null);
   const previousThemeRef = useRef<ThemeName | null>(null);
   const workspaceThemeAppliedRef = useRef(false);
   const isInWorkspaceRef = useRef(true);
@@ -454,26 +456,68 @@ export default function CanvasClient({
                   <ImpressionInput
                     onTypeChange={(type) => setSidebarImpressionType(type)}
                     defaultType={sidebarImpressionType}
+                    onInputChange={(value, isValid) => setCanAddImpression(isValid)}
+                    addButtonRef={impressionAddRef}
                   />
                 </div>
 
-                <div className={`flex items-center gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                  <div className="flex items-center gap-1.5">
-                    <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                      darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                    }`}>
-                      Tab
-                    </kbd>
-                    <span className="text-xs">Switch types</span>
+                <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                      }`}>
+                        Tab
+                      </kbd>
+                      <span className="text-xs">Switch types</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
+                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
+                      }`}>
+                        Enter
+                      </kbd>
+                      <span className="text-xs">Submit</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                      darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                    }`}>
-                      Enter
-                    </kbd>
-                    <span className="text-xs">Submit</span>
-                  </div>
+                  <button
+                    onClick={() => {
+                      if (impressionAddRef.current) {
+                        impressionAddRef.current.add();
+                      }
+                    }}
+                    disabled={!canAddImpression}
+                    className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: canAddImpression 
+                        ? NodeBackgroundColors[sidebarImpressionType]
+                        : darkMode 
+                          ? theme.elevated 
+                          : "#e2e8f0",
+                      color: canAddImpression 
+                        ? "#ffffff"
+                        : darkMode
+                          ? theme.textMuted
+                          : "#94a3b8",
+                      border: `1px solid ${canAddImpression 
+                        ? NodeBackgroundColors[sidebarImpressionType]
+                        : darkMode
+                          ? theme.border
+                          : "#cbd5e1"}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (canAddImpression) {
+                        e.currentTarget.style.opacity = "0.9";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (canAddImpression) {
+                        e.currentTarget.style.opacity = "1";
+                      }
+                    }}
+                  >
+                    Add
+                  </button>
                 </div>
               </div>
             </div>
