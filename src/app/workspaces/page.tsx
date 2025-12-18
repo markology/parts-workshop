@@ -1135,6 +1135,9 @@ export default function WorkspacesPage() {
                         if (openButton) {
                           openButton.style.backgroundImage =
                             "linear-gradient(90deg, #a855f7, #6366f1, #0ea5e9)";
+                          openButton.style.backgroundColor = "transparent";
+                          openButton.style.backgroundClip = "padding-box";
+                          openButton.style.WebkitBackgroundClip = "padding-box";
                           openButton.style.color = "white";
                           openButton.style.borderColor = "transparent";
                         }
@@ -1262,12 +1265,15 @@ export default function WorkspacesPage() {
                               e.stopPropagation();
                               handleOpenWorkspace(workspace.id);
                             }}
-                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase ${
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden ${
                               darkMode 
-                                ? 'text-slate-200 hover:text-white hover:bg-slate-800/60 border border-slate-700/60 transition-colors' 
+                                ? 'text-slate-200 hover:text-white border border-slate-700/60 transition-colors' 
                                 : 'text-slate-700 border border-slate-200'
                             }`}
-                            style={{ textTransform: 'uppercase' }}
+                            style={{ 
+                              textTransform: 'uppercase', 
+                              backgroundColor: 'transparent'
+                            }}
                             title="Open session"
                           >
                             Open
@@ -1311,6 +1317,9 @@ export default function WorkspacesPage() {
                                 ) {
                                   openButton.style.backgroundImage =
                                     "linear-gradient(90deg, #a855f7, #6366f1, #0ea5e9)";
+                                  openButton.style.backgroundColor = "transparent";
+                                  openButton.style.backgroundClip = "padding-box";
+                                  openButton.style.WebkitBackgroundClip = "padding-box";
                                   openButton.style.color = "white";
                                   openButton.style.borderColor = "transparent";
                                 }

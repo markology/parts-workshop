@@ -446,7 +446,7 @@ export default function WorkspacePage() {
               ref={searchBoxRef}
               className={`relative pointer-events-auto border-none ${
                 isSearchExpanded
-                  ? 'h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col bg-white border-gray-200 shadow-[0_18px_35px_rgba(105,99,255,0.18)]'
+                  ? `h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col bg-white border-gray-200 ${darkMode ? '' : 'shadow-[0_18px_35px_rgba(105,99,255,0.18)]'}`
                   : ''
               }`}
             >
@@ -454,7 +454,7 @@ export default function WorkspacePage() {
                 <>
                   <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
                     <div>
-                      <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? 'text-purple-500/80' : 'text-purple-500/70'}`}>
+                      <p className={`text-[11px] tracking-[0.32em] uppercase font-semibold ${darkMode ? 'text-purple-400/60' : 'text-purple-500/70'}`}>
                         Studio Assistant
                       </p>
                       <p className={`mt-3 text-sm leading-relaxed ${darkMode ? 'text-gray-600' : 'text-gray-500'}`}>

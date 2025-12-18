@@ -1310,10 +1310,10 @@ const PartDetailPanel = () => {
                             });
                           }
                         }}
-                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-slate-500/60 ${
+                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-slate-500/60 bg-transparent ${
                           darkMode
-                            ? "bg-slate-950/60 border border-slate-800 text-slate-100 placeholder:text-slate-500"
-                            : "bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400"
+                            ? "text-slate-100 placeholder:text-slate-500"
+                            : "text-slate-800 placeholder:text-slate-400"
                         }`}
                         placeholder="Add a description..."
                       />
@@ -2009,7 +2009,7 @@ const PartDetailPanel = () => {
               <div
                 className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
                 style={{
-                  backgroundColor: theme.modal,
+                  backgroundColor: theme.elevated,
                   borderColor: theme.border,
                 }}
               >

@@ -170,7 +170,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
     : "bg-white/90 border border-slate-200/70 text-slate-900 shadow-[0_26px_60px_rgba(15,23,42,0.14)]";
   const cardStyle = darkMode
     ? {
-        background: "#212529",
+        background: `linear-gradient(145deg, ${workspaceDarkPalette.elevated}, ${workspaceDarkPalette.surface})`,
         borderColor: "rgba(255,255,255,0.06)",
       }
     : undefined;

@@ -1189,7 +1189,7 @@ export default function JournalDrawer() {
           <div 
             className="rounded-xl border px-3.5 py-3 text-base leading-relaxed shadow-sm"
             style={{
-              backgroundColor: theme.card,
+              backgroundColor: theme.surface,
               borderColor: theme.border,
               color: theme.textPrimary,
             }}
@@ -1417,7 +1417,7 @@ export default function JournalDrawer() {
                   style={{
                     backgroundColor: theme.card,
                     color: theme.textPrimary,
-                    border: darkMode ? "1px solid #ef4444" : "none",
+                    border: darkMode && showLeftPanel ? "1px solid #ef4444" : "none",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = theme.buttonHover;

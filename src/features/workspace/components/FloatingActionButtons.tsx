@@ -999,7 +999,7 @@ const FloatingActionButtons = () => {
             left: `${chatboxPosition.left}px`
           }}
         >
-          <div className="relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col shadow-[0_18px_35px_rgba(105,99,255,0.18)]"
+          <div className={`relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col ${darkMode ? "" : "shadow-[0_18px_35px_rgba(105,99,255,0.18)]"}`}
             style={{ 
               backgroundColor: theme.modal, 
               borderColor: theme.border 
@@ -1022,7 +1022,9 @@ const FloatingActionButtons = () => {
 
             <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
               <div>
-                <p className={`text-[11px] tracking-[0.32em] uppercase ${darkMode ? "text-purple-500/80" : "text-purple-500/70"}`}>
+                <p 
+                  className={`text-[11px] tracking-[0.32em] uppercase font-semibold ${darkMode ? "text-purple-400/60" : "text-purple-500/70"}`}
+                >
                   Studio Assistant
                 </p>
                 <p className="mt-3 text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
@@ -1040,12 +1042,17 @@ const FloatingActionButtons = () => {
                       className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                         message.role === "user"
                           ? "bg-purple-500 text-white"
+                          : ""
+                      }`}
+                      style={
+                        message.role === "user"
+                          ? undefined
                           : {
-                              backgroundColor: theme.elevated,
+                              backgroundColor: darkMode ? theme.surface : theme.elevated,
                               color: theme.textPrimary,
                               borderColor: theme.border,
                             }
-                      }`}
+                      }
                     >
                       {message.content.trim().length > 0 ? message.content : "..."}
                     </div>

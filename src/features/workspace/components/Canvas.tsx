@@ -223,7 +223,7 @@ const Workspace = () => {
     <div id="canvas" className="h-full flex-grow relative">
       <div 
         className="fixed" 
-        style={{ left: "146px", bottom: "15px", zIndex: 200, pointerEvents: "auto", display: "flex", alignItems: "center" }}
+        style={{ left: "146px", bottom: "15px", zIndex: 75, pointerEvents: "auto", display: "flex", alignItems: "center" }}
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -246,7 +246,7 @@ const Workspace = () => {
         {showColorPicker && (
           <div
             ref={colorPickerRef}
-            className="absolute bottom-[56px] left-0 z-[205] rounded-xl shadow-2xl p-2 border"
+            className="absolute bottom-[56px] left-0 z-[80] rounded-xl shadow-2xl p-2 border"
             style={colorPickerStyle}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
@@ -446,15 +446,15 @@ const Workspace = () => {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          box-shadow: 0 12px 28px rgba(0,0,0,0.55);
-          border: 1px solid ${theme.border};
+          box-shadow: none !important;
+          border: none !important;
           background: ${theme.surface};
           color: ${theme.textSecondary};
-          transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+          transition: transform 150ms ease, background 150ms ease, color 150ms ease;
         }
         .react-flow__controls button:hover {
-          background: ${theme.accent};
-          border-color: ${theme.border};
+          transform: scale(1.05);
+          background: ${theme.surface};
           color: ${theme.textPrimary};
         }
       `}</style>

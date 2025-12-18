@@ -8,7 +8,6 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/next"
-import ThemeDebug from "@/components/ThemeDebug";
 
 export default function AuthAndThemeProvider({
   children,
@@ -26,7 +25,6 @@ export default function AuthAndThemeProvider({
           <Toaster position="bottom-right" />
         </QueryClientProvider>
         <Analytics />
-        <ThemeDebug />
       </ThemeContextProvider>
     </PostHogProvider>
   );

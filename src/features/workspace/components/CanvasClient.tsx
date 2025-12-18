@@ -393,7 +393,7 @@ export default function CanvasClient({
             <div
               className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
               style={{
-                backgroundColor: theme.modal,
+                backgroundColor: theme.elevated,
                 borderColor: theme.border,
               }}
             >
