@@ -110,10 +110,12 @@ export default async function handler(
       const sidebarImpressionsData = {
         ...sidebarImpressionsWithBg,
         _metadata: {
-          ...(typeof sidebarImpressionsWithBg === 'object' && '_metadata' in sidebarImpressionsWithBg 
-            ? (sidebarImpressionsWithBg as any)._metadata 
+          ...(typeof sidebarImpressionsWithBg === "object" &&
+          "_metadata" in sidebarImpressionsWithBg
+            ? (sidebarImpressionsWithBg as any)._metadata
             : {}),
           workspaceBgColor: body.workspaceBgColor,
+          themeName: body.themeName,
         },
       };
 

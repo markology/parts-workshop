@@ -24,6 +24,8 @@ import { ImpressionTextType, ImpressionType } from "../types/Impressions";
 import { Sparkles, X } from "lucide-react";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
+import type { ThemeName } from "@/features/workspace/constants/theme";
+import { usePathname } from "next/navigation";
 // import TourOverlay from "./TourOverlay";
 
 // Function to normalize sidebarImpressions data structure
@@ -66,9 +68,21 @@ export default function CanvasClient({
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
-  const { darkMode } = useThemeContext();
+  const { darkMode, themeName, setThemeName } = useThemeContext();
   const theme = useTheme();
+  const pathname = usePathname();
   const [sidebarImpressionType, setSidebarImpressionType] = useState<ImpressionType>("emotion");
+  const previousThemeRef = useRef<ThemeName | null>(null);
+  const workspaceThemeAppliedRef = useRef(false);
+  const isInWorkspaceRef = useRef(true);
+  const prevPathnameRef = useRef<string | null>(null);
+  const isRestoringThemeRef = useRef(false);
+  const setThemeNameRef = useRef(setThemeName);
+  
+  // Keep ref updated with latest setThemeName
+  useEffect(() => {
+    setThemeNameRef.current = setThemeName;
+  }, [setThemeName]);
 
   useEffect(() => {
     if (showImpressionModal) {
@@ -137,10 +151,13 @@ export default function CanvasClient({
 
       // Extract workspaceBgColor from sidebarImpressions metadata if it exists
       const sidebarImpressionsData = data.sidebarImpressions || {};
-      const metadata = (typeof sidebarImpressionsData === 'object' && '_metadata' in sidebarImpressionsData)
-        ? (sidebarImpressionsData as any)._metadata
-        : {};
+      const metadata =
+        typeof sidebarImpressionsData === "object" &&
+        "_metadata" in sidebarImpressionsData
+          ? (sidebarImpressionsData as any)._metadata
+          : {};
       const workspaceBgColor = metadata?.workspaceBgColor;
+      const mapThemeName = metadata?.themeName as ThemeName | undefined;
 
       // Then set the new map data
       useWorkingStore.getState().setState({
@@ -153,9 +170,135 @@ export default function CanvasClient({
         hydrated: true,
       });
 
+      // Store the current global theme before applying workspace theme (only once per workspace load)
+      // This is the theme that was active BEFORE entering the workspace
+      if (!previousThemeRef.current) {
+        // Get the actual global theme (not workspace theme) from localStorage
+        const globalThemeName = localStorage.getItem("themeName") as ThemeName | null;
+        const themeGlobal = localStorage.getItem("themeGlobal");
+        
+        if (themeGlobal === "1" && globalThemeName && ["light", "dark", "red"].includes(globalThemeName)) {
+          // User has a saved global theme
+          previousThemeRef.current = globalThemeName;
+        } else {
+          // No global preference, use browser preference
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          previousThemeRef.current = prefersDark ? "dark" : "light";
+        }
+        console.log(`[Workspace] Stored global theme for restore: ${previousThemeRef.current}`);
+      }
+
+      // If the map has a saved theme, prefer that over system/default
+      // Workspace themes ALWAYS override global themes
+      if (mapThemeName && ["light", "dark", "red"].includes(mapThemeName)) {
+        // Map-specific theme: do NOT persist as global preference
+        console.log(`[Workspace] Applying workspace theme: ${mapThemeName} (overrides global)`);
+        setThemeName(mapThemeName, false);
+        workspaceThemeAppliedRef.current = true;
+      } else {
+        // No workspace theme saved - on first load, set it to dark or light based on current mode
+        if (!workspaceThemeAppliedRef.current) {
+          const defaultWorkspaceTheme: ThemeName = darkMode ? "dark" : "light";
+          console.log(`[Workspace] No workspace theme found, setting to ${defaultWorkspaceTheme} based on mode`);
+          setThemeName(defaultWorkspaceTheme, false);
+          workspaceThemeAppliedRef.current = true;
+          
+          // Save this default theme to the map
+          const sidebarImpressionsData = {
+            ...normalizedSidebarImpressions,
+            _metadata: {
+              ...(typeof normalizedSidebarImpressions === "object" &&
+              "_metadata" in normalizedSidebarImpressions
+                ? (normalizedSidebarImpressions as any)._metadata
+                : {}),
+              workspaceBgColor: workspaceBgColor || undefined,
+              themeName: defaultWorkspaceTheme,
+            },
+          };
+          
+          // Save asynchronously (don't block rendering)
+          setTimeout(async () => {
+            try {
+              await fetch(`/api/maps/${data.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  nodes: data.nodes || [],
+                  edges: data.edges || [],
+                  sidebarImpressions: sidebarImpressionsData,
+                  workspaceBgColor: workspaceBgColor || undefined,
+                  themeName: defaultWorkspaceTheme,
+                }),
+              });
+              console.log(`[Workspace] Saved default workspace theme: ${defaultWorkspaceTheme}`);
+            } catch (error) {
+              console.error("Failed to save default workspace theme:", error);
+            }
+          }, 100);
+        } else {
+          console.log(`[Workspace] No workspace theme found, using global theme`);
+        }
+      }
+
       setHydrated(true); // ✅ only now render FlowNodesProvider
     }
   }, [data, mapId]); // Added mapId dependency to ensure re-hydration on map change
+
+  // Restore global theme when leaving workspace (on route change)
+  useEffect(() => {
+    // Check if we're navigating away from workspace
+    const isWorkspaceRoute = pathname?.startsWith("/workspace/");
+    const wasWorkspaceRoute = prevPathnameRef.current?.startsWith("/workspace/");
+    
+    // If we were in a workspace and now we're not, restore the global theme
+    // Use a guard to prevent multiple restorations
+    if (wasWorkspaceRoute && !isWorkspaceRoute && workspaceThemeAppliedRef.current && previousThemeRef.current && !isRestoringThemeRef.current) {
+      isRestoringThemeRef.current = true;
+      console.log(`[Workspace] Route changed away from workspace, restoring global theme: ${previousThemeRef.current}`);
+      const themeToRestore = previousThemeRef.current;
+      const isDark = themeToRestore === "dark";
+      
+      // Update HTML class IMMEDIATELY so PageLoader reads the correct mode
+      document.documentElement.classList.remove("light", "dark");
+      document.documentElement.classList.add(isDark ? "dark" : "light");
+      console.log(`[Workspace] Updated HTML class immediately to: ${isDark ? "dark" : "light"}`);
+      
+      // Reset refs first to prevent re-triggering
+      previousThemeRef.current = null;
+      workspaceThemeAppliedRef.current = false;
+      // Then restore theme (use setTimeout to avoid state update during render)
+      setTimeout(() => {
+        setThemeNameRef.current(themeToRestore, false);
+        isRestoringThemeRef.current = false;
+      }, 0);
+    }
+    
+    // If we're entering a workspace, reset the restoration guard
+    if (isWorkspaceRoute && !wasWorkspaceRoute) {
+      isRestoringThemeRef.current = false;
+    }
+    
+    prevPathnameRef.current = pathname;
+  }, [pathname]); // Only watch pathname
+
+  // Separate effect for cleanup on unmount
+  useEffect(() => {
+    isInWorkspaceRef.current = true;
+    
+    return () => {
+      isInWorkspaceRef.current = false;
+      // On unmount, restore the previous global theme if we applied a workspace theme
+      if (workspaceThemeAppliedRef.current && previousThemeRef.current) {
+        console.log(`[Workspace] Unmounting, restoring global theme: ${previousThemeRef.current}`);
+        const themeToRestore = previousThemeRef.current;
+        // Reset refs first to prevent re-triggering
+        previousThemeRef.current = null;
+        workspaceThemeAppliedRef.current = false;
+        // Then restore theme
+        setThemeName(themeToRestore, false);
+      }
+    };
+  }, [mapId]); // Only run cleanup when mapId changes (entering new workspace)
 
   // Cleanup effect to clear store when component unmounts or mapId changes
   useEffect(() => {

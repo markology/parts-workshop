@@ -17,6 +17,8 @@ import {
   WalletCards,
 } from "lucide-react";
 import PageLoader from "@/components/PageLoader";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 type AccountUser = {
   id: string;
@@ -30,6 +32,8 @@ type AccountUser = {
 const AccountPageClient = () => {
   const router = useRouter();
   const { status, update } = useSession();
+  const theme = useTheme();
+  const { darkMode } = useThemeContext();
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<AccountUser | null>(null);
@@ -203,27 +207,40 @@ const AccountPageClient = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900">
+    <div 
+      className="min-h-screen"
+      style={{
+        background: darkMode 
+          ? `linear-gradient(to bottom, ${theme.workspace}, ${theme.surface})`
+          : "linear-gradient(to bottom, #f8fafc, #ffffff, #f1f5f9)",
+        color: theme.textPrimary,
+      }}
+    >
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm transition hover:-translate-y-px hover:shadow"
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.card,
+                color: theme.textPrimary,
+              }}
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm shadow-sm transition hover:-translate-y-px hover:shadow"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
             </button>
             <div>
-              <h1 className="text-xl font-semibold text-slate-900">
+              <h1 style={{ color: theme.textPrimary }} className="text-xl font-semibold">
                 Account settings
               </h1>
-              <p className="text-sm text-slate-500">
+              <p style={{ color: theme.textSecondary }} className="text-sm">
                 Update your sign-in details, billing, and security.
               </p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500">
+          <div style={{ color: theme.textSecondary }} className="hidden sm:flex items-center gap-2 text-sm">
             <ShieldCheck className="h-4 w-4 text-emerald-500" />
             Secure area
           </div>
@@ -231,14 +248,20 @@ const AccountPageClient = () => {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+            <div 
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.card,
+              }}
+              className="rounded-2xl border p-6 shadow-sm"
+            >
               <div className="flex items-center gap-2">
-                <UserIcon className="h-5 w-5 text-slate-500" />
+                <UserIcon style={{ color: theme.textSecondary }} className="h-5 w-5" />
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">
+                  <h2 style={{ color: theme.textPrimary }} className="text-lg font-semibold">
                     Profile
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p style={{ color: theme.textSecondary }} className="text-sm">
                     Update your email and display name.
                   </p>
                 </div>
@@ -246,33 +269,41 @@ const AccountPageClient = () => {
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
                     Email
                   </span>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Mail style={{ color: theme.textMuted }} className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-10 py-2 text-sm text-slate-800 outline-none ring-2 ring-transparent transition focus:border-slate-300 focus:ring-sky-100"
-                      placeholder="you@example.com"
+                      style={{
+                        borderColor: theme.border,
+                        backgroundColor: theme.surface,
+                        color: theme.textPrimary,
+                      }}
+                      className="w-full rounded-lg border px-10 py-2 text-sm outline-none ring-2 ring-transparent transition focus:ring-2"
                     />
                   </div>
                 </label>
 
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
                     Username
                   </span>
                   <div className="relative">
-                    <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <UserIcon style={{ color: theme.textMuted }} className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-10 py-2 text-sm text-slate-800 outline-none ring-2 ring-transparent transition focus:border-slate-300 focus:ring-sky-100"
-                      placeholder="Your display name"
+                      style={{
+                        borderColor: theme.border,
+                        backgroundColor: theme.surface,
+                        color: theme.textPrimary,
+                      }}
+                      className="w-full rounded-lg border px-10 py-2 text-sm outline-none ring-2 ring-transparent transition focus:ring-2"
                     />
                   </div>
                 </label>
@@ -282,7 +313,11 @@ const AccountPageClient = () => {
                 <button
                   onClick={handleProfileSave}
                   disabled={profileSaving}
-                  className="inline-flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  style={{
+                    backgroundColor: profileSaving ? theme.buttonActive : theme.button,
+                    color: theme.buttonText,
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {profileSaving ? (
                     <>
@@ -293,20 +328,26 @@ const AccountPageClient = () => {
                     "Save changes"
                   )}
                 </button>
-                <p className="text-xs text-slate-500">
+                <p style={{ color: theme.textMuted }} className="text-xs">
                   These details are used for sign-in and receipts.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+            <div 
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.card,
+              }}
+              className="rounded-2xl border p-6 shadow-sm"
+            >
               <div className="flex items-center gap-2">
-                <Lock className="h-5 w-5 text-slate-500" />
+                <Lock style={{ color: theme.textSecondary }} className="h-5 w-5" />
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">
+                  <h2 style={{ color: theme.textPrimary }} className="text-lg font-semibold">
                     Password
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p style={{ color: theme.textSecondary }} className="text-sm">
                     {hasPassword
                       ? "Change your password to keep your account secure."
                       : "Set a password so you can also sign in with email."}
@@ -317,41 +358,56 @@ const AccountPageClient = () => {
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {hasPassword && (
                   <label className="flex flex-col gap-2">
-                    <span className="text-sm font-medium text-slate-700">
+                    <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
                       Current password
                     </span>
                     <input
                       type="password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 outline-none ring-2 ring-transparent transition focus:border-slate-300 focus:ring-sky-100"
+                      style={{
+                        borderColor: theme.border,
+                        backgroundColor: theme.surface,
+                        color: theme.textPrimary,
+                      }}
+                      className="w-full rounded-lg border px-4 py-2 text-sm outline-none ring-2 ring-transparent transition focus:ring-2"
                       placeholder="••••••••"
                     />
                   </label>
                 )}
 
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
                     New password
                   </span>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 outline-none ring-2 ring-transparent transition focus:border-slate-300 focus:ring-sky-100"
+                    style={{
+                      borderColor: theme.border,
+                      backgroundColor: theme.surface,
+                      color: theme.textPrimary,
+                    }}
+                    className="w-full rounded-lg border px-4 py-2 text-sm outline-none ring-2 ring-transparent transition focus:ring-2"
                     placeholder="At least 8 characters"
                   />
                 </label>
 
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
                     Confirm new password
                   </span>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 outline-none ring-2 ring-transparent transition focus:border-slate-300 focus:ring-sky-100"
+                    style={{
+                      borderColor: theme.border,
+                      backgroundColor: theme.surface,
+                      color: theme.textPrimary,
+                    }}
+                    className="w-full rounded-lg border px-4 py-2 text-sm outline-none ring-2 ring-transparent transition focus:ring-2"
                     placeholder="Re-enter password"
                   />
                 </label>
@@ -361,7 +417,11 @@ const AccountPageClient = () => {
                 <button
                   onClick={handlePasswordSave}
                   disabled={passwordSaving}
-                  className="inline-flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  style={{
+                    backgroundColor: passwordSaving ? theme.buttonActive : theme.button,
+                    color: theme.buttonText,
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {passwordSaving ? (
                     <>
@@ -372,7 +432,7 @@ const AccountPageClient = () => {
                     "Update password"
                   )}
                 </button>
-                <p className="text-xs text-slate-500">
+                <p style={{ color: theme.textMuted }} className="text-xs">
                   {hasPassword
                     ? "Use a unique password you don't reuse elsewhere."
                     : "Optional, but recommended for email sign-in."}
@@ -382,92 +442,132 @@ const AccountPageClient = () => {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+            <div 
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.card,
+              }}
+              className="rounded-2xl border p-6 shadow-sm"
+            >
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
                 <div>
-                  <h3 className="text-base font-semibold text-slate-900">
+                  <h3 style={{ color: theme.textPrimary }} className="text-base font-semibold">
                     Account overview
                   </h3>
-                  <p className="text-sm text-slate-500">
+                  <p style={{ color: theme.textSecondary }} className="text-sm">
                     Your sign-in details at a glance.
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 space-y-3 text-sm">
-                <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <span className="text-slate-600">Email</span>
-                  <span className="font-medium text-slate-900">{email}</span>
+                <div style={{ backgroundColor: theme.surface }} className="flex items-center justify-between rounded-lg px-3 py-2">
+                  <span style={{ color: theme.textSecondary }}>Email</span>
+                  <span style={{ color: theme.textPrimary }} className="font-medium">{email}</span>
                 </div>
-                <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <span className="text-slate-600">Username</span>
-                  <span className="font-medium text-slate-900">
+                <div style={{ backgroundColor: theme.surface }} className="flex items-center justify-between rounded-lg px-3 py-2">
+                  <span style={{ color: theme.textSecondary }}>Username</span>
+                  <span style={{ color: theme.textPrimary }} className="font-medium">
                     {name || "Not set"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <span className="text-slate-600">Created</span>
-                  <span className="font-medium text-slate-900">
+                <div style={{ backgroundColor: theme.surface }} className="flex items-center justify-between rounded-lg px-3 py-2">
+                  <span style={{ color: theme.textSecondary }}>Created</span>
+                  <span style={{ color: theme.textPrimary }} className="font-medium">
                     {formattedCreatedAt || "—"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <span className="text-slate-600">Password</span>
-                  <span className="font-medium text-slate-900">
+                <div style={{ backgroundColor: theme.surface }} className="flex items-center justify-between rounded-lg px-3 py-2">
+                  <span style={{ color: theme.textSecondary }}>Password</span>
+                  <span style={{ color: theme.textPrimary }} className="font-medium">
                     {hasPassword ? "Set" : "Not set"}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+            <div 
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.card,
+              }}
+              className="rounded-2xl border p-6 shadow-sm"
+            >
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-sky-500" />
                 <div>
-                  <h3 className="text-base font-semibold text-slate-900">
+                  <h3 style={{ color: theme.textPrimary }} className="text-base font-semibold">
                     Subscriptions
                   </h3>
-                  <p className="text-sm text-slate-500">
+                  <p style={{ color: theme.textSecondary }} className="text-sm">
                     Flexible plans to fit your practice. Coming soon.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 space-y-3 text-sm text-slate-600">
-                <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-3 py-2">
+              <div className="mt-4 space-y-3 text-sm">
+                <div 
+                  style={{
+                    borderColor: theme.border,
+                    backgroundColor: theme.surface,
+                    color: theme.textSecondary,
+                  }}
+                  className="rounded-lg border border-dashed px-3 py-2"
+                >
                   Personalized tiers, team seats, and usage controls are on the
                   way.
                 </div>
                 <button
                   disabled
-                  className="w-full cursor-not-allowed rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-600"
+                  style={{
+                    backgroundColor: theme.buttonActive,
+                    color: theme.textMuted,
+                  }}
+                  className="w-full cursor-not-allowed rounded-lg px-4 py-2 text-sm font-medium"
                 >
                   Subscriptions coming soon
                 </button>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+            <div 
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.card,
+              }}
+              className="rounded-2xl border p-6 shadow-sm"
+            >
               <div className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-indigo-500" />
                 <div>
-                  <h3 className="text-base font-semibold text-slate-900">
+                  <h3 style={{ color: theme.textPrimary }} className="text-base font-semibold">
                     Payment methods
                   </h3>
-                  <p className="text-sm text-slate-500">
+                  <p style={{ color: theme.textSecondary }} className="text-sm">
                     Save cards for one-click checkout. Coming soon.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center gap-3 rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-600">
+              <div 
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.surface,
+                  color: theme.textSecondary,
+                }}
+                className="mt-4 flex items-center gap-3 rounded-lg border border-dashed px-3 py-2 text-sm"
+              >
                 <WalletCards className="h-4 w-4 text-indigo-500" />
                 <span>We'll add cards, receipts, and billing contacts here.</span>
               </div>
               <button
                 disabled
-                className="mt-3 w-full cursor-not-allowed rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-600"
+                style={{
+                  backgroundColor: theme.buttonActive,
+                  color: theme.textMuted,
+                }}
+                className="mt-3 w-full cursor-not-allowed rounded-lg px-4 py-2 text-sm font-medium"
               >
                 Payment options coming soon
               </button>
@@ -475,14 +575,20 @@ const AccountPageClient = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
+        <div 
+          style={{
+            borderColor: darkMode ? "rgba(239, 68, 68, 0.3)" : "#fecaca",
+            backgroundColor: darkMode ? "rgba(127, 29, 29, 0.2)" : "#fef2f2",
+          }}
+          className="rounded-2xl border p-6 shadow-sm"
+        >
           <div className="flex items-center gap-2">
             <Trash2 className="h-5 w-5 text-red-500" />
             <div>
-              <h3 className="text-base font-semibold text-red-700">
+              <h3 className="text-base font-semibold text-red-700 dark:text-red-400">
                 Delete account
               </h3>
-              <p className="text-sm text-red-600">
+              <p className="text-sm text-red-600 dark:text-red-300">
                 Permanently remove your account and all associated data.
               </p>
             </div>
@@ -494,7 +600,12 @@ const AccountPageClient = () => {
               value={deleteConfirm}
               onChange={(e) => setDeleteConfirm(e.target.value)}
               placeholder='Type "DELETE" to confirm'
-              className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm text-red-700 outline-none ring-2 ring-transparent transition focus:border-red-300 focus:ring-red-100"
+              style={{
+                borderColor: darkMode ? "rgba(239, 68, 68, 0.3)" : "#fecaca",
+                backgroundColor: theme.surface,
+                color: theme.textPrimary,
+              }}
+              className="rounded-lg border px-4 py-2 text-sm outline-none ring-2 ring-transparent transition focus:ring-2"
             />
             <button
               onClick={handleDelete}
@@ -511,7 +622,7 @@ const AccountPageClient = () => {
               )}
             </button>
           </div>
-          <p className="mt-2 text-xs text-red-600">
+          <p className="mt-2 text-xs text-red-600 dark:text-red-400">
             This action cannot be undone and will log you out immediately.
           </p>
         </div>
@@ -521,4 +632,3 @@ const AccountPageClient = () => {
 };
 
 export default AccountPageClient;
-

@@ -19,6 +19,25 @@ import { Paintbrush } from "lucide-react";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { ThemeName, getThemeByName } from "@/features/workspace/constants/theme";
+import { useSaveMap } from "../state/hooks/useSaveMap";
+
+const themeDescriptions: Record<
+  ThemeName,
+  { label: string; description: string }
+> = {
+  light: {
+    label: "Light",
+    description: "White canvas, foggy blues, charcoal text",
+  },
+  dark: {
+    label: "Dark",
+    description: "Graphite canvas with teal accents",
+  },
+  red: {
+    label: "Cherry",
+    description: "Crimson cards with white text",
+  },
+};
 
 const Workspace = () => {
   const isMobile = useIsMobile();
@@ -33,6 +52,7 @@ const Workspace = () => {
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const colorButtonRef = useRef<HTMLButtonElement>(null);
   const hasDispatchedDragClose = useRef(false);
+  const saveMap = useSaveMap();
   // Call auto-save inside ReactFlow context
   useAutoSave();
 
@@ -196,6 +216,8 @@ const Workspace = () => {
     borderColor: theme.border,
     color: theme.textPrimary,
     boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
+    width: 320,
+    maxWidth: 320,
   };
 
   const resetButtonStyle = {
@@ -243,20 +265,62 @@ const Workspace = () => {
             </div>
             
             {/* Theme Selection */}
-            <div className="space-y-1 mb-4">
-              {(['light', 'dark', 'red'] as ThemeName[]).map((option) => {
+            <div className="space-y-2 mb-4">
+              {(["light", "dark", "red"] as ThemeName[]).map((option) => {
                 const isActive = themeName === option;
+                const optionTheme = getThemeByName(option);
+                const previewSwatches = [
+                  optionTheme.workspace,
+                  optionTheme.card,
+                  optionTheme.accent,
+                ];
                 return (
                   <button
                     key={option}
-                    onClick={() => {
-                      setThemeName(option);
-                      setWorkspaceBgColor(getThemeByName(option).workspace);
+                    onClick={async () => {
+                      // Workspace-specific theme: do NOT persist as global site preference
+                      setThemeName(option, false);
+                      setWorkspaceBgColor(optionTheme.workspace);
+                      
+                      // Save workspace theme to map immediately
+                      if (mapId) {
+                        const { nodes, edges, sidebarImpressions } = useWorkingStore.getState();
+                        const sidebarImpressionsData = {
+                          ...sidebarImpressions,
+                          _metadata: {
+                            ...(typeof sidebarImpressions === "object" &&
+                            "_metadata" in sidebarImpressions
+                              ? (sidebarImpressions as any)._metadata
+                              : {}),
+                            workspaceBgColor: optionTheme.workspace,
+                            themeName: option,
+                          },
+                        };
+                        
+                        try {
+                          await fetch(`/api/maps/${mapId}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              nodes,
+                              edges,
+                              sidebarImpressions: sidebarImpressionsData,
+                              workspaceBgColor: optionTheme.workspace,
+                              themeName: option,
+                            }),
+                          });
+                          console.log(`[Workspace] Saved workspace theme: ${option}`);
+                        } catch (error) {
+                          console.error("Failed to save workspace theme:", error);
+                        }
+                      }
                     }}
-                    className="w-full text-left px-3 py-2 text-sm rounded transition-colors flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 text-sm rounded-2xl flex items-center gap-3 border transition-all"
                     style={{
-                      backgroundColor: isActive ? theme.accent : 'transparent',
+                      backgroundColor: isActive ? theme.elevated : theme.surface,
+                      borderColor: isActive ? theme.accent : theme.border,
                       color: theme.textPrimary,
+                      boxShadow: isActive ? "0 12px 28px rgba(0,0,0,0.35)" : "none",
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
@@ -265,13 +329,44 @@ const Workspace = () => {
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.backgroundColor = theme.surface;
                       }
                     }}
                   >
-                    <span className="capitalize">{option}</span>
+                    <div className="flex gap-1.5">
+                      {previewSwatches.map((color, idx) => (
+                        <span
+                          key={`${option}-${idx}`}
+                          className="h-7 w-4 rounded-full border"
+                          style={{
+                            backgroundColor: color,
+                            borderColor: theme.border,
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="font-semibold capitalize">
+                        {themeDescriptions[option].label}
+                      </span>
+                      <span
+                        className="text-xs truncate"
+                        style={{ color: theme.textSecondary }}
+                      >
+                        {themeDescriptions[option].description}
+                      </span>
+                    </div>
                     {isActive && (
-                      <span className="ml-auto text-xs">✓</span>
+                      <span
+                        className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
+                        style={{
+                          backgroundColor: optionTheme.button,
+                          color: optionTheme.buttonText,
+                          borderColor: optionTheme.accent,
+                        }}
+                      >
+                        Active
+                      </span>
                     )}
                   </button>
                 );
@@ -300,13 +395,16 @@ const Workspace = () => {
                   Reset
                 </button>
               </div>
-              <div style={{ 
-                position: 'relative', 
-                zIndex: 1000,
-                backgroundColor: theme.surface,
-                borderRadius: '8px',
-                padding: '4px',
-              }}>
+              <div
+                style={{ 
+                  position: 'relative', 
+                  zIndex: 1000,
+                  backgroundColor: theme.surface,
+                  borderRadius: '8px',
+                  padding: '4px',
+                  width: '100%',
+                }}
+              >
                 <ChromePicker
                   color={workspaceBgColor}
                   onChange={(color: ColorResult) => {
@@ -406,6 +504,9 @@ const Workspace = () => {
           background: ${theme.accent};
           border-color: ${theme.border};
           color: ${theme.textPrimary};
+        }
+        .chrome-picker {
+          width: 100% !important;
         }
       `}</style>
     </div>

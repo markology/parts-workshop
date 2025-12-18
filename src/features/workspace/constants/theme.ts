@@ -105,9 +105,10 @@ export const lightTheme: ColorGroup = {
   borderSubtle: "rgba(0, 0, 0, 0.05)",
   
   // Accents
-  accent: "#6366f1",
-  accentHover: "#818cf8",
-  accentActive: "#4f46e5",
+  // Use a blue accent so the theme reads as white/blue/charcoal
+  accent: "#3b82f6",       // blue-500
+  accentHover: "#60a5fa",  // blue-400
+  accentActive: "#2563eb", // blue-600
   
   // Status
   success: "#10b981",
@@ -137,6 +138,10 @@ export const redTheme: ColorGroup = {
   textPrimary: "#ffffff",
   textSecondary: "rgba(255, 255, 255, 0.7)",
   textMuted: "rgba(255, 255, 255, 0.5)",
+  // Accents - cherry reds instead of inherited purple
+  accent: "#f97373",
+  accentHover: "#fb7185",
+  accentActive: "#ef4444",
 };
 
 // Theme registry

@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkingStore } from "../stores/useWorkingStore";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 export const useSaveMap = () => {
   const queryClient = useQueryClient();
+  const { themeName } = useThemeContext();
 
   return useMutation({
     mutationFn: async () => {
@@ -17,6 +19,7 @@ export const useSaveMap = () => {
           edges,
           sidebarImpressions,
           workspaceBgColor,
+          themeName,
         }),
       });
 

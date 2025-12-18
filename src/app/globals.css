@@ -183,11 +183,11 @@
 }
 
 p {
-  font-family: var(--font-lato);
+  font-family: var(--font-inter);
 }
 
 p:not([class*="font-bold"]):not([class*="font-semibold"]):not([class*="font-medium"]):not([class*="font-weight"]) {
-  font-family: var(--font-lato);
+  font-family: var(--font-inter);
   font-weight: 400;
 }
 
