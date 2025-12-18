@@ -443,12 +443,19 @@ export default function JournalDrawer() {
     // Only clear if we're switching to a different node
     if (previousNodeIdRef.current !== undefined && previousNodeIdRef.current !== nodeId) {
       setJournalData("");
-      loadEntry({ entryId: null, content: "", speakers: [] });
+      // For impressions, default to only "self" in speakers
+      const defaultSpeakers = isImpressionJournal ? ["self"] : [];
+      loadEntry({ entryId: null, content: "", speakers: defaultSpeakers });
       setJournalMode(null); // Reset mode when switching nodes
     }
     
     previousNodeIdRef.current = nodeId;
   }, [nodeId, isOpen, journalTarget, setJournalData, loadEntry]);
+
+  // Check if current journal target is an impression
+  const isImpressionJournal = useMemo(() => {
+    return nodeType && IMPRESSION_NODE_TYPES.includes(nodeType as ImpressionType);
+  }, [nodeType]);
 
   // Show mode selection when opening journal with no specific entry
   useEffect(() => {
@@ -457,11 +464,20 @@ export default function JournalDrawer() {
     if (isStartingNewEntry) return; // Don't change if user is starting a new entry
     if (hasUnsavedChanges) return; // Don't change if there are unsaved changes
     
+    // For impressions, automatically set to normal mode and skip mode selection
+    if (isImpressionJournal) {
+      if (journalMode !== "normal") {
+        setJournalMode("normal");
+      }
+      setShowModeSelection(false);
+      return;
+    }
+    
     // If no mode is set and no entry is loaded, show mode selection
     if (journalMode === null && activeEntryId === null) {
       setShowModeSelection(true);
     }
-  }, [isOpen, journalTarget, activeEntryId, journalMode, isStartingNewEntry, hasUnsavedChanges]);
+  }, [isOpen, journalTarget, activeEntryId, journalMode, isStartingNewEntry, hasUnsavedChanges, isImpressionJournal]);
 
   const handleSave = useCallback(
     async (options?: { createNewVersion?: boolean }) => {
@@ -519,6 +535,10 @@ export default function JournalDrawer() {
         } catch {
           // Not JSON, keep as normal
         }
+        // Force normal mode for impressions
+        if (isImpressionJournal) {
+          mode = "normal";
+        }
         setJournalMode(mode);
         loadEntry({
           entryId: entry.id,
@@ -554,17 +574,25 @@ export default function JournalDrawer() {
     setIsStartingNewEntry(true);
     setJournalMode(null);
     setShowModeSelection(true);
-    loadEntry({ entryId: null, content: "", speakers: [] });
+    // For impressions, default to only "self" in speakers
+    const defaultSpeakers = isImpressionJournal ? ["self"] : [];
+    loadEntry({ entryId: null, content: "", speakers: defaultSpeakers });
     // Flag will be reset when mode is selected in handleModeSelect
-  }, [loadEntry]);
+  }, [loadEntry, isImpressionJournal]);
 
   const handleModeSelect = useCallback((mode: "normal" | "textThread") => {
+    // Prevent text thread mode for impressions
+    if (isImpressionJournal && mode === "textThread") {
+      return;
+    }
     setJournalMode(mode);
     setShowModeSelection(false);
-    loadEntry({ entryId: null, content: mode === "textThread" ? "[]" : "", speakers: [] });
+    // For impressions, default to only "self" in speakers
+    const defaultSpeakers = isImpressionJournal ? ["self"] : [];
+    loadEntry({ entryId: null, content: mode === "textThread" ? "[]" : "", speakers: defaultSpeakers });
     // Keep isStartingNewEntry true until user actually starts typing or saves
     // This prevents auto-load from running
-  }, [loadEntry]);
+  }, [loadEntry, isImpressionJournal]);
 
   // Listen for mode setting from external sources (like PartDetailPanel)
   useEffect(() => {
@@ -573,7 +601,11 @@ export default function JournalDrawer() {
     const handleSetMode = (e: Event) => {
       const customEvent = e as CustomEvent<{ mode: "normal" | "textThread" }>;
       if (customEvent.detail && customEvent.detail.mode) {
-        setJournalMode(customEvent.detail.mode);
+        // Prevent text thread mode for impressions
+        const mode = (isImpressionJournal && customEvent.detail.mode === "textThread") 
+          ? "normal" 
+          : customEvent.detail.mode;
+        setJournalMode(mode);
         setShowModeSelection(false);
       }
     };
@@ -582,7 +614,7 @@ export default function JournalDrawer() {
     return () => {
       window.removeEventListener('journal-set-mode', handleSetMode);
     };
-  }, []);
+  }, [isImpressionJournal]);
 
   const handleSelectEntry = useCallback(
     (entry: JournalEntry) => {
@@ -590,14 +622,18 @@ export default function JournalDrawer() {
       // Always load the entry, even if it's the same one (allows re-opening)
       setIsStartingNewEntry(false); // Reset flag when selecting an existing entry
       const content = entry.content ?? "";
-      const detectedMode = detectModeFromContent(content);
+      let detectedMode = detectModeFromContent(content);
+      // Force normal mode for impressions, even if content is a text thread
+      if (isImpressionJournal) {
+        detectedMode = "normal";
+      }
       console.log("📖 Detected mode:", detectedMode, "Content length:", content.length);
       setJournalMode(detectedMode);
       setShowModeSelection(false); // Hide mode selection when loading an entry
       loadEntry({ entryId: entry.id, content, speakers: Array.isArray(entry.speakers) ? entry.speakers : [] });
       console.log("📖 Entry loaded, activeEntryId should be:", entry.id);
     },
-    [loadEntry, detectModeFromContent]
+    [loadEntry, detectModeFromContent, isImpressionJournal]
   );
 
   const handleDeleteEntry = useCallback(
@@ -650,7 +686,9 @@ export default function JournalDrawer() {
               // No entries left, show mode selection
               setJournalMode(null);
               setShowModeSelection(true);
-              loadEntry({ entryId: null, content: "", speakers: [] });
+              // For impressions, default to only "self" in speakers
+              const defaultSpeakers = isImpressionJournal ? ["self"] : [];
+              loadEntry({ entryId: null, content: "", speakers: defaultSpeakers });
             }
           }
         } else {
@@ -1147,8 +1185,15 @@ export default function JournalDrawer() {
       const label = (targetNode.data as { label?: string })?.label;
 
       return (
-        <div className="space-y-3 text-sm text-slate-600">
-          <div className="rounded-xl border border-slate-200/70 bg-white px-3.5 py-3 text-base leading-relaxed text-slate-800 shadow-sm">
+        <div className="space-y-3 text-sm" style={{ color: theme.textSecondary }}>
+          <div 
+            className="rounded-xl border px-3.5 py-3 text-base leading-relaxed shadow-sm"
+            style={{
+              backgroundColor: theme.card,
+              borderColor: theme.border,
+              color: theme.textPrimary,
+            }}
+          >
             {label || "No text added to this impression yet."}
           </div>
         </div>
@@ -1156,7 +1201,7 @@ export default function JournalDrawer() {
     }
 
     return (
-      <div className="space-y-3 text-sm text-slate-600">
+      <div className="space-y-3 text-sm" style={{ color: theme.textSecondary }}>
         <p>Node context is available for parts, impressions, and tensions.</p>
       </div>
     );
@@ -1618,7 +1663,7 @@ export default function JournalDrawer() {
                             Select how you'd like to record this journal entry
                           </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className={`grid gap-4 ${isImpressionJournal ? 'grid-cols-1 max-w-md mx-auto' : 'grid-cols-1 md:grid-cols-2'}`}>
                           <button
                             type="button"
                             onClick={() => handleModeSelect("normal")}
@@ -1650,41 +1695,43 @@ export default function JournalDrawer() {
                               </div>
                             </div>
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => handleModeSelect("textThread")}
-                            className="group relative p-6 rounded-2xl border-2 transition-all text-left"
-                            style={{
-                              borderColor: theme.border,
-                              backgroundColor: theme.surface,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.borderColor = "#a855f7";
-                              e.currentTarget.style.backgroundColor = darkMode ? "rgba(168, 85, 247, 0.1)" : "rgba(168, 85, 247, 0.05)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.borderColor = theme.border;
-                              e.currentTarget.style.backgroundColor = theme.surface;
-                            }}
-                          >
-                            <div className="flex items-start gap-4">
-                              <div className={`p-3 rounded-xl transition ${darkMode ? "bg-purple-900/40" : "bg-purple-100"}`}>
-                                <MessagesSquare className="w-6 h-6" style={{ color: darkMode ? "#c4b5fd" : "#9333ea" }} />
+                          {!isImpressionJournal && (
+                            <button
+                              type="button"
+                              onClick={() => handleModeSelect("textThread")}
+                              className="group relative p-6 rounded-2xl border-2 transition-all text-left"
+                              style={{
+                                borderColor: theme.border,
+                                backgroundColor: theme.surface,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = "#a855f7";
+                                e.currentTarget.style.backgroundColor = darkMode ? "rgba(168, 85, 247, 0.1)" : "rgba(168, 85, 247, 0.05)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = theme.border;
+                                e.currentTarget.style.backgroundColor = theme.surface;
+                              }}
+                            >
+                              <div className="flex items-start gap-4">
+                                <div className={`p-3 rounded-xl transition ${darkMode ? "bg-purple-900/40" : "bg-purple-100"}`}>
+                                  <MessagesSquare className="w-6 h-6" style={{ color: darkMode ? "#c4b5fd" : "#9333ea" }} />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="text-lg font-semibold mb-1" style={{ color: theme.textPrimary }}>
+                                    Text Thread
+                                  </h4>
+                                  <p className="text-sm" style={{ color: theme.textSecondary }}>
+                                    Chat-style conversation interface. Great for IFS parts dialogues and back-and-forth exchanges.
+                                  </p>
+                                </div>
                               </div>
-                              <div className="flex-1">
-                                <h4 className="text-lg font-semibold mb-1" style={{ color: theme.textPrimary }}>
-                                  Text Thread
-                                </h4>
-                                <p className="text-sm" style={{ color: theme.textSecondary }}>
-                                  Chat-style conversation interface. Great for IFS parts dialogues and back-and-forth exchanges.
-                                </p>
-                              </div>
-                            </div>
-                          </button>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
-                  ) : journalMode === "textThread" ? (
+                  ) : journalMode === "textThread" && !isImpressionJournal ? (
                     <TextThreadEditor
                       content={journalData}
                       onContentChange={setJournalData}

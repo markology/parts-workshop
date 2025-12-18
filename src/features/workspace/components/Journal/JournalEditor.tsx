@@ -75,18 +75,87 @@ const theme = {
 function ChangeHandler({
   onContentChange,
   readOnly,
+  onClearFormatting,
 }: {
   onContentChange: (html: string) => void;
   readOnly: boolean;
+  onClearFormatting?: () => void;
 }) {
   const [editor] = useLexicalComposerContext();
+  const previousTextContentRef = useRef<string>("");
 
   return (
     <OnChangePlugin
       onChange={(editorState: EditorState) => {
         if (readOnly) return;
         editorState.read(() => {
+          const root = $getRoot();
+          const textContent = root.getTextContent();
           const htmlString = $generateHtmlFromNodes(editor, null);
+          
+          // Check if editor is now empty (was not empty before)
+          const wasNotEmpty = previousTextContentRef.current.trim().length > 0;
+          const isNowEmpty = textContent.trim().length === 0;
+          
+          if (wasNotEmpty && isNowEmpty) {
+            // All text was deleted - clear all formatting by resetting to clean empty state
+            editor.update(() => {
+              // Check if we're in a list and remove it
+              const selection = $getSelection();
+              if ($isRangeSelection(selection)) {
+                const anchor = selection.anchor;
+                let node = anchor.getNode();
+                while (node) {
+                  if ($isListNode(node)) {
+                    editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+                    break;
+                  }
+                  const parent = node.getParent();
+                  if (!parent) break;
+                  node = parent;
+                }
+              }
+              
+              // Clear the root and create a fresh empty paragraph with no formatting
+              // Use HTML parsing to ensure proper structure
+              root.clear();
+              const parser = new DOMParser();
+              const dom = parser.parseFromString("<p></p>", "text/html");
+              const nodes = $generateNodesFromDOM(editor, dom);
+              root.append(...nodes);
+              
+              // Set selection to the new paragraph and clear any formatting
+              const firstChild = root.getFirstChild();
+              if (firstChild) {
+                const rangeSelection = $createRangeSelection();
+                rangeSelection.anchor.set(firstChild.getKey(), 0, "element");
+                rangeSelection.focus.set(firstChild.getKey(), 0, "element");
+                $setSelection(rangeSelection);
+                
+                // Clear all formatting from the selection (color, bold, italic, underline)
+                const newSelection = $getSelection();
+                if ($isRangeSelection(newSelection)) {
+                  // Remove color formatting
+                  $patchStyleText(newSelection, { color: null });
+                  // Remove text formats
+                  if (newSelection.hasFormat("bold")) {
+                    newSelection.formatText("bold");
+                  }
+                  if (newSelection.hasFormat("italic")) {
+                    newSelection.formatText("italic");
+                  }
+                  if (newSelection.hasFormat("underline")) {
+                    newSelection.formatText("underline");
+                  }
+                }
+              }
+            }, { discrete: true });
+            
+            // Notify parent to clear active color in toolbar
+            onClearFormatting?.();
+          }
+          
+          previousTextContentRef.current = textContent;
           onContentChange(htmlString);
         });
       }}
@@ -347,10 +416,17 @@ function Toolbar({
 
   // Get default speakers (Self + relevant parts)
   // Unknown stays in dropdown, not in defaults
+  // For impressions, only "self" is shown by default, all parts go in dropdown
   const defaultSpeakers = useMemo(() => {
     const speakers = [
       { id: "self", label: "Self", isSelf: true, isUnknown: false },
     ];
+    
+    // For impressions, only show "self" by default - all parts go in dropdown
+    const isImpression = nodeType && ["emotion", "thought", "sensation", "behavior", "other", "default"].includes(nodeType);
+    if (isImpression) {
+      return speakers; // Only return self for impressions
+    }
     
     // Add target part if journal is about a part
     if (nodeType === "part" && nodeId && partNodes) {
@@ -402,14 +478,28 @@ function Toolbar({
 
   // Get parts available to add (not already in defaults or added)
   // Unknown is always in the dropdown, not in defaults
+  // For impressions, include all parts from partNodes in the dropdown
   const availablePartsToAdd = useMemo(() => {
+    const isImpression = nodeType && ["emotion", "thought", "sensation", "behavior", "other", "default"].includes(nodeType);
     const defaultPartIds = new Set(defaultSpeakers.map(s => s.id));
     const currentPartIds = new Set(partNodes?.map(p => p.id) || []);
     const allShownIds = new Set([...Array.from(defaultPartIds), ...addedPartIds]);
     
+    // For impressions, include parts from partNodes in the dropdown (they're not in defaults)
+    const impressionParts = isImpression && partNodes
+      ? partNodes
+          .filter(p => !allShownIds.has(p.id))
+          .map(p => ({ 
+            id: p.id, 
+            label: p.label, 
+            isUnknown: false 
+          }))
+      : [];
+    
     // Get parts from allPartNodes that are not already shown
+    // For impressions, don't filter out currentPartIds since we want them in dropdown
     const otherParts = (allPartNodes || [])
-      .filter(p => !allShownIds.has(p.id) && !currentPartIds.has(p.id))
+      .filter(p => !allShownIds.has(p.id) && (!isImpression && !currentPartIds.has(p.id)))
       .map(p => ({ 
         id: p.id, 
         label: p.label, 
@@ -420,10 +510,11 @@ function Toolbar({
     const unknownAvailable = !addedPartIds.includes("unknown");
     
     return [
+      ...impressionParts,
       ...otherParts,
       ...(unknownAvailable ? [{ id: "unknown", label: "Unknown", isUnknown: true }] : []),
     ];
-  }, [partNodes, allPartNodes, defaultSpeakers, addedPartIds]);
+  }, [partNodes, allPartNodes, defaultSpeakers, addedPartIds, nodeType]);
 
   // Get speaker color
   const getSpeakerColor = useCallback((speakerId: string): string => {
@@ -545,18 +636,9 @@ function Toolbar({
 
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState, prevEditorState }) => {
-      let editorWasEmpty = false;
-      let editorIsEmpty = false;
-
-      prevEditorState.read(() => {
-        const prevRoot = $getRoot();
-        editorWasEmpty = prevRoot.getTextContent().trim().length === 0;
-      });
-
       editorState.read(() => {
         const selection = $getSelection();
         const root = $getRoot();
-        editorIsEmpty = root.getTextContent().trim().length === 0;
 
         if ($isRangeSelection(selection)) {
           // Check if caret/selection is in a list
@@ -597,53 +679,6 @@ function Toolbar({
           });
         }
       });
-
-      // If content was just cleared (had text, now empty), reset style & indicator
-      if (!editorWasEmpty && editorIsEmpty) {
-        editor.update(() => {
-          const root = $getRoot();
-          const selection = $getSelection();
-          
-          // Clear all formatting by traversing all nodes recursively
-          function clearNodeFormatting(node: any) {
-            if (node instanceof TextNode) {
-              node.setStyle("");
-              node.setFormat(0);
-            }
-            const children = node.getChildren();
-            children.forEach((child: any) => clearNodeFormatting(child));
-          }
-          
-          // Clear formatting from all nodes
-          clearNodeFormatting(root);
-          
-          // Also clear formatting from the current selection if it exists
-          if ($isRangeSelection(selection)) {
-            $patchStyleText(selection, { color: null });
-            selection.formatText("bold", false);
-            selection.formatText("italic", false);
-            selection.formatText("underline", false);
-          }
-        });
-        
-        // Reset all format states and color
-        setActiveColor(null);
-        setFormats({
-          bold: false,
-          italic: false,
-          underline: false,
-          list: false,
-        });
-        
-        // Clear all selected speakers when input is totally empty
-        if (selectedSpeakers && selectedSpeakers.length > 0) {
-          // Create a copy of the array to avoid mutation during iteration
-          const speakersToClear = [...selectedSpeakers];
-          speakersToClear.forEach((speakerId) => {
-            onToggleSpeaker?.(speakerId);
-          });
-        }
-      }
     });
   }, [editor, setActiveColor]);
 
@@ -1135,6 +1170,7 @@ export default function JournalEditor({
               <ChangeHandler
                 onContentChange={onContentChange}
                 readOnly={readOnly}
+                onClearFormatting={() => setActiveColor(null)}
               />
             </div>
           </div>

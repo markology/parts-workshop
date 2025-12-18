@@ -14,7 +14,6 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAutoSave } from "../state/hooks/useAutoSave";
 import { useEffect, useRef, useState } from "react";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
-import { ChromePicker, ColorResult } from "react-color";
 import { Paintbrush } from "lucide-react";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { useThemeContext } from "@/state/context/ThemeContext";
@@ -220,11 +219,6 @@ const Workspace = () => {
     maxWidth: 320,
   };
 
-  const resetButtonStyle = {
-    borderColor: theme.border,
-    color: theme.textSecondary,
-  };
-
   return (
     <div id="canvas" className="h-full flex-grow relative">
       <div 
@@ -372,48 +366,6 @@ const Workspace = () => {
                 );
               })}
             </div>
-
-            <div className="border-t pt-3" style={{ borderColor: theme.borderSubtle }}>
-              <div className="flex items-center justify-between pb-2 px-1">
-                <div className={`flex items-center gap-2 text-sm`} style={{ color: theme.textSecondary }}>
-                  <Paintbrush className="w-4 h-4" />
-                  <span>Canvas color</span>
-                </div>
-                <button
-                  className="text-xs px-2 py-1 rounded border transition hover:opacity-80"
-                  style={resetButtonStyle}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.accentHover;
-                    e.currentTarget.style.color = theme.textPrimary;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = theme.textSecondary;
-                  }}
-                  onClick={() => setWorkspaceBgColor(defaultBg)}
-                >
-                  Reset
-                </button>
-              </div>
-              <div
-                style={{ 
-                  position: 'relative', 
-                  zIndex: 1000,
-                  backgroundColor: theme.surface,
-                  borderRadius: '8px',
-                  padding: '4px',
-                  width: '100%',
-                }}
-              >
-                <ChromePicker
-                  color={workspaceBgColor}
-                  onChange={(color: ColorResult) => {
-                    setWorkspaceBgColor(color.hex);
-                  }}
-                  disableAlpha
-                />
-              </div>
-            </div>
           </div>
         )}
       </div>
@@ -504,9 +456,6 @@ const Workspace = () => {
           background: ${theme.accent};
           border-color: ${theme.border};
           color: ${theme.textPrimary};
-        }
-        .chrome-picker {
-          width: 100% !important;
         }
       `}</style>
     </div>
