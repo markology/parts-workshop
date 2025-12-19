@@ -1504,7 +1504,9 @@ export default function JournalDrawer() {
                   onClick={() => void attemptClose()}
                   className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
                   style={{
+                    backgroundColor: theme.card,
                     color: theme.textSecondary,
+                    border: "none",
                     ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                     ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                     transition: "none !important",
@@ -1514,7 +1516,7 @@ export default function JournalDrawer() {
                     e.currentTarget.style.color = theme.textPrimary;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.backgroundColor = theme.card;
                     e.currentTarget.style.color = theme.textSecondary;
                   }}
                   title="Close"

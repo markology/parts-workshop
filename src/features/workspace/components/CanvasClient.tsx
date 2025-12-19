@@ -28,6 +28,13 @@ import type { ThemeName } from "@/features/workspace/constants/theme";
 import { usePathname } from "next/navigation";
 // import TourOverlay from "./TourOverlay";
 
+// Helper to detect if user is on Mac
+const isMac = () => {
+  if (typeof window === 'undefined') return false;
+  return /Mac|iPhone|iPad|iPod/.test(navigator.platform) || 
+         /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+};
+
 // Function to normalize sidebarImpressions data structure
 const normalizeSidebarImpressions = (sidebarImpressions: any) => {
   if (!sidebarImpressions || typeof sidebarImpressions !== 'object') {
@@ -464,18 +471,20 @@ export default function CanvasClient({
                 <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-1.5">
-                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                      }`}>
-                        Tab
+                      <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                        {isMac() ? '⇧ Tab' : 'Shift+Tab'}
                       </kbd>
-                      <span className="text-xs">Switch types</span>
+                      <span className="text-xs">Previous Type</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                      }`}>
-                        Enter
+                      <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                        Tab
+                      </kbd>
+                      <span className="text-xs">Next Type</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                        {isMac() ? '⏎' : 'Enter'}
                       </kbd>
                       <span className="text-xs">Submit</span>
                     </div>

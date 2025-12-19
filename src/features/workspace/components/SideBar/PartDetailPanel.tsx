@@ -71,6 +71,13 @@ import ImpressionInput from "./Impressions/ImpressionInput";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
 
+// Helper to detect if user is on Mac
+const isMac = () => {
+  if (typeof window === 'undefined') return false;
+  return /Mac|iPhone|iPad|iPod/.test(navigator.platform) || 
+         /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+};
+
 const PartDetailPanel = () => {
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
@@ -2144,9 +2151,10 @@ const PartDetailPanel = () => {
             }}
           >
             <div
-              className={`fixed inset-0 pointer-events-none ${
-                darkMode ? "bg-slate-950/30" : "bg-slate-900/20"
-              }`}
+              className="absolute inset-0 pointer-events-none backdrop-blur-sm"
+              style={{
+                backgroundColor: darkMode ? `${theme.modal}f2` : `${theme.modal}99`,
+              }}
             />
             <div
               className="relative w-full max-w-3xl"
@@ -2253,18 +2261,20 @@ const PartDetailPanel = () => {
                   <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                     <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex items-center gap-1.5">
-                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                          darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                        }`}>
-                          Tab
+                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                          {isMac() ? '⇧ Tab' : 'Shift+Tab'}
                         </kbd>
-                        <span className="text-xs">Switch types</span>
+                        <span className="text-xs">Previous Type</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                          darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                        }`}>
-                          Enter
+                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                          Tab
+                        </kbd>
+                        <span className="text-xs">Next Type</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                          {isMac() ? '⏎' : 'Enter'}
                         </kbd>
                         <span className="text-xs">Submit</span>
                       </div>
@@ -2534,15 +2544,21 @@ const PartDetailPanel = () => {
         {/* Journal History Modal */}
         {showJournalHistoryModal && (
           <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-[2px] flex items-center justify-center z-[60] p-4"
+            className="fixed inset-0 flex items-center justify-center z-[60] p-4"
             onClick={() => setShowJournalHistoryModal(false)}
           >
             <div
-              className="rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-4xl max-h-[85vh] mx-4 overflow-hidden flex flex-col border"
+              className="absolute inset-0 pointer-events-none backdrop-blur-sm"
+              style={{
+                backgroundColor: darkMode ? `${theme.modal}f2` : `${theme.modal}99`,
+              }}
+            />
+            <div
+              className="relative rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-4xl max-h-[85vh] mx-4 overflow-hidden flex flex-col border"
               style={modalContainerStyle}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="px-6 py-5 border-b border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between">
+              <div className="px-6 py-5 flex items-center justify-between">
                 <div>
                   <h3 className={`text-xl font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                     Journal History
