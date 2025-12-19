@@ -784,7 +784,7 @@ const PartDetailPanel = () => {
           aria-label="Close"
         >
           <X 
-            className="text-white" 
+            className={darkMode ? "text-white" : "text-black"} 
             strokeWidth={2} 
             size={30} 
           />
@@ -1359,13 +1359,29 @@ const PartDetailPanel = () => {
                         setAddingNeedsOrFears('needs');
                         setNeedsFearsInput("");
                       }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
                         darkMode
-                          ? "text-slate-200 hover:bg-slate-900/50"
+                          ? "text-slate-200"
                           : "text-slate-600 bg-white hover:bg-slate-50"
                       }`}
                       style={{
-                        borderColor: darkMode ? "rgba(16, 185, 129, 0.25)" : "rgba(16, 185, 129, 0.25)",
+                        border: "none",
+                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                        ...(darkMode ? { 
+                          backgroundColor: "rgb(42, 46, 50)",
+                          boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px"
+                        } : {}),
+                        transition: "none !important",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (darkMode) {
+                          e.currentTarget.style.backgroundColor = theme.buttonHover;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (darkMode) {
+                          e.currentTarget.style.backgroundColor = "rgb(42, 46, 50)";
+                        }
                       }}
                     >
                       Add
@@ -1411,13 +1427,29 @@ const PartDetailPanel = () => {
                         setAddingNeedsOrFears('fears');
                         setNeedsFearsInput("");
                       }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
                         darkMode
-                          ? "text-slate-200 hover:bg-slate-900/50"
+                          ? "text-slate-200"
                           : "text-slate-600 bg-white hover:bg-slate-50"
                       }`}
                       style={{
-                        borderColor: darkMode ? "rgba(225, 29, 72, 0.25)" : "rgba(225, 29, 72, 0.25)",
+                        border: "none",
+                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                        ...(darkMode ? { 
+                          backgroundColor: "rgb(42, 46, 50)",
+                          boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px"
+                        } : {}),
+                        transition: "none !important",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (darkMode) {
+                          e.currentTarget.style.backgroundColor = theme.buttonHover;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (darkMode) {
+                          e.currentTarget.style.backgroundColor = "rgb(42, 46, 50)";
+                        }
                       }}
                     >
                       Add
@@ -1502,13 +1534,28 @@ const PartDetailPanel = () => {
                               setAddingImpressionType(impression);
                               setCurrentImpressionType(impression);
                             }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
                               darkMode
-                                ? "border-slate-700 text-slate-200 hover:bg-slate-900/50"
+                                ? "text-slate-200"
                                 : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
                             }`}
                             style={{
-                              borderColor: `${NodeBackgroundColors[impression]}40`,
+                              border: "none",
+                              ...(darkMode ? {} : { borderTop: "1px solid #00000012" }),
+                              ...(darkMode ? { 
+                                backgroundColor: "rgb(42, 46, 50)",
+                                boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px"
+                              } : {}),
+                            }}
+                            onMouseEnter={(e) => {
+                              if (darkMode) {
+                                e.currentTarget.style.backgroundColor = theme.buttonHover;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (darkMode) {
+                                e.currentTarget.style.backgroundColor = "rgb(42, 46, 50)";
+                              }
                             }}
                           >
                             Add
@@ -1613,7 +1660,7 @@ const PartDetailPanel = () => {
                     <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
                       {journalEntries.length} {journalEntries.length === 1 ? "entry" : "entries"}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={() => {
                           if (selectedPartId && partNode) {
@@ -1625,17 +1672,19 @@ const PartDetailPanel = () => {
                             });
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0"
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
                         style={{
-                          borderColor: darkMode ? theme.border : "#e2e8f0",
+                          border: "none",
+                          ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                           color: darkMode ? theme.textPrimary : "#475569",
-                          backgroundColor: darkMode ? theme.elevated : "#ffffff",
+                          backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
+                          ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : "#ffffff";
+                          e.currentTarget.style.backgroundColor = darkMode ? "rgb(59, 63, 67)" : "#ffffff";
                         }}
                         title="Start a new journal entry"
                       >
@@ -1644,17 +1693,24 @@ const PartDetailPanel = () => {
                       </button>
                       <button
                         onClick={() => setShowJournalHistoryModal(true)}
-                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition"
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm"
                         style={{
-                          borderColor: darkMode ? theme.border : "#e2e8f0",
+                          border: "none",
+                          ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                           color: darkMode ? theme.textPrimary : "#475569",
-                          backgroundColor: darkMode ? theme.elevated : "#ffffff",
+                          backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
+                          ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                          transition: "none !important",
+                          WebkitTransition: "none !important",
+                          MozTransition: "none !important",
+                          OTransition: "none !important",
+                          msTransition: "none !important",
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : "#ffffff";
+                          e.currentTarget.style.backgroundColor = darkMode ? "rgb(59, 63, 67)" : "#ffffff";
                         }}
                       >
                         <History className="w-3.5 h-3.5" />
@@ -1835,17 +1891,24 @@ const PartDetailPanel = () => {
                                   }, 100);
                                 }
                               }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm"
                               style={{
-                                backgroundColor: darkMode ? "transparent" : "white",
-                                borderColor: darkMode ? theme.border : "#e2e8f0",
+                                backgroundColor: darkMode ? "rgb(42, 46, 50)" : "white",
+                                border: "none",
+                                ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                                 color: darkMode ? theme.textPrimary : "#475569",
+                                transition: "none !important",
+                          WebkitTransition: "none !important",
+                          MozTransition: "none !important",
+                          OTransition: "none !important",
+                          msTransition: "none !important",
+                                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = darkMode ? "transparent" : "white";
+                                e.currentTarget.style.backgroundColor = darkMode ? "rgb(42, 46, 50)" : "white";
                               }}
                               title="Open in journal"
                             >
@@ -1942,7 +2005,11 @@ const PartDetailPanel = () => {
                             ? "linear-gradient(140deg, rgb(42, 31, 61), rgb(39, 33, 47))"
                             : isInteraction && darkMode
                               ? "linear-gradient(140deg, rgb(31, 42, 61), rgb(33, 39, 47))"
-                              : undefined,
+                              : isTension && !darkMode
+                                ? "linear-gradient(140deg, rgba(247,242,255,0.9), rgba(241,233,255,0.9))"
+                                : isInteraction && !darkMode
+                                  ? "linear-gradient(140deg, rgba(224,242,254,0.9), rgba(219,234,254,0.9))"
+                                  : undefined,
                         }}
                       >
                           {/* Header */}
@@ -2126,9 +2193,14 @@ const PartDetailPanel = () => {
                       onClick={() => setAddingImpressionType(null)}
                       className={`h-10 w-10 flex items-center justify-center rounded-full border ${
                         darkMode
-                          ? "border-slate-700 text-slate-300 hover:bg-slate-800/70"
-                          : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                          ? "border-slate-700 hover:bg-slate-800/70"
+                          : "border-slate-200 hover:bg-slate-100"
                       }`}
+                      style={darkMode ? {
+                        color: "#cbd5e1",
+                      } : {
+                        color: "#000000",
+                      }}
                       aria-label="Close"
                     >
                       <X size={18} />
@@ -2204,23 +2276,21 @@ const PartDetailPanel = () => {
                         }
                       }}
                       disabled={!canAddImpression}
-                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                       style={{
                         backgroundColor: canAddImpression 
                           ? NodeBackgroundColors[currentImpressionType as keyof typeof NodeBackgroundColors]
                           : darkMode 
-                            ? theme.elevated 
+                            ? "rgb(42, 46, 50)"
                             : "#e2e8f0",
                         color: canAddImpression 
                           ? "#ffffff"
                           : darkMode
                             ? theme.textMuted
                             : "#94a3b8",
-                        border: `1.5px solid ${canAddImpression 
-                          ? NodeBackgroundColors[currentImpressionType as keyof typeof NodeBackgroundColors]
-                          : darkMode
-                            ? theme.border
-                            : "#cbd5e1"}`,
+                        border: "none",
+                        ...(darkMode ? { borderTop: canAddImpression ? undefined : "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: canAddImpression ? undefined : "1px solid #00000012" }),
+                        ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                       }}
                       onMouseEnter={(e) => {
                         if (canAddImpression) {
@@ -2317,7 +2387,7 @@ const PartDetailPanel = () => {
                         color: theme.textSecondary,
                       } : {
                         borderColor: "#e2e8f0",
-                        color: "#64748b",
+                        color: "#000000",
                       }}
                       onMouseEnter={(e) => {
                         if (darkMode) {
@@ -2364,15 +2434,26 @@ const PartDetailPanel = () => {
                       }
                     }}
                     placeholder={`Describe ${addingNeedsOrFears === 'needs' ? 'what this part needs' : 'what this part fears'}...`}
-                    className="w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none focus:ring-2 border"
+                    className="w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none"
                     style={darkMode ? {
                       backgroundColor: theme.surface,
-                      borderColor: theme.border,
+                      borderColor: 'transparent',
+                      borderWidth: 0,
                       color: theme.textPrimary,
                     } : {
                       backgroundColor: "#ffffff",
-                      borderColor: "#e2e8f0",
+                      borderColor: 'transparent',
+                      borderWidth: 0,
                       color: "#0f172a",
+                    }}
+                    onFocus={(e) => {
+                      const color = addingNeedsOrFears === 'needs' 
+                        ? 'rgba(16, 185, 129, 0.4)' 
+                        : 'rgba(225, 29, 72, 0.4)';
+                      e.currentTarget.style.boxShadow = `0 0 0 3px ${color}`;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                     rows={4}
                   />
@@ -2386,7 +2467,7 @@ const PartDetailPanel = () => {
                         }
                       }}
                       disabled={!needsFearsInput.trim()}
-                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                       style={{
                         backgroundColor: needsFearsInput.trim()
                           ? (addingNeedsOrFears === 'needs'
@@ -2397,24 +2478,16 @@ const PartDetailPanel = () => {
                                 ? "#dc2626"
                                 : "#ef4444")
                           : darkMode
-                            ? theme.elevated
+                            ? "rgb(42, 46, 50)"
                             : "#e2e8f0",
                         color: needsFearsInput.trim()
                           ? "#ffffff"
                           : darkMode
                             ? theme.textMuted
                             : "#94a3b8",
-                        border: `1.5px solid ${needsFearsInput.trim()
-                          ? (addingNeedsOrFears === 'needs'
-                              ? darkMode
-                                ? "#10b981"
-                                : "#059669"
-                              : darkMode
-                                ? "#ef4444"
-                                : "#dc2626")
-                          : darkMode
-                            ? theme.border
-                            : "#cbd5e1"}`,
+                        border: "none",
+                        ...(darkMode ? {} : { borderTop: needsFearsInput.trim() ? undefined : "1px solid #00000012" }),
+                        transition: "none !important",
                       }}
                       onMouseEnter={(e) => {
                         if (needsFearsInput.trim()) {
@@ -2481,8 +2554,13 @@ const PartDetailPanel = () => {
                 <button
                   onClick={() => setShowJournalHistoryModal(false)}
                   className={`p-2 rounded-full border ${
-                    darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-900/60" : "border-slate-200 text-slate-500 hover:bg-slate-100"
+                    darkMode ? "border-slate-700 hover:bg-slate-900/60" : "border-slate-200 hover:bg-slate-100"
                   }`}
+                  style={darkMode ? {
+                    color: "#cbd5e1",
+                  } : {
+                    color: "#000000",
+                  }}
                   aria-label="Close"
                 >
                   <X size={16} />
@@ -2664,17 +2742,24 @@ const PartDetailPanel = () => {
                                   setShowJournalHistoryModal(false);
                                 }
                               }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm"
                               style={{
-                                backgroundColor: darkMode ? "transparent" : "white",
-                                borderColor: darkMode ? theme.border : "#e2e8f0",
+                                backgroundColor: darkMode ? "rgb(42, 46, 50)" : "white",
+                                border: "none",
+                                ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                                 color: darkMode ? theme.textPrimary : "#475569",
+                                transition: "none !important",
+                          WebkitTransition: "none !important",
+                          MozTransition: "none !important",
+                          OTransition: "none !important",
+                          msTransition: "none !important",
+                                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = darkMode ? "transparent" : "white";
+                                e.currentTarget.style.backgroundColor = darkMode ? "rgb(42, 46, 50)" : "white";
                               }}
                               title="Open in journal"
                             >

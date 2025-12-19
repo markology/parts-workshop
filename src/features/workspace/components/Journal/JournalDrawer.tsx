@@ -1361,7 +1361,7 @@ export default function JournalDrawer() {
                         e.stopPropagation();
                         void handleDeleteEntry(entry.id);
                       }}
-                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition"
+                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium"
                       style={{ color: theme.textMuted }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.color = theme.error;
@@ -1413,19 +1413,36 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => setShowLeftPanel((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
                   style={{
-                    backgroundColor: theme.card,
+                    backgroundColor: darkMode 
+                      ? (showLeftPanel ? theme.card : theme.card)
+                      : (showLeftPanel ? theme.buttonActive : theme.card),
                     color: theme.textPrimary,
-                    border: darkMode && showLeftPanel ? "1px solid #ef4444" : "none",
+                    border: "none",
+                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                    transition: "none !important",
+                    opacity: darkMode ? (showLeftPanel ? 0.7 : 1) : (showLeftPanel ? 1 : 0.7),
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    } else {
+                      e.currentTarget.style.backgroundColor = showLeftPanel ? theme.buttonActive : theme.buttonHover;
+                    }
+                    e.currentTarget.style.opacity = "1";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.card;
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = theme.card;
+                      e.currentTarget.style.opacity = showLeftPanel ? "0.7" : "1";
+                    } else {
+                      e.currentTarget.style.backgroundColor = showLeftPanel ? theme.buttonActive : theme.card;
+                      e.currentTarget.style.opacity = showLeftPanel ? "1" : "0.7";
+                    }
                   }}
-                  title="Toggle sidebar"
+                  title={showLeftPanel ? "Info active - Hide sidebar" : "Info inactive - Show sidebar"}
                 >
                   <Layers size={14} />
                   Info
@@ -1434,11 +1451,14 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void handleStartNewEntry()}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition flex-shrink-0"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
                   style={{
                     backgroundColor: theme.card,
                     color: theme.textPrimary,
-                    border: darkMode ? "1px solid #ef4444" : "none",
+                    border: "none",
+                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                    transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = theme.buttonHover;
@@ -1456,10 +1476,13 @@ export default function JournalDrawer() {
                   type="button"
                   onClick={() => void handleSave()}
                   disabled={!canSave || isSaving}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition flex-shrink-0 ${isSaving ? "animate-pulse" : ""}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold flex-shrink-0 shadow-sm ${isSaving ? "animate-pulse" : ""}`}
                   style={{
                     backgroundColor: canSave && !isSaving ? theme.info : theme.button,
                     color: canSave && !isSaving ? theme.buttonText : theme.textMuted,
+                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                    transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
                     if (canSave && !isSaving) {
@@ -1479,9 +1502,12 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void attemptClose()}
-                  className="rounded-full p-1.5 transition flex-shrink-0"
+                  className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
                   style={{
                     color: theme.textSecondary,
+                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                    transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = theme.buttonHover;
@@ -1510,10 +1536,11 @@ export default function JournalDrawer() {
                       <button
                         type="button"
                         onClick={() => setLeftPanelTab("info")}
-                        className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition"
+                        className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                         style={{
                           borderBottom: leftPanelTab === "info" ? `2px solid ${theme.accent}` : 'none',
                           backgroundColor: leftPanelTab === "info" ? theme.card : 'transparent',
+                          transition: "none !important",
                           color: leftPanelTab === "info" ? theme.textPrimary : theme.textSecondary,
                         }}
                         onMouseEnter={(e) => {
@@ -1537,7 +1564,7 @@ export default function JournalDrawer() {
                       <button
                         type="button"
                         onClick={() => setLeftPanelTab("history")}
-                        className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition"
+                        className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                         style={{
                           borderBottom: leftPanelTab === "history" ? `2px solid ${theme.accent}` : 'none',
                           backgroundColor: leftPanelTab === "history" ? theme.card : 'transparent',
@@ -1581,7 +1608,7 @@ export default function JournalDrawer() {
                         <button
                           type="button"
                           onClick={() => setLeftPanelTab("info")}
-                          className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition"
+                          className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                           style={{
                             borderBottom: leftPanelTab === "info" ? `2px solid ${theme.accent}` : 'none',
                             backgroundColor: leftPanelTab === "info" ? theme.card : 'transparent',
@@ -1608,7 +1635,7 @@ export default function JournalDrawer() {
                         <button
                           type="button"
                           onClick={() => setLeftPanelTab("history")}
-                          className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] transition"
+                          className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                           style={{
                             borderBottom: leftPanelTab === "history" ? `2px solid ${theme.accent}` : 'none',
                             backgroundColor: leftPanelTab === "history" ? theme.card : 'transparent',

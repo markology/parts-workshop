@@ -705,6 +705,7 @@ const FloatingActionButtons = () => {
           style={{
             backgroundColor: theme.button,
             color: theme.buttonText,
+            ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
           }}
           onMouseEnter={(e) => {
             // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
@@ -1197,10 +1198,28 @@ const FloatingActionButtons = () => {
               }}
               onMouseEnter={(e) => {
                 // Darken the button on hover by reducing RGB values
-                const hex = theme.button.replace('#', '');
-                const r = parseInt(hex.substr(0, 2), 16);
-                const g = parseInt(hex.substr(2, 2), 16);
-                const b = parseInt(hex.substr(4, 2), 16);
+                let r: number, g: number, b: number;
+                
+                if (theme.button.startsWith('#')) {
+                  // Hex format
+                  const hex = theme.button.replace('#', '');
+                  r = parseInt(hex.substr(0, 2), 16);
+                  g = parseInt(hex.substr(2, 2), 16);
+                  b = parseInt(hex.substr(4, 2), 16);
+                } else if (theme.button.startsWith('rgb')) {
+                  // RGB format
+                  const matches = theme.button.match(/\d+/g);
+                  if (matches && matches.length >= 3) {
+                    r = parseInt(matches[0]);
+                    g = parseInt(matches[1]);
+                    b = parseInt(matches[2]);
+                  } else {
+                    return; // Can't parse, don't change color
+                  }
+                } else {
+                  return; // Unknown format, don't change color
+                }
+                
                 const darkerR = Math.max(0, r - 20);
                 const darkerG = Math.max(0, g - 20);
                 const darkerB = Math.max(0, b - 20);
@@ -1209,10 +1228,24 @@ const FloatingActionButtons = () => {
                 // Darken the Add pill when button is hovered
                 const pill = e.currentTarget.querySelector('span') as HTMLElement;
                 if (pill) {
-                  const pillHex = theme.buttonActive.replace('#', '');
-                  const pillR = parseInt(pillHex.substr(0, 2), 16);
-                  const pillG = parseInt(pillHex.substr(2, 2), 16);
-                  const pillB = parseInt(pillHex.substr(4, 2), 16);
+                  let pillR: number, pillG: number, pillB: number;
+                  if (theme.buttonActive.startsWith('#')) {
+                    const pillHex = theme.buttonActive.replace('#', '');
+                    pillR = parseInt(pillHex.substr(0, 2), 16);
+                    pillG = parseInt(pillHex.substr(2, 2), 16);
+                    pillB = parseInt(pillHex.substr(4, 2), 16);
+                  } else if (theme.buttonActive.startsWith('rgb')) {
+                    const matches = theme.buttonActive.match(/\d+/g);
+                    if (matches && matches.length >= 3) {
+                      pillR = parseInt(matches[0]);
+                      pillG = parseInt(matches[1]);
+                      pillB = parseInt(matches[2]);
+                    } else {
+                      return;
+                    }
+                  } else {
+                    return;
+                  }
                   const darkerPillR = Math.max(0, pillR - 10);
                   const darkerPillG = Math.max(0, pillG - 10);
                   const darkerPillB = Math.max(0, pillB - 10);
@@ -1257,10 +1290,28 @@ const FloatingActionButtons = () => {
               }}
               onMouseEnter={(e) => {
                 // Darken the button on hover by reducing RGB values
-                const hex = theme.button.replace('#', '');
-                const r = parseInt(hex.substr(0, 2), 16);
-                const g = parseInt(hex.substr(2, 2), 16);
-                const b = parseInt(hex.substr(4, 2), 16);
+                let r: number, g: number, b: number;
+                
+                if (theme.button.startsWith('#')) {
+                  // Hex format
+                  const hex = theme.button.replace('#', '');
+                  r = parseInt(hex.substr(0, 2), 16);
+                  g = parseInt(hex.substr(2, 2), 16);
+                  b = parseInt(hex.substr(4, 2), 16);
+                } else if (theme.button.startsWith('rgb')) {
+                  // RGB format
+                  const matches = theme.button.match(/\d+/g);
+                  if (matches && matches.length >= 3) {
+                    r = parseInt(matches[0]);
+                    g = parseInt(matches[1]);
+                    b = parseInt(matches[2]);
+                  } else {
+                    return; // Can't parse, don't change color
+                  }
+                } else {
+                  return; // Unknown format, don't change color
+                }
+                
                 const darkerR = Math.max(0, r - 20);
                 const darkerG = Math.max(0, g - 20);
                 const darkerB = Math.max(0, b - 20);
@@ -1269,10 +1320,24 @@ const FloatingActionButtons = () => {
                 // Darken the Add pill when button is hovered
                 const pill = e.currentTarget.querySelector('span') as HTMLElement;
                 if (pill) {
-                  const pillHex = theme.buttonActive.replace('#', '');
-                  const pillR = parseInt(pillHex.substr(0, 2), 16);
-                  const pillG = parseInt(pillHex.substr(2, 2), 16);
-                  const pillB = parseInt(pillHex.substr(4, 2), 16);
+                  let pillR: number, pillG: number, pillB: number;
+                  if (theme.buttonActive.startsWith('#')) {
+                    const pillHex = theme.buttonActive.replace('#', '');
+                    pillR = parseInt(pillHex.substr(0, 2), 16);
+                    pillG = parseInt(pillHex.substr(2, 2), 16);
+                    pillB = parseInt(pillHex.substr(4, 2), 16);
+                  } else if (theme.buttonActive.startsWith('rgb')) {
+                    const matches = theme.buttonActive.match(/\d+/g);
+                    if (matches && matches.length >= 3) {
+                      pillR = parseInt(matches[0]);
+                      pillG = parseInt(matches[1]);
+                      pillB = parseInt(matches[2]);
+                    } else {
+                      return;
+                    }
+                  } else {
+                    return;
+                  }
                   const darkerPillR = Math.max(0, pillR - 10);
                   const darkerPillG = Math.max(0, pillG - 10);
                   const darkerPillB = Math.max(0, pillB - 10);

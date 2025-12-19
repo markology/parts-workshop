@@ -53,7 +53,7 @@ export const darkTheme: ColorGroup = {
   surface: "#272b2f",
   
   // Buttons
-  button: "#2a2e32",
+  button: "rgb(42, 46, 50)",
   buttonHover: "#1e2125", // Darker than default
   buttonActive: "#1e2125",
   buttonText: "#ffffff",

@@ -480,14 +480,14 @@ export default function CanvasClient({
                       <span className="text-xs">Submit</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      if (impressionAddRef.current) {
-                        impressionAddRef.current.add();
-                      }
-                    }}
-                    disabled={!canAddImpression}
-                    className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    <button
+                      onClick={() => {
+                        if (impressionAddRef.current) {
+                          impressionAddRef.current.add();
+                        }
+                      }}
+                      disabled={!canAddImpression}
+                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                     style={{
                       backgroundColor: canAddImpression 
                         ? NodeBackgroundColors[sidebarImpressionType]
@@ -499,11 +499,11 @@ export default function CanvasClient({
                         : darkMode
                           ? theme.textMuted
                           : "#94a3b8",
-                      border: `1px solid ${canAddImpression 
-                        ? NodeBackgroundColors[sidebarImpressionType]
-                        : darkMode
-                          ? theme.border
-                          : "#cbd5e1"}`,
+                      border: canAddImpression 
+                        ? `1px solid ${NodeBackgroundColors[sidebarImpressionType]}`
+                        : "none",
+                      ...(darkMode ? { borderTop: canAddImpression ? undefined : "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: canAddImpression ? undefined : "1px solid #00000012" }),
+                      ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                     }}
                     onMouseEnter={(e) => {
                       if (canAddImpression) {

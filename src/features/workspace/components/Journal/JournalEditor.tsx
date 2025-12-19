@@ -742,11 +742,12 @@ function Toolbar({
         e.preventDefault();
           formatText("bold");
       }}
-      className="rounded-md px-2.5 py-1 text-sm font-medium transition"
+      className="rounded-md px-2.5 py-1 text-sm font-medium"
       style={{
         backgroundColor: formats.bold ? theme.accent : 'transparent',
         color: formats.bold ? theme.buttonText : theme.textSecondary,
         boxShadow: formats.bold ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+        transition: "none !important",
       }}
       onMouseEnter={(e) => {
         if (!formats.bold) {
@@ -771,11 +772,12 @@ function Toolbar({
         e.preventDefault();
           formatText("italic");
         }}
-        className="rounded-md px-2.5 py-1 text-sm font-medium transition"
+        className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           backgroundColor: formats.italic ? theme.accent : 'transparent',
           color: formats.italic ? theme.buttonText : theme.textSecondary,
           boxShadow: formats.italic ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+          transition: "none !important",
         }}
         onMouseEnter={(e) => {
           if (!formats.italic) {
@@ -800,11 +802,12 @@ function Toolbar({
           e.preventDefault();
           formatText("underline");
         }}
-        className="rounded-md px-2.5 py-1 text-sm font-medium transition"
+        className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           backgroundColor: formats.underline ? theme.accent : 'transparent',
           color: formats.underline ? theme.buttonText : theme.textSecondary,
           boxShadow: formats.underline ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+          transition: "none !important",
         }}
         onMouseEnter={(e) => {
           if (!formats.underline) {
@@ -829,11 +832,12 @@ function Toolbar({
           e.preventDefault();
           toggleList();
         }}
-        className="rounded-md px-2.5 py-1 text-sm font-medium transition"
+        className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           backgroundColor: formats.list ? theme.accent : 'transparent',
           color: formats.list ? theme.buttonText : theme.textSecondary,
           boxShadow: formats.list ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none',
+          transition: "none !important",
         }}
         onMouseEnter={(e) => {
           if (!formats.list) {
@@ -958,7 +962,7 @@ function Toolbar({
                   key={speaker.id}
                   type="button"
                   onClick={handleSpeakerClick}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
                     isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
                   }`}
                   style={{
@@ -966,6 +970,7 @@ function Toolbar({
                     color: isActive ? "white" : theme.textSecondary,
                     borderColor: isActive ? speakerColor : theme.border,
                     boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                    transition: "none !important",
                   }}
                   title={`Switch to ${speaker.label}`}
                 >
@@ -1018,11 +1023,12 @@ function Toolbar({
                 <button
                   type="button"
                   onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
-                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102"
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium hover:scale-102"
                   style={{
                     borderColor: theme.border,
                     backgroundColor: theme.surface,
                     color: theme.textSecondary,
+                    transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = theme.buttonHover;
@@ -1047,9 +1053,10 @@ function Toolbar({
                           key={part.id || (part.isUnknown ? "unknown" : "")}
                           type="button"
                           onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
-                          className="w-full text-left px-3 py-2 text-xs font-medium transition"
+                          className="w-full text-left px-3 py-2 text-xs font-medium"
                           style={{
                             color: theme.textPrimary,
+                            transition: "none !important",
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = theme.buttonHover;

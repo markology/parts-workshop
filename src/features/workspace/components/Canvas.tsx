@@ -450,15 +450,15 @@ const Workspace = () => {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          box-shadow: none !important;
-          border: none !important;
-          background: ${theme.surface};
-          color: ${theme.textSecondary};
+          border: ${themeName === 'light' ? `1px solid ${theme.border}` : 'none'} !important;
+          background: ${getColorButtonBackground()};
+          color: ${theme.textPrimary};
+          box-shadow: ${themeName === 'light' ? '0 12px 28px rgba(0,0,0,0.45)' : 'none'} !important;
           transition: transform 150ms ease, background 150ms ease, color 150ms ease;
         }
         .react-flow__controls button:hover {
           transform: scale(1.05);
-          background: ${theme.surface};
+          background: ${theme.buttonHover};
           color: ${theme.textPrimary};
         }
       `}</style>

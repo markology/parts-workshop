@@ -253,3 +253,4 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
 };
 
 export default ImpressionInput;
+

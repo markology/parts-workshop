@@ -145,11 +145,13 @@ const TensionNode = ({
                   ""),
                 })
               }
-              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
+              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm"
               style={{
                 backgroundColor: darkMode ? "#924949" : "white",
                 color: darkMode ? "#e7b8b8" : "#475569",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                border: "none",
+                ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
               }}
               onMouseEnter={(e) => {
                 if (darkMode) {
