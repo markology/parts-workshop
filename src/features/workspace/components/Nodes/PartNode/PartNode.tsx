@@ -118,10 +118,13 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
         style={
           darkMode
             ? {
-                background: `linear-gradient(145deg, ${workspaceDarkPalette.elevated}, ${workspaceDarkPalette.surface})`,
+                background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
                 borderColor: "rgba(255,255,255,0.05)",
               }
-            : undefined
+            : {
+                // Subtle gradient for light mode: slightly brighter at top-left, slightly darker at bottom-right
+                background: `linear-gradient(135deg, rgba(255,255,255,0.92), rgba(241,245,249,0.88))`,
+              }
         }
       >
         {/* Title */}

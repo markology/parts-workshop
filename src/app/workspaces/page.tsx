@@ -498,7 +498,9 @@ export default function WorkspacesPage() {
               style={
                 isSearchExpanded
                   ? {
-                      backgroundColor: theme.card,
+                      background: darkMode 
+                        ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
+                        : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
                       borderColor: theme.border,
                     }
                   : undefined
@@ -544,7 +546,9 @@ export default function WorkspacesPage() {
                                     borderColor: "rgba(129, 140, 248, 0.6)",
                                   }
                                 : {
-                                    backgroundColor: theme.surface,
+                                    background: darkMode
+                                      ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
+                                      : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
                                     color: theme.textPrimary,
                                     borderColor: theme.border,
                                   }
@@ -576,7 +580,9 @@ export default function WorkspacesPage() {
                         placeholder="Ask me anything..."
                         className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent break-words"
                         style={{
-                          backgroundColor: theme.surface,
+                          background: darkMode
+                            ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
+                            : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
                           borderColor: theme.border,
                           color: theme.textPrimary,
                         }}
@@ -662,7 +668,9 @@ export default function WorkspacesPage() {
                     minWidth: "160px",
                     top: `${profileDropdownPosition.top}px`,
                     right: `${profileDropdownPosition.right}px`,
-                    backgroundColor: theme.card,
+                    background: darkMode
+                      ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
+                      : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
                     borderColor: theme.border,
                     borderWidth: 1,
                     borderStyle: "solid",
@@ -775,7 +783,7 @@ export default function WorkspacesPage() {
               style={
                 darkMode
                   ? {
-                      backgroundColor: theme.card,
+                      background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
                       borderColor: theme.border,
                       boxShadow: "0 40px 80px rgba(15,23,42,0.7)",
                     }
@@ -1117,8 +1125,10 @@ export default function WorkspacesPage() {
                         : ""
                     }`}
                     style={darkMode ? {
-                      backgroundColor: theme.card,
-                    } : { backgroundColor: "#edf2ff" }}
+                      background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
+                    } : {
+                      background: `linear-gradient(152deg, rgb(237, 242, 255), rgb(230, 235, 250))`,
+                    }}
                     onClick={() => handleOpenWorkspace(workspace.id)}
                     onMouseMove={(e) => {
                       const target = e.target as HTMLElement;
@@ -1160,7 +1170,7 @@ export default function WorkspacesPage() {
                         <div className="space-y-2">
                           <span 
                             style={darkMode ? {
-                              backgroundColor: theme.elevated,
+                              background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
                               color: theme.textPrimary,
                               borderColor: theme.border,
                             } : undefined}
@@ -1188,8 +1198,10 @@ export default function WorkspacesPage() {
                       <div 
                         style={darkMode ? {
                           borderColor: theme.border,
-                          backgroundColor: theme.surface,
-                        } : { backgroundColor: 'white' }}
+                          background: `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`,
+                        } : { 
+                          background: `linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))`
+                        }}
                         className={`rounded-2xl border p-3 h-32 sm:h-36 ${
                           darkMode ? '' : 'border-slate-200 shadow-inner'
                         }`}
@@ -1200,7 +1212,7 @@ export default function WorkspacesPage() {
                               <div
                                 key={node.id}
                                 style={darkMode ? {
-                                  backgroundColor: theme.elevated,
+                                  background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
                                 } : undefined}
                                 className={`rounded-lg overflow-hidden flex items-center justify-center ${
                                   darkMode ? '' : 'bg-slate-50'
@@ -1231,7 +1243,7 @@ export default function WorkspacesPage() {
                           <div className="flex h-full flex-col items-center justify-center gap-2">
                             <div 
                               style={darkMode ? {
-                                backgroundColor: theme.elevated,
+                                background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
                               } : undefined}
                               className={`p-3 rounded-full ${darkMode ? '' : 'bg-sky-50'}`}
                             >
@@ -1247,7 +1259,9 @@ export default function WorkspacesPage() {
                     <div className={`relative px-6 pb-6 pt-4 mt-auto border-t ${
                       darkMode ? 'border-slate-800/60' : 'border-slate-200'
                     }`}
-                    style={darkMode ? {} : { backgroundColor: 'white' }}
+                    style={darkMode ? {} : { 
+                      background: `linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))`
+                    }}
                     >
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <span 

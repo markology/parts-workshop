@@ -100,16 +100,33 @@ const Workspace = () => {
     }
   }, [workspaceBgColor, defaultBg]);
 
-  // Get gradient background for dark theme, but allow custom colors
+  // Helper function to adjust brightness of a hex color
+  const adjustBrightness = (hex: string, percent: number) => {
+    const num = parseInt(hex.replace("#", ""), 16);
+    const r = Math.min(255, Math.max(0, ((num >> 16) & 0xff) + percent));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + percent));
+    const b = Math.min(255, Math.max(0, (num & 0xff) + percent));
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+
+  // Get gradient background for all themes, but allow custom colors
   const getBackgroundStyle = () => {
     // If user has selected a custom color, use it (even in dark mode)
     if (workspaceBgColor && workspaceBgColor !== defaultBg && workspaceBgColor !== theme.workspace) {
       return workspaceBgColor;
     }
-    // Otherwise, use gradient for dark theme, or theme workspace color
-    if (themeName === "dark" && workspaceBgColor === defaultBg) {
-      // Subtle gradient from lighter to darker gray-blue
-      return "linear-gradient(135deg, #454b54 0%, #3d434b 50%, #353b43 100%)";
+    // Otherwise, use subtle gradient for all themes
+    if (workspaceBgColor === defaultBg) {
+      if (themeName === "dark") {
+        // Subtle gradient for dark theme: slightly lighter to slightly darker
+        return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 3)}, ${adjustBrightness(theme.workspace, -3)})`;
+      } else if (themeName === "light") {
+        // Subtle gradient for light theme: slightly brighter to slightly darker
+        return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 2)}, ${adjustBrightness(theme.workspace, -2)})`;
+      } else if (themeName === "red") {
+        // Subtle gradient for red theme: slightly lighter to slightly darker
+        return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 3)}, ${adjustBrightness(theme.workspace, -3)})`;
+      }
     }
     return workspaceBgColor;
   };
@@ -409,6 +426,7 @@ const Workspace = () => {
       ) : (
         <ReactFlow
           className="h-[4000px] w-[4000px]"
+          style={{ background: getBackgroundStyle() }}
           nodes={nodes}
           edges={edges}
           onNodesChange={() => {}}
