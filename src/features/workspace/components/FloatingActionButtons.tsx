@@ -1263,7 +1263,7 @@ const FloatingActionButtons = () => {
               }}
             >
               Part
-              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium"
+              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{ 
                   backgroundColor: theme.buttonActive, 
                   color: theme.buttonText 
@@ -1355,7 +1355,7 @@ const FloatingActionButtons = () => {
               }}
             >
               Relationship
-              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium"
+              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{ 
                   backgroundColor: theme.buttonActive, 
                   color: theme.buttonText 

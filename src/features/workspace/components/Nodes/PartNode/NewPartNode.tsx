@@ -174,10 +174,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
         background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
         borderColor: "rgba(255,255,255,0.06)",
       }
-    : {
-        // Subtle gradient for light mode: slightly brighter at top-left, slightly darker at bottom-right
-        background: `linear-gradient(135deg, rgba(255,255,255,0.92), rgba(241,245,249,0.88))`,
-      };
+    : undefined;
 
 
   return (

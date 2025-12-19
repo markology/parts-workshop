@@ -35,7 +35,7 @@ const themeDescriptions: Record<
   },
   red: {
     label: "Cherry",
-    description: "Crimson cards with white text",
+    description: "Coming soon — red gradients + white text",
   },
 };
 
@@ -282,6 +282,7 @@ const Workspace = () => {
             <div className="space-y-2 mb-4">
               {(["light", "dark", "red"] as ThemeName[]).map((option) => {
                 const isActive = themeName === option;
+                const isComingSoon = option === "red";
                 const optionTheme = getThemeByName(option);
                 const previewSwatches = [
                   optionTheme.workspace,
@@ -291,7 +292,10 @@ const Workspace = () => {
                 return (
                   <button
                     key={option}
+                    disabled={isComingSoon}
+                    aria-disabled={isComingSoon}
                     onClick={async () => {
+                      if (isComingSoon) return;
                       // Workspace-specific theme: do NOT persist as global site preference
                       setThemeName(option, false);
                       setWorkspaceBgColor(optionTheme.workspace);
@@ -335,14 +339,16 @@ const Workspace = () => {
                       borderColor: isActive ? theme.accent : theme.border,
                       color: theme.textPrimary,
                       boxShadow: isActive ? "0 12px 28px rgba(0,0,0,0.35)" : "none",
+                      opacity: isComingSoon ? 0.55 : 1,
+                      cursor: isComingSoon ? "not-allowed" : "pointer",
                     }}
                     onMouseEnter={(e) => {
-                      if (!isActive) {
+                      if (!isActive && !isComingSoon) {
                         e.currentTarget.style.backgroundColor = theme.buttonHover;
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (!isActive) {
+                      if (!isActive && !isComingSoon) {
                         e.currentTarget.style.backgroundColor = theme.surface;
                       }
                     }}
@@ -370,17 +376,30 @@ const Workspace = () => {
                         {themeDescriptions[option].description}
                       </span>
                     </div>
-                    {isActive && (
+                    {isComingSoon ? (
                       <span
                         className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
                         style={{
-                          backgroundColor: optionTheme.button,
-                          color: optionTheme.buttonText,
-                          borderColor: optionTheme.accent,
+                          backgroundColor: "rgba(148, 163, 184, 0.15)",
+                          color: theme.textSecondary,
+                          borderColor: theme.border,
                         }}
                       >
-                        Active
+                        Coming soon
                       </span>
+                    ) : (
+                      isActive && (
+                        <span
+                          className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
+                          style={{
+                            backgroundColor: optionTheme.button,
+                            color: optionTheme.buttonText,
+                            borderColor: optionTheme.accent,
+                          }}
+                        >
+                          Active
+                        </span>
+                      )
                     )}
                   </button>
                 );
