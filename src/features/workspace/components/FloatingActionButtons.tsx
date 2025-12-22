@@ -823,7 +823,7 @@ const FloatingActionButtons = () => {
             </button>
             <button
               onClick={() => {
-                router.push('/workspaces');
+                router.push('/dashboard');
                 setProfileDropdownOpen(false);
               }}
               className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
@@ -836,7 +836,7 @@ const FloatingActionButtons = () => {
               }}
             >
               <Map className="w-4 h-4" />
-              Workspaces
+              Dashboard
             </button>
             
             
@@ -1000,9 +1000,11 @@ const FloatingActionButtons = () => {
             left: `${chatboxPosition.left}px`
           }}
         >
-          <div className={`relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col ${darkMode ? "" : "shadow-[0_18px_35px_rgba(105,99,255,0.18)]"}`}
+          <div className="relative w-full h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)]"
             style={{ 
-              backgroundColor: theme.modal, 
+              background: darkMode 
+                ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
+                : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
               borderColor: theme.border 
             }}>
             <button
@@ -1023,13 +1025,26 @@ const FloatingActionButtons = () => {
 
             <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
               <div>
-                <p 
-                  className={`text-[11px] tracking-[0.32em] uppercase font-semibold ${darkMode ? "text-purple-400/60" : "text-purple-500/70"}`}
+                <p
+                  style={{ fontWeight: 600, fontSize: '15px' }}
                 >
-                  Studio Assistant
+                  <span
+                    style={{
+                      background: 'linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      color: 'transparent',
+                    }}
+                  >
+                    Studio Assistant
+                  </span>
                 </p>
-                <p className="mt-3 text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
-                  Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
+                <p
+                  className="mt-3 text-sm leading-relaxed"
+                  style={{ color: theme.textSecondary }}
+                >
+                  Ask for guidance, shortcuts, or reflections tailored to
+                  your Parts Studio flow.
                 </p>
               </div>
 
@@ -1040,16 +1055,19 @@ const FloatingActionButtons = () => {
                     className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
-                        message.role === "user"
-                          ? "bg-purple-500 text-white"
-                          : ""
-                      }`}
+                      className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words border"
                       style={
                         message.role === "user"
-                          ? undefined
+                          ? {
+                              background:
+                                "linear-gradient(135deg, #a855f7, #6366f1)",
+                              color: "#ffffff",
+                              borderColor: "rgba(129, 140, 248, 0.6)",
+                            }
                           : {
-                              backgroundColor: darkMode ? theme.surface : theme.elevated,
+                              background: darkMode
+                                ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
+                                : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
                               color: theme.textPrimary,
                               borderColor: theme.border,
                             }
@@ -1080,13 +1098,14 @@ const FloatingActionButtons = () => {
                           }
                         }}
                         placeholder="Ask me anything..."
-                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent border text-sm"
-                      style={{
-                        backgroundColor: theme.surface,
-                        borderColor: theme.border,
-                        color: theme.textPrimary,
-                      }}
-                      placeholder="Ask me anything..."
+                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent break-words"
+                        style={{
+                          background: darkMode
+                            ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
+                            : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
+                          borderColor: theme.border,
+                          color: theme.textPrimary,
+                        }}
                       />
                     </div>
                   </div>

@@ -300,7 +300,7 @@ export default function BodyMappingPage() {
 
   const handleSaveBodyMap = () => {
     console.log('Saving body map:', colorSegments);
-    router.push('/workspaces');
+    router.push('/dashboard');
   };
 
   const handleDownloadCanvas = () => {
@@ -320,7 +320,7 @@ export default function BodyMappingPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => router.push("/workspaces")}
+              onClick={() => router.push("/dashboard")}
               className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />

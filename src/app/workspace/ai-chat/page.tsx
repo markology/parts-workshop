@@ -347,7 +347,7 @@ function AIChatContent({ initialMessage }: { initialMessage: string | null }) {
       <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => router.push("/workspaces")}
+            onClick={() => router.push("/dashboard")}
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />

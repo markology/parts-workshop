@@ -12,7 +12,7 @@ const MapsButton: React.FC = () => {
       <button
         className=" w-15 h-15 rounded-lg flex items-center justify-center cursor-pointer z-50 bg-black/25"
         id="maps-button"
-        onClick={() => router.push("/workspaces")}
+        onClick={() => router.push("/dashboard")}
         onMouseOver={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >

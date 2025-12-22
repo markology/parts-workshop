@@ -8,7 +8,7 @@ export default async function Page() {
 
   if (session?.user) {
     console.log("SESSION FOUND - REDIRECTING TO WORKSPACE");
-    redirect("/workspaces");
+    redirect("/dashboard");
   }
 
   return <Landing />;

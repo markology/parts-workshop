@@ -9,10 +9,13 @@ import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 import Modal from "@/components/Modal";
 import FeedbackForm from "@/components/FeedbackForm";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
+import PartsStudioLogo from "@/components/PartsStudioLogo";
 
 interface PartNode {
   id: string;
@@ -42,10 +45,11 @@ interface ChatMessage {
 
 type SortOption = 'edited' | 'created' | 'name';
 
-export default function WorkspacePage() {
+export default function WorkspacesPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { darkMode, toggleDarkMode } = useThemeContext();
+  const { darkMode, themeName, setThemeName } = useThemeContext();
+  const theme = useTheme();
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
@@ -333,10 +337,10 @@ export default function WorkspacePage() {
   };
 
   const headerBackgroundClass = isSearchExpanded
-    ? 'bg-transparent supports-[backdrop-filter]:backdrop-blur-xl border-b border-transparent'
+    ? "bg-transparent supports-[backdrop-filter]:backdrop-blur-xl border-b border-transparent"
     : darkMode
-      ? 'bg-slate-950/80 border-b border-slate-800/60 supports-[backdrop-filter]:backdrop-blur-xl'
-      : 'bg-white/75 border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)]';
+      ? "bg-slate-950/80 border-b border-slate-800/60 supports-[backdrop-filter]:backdrop-blur-xl"
+      : "bg-white/75 border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)]";
 
   // Update dropdown position when it opens
   useEffect(() => {
@@ -408,11 +412,36 @@ export default function WorkspacePage() {
     },
   ];
 
+  // FORCE LOADER FOR EDITING - Remove this line to restore normal behavior
+  const forceLoading = false;
+
+  if (loading || forceLoading) {
+    return (
+      <PageLoader
+        title="Loading workspace library"
+        subtitle="Gathering your sessions, parts, relationships, and journal insights."
+      />
+    );
+  }
+
   return (
-    <div className={`min-h-screen ${darkMode 
-      ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white' 
-      : 'bg-[#e6f8ff] text-gray-900'
-    }`}>
+    <div
+      className={`min-h-screen ${darkMode ? "" : "text-gray-900"}`}
+      style={
+        darkMode
+          ? {
+              // Match workspace dark theme palette
+              backgroundImage:
+                "linear-gradient(135deg, #454b54, #3d434b, #353b43)",
+              color: theme.textPrimary,
+            }
+          : {
+              backgroundImage:
+                "linear-gradient(to bottom, #e6f8ff 0%, #dbeafe 400px, #e0e7ff calc(400px + 500px), #fef1f2 calc(400px + 1000px), #fff1f2 100%)",
+              color: theme.textPrimary,
+            }
+      }
+    >
       <div
         className={`fixed inset-0 pointer-events-none ${
           isSearchExpanded ? 'opacity-100' : 'opacity-0'
@@ -427,34 +456,70 @@ export default function WorkspacePage() {
       {/* Header */}
       <header
         className={`sticky top-0 z-[65] ${headerBackgroundClass}`}
+        style={
+          darkMode
+            ? {
+                backgroundColor: theme.elevated,
+                borderColor: theme.border,
+              }
+            : undefined
+        }
       >
         <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Link href="/" className="inline-flex flex-col">
-              <span className={`text-xs uppercase tracking-[0.28em] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                Parts Studio
-              </span>
-              <span className={`text-2xl font-semibold leading-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                Workspace Library
-              </span>
-            </Link>
+            <div className="inline-flex items-center" style={{ columnGap: '4px', marginLeft: '6px' }}>
+              <PartsStudioLogo size="lg" showText={false} />
+              <div className="flex flex-col gap-0.5">
+                <span
+                  className="text-lg font-semibold leading-tight"
+                  style={{
+                    color: darkMode ? theme.textPrimary : "#0f172a",
+                  }}
+                >
+                  Parts Studio
+                </span>
+                <span
+                  className="text-xs uppercase tracking-[0.28em]"
+                  style={{
+                    color: darkMode ? theme.textSecondary : "#64748b",
+                  }}
+                >
+                  Dashboard
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Search Input - Absolutely positioned, centered */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-4 w-full max-w-md px-6 pointer-events-none" style={{ zIndex: 60 }}>
+          <div
+            className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6 pointer-events-none"
+            style={{ zIndex: 60, top: '20px' }}
+          >
             <div
               ref={searchBoxRef}
-              className={`relative pointer-events-auto border-none ${
+              className={`relative pointer-events-auto ${
                 isSearchExpanded
-                  ? `h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col bg-white border-gray-200 ${darkMode ? '' : 'shadow-[0_18px_35px_rgba(105,99,255,0.18)]'}`
-                  : ''
+                  ? "h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)]"
+                  : ""
               }`}
+              style={
+                isSearchExpanded
+                  ? {
+                      background: darkMode 
+                        ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
+                        : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
+                      borderColor: theme.border,
+                    }
+                  : undefined
+              }
             >
               {isSearchExpanded ? (
                 <>
                   <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
                     <div>
-                      <p style={{ fontWeight: 600, fontSize: '15px' }}>
+                      <p
+                        style={{ fontWeight: 600, fontSize: '15px' }}
+                      >
                         <span
                           style={{
                             background: 'linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)',
@@ -466,8 +531,12 @@ export default function WorkspacePage() {
                           Studio Assistant
                         </span>
                       </p>
-                      <p className={`mt-3 text-sm leading-relaxed ${darkMode ? 'text-gray-600' : 'text-gray-500'}`}>
-                        Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
+                      <p
+                        className="mt-3 text-sm leading-relaxed"
+                        style={{ color: theme.textSecondary }}
+                      >
+                        Ask for guidance, shortcuts, or reflections tailored to
+                        your Parts Studio flow.
                       </p>
                     </div>
 
@@ -478,11 +547,23 @@ export default function WorkspacePage() {
                           className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                           <div
-                            className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words ${
-                              message.role === 'user'
-                                ? 'bg-purple-500 text-white'
-                                : 'bg-gray-100 text-gray-800 border border-gray-200'
-                            }`}
+                            className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words border"
+                            style={
+                              message.role === "user"
+                                ? {
+                                    background:
+                                      "linear-gradient(135deg, #a855f7, #6366f1)",
+                                    color: "#ffffff",
+                                    borderColor: "rgba(129, 140, 248, 0.6)",
+                                  }
+                                : {
+                                    background: darkMode
+                                      ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
+                                      : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
+                                    color: theme.textPrimary,
+                                    borderColor: theme.border,
+                                  }
+                            }
                           >
                             {message.content.trim().length > 0 ? message.content : '...'}
                           </div>
@@ -499,16 +580,23 @@ export default function WorkspacePage() {
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
+                          if (e.key === "Escape") {
                             e.preventDefault();
                             setIsSearchExpanded(false);
-                          } else if (e.key === 'Enter' && !e.shiftKey) {
+                          } else if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
                             handleSendChat();
                           }
                         }}
                         placeholder="Ask me anything..."
-                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 break-words"
+                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent break-words"
+                        style={{
+                          background: darkMode
+                            ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
+                            : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
+                          borderColor: theme.border,
+                          color: theme.textPrimary,
+                        }}
                       />
                     </div>
                   </div>
@@ -528,11 +616,12 @@ export default function WorkspacePage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setShowFeedbackModal(true)}
-              className={`hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                darkMode
-                  ? 'bg-gradient-to-r from-purple-500/70 to-sky-500/70 text-white hover:from-purple-500 hover:to-sky-500'
-                  : 'bg-gradient-to-r from-purple-500 to-sky-500 text-white hover:brightness-110'
-              }`}
+              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
+              style={{
+                background:
+                  "linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)",
+                color: "white",
+              }}
               title="Contact"
             >
               <MailPlus className="w-4 h-4" />
@@ -540,11 +629,11 @@ export default function WorkspacePage() {
             </button>
             <button
               onClick={() => setShowFeedbackModal(true)}
-              className={`sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
-                darkMode
-                  ? 'bg-slate-800 text-slate-200 hover:bg-slate-700'
-                  : 'bg-white text-slate-700 hover:bg-slate-100'
-              }`}
+              className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors"
+              style={{
+                backgroundColor: darkMode ? theme.button : "#ffffff",
+                color: darkMode ? theme.buttonText : "#334155",
+              }}
               title="Contact"
             >
               <MailPlus className="w-5 h-5" />
@@ -580,15 +669,17 @@ export default function WorkspacePage() {
                       (profileDropdownRef.current as any).dropdownMenu = el;
                     }
                   }}
-                  className={`fixed rounded-lg shadow-lg z-[100] ${
-                    darkMode
-                      ? 'bg-gray-800 border border-gray-700'
-                      : 'bg-white border border-gray-200'
-                  }`}
+                  className="fixed rounded-lg shadow-lg z-[100]"
                   style={{
-                    minWidth: '160px',
+                    minWidth: "160px",
                     top: `${profileDropdownPosition.top}px`,
-                    right: `${profileDropdownPosition.right}px`
+                    right: `${profileDropdownPosition.right}px`,
+                    background: darkMode
+                      ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
+                      : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
+                    borderColor: theme.border,
+                    borderWidth: 1,
+                    borderStyle: "solid",
                   }}
                 >
                   <button
@@ -607,13 +698,18 @@ export default function WorkspacePage() {
                   </button>
                   <button
                     onClick={() => {
-                      toggleDarkMode(!darkMode);
+                      const nextTheme =
+                        themeName === "dark"
+                          ? "light"
+                          : "dark";
+                      // Persist as a global site preference
+                      setThemeName(nextTheme, true);
                       setProfileDropdownOpen(false);
                     }}
                     className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
                       darkMode
-                        ? 'hover:bg-gray-700 text-white'
-                        : 'hover:bg-gray-100 text-gray-900'
+                        ? "hover:bg-gray-700 text-white"
+                        : "hover:bg-gray-100 text-gray-900"
                     }`}
                   >
                     {darkMode ? (
@@ -664,20 +760,6 @@ export default function WorkspacePage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Loading State */}
-        {/* {loading && ( */}
-          <div className="py-24">
-            <PageLoader
-              withBackground={false}
-              fullHeight={false}
-              className="max-w-xl mx-auto"
-              title="Loading workspace library"
-              subtitle="Gathering your sessions, parts, relationships, and journal insights."
-              message="Preparing your Studio overview..."
-            />
-          </div>
-        {/* )} */}
-
         {/* Error State */}
         {error && (
           <div className="text-center py-12">
@@ -698,18 +780,56 @@ export default function WorkspacePage() {
         {/* Start Session Section */}
         {!loading && !error && (
           <section className="mb-12">
-            <div className={`relative overflow-hidden rounded-[28px] border transition-all duration-300 ${
-              darkMode
-                ? 'bg-gradient-to-r from-slate-950 via-slate-900/80 to-slate-900/40 border-slate-800/60 shadow-[0_40px_80px_rgba(2,6,23,0.55)]'
-                : 'bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)]'
-            }`}>
-              <div className="absolute -top-28 -right-36 h-72 w-72 rounded-full bg-gradient-to-br from-purple-400/30 via-sky-400/20 to-transparent blur-3xl" />
-              <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-tr from-sky-500/30 via-emerald-400/20 to-transparent blur-3xl" />
-              <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] items-start p-8 lg:p-12">
-                <div className="space-y-6">
-                  <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] ${
-                    darkMode ? 'bg-slate-900/85 text-slate-200 border border-slate-800/70' : 'bg-white/90 text-slate-600 border border-white/80 shadow-sm'
-                  }`}>
+            <div
+              className={`relative overflow-hidden rounded-[28px] border transition-all duration-300 ${
+                darkMode
+                  ? ""
+                  : "bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)]"
+              }`}
+              style={
+                darkMode
+                  ? {
+                      background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
+                      borderColor: theme.border,
+                      boxShadow: "0 40px 80px rgba(15,23,42,0.7)",
+                    }
+                  : undefined
+              }
+            >
+              <div
+                className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl"
+                style={
+                  darkMode
+                    ? {
+                        background:
+                          "radial-gradient(circle at center, rgba(148,163,184,0.28), transparent 60%)",
+                      }
+                    : undefined
+                }
+              />
+              <div
+                className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl"
+                style={
+                  darkMode
+                    ? {
+                        background:
+                          "radial-gradient(circle at center, rgba(51,65,85,0.4), transparent 65%)",
+                      }
+                    : undefined
+                }
+              />
+              <div className="relative flex flex-col gap-12 p-8 lg:flex-row lg:items-stretch lg:justify-between lg:p-12">
+                <div className="relative flex-1 space-y-6">
+                  <div 
+                    style={darkMode ? {
+                      backgroundColor: theme.elevated,
+                      color: theme.textPrimary,
+                      borderColor: theme.border,
+                    } : undefined}
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] border ${
+                      darkMode ? '' : 'bg-white/90 text-black border-white/80 shadow-sm'
+                    }`}
+                  >
                     <span>Self Guided Session</span>
                   </div>
                   <h2 className={`text-3xl lg:text-4xl font-semibold leading-snug ${darkMode ? 'text-white' : 'text-slate-900'}`}>
@@ -722,18 +842,28 @@ export default function WorkspacePage() {
                     {heroHighlights.map(({ icon: Icon, label, description }) => (
                       <div
                         key={label}
+                        style={darkMode ? {
+                          borderColor: theme.border,
+                          backgroundColor: theme.card,
+                        } : undefined}
                         className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${
-                          darkMode ? 'border-slate-800/70 bg-slate-900/50' : 'border-slate-200 bg-white/80 shadow-sm'
+                          darkMode ? '' : 'border-slate-200 bg-white/80 shadow-sm'
                         }`}
                       >
-                        <div className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${
-                          darkMode ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'
-                        }`}>
+                        <div 
+                          style={darkMode ? {
+                            backgroundColor: theme.elevated,
+                            color: theme.textPrimary,
+                          } : undefined}
+                          className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${
+                            darkMode ? '' : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="space-y-1">
-                          <p className={`font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{label}</p>
-                          <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{description}</p>
+                          <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{label}</p>
+                          <p style={darkMode ? { color: theme.textSecondary } : undefined} className={darkMode ? '' : 'text-slate-600'}>{description}</p>
                         </div>
                       </div>
                     ))}
@@ -741,7 +871,10 @@ export default function WorkspacePage() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2">
                     <button
                       onClick={handleStartSession}
-                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 via-indigo-500 to-sky-500 shadow-[0_22px_48px_rgba(124,58,237,0.28)] hover:shadow-[0_28px_60px_rgba(124,58,237,0.32)] transition-all duration-200 hover:-translate-y-[2px]"
+                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-[0_22px_48px_rgba(190,84,254,0.28)] hover:shadow-[0_28px_60px_rgba(190,84,254,0.32)] transition-all duration-200 hover:-translate-y-[2px]"
+                      style={{
+                        background: "linear-gradient(to right, #be54fe, #6366f1, #0ea5e9)"
+                      }}
                     >
                       <Play className="w-4 h-4" />
                       Start a fresh map
@@ -751,44 +884,99 @@ export default function WorkspacePage() {
                         e.preventDefault();
                         setIsSearchExpanded(true);
                       }}
-                      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                      style={darkMode ? {
+                        color: theme.textPrimary,
+                        backgroundColor: theme.button,
+                        borderColor: theme.border,
+                      } : undefined}
+                      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                         darkMode
-                          ? 'text-slate-200 border border-slate-700 hover:bg-slate-800/70'
-                          : 'text-slate-700 border border-slate-300 hover:bg-slate-100'
+                          ? 'border shadow-[0_14px_32px_rgba(8,15,30,0.45)] hover:opacity-90 hover:-translate-y-px'
+                          : 'text-slate-700 bg-white/85 border border-sky-200/70 shadow-[0_16px_38px_rgba(59,130,246,0.12)] hover:bg-white hover:-translate-y-px'
                       }`}
                     >
-                      <HelpCircle className="w-4 h-4" />
+                      <Sparkles className="w-4 h-4" />
                       Ask the assistant
                     </button>
                   </div>
                 </div>
-                <div className="relative">
-                  <div className={`rounded-2xl border p-6 lg:p-7 space-y-5 ${
-                    darkMode ? 'bg-slate-950/50 border-slate-800/60' : 'bg-white/90 border-slate-200 shadow-xl'
-                  }`}>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className={`rounded-xl border px-4 py-3 ${
-                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
-                      }`}>
-                        <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Sessions</p>
-                        <p className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{workspaces.length}</p>
-                        <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Saved journeys</p>
+                <aside className="relative lg:w-[360px] xl:w-[380px]">
+                  <div 
+                    style={darkMode ? {
+                      backgroundColor: theme.card,
+                      borderColor: theme.border,
+                    } : undefined}
+                    className={`relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 ${
+                      darkMode
+                        ? 'shadow-[0_48px_120px_rgba(2,6,23,0.6)]'
+                        : 'bg-white/92 border-white/70 shadow-[0_55px_120px_rgba(91,105,255,0.15)] backdrop-blur-xl'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 600 } : { fontWeight: 600 }} className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? '' : 'text-black'}`}>
+                          Studio snapshot
+                        </p>
+                        <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-sm ${darkMode ? '' : 'text-slate-600'}`}>
+                          A quick glance at your practice
+                        </p>
                       </div>
-                      <div className={`rounded-xl border px-4 py-3 ${
-                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
-                      }`}>
-                        <p className={`text-xs uppercase tracking-[0.28em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Parts</p>
-                        <p className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{totalParts}</p>
-                        <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Mapped across sessions</p>
+                      <div 
+                        style={darkMode ? {
+                          backgroundColor: theme.elevated,
+                          color: theme.textPrimary,
+                        } : undefined}
+                        className={`flex h-9 w-9 items-center justify-center rounded-2xl ${
+                          darkMode ? '' : 'bg-sky-100 text-sky-600'
+                        }`}
+                      >
+                        <Sparkles className="w-4 h-4" />
                       </div>
                     </div>
-                    <div className={`rounded-2xl border px-4 py-4 ${
-                      darkMode ? 'border-slate-800/70 bg-slate-900/55' : 'border-slate-200/70 bg-white/90 shadow-inner'
-                    }`}>
-                      <p className={`text-[11px] uppercase tracking-[0.32em] mb-2 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div 
+                        style={darkMode ? {
+                          borderColor: theme.border,
+                          backgroundColor: theme.surface,
+                        } : undefined}
+                        className={`rounded-2xl border px-4 py-3 ${
+                          darkMode ? '' : 'border-sky-100 bg-gradient-to-br from-sky-50 via-white to-white/90'
+                        }`}
+                      >
+                        <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-sky-600'}`}>Sessions</p>
+                        <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{workspaces.length}</p>
+                        <p style={darkMode ? { color: theme.textMuted } : undefined} className={`text-xs ${darkMode ? '' : 'text-slate-500'}`}>Saved journeys</p>
+                      </div>
+                      <div 
+                        style={darkMode ? {
+                          borderColor: theme.border,
+                          backgroundColor: theme.surface,
+                        } : undefined}
+                        className={`rounded-2xl border px-4 py-3 ${
+                          darkMode ? '' : 'border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-white/90'
+                        }`}
+                      >
+                        <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-indigo-600'}`}>Parts</p>
+                        <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{totalParts}</p>
+                        <p style={darkMode ? { color: theme.textMuted } : undefined} className={`text-xs ${darkMode ? '' : 'text-slate-500'}`}>Mapped across sessions</p>
+                      </div>
+                    </div>
+                    <div 
+                      className={`rounded-2xl border ${
+                        darkMode ? '' : 'border-slate-200/70 bg-white/90 shadow-inner'
+                      }`}
+                      style={darkMode ? {
+                        borderColor: theme.border,
+                        backgroundColor: theme.surface,
+                        padding: '30px',
+                      } : {
+                        padding: '30px',
+                      }}
+                    >
+                      <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.32em] mb-2 ${darkMode ? '' : 'text-slate-500'}`}>
                         Message from the team
                       </p>
-                      <div className={`space-y-3 text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <div style={darkMode ? { color: theme.textPrimary } : undefined} className={`space-y-3 text-sm leading-relaxed ${darkMode ? '' : 'text-slate-600'}`}>
                         <p>
                           Thanks for trying Parts Studio. Every session you create is saved automatically and backed up securely so you can experiment without worry.
                         </p>
@@ -806,13 +994,11 @@ export default function WorkspacePage() {
                             <ArrowRight className="arrow-icon w-4 h-4" />
                           </button>
                         </div>
-                        <p className={`${darkMode ? 'text-slate-400' : 'text-slate-500'} text-xs uppercase tracking-[0.28em] pt-2`}>
-                          — The Parts Studio team
-                        </p>
                       </div>
                     </div>
                   </div>
-                </div>
+                  <div className="pointer-events-none absolute inset-x-10 -bottom-10 h-36 rounded-full bg-gradient-to-t from-sky-500/10 via-sky-400/0 to-transparent blur-3xl" />
+                </aside>
               </div>
             </div>
           </section>
@@ -823,14 +1009,18 @@ export default function WorkspacePage() {
           <div className={`relative overflow-hidden rounded-[24px] border px-8 py-16 text-center ${
             darkMode ? 'border-slate-800/60 bg-slate-950/40' : 'border-slate-200 bg-white/90 shadow-[0_30px_70px_rgba(15,23,42,0.1)]'
           }`}>
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-purple-400/10 via-transparent to-sky-400/20" />
+            <div className={`absolute inset-10 pointer-events-none rounded-[32px] blur-2xl ${
+              darkMode
+                ? "bg-gradient-to-br from-purple-400/5 via-transparent to-purple-400/10"
+                : "bg-gradient-to-br from-purple-400/5 via-transparent to-sky-400/10"
+            }`} />
             <div className="relative flex flex-col items-center gap-4">
               <div className={`${darkMode ? 'bg-slate-900/60' : 'bg-slate-100'} p-5 rounded-full`}>
                 <Map className={`w-14 h-14 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
               </div>
               <h3 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Your canvas is ready</h3>
               <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} max-w-md`}>
-                Kick off your first session to start mapping parts, impressions, and relationships. We’ll keep everything saved as you go.
+                Kick off your first session to start mapping parts, impressions, and relationships. We'll keep everything saved as you go.
               </p>
               <button
                 onClick={handleStartSession}
@@ -847,29 +1037,30 @@ export default function WorkspacePage() {
         {!loading && !error && workspaces.length > 0 && (
           <>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold ${
-                  darkMode ? 'bg-slate-900/60 text-slate-200 border border-slate-800/60' : 'bg-white text-slate-600 border border-slate-200 shadow-sm'
+              <div className="flex flex-wrap items-baseline gap-3">
+                <h2 className={`text-2xl font-semibold leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  My Workspaces
+                </h2>
+                <span className={`inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] ${
+                  darkMode
+                    ? 'bg-white/90 text-slate-900 shadow-sm'
+                    : 'bg-white text-slate-700 shadow-sm shadow-slate-200/50'
                 }`}>
-                  <Clock className="w-3.5 h-3.5" />
                   {workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}
-                </span>
-                <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold ${
-                  darkMode ? 'bg-slate-900/60 text-slate-200 border border-slate-800/60' : 'bg-white text-slate-600 border border-slate-200 shadow-sm'
-                }`}>
-                  <Map className="w-3.5 h-3.5" />
-                  {totalParts} {totalParts === 1 ? 'part' : 'parts'} catalogued
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <ArrowUpDown className={`w-4 h-4 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium ${
-                      darkMode ? 'border-slate-700 text-white hover:border-slate-500' : 'border-slate-300 text-slate-700 hover:border-slate-400'
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ${
+                      darkMode ? 'text-white hover:text-slate-300' : 'text-slate-700 hover:text-slate-900'
                     }`}
-                  >
+                    style={darkMode 
+                      ? { background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))` }
+                      : { backgroundColor: '#ffffff' }
+                    }
+                    >
                     {sortBy === 'edited' && 'Recently Edited'}
                     {sortBy === 'created' && 'Recently Created'}
                     {sortBy === 'name' && 'Name'}
@@ -877,9 +1068,14 @@ export default function WorkspacePage() {
                   </button>
                   {dropdownOpen && (
                     <div
-                      className={`absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden ${
-                        darkMode ? 'bg-slate-900/95 border-slate-700/70' : 'bg-white border-slate-200'
-                      }`}
+                      className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50"
+                      style={darkMode 
+                        ? { 
+                            background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
+                            borderColor: theme.border
+                          }
+                        : { backgroundColor: '#ffffff', borderColor: '#e2e8f0' }
+                      }
                     >
                       {sortBy !== 'edited' && (
                         <button
@@ -887,9 +1083,21 @@ export default function WorkspacePage() {
                             setSortBy('edited');
                             setDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl ${
-                            darkMode ? 'hover:bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-900'
-                          }`}
+                          className="w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl"
+                          style={darkMode 
+                            ? { color: '#ffffff' }
+                            : { color: '#0f172a' }
+                          }
+                          onMouseEnter={(e) => {
+                            if (darkMode) {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                            } else {
+                              e.currentTarget.style.backgroundColor = '#f1f5f9';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
                         >
                           Recently Edited
                         </button>
@@ -900,9 +1108,21 @@ export default function WorkspacePage() {
                             setSortBy('created');
                             setDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                            darkMode ? 'hover:bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-900'
-                          }`}
+                          className="w-full text-left px-4 py-2 text-sm transition-colors"
+                          style={darkMode 
+                            ? { color: '#ffffff' }
+                            : { color: '#0f172a' }
+                          }
+                          onMouseEnter={(e) => {
+                            if (darkMode) {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                            } else {
+                              e.currentTarget.style.backgroundColor = '#f1f5f9';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
                         >
                           Recently Created
                         </button>
@@ -913,9 +1133,21 @@ export default function WorkspacePage() {
                             setSortBy('name');
                             setDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl ${
-                            darkMode ? 'hover:bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-900'
-                          }`}
+                          className="w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl"
+                          style={darkMode 
+                            ? { color: '#ffffff' }
+                            : { color: '#0f172a' }
+                          }
+                          onMouseEnter={(e) => {
+                            if (darkMode) {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                            } else {
+                              e.currentTarget.style.backgroundColor = '#f1f5f9';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
                         >
                           Name
                         </button>
@@ -936,21 +1168,70 @@ export default function WorkspacePage() {
                 return (
                   <div
                     key={workspace.id}
-                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border transition-all duration-300 ${
+                    data-workspace-tile
+                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 ${
                       darkMode
-                        ? 'border-slate-800/60 bg-slate-950/40 hover:border-purple-400/70 hover:shadow-[0_32px_70px_rgba(8,15,30,0.55)]'
-                        : 'border-slate-200 bg-white/90 backdrop-blur-sm hover:border-purple-300 hover:shadow-[0_35px_80px_rgba(124,58,237,0.14)]'
-                    } ${navigatingToWorkspace === workspace.id ? 'opacity-60 pointer-events-none' : 'hover:-translate-y-[6px]'}`}
+                        ? "shadow-sm hover:shadow-sm hover:-translate-y-1"
+                        : "shadow-sm shadow-slate-200/50 hover:shadow-sm hover:shadow-slate-200/50 hover:-translate-y-1"
+                    } ${
+                      navigatingToWorkspace === workspace.id
+                        ? "opacity-60 pointer-events-none"
+                        : ""
+                    }`}
+                    style={darkMode ? {
+                      background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
+                    } : {
+                      background: `linear-gradient(152deg, rgb(237, 242, 255), rgb(230, 235, 250))`,
+                    }}
                     onClick={() => handleOpenWorkspace(workspace.id)}
+                    onMouseMove={(e) => {
+                      const target = e.target as HTMLElement;
+                      const deleteButton =
+                        e.currentTarget.querySelector(
+                          "[data-delete-button]"
+                        ) as HTMLButtonElement;
+                      // Only apply styles if not hovering over delete button
+                      if (!deleteButton?.contains(target) && target !== deleteButton) {
+                        const openButton =
+                          e.currentTarget.querySelector(
+                            "[data-open-button]"
+                          ) as HTMLButtonElement;
+                        if (openButton) {
+                          openButton.style.backgroundImage =
+                            "linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)";
+                          openButton.style.backgroundColor = "transparent";
+                          openButton.style.backgroundClip = "padding-box";
+                          openButton.style.webkitBackgroundClip = "padding-box";
+                          openButton.style.color = "white";
+                          openButton.style.borderColor = "transparent";
+                        }
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const openButton = e.currentTarget.querySelector(
+                        "[data-open-button]"
+                      ) as HTMLButtonElement;
+                      if (openButton) {
+                        openButton.style.backgroundImage = "";
+                        openButton.style.backgroundColor = "";
+                        openButton.style.color = "";
+                        openButton.style.borderColor = "";
+                      }
+                    }}
                   >
-                    <div className="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-br from-purple-500/10 via-transparent to-sky-400/10" />
                     <div className="relative p-6 pb-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-2">
-                          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
-                            darkMode ? 'bg-slate-900/70 text-slate-200 border border-slate-800/60' : 'bg-slate-100 text-slate-600 border border-slate-200'
-                          }`}>
-                            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                          <span 
+                            style={darkMode ? {
+                              background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
+                              color: theme.textPrimary,
+                              borderColor: theme.border,
+                            } : undefined}
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm ${
+                              darkMode ? '' : 'bg-white/90 text-slate-600 border-slate-200 shadow-slate-200/50'
+                            }`}
+                          >
                             Session
                           </span>
                           <h3 className={`text-xl font-semibold leading-tight line-clamp-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
@@ -958,7 +1239,7 @@ export default function WorkspacePage() {
                           </h3>
                         </div>
                         <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                          Edited {formatDate(lastEdited)}
+                          {formatDate(lastEdited)}
                         </span>
                       </div>
                       {workspace.description && (
@@ -968,16 +1249,27 @@ export default function WorkspacePage() {
                       )}
                     </div>
                     <div className="relative px-6 pb-4">
-                      <div className={`rounded-2xl border p-3 h-32 sm:h-36 ${
-                        darkMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-slate-50/70'
-                      }`}>
+                      <div 
+                        style={darkMode ? {
+                          borderColor: theme.border,
+                          background: `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`,
+                        } : { 
+                          background: `linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))`
+                        }}
+                        className={`rounded-2xl border p-3 h-32 sm:h-36 ${
+                          darkMode ? '' : 'border-slate-200 shadow-inner'
+                        }`}
+                      >
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
                             {workspace.nodes.slice(0, 6).map((node: any) => (
                               <div
                                 key={node.id}
+                                style={darkMode ? {
+                                  background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
+                                } : undefined}
                                 className={`rounded-lg overflow-hidden flex items-center justify-center ${
-                                  darkMode ? 'bg-slate-800/70' : 'bg-white'
+                                  darkMode ? '' : 'bg-slate-50'
                                 }`}
                               >
                                 {node.data?.image ? (
@@ -995,7 +1287,7 @@ export default function WorkspacePage() {
                             ))}
                             {workspace.nodes.length > 6 && (
                               <div className={`rounded-lg flex items-center justify-center text-xs font-semibold ${
-                                darkMode ? 'bg-slate-800/70 text-slate-200' : 'bg-white text-slate-600'
+                                darkMode ? 'bg-slate-800/70 text-slate-200' : 'bg-slate-100 text-slate-600'
                               }`}>
                                 +{workspace.nodes.length - 6}
                               </div>
@@ -1003,8 +1295,13 @@ export default function WorkspacePage() {
                           </div>
                         ) : (
                           <div className="flex h-full flex-col items-center justify-center gap-2">
-                            <div className={`${darkMode ? 'bg-slate-900/60' : 'bg-white'} p-3 rounded-full`}>
-                              <Map className={`w-7 h-7 ${darkMode ? 'text-slate-500' : 'text-slate-500'}`} />
+                            <div 
+                              style={darkMode ? {
+                                background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
+                              } : undefined}
+                              className={`p-3 rounded-full ${darkMode ? '' : 'bg-sky-50'}`}
+                            >
+                              <Map style={darkMode ? { color: theme.textMuted } : undefined} className={`w-7 h-7 ${darkMode ? '' : 'text-sky-500'}`} />
                             </div>
                             <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                               Empty workspace
@@ -1015,20 +1312,91 @@ export default function WorkspacePage() {
                     </div>
                     <div className={`relative px-6 pb-6 pt-4 mt-auto border-t ${
                       darkMode ? 'border-slate-800/60' : 'border-slate-200'
-                    }`}>
+                    }`}
+                    style={darkMode ? {} : { 
+                      background: `linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))`
+                    }}
+                    >
                       <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <span className={`inline-flex items-center gap-2 text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        <span 
+                          className={`inline-flex items-center gap-2 text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}
+                        >
                           <User className="w-4 h-4" />
-                          {workspace.partCount} {workspace.partCount === 1 ? 'part' : 'parts'}
+                          <span style={darkMode ? {} : { padding: '2px 5px', background: 'rgb(237, 242, 255)', borderRadius: '6px' }}>
+                            {workspace.partCount}
+                          </span>
                         </span>
                         <div className="flex items-center gap-2">
                           <button
+                            data-open-button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenWorkspace(workspace.id);
+                            }}
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden ${
+                              darkMode 
+                                ? 'text-slate-200 hover:text-white border border-slate-700/60 transition-colors' 
+                                : 'text-slate-700 border border-slate-200'
+                            }`}
+                            style={{ 
+                              textTransform: 'uppercase', 
+                              backgroundColor: 'transparent'
+                            }}
+                            title="Open session"
+                          >
+                            Open
+                          </button>
+                          <button
+                            data-delete-button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteWorkspace(workspace.id);
                             }}
+                            onMouseEnter={(e) => {
+                              e.stopPropagation();
+                              const tile = e.currentTarget.closest(
+                                "[data-workspace-tile]"
+                              ) as HTMLElement;
+                              const openButton = tile?.querySelector(
+                                "[data-open-button]"
+                              ) as HTMLButtonElement;
+                              if (openButton) {
+                                openButton.style.backgroundImage = "";
+                                openButton.style.backgroundColor = "";
+                                openButton.style.color = "";
+                                openButton.style.borderColor = "";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.stopPropagation();
+                              const tile = e.currentTarget.closest(
+                                "[data-workspace-tile]"
+                              ) as HTMLElement;
+                              const openButton = tile?.querySelector(
+                                "[data-open-button]"
+                              ) as HTMLButtonElement;
+                              if (openButton && tile) {
+                                // Reapply gradient when leaving delete button if still on tile
+                                const relatedTarget =
+                                  e.relatedTarget as HTMLElement;
+                                if (
+                                  tile.contains(relatedTarget) ||
+                                  relatedTarget === tile
+                                ) {
+                                  openButton.style.backgroundImage =
+                                    "linear-gradient(90deg, #a855f7, #6366f1, #0ea5e9)";
+                                  openButton.style.backgroundColor = "transparent";
+                                  openButton.style.backgroundClip = "padding-box";
+                                  openButton.style.webkitBackgroundClip = "padding-box";
+                                  openButton.style.color = "white";
+                                  openButton.style.borderColor = "transparent";
+                                }
+                              }
+                            }}
                             className={`inline-flex items-center justify-center rounded-full p-2 transition-colors ${
-                              darkMode ? 'text-slate-400 hover:text-rose-200 hover:bg-rose-500/20' : 'text-slate-500 hover:text-rose-500 hover:bg-rose-50'
+                              darkMode
+                                ? "text-slate-400 hover:text-rose-200 hover:bg-rose-500/20"
+                                : "text-slate-500 hover:text-rose-500 hover:bg-rose-50"
                             }`}
                             title="Delete session"
                           >
@@ -1042,7 +1410,7 @@ export default function WorkspacePage() {
                       <div className={`absolute inset-0 flex items-center justify-center rounded-3xl ${
                         darkMode ? 'bg-slate-950/80' : 'bg-white/80'
                       }`}>
-                        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                        <LoadingSpinner variant="spinner" size="lg" />
                       </div>
                     )}
                   </div>
