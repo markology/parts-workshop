@@ -454,8 +454,17 @@ export default function WorkspacePage() {
                 <>
                   <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
                     <div>
-                      <p className={`text-[11px] tracking-[0.32em] uppercase font-semibold ${darkMode ? 'text-purple-400/60' : 'text-purple-500/70'}`}>
-                        Studio Assistant
+                      <p style={{ fontWeight: 600, fontSize: '15px' }}>
+                        <span
+                          style={{
+                            background: 'linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)',
+                            WebkitBackgroundClip: 'text',
+                            backgroundClip: 'text',
+                            color: 'transparent',
+                          }}
+                        >
+                          Studio Assistant
+                        </span>
                       </p>
                       <p className={`mt-3 text-sm leading-relaxed ${darkMode ? 'text-gray-600' : 'text-gray-500'}`}>
                         Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
@@ -506,11 +515,6 @@ export default function WorkspacePage() {
                 </>
               ) : (
                 <StudioSparkleInput
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => {
-                    setIsSearchExpanded(true);
-                  }}
                   onClick={() => {
                     setIsSearchExpanded(true);
                   }}

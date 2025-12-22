@@ -15,6 +15,7 @@ import FeedbackForm from "@/components/FeedbackForm";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
+import PartsStudioLogo from "@/components/PartsStudioLogo";
 
 interface PartNode {
   id: string;
@@ -419,14 +420,13 @@ export default function WorkspacesPage() {
       <PageLoader
         title="Loading workspace library"
         subtitle="Gathering your sessions, parts, relationships, and journal insights."
-        message="Preparing your Studio overview..."
       />
     );
   }
 
   return (
     <div
-      className={`min-h-screen ${darkMode ? "" : "bg-[#e6f8ff] text-gray-900"}`}
+      className={`min-h-screen ${darkMode ? "" : "text-gray-900"}`}
       style={
         darkMode
           ? {
@@ -435,7 +435,11 @@ export default function WorkspacesPage() {
                 "linear-gradient(135deg, #454b54, #3d434b, #353b43)",
               color: theme.textPrimary,
             }
-          : undefined
+          : {
+              backgroundImage:
+                "linear-gradient(to top, #fff1f2, #fef1f2, #e0e7ff, #dbeafe, #e6f8ff)",
+              color: theme.textPrimary,
+            }
       }
     >
       <div
@@ -463,30 +467,33 @@ export default function WorkspacesPage() {
       >
         <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Link href="/" className="inline-flex flex-col">
-              <span
-                className="text-xs uppercase tracking-[0.28em]"
-                style={{
-                  color: darkMode ? theme.textSecondary : "#64748b",
-                }}
-              >
-                Parts Studio
-              </span>
-              <span
-                className="text-2xl font-semibold leading-tight"
-                style={{
-                  color: darkMode ? theme.textPrimary : "#0f172a",
-                }}
-              >
-                Dashboard
-              </span>
-            </Link>
+            <div className="inline-flex items-center" style={{ columnGap: '4px', marginLeft: '6px' }}>
+              <PartsStudioLogo size="lg" showText={false} />
+              <div className="flex flex-col gap-0.5">
+                <span
+                  className="text-lg font-semibold leading-tight"
+                  style={{
+                    color: darkMode ? theme.textPrimary : "#0f172a",
+                  }}
+                >
+                  Parts Studio
+                </span>
+                <span
+                  className="text-xs uppercase tracking-[0.28em]"
+                  style={{
+                    color: darkMode ? theme.textSecondary : "#64748b",
+                  }}
+                >
+                  Dashboard
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Search Input - Absolutely positioned, centered */}
           <div
-            className="absolute left-1/2 -translate-x-1/2 top-4 w-full max-w-md px-6 pointer-events-none"
-            style={{ zIndex: 60 }}
+            className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6 pointer-events-none"
+            style={{ zIndex: 60, top: '20px' }}
           >
             <div
               ref={searchBoxRef}
@@ -511,14 +518,18 @@ export default function WorkspacesPage() {
                   <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
                     <div>
                       <p
-                        className="text-[11px] tracking-[0.32em] uppercase"
-                        style={{
-                          color: darkMode
-                            ? "rgba(192, 132, 252, 0.9)"
-                            : "rgba(147, 51, 234, 0.9)",
-                        }}
+                        style={{ fontWeight: 600, fontSize: '15px' }}
                       >
-                        Studio Assistant
+                        <span
+                          style={{
+                            background: 'linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)',
+                            WebkitBackgroundClip: 'text',
+                            backgroundClip: 'text',
+                            color: 'transparent',
+                          }}
+                        >
+                          Studio Assistant
+                        </span>
                       </p>
                       <p
                         className="mt-3 text-sm leading-relaxed"
@@ -592,11 +603,6 @@ export default function WorkspacesPage() {
                 </>
               ) : (
                 <StudioSparkleInput
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => {
-                    setIsSearchExpanded(true);
-                  }}
                   onClick={() => {
                     setIsSearchExpanded(true);
                   }}
@@ -613,7 +619,7 @@ export default function WorkspacesPage() {
               className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
               style={{
                 background:
-                  "linear-gradient(90deg, #a855f7, #6366f1, #0ea5e9)",
+                  "linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)",
                 color: "white",
               }}
               title="Contact"
@@ -821,7 +827,7 @@ export default function WorkspacesPage() {
                       borderColor: theme.border,
                     } : undefined}
                     className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] border ${
-                      darkMode ? '' : 'bg-white/90 text-slate-600 border-white/80 shadow-sm'
+                      darkMode ? '' : 'bg-white/90 text-black border-white/80 shadow-sm'
                     }`}
                   >
                     <span>Self Guided Session</span>
@@ -865,7 +871,10 @@ export default function WorkspacesPage() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2">
                     <button
                       onClick={handleStartSession}
-                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 via-indigo-500 to-sky-500 shadow-[0_22px_48px_rgba(124,58,237,0.28)] hover:shadow-[0_28px_60px_rgba(124,58,237,0.32)] transition-all duration-200 hover:-translate-y-[2px]"
+                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-[0_22px_48px_rgba(190,84,254,0.28)] hover:shadow-[0_28px_60px_rgba(190,84,254,0.32)] transition-all duration-200 hover:-translate-y-[2px]"
+                      style={{
+                        background: "linear-gradient(to right, #be54fe, #6366f1, #0ea5e9)"
+                      }}
                     >
                       <Play className="w-4 h-4" />
                       Start a fresh map
@@ -905,7 +914,7 @@ export default function WorkspacesPage() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? '' : 'text-slate-500'}`}>
+                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 600 } : { fontWeight: 600 }} className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? '' : 'text-black'}`}>
                           Studio snapshot
                         </p>
                         <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-sm ${darkMode ? '' : 'text-slate-600'}`}>
@@ -957,9 +966,10 @@ export default function WorkspacesPage() {
                         borderColor: theme.border,
                         backgroundColor: theme.surface,
                       } : undefined}
-                      className={`rounded-2xl border px-4 py-4 ${
+                      className={`rounded-2xl border ${
                         darkMode ? '' : 'border-slate-200/70 bg-white/90 shadow-inner'
                       }`}
+                      style={{ padding: '30px' }}
                     >
                       <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.32em] mb-2 ${darkMode ? '' : 'text-slate-500'}`}>
                         Message from the team
@@ -982,9 +992,6 @@ export default function WorkspacesPage() {
                             <ArrowRight className="arrow-icon w-4 h-4" />
                           </button>
                         </div>
-                        <p className={`${darkMode ? 'text-slate-400' : 'text-slate-500'} text-xs uppercase tracking-[0.28em] pt-2`}>
-                          — The Parts Studio team
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -1144,7 +1151,7 @@ export default function WorkspacesPage() {
                           ) as HTMLButtonElement;
                         if (openButton) {
                           openButton.style.backgroundImage =
-                            "linear-gradient(90deg, #a855f7, #6366f1, #0ea5e9)";
+                            "linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)";
                           openButton.style.backgroundColor = "transparent";
                           openButton.style.backgroundClip = "padding-box";
                           openButton.style.WebkitBackgroundClip = "padding-box";

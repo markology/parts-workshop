@@ -5,56 +5,39 @@ import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { useThemeContext } from "@/state/context/ThemeContext";
 
 interface StudioSparkleInputProps {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
-  onFocus?: () => void;
   onClick?: () => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   className?: string;
-  inputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 export default function StudioSparkleInput({
-  value,
-  onChange,
   placeholder = "Ask the Studio Assistant",
-  onFocus,
   onClick,
-  onKeyDown,
   className = "",
-  inputRef
 }: StudioSparkleInputProps) {
   const theme = useTheme();
   const { darkMode } = useThemeContext();
   
   return (
-    <>
-      <style>{`
-        .studio-sparkle-input::placeholder {
-          color: ${theme.textMuted} !important;
-          opacity: 1;
-        }
-      `}</style>
-      <div className={`relative ${className}`}>
-        <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 z-10" />
-        <input
-          ref={inputRef as React.RefObject<HTMLInputElement>}
-          type="text"
-          value={value}
-          onFocus={onFocus}
-          onClick={onClick}
-          onKeyDown={onKeyDown}
-          onChange={onChange}
-          placeholder={placeholder}
-          className="studio-sparkle-input w-full pl-9 pr-5 py-2 rounded-full focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-transparent border border-transparent shadow-sm"
-          style={{
-            backgroundColor: darkMode ? theme.surface : "#ffffff",
-            borderColor: theme.border,
-            color: theme.textPrimary,
-          }}
-        />
-      </div>
-    </>
+    <button
+      onClick={onClick}
+      className={`px-5 py-2 rounded-full border-0 shadow-sm transition-all duration-200 hover:opacity-90 text-center flex items-center justify-center gap-2 ${className}`}
+      style={{
+        width: '320px',
+        backgroundColor: darkMode ? theme.surface : "#ffffff",
+      }}
+    >
+      <Sparkles className="w-4 h-4" style={{ color: '#be54fe' }} />
+      <span
+        style={{
+          background: 'linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)',
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+        }}
+      >
+        {placeholder}
+      </span>
+    </button>
   );
 }

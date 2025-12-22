@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useState, useEffect } from "react";
+import Image from "next/image";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
@@ -158,45 +159,58 @@ export default function PageLoader({
       className={`${containerHeight} flex items-center justify-center px-6 py-12 ${className}`.trim()}
       style={withBackground ? {
         backgroundColor: theme.workspace,
-        color: theme.textPrimary,
       } : undefined}
     >
-      <div className="relative overflow-visible rounded-[32px] px-10 py-12">
+      <div className="relative overflow-visible">
         <div 
-          className="pointer-events-none absolute top-1/2 left-1/2 h-48 w-48 rounded-full blur-3xl" 
+          className="pointer-events-none absolute top-1/2 left-1/2 rounded-full blur-3xl" 
           style={{ 
+            height: '320px',
+            width: '320px',
             backgroundColor: darkMode ? 'rgba(168, 85, 247, 0.25)' : 'rgba(168, 85, 247, 0.3)',
             transformOrigin: 'center',
+            transform: 'translate(-50%, -50%) translateX(-80px)',
             animation: 'rotateOrbit 5s linear infinite'
           }} 
         />
         <div 
-          className="pointer-events-none absolute top-1/2 left-1/2 h-52 w-52 rounded-full blur-3xl"
+          className="pointer-events-none absolute top-1/2 left-1/2 rounded-full blur-3xl"
           style={{ 
+            height: '360px',
+            width: '360px',
             backgroundColor: darkMode ? `${theme.info}40` : 'rgba(59, 130, 246, 0.3)',
             transformOrigin: 'center',
+            transform: 'translate(-50%, -50%) translateX(80px)',
             animation: 'rotateOrbit 6s linear infinite reverse'
           }} 
         />
-
-        <div className="relative flex flex-col items-center text-center gap-4">
-          {/* <LoadingSpinner variant={spinnerVariant} size="lg" message="" /> */}
+        <div className="relative flex flex-col items-center text-center" style={{ gap: '10px' }}>
+          <div className="relative" style={{ height: '100px', width: '115px' }}>
+            <Image
+              src="/official_logo_bw.svg"
+              alt="Parts Studio Logo"
+              width={115}
+              height={115}
+              className="object-contain"
+              style={{
+                filter: darkMode ? 'brightness(0) invert(1)' : 'none',
+                height: '115px',
+                width: '115px',
+              }}
+              priority
+            />
+          </div>
           {title && (
-            <h2 className="text-2xl font-semibold" style={{ color: theme.textPrimary }}>
+            <h2 className="text-xl font-semibold" style={{ color: darkMode ? '#ffffff' : '#000000' }}>
               {title}
             </h2>
           )}
-          {/* {subtitle && (
-            <p className="max-w-md text-base leading-relaxed" style={{ color: theme.textSecondary }}>
-              {subtitle}
-            </p>
-          )} */}
           {message && (
-            <p className="text-sm" style={{ color: theme.textMuted }}>
+            <p className="text-sm" style={{ color: darkMode ? '#ffffff' : '#000000' }}>
               {message}
             </p>
           )}
-          {children && <div className="mt-4 flex flex-col items-center gap-3">{children}</div>}
+          {children && <div className="mt-2 flex flex-col items-center gap-3">{children}</div>}
         </div>
       </div>
     </div>
