@@ -8,9 +8,17 @@ export const useSaveJournalEntry = () => {
     mutationFn: async ({
       nodeId,
       content,
+      title,
+      entryId,
+      createNewVersion,
+      speakers,
     }: {
       nodeId?: string;
-      content?: string;
+      content: string;
+      title?: string;
+      entryId?: string;
+      createNewVersion?: boolean;
+      speakers?: string[];
     }) => {
       const url = nodeId
         ? `/api/journal/node/${nodeId}`
@@ -18,18 +26,56 @@ export const useSaveJournalEntry = () => {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          title,
+          entryId,
+          createNewVersion,
+          speakers,
+        }),
       });
-      if (!res.ok) throw new Error("Had trouble saving journal entry");
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorMessage = "Had trouble saving journal entry";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(`${errorMessage} (${res.status})`);
+      }
 
-      return res.json();
+      const result = await res.json();
+      if (!result || !result.id) {
+        throw new Error("Server returned invalid response");
+      }
+      
+      return result;
     },
     onSuccess: (newEntry) => {
       queryClient.setQueryData(
         ["journal", "all"],
         (prev: JournalEntry[] = []) => {
-          const rest = prev.filter((e) => e.nodeId !== newEntry.nodeId);
-          return [...rest, newEntry];
+          const existingIndex = prev.findIndex((e) => e.id === newEntry.id);
+          let nextEntries: JournalEntry[];
+
+          if (existingIndex >= 0) {
+            nextEntries = [...prev];
+            nextEntries[existingIndex] = {
+              ...nextEntries[existingIndex],
+              ...newEntry,
+            };
+          } else {
+            nextEntries = [...prev, newEntry];
+          }
+
+          return nextEntries.sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() -
+              new Date(a.updatedAt).getTime()
+          );
         }
       );
     },

@@ -19,7 +19,7 @@ export default function OnboardingModal() {
     <Modal show={show} onClose={() => setShow(false)} width="100vw" full>
       <div className="p-20 bg-black rounded-lg shadow-xl w-full align-center justify-center p-[100px]">
         <h2 className="text-lg text-white text-center font-semibold mb-4">
-          Welcome to Parts Workshop - Please watch the tutorial :)
+          Welcome to Parts Studio - Please watch the tutorial :)
         </h2>
         <video
           src="/parts-workshop.mp4"
@@ -34,7 +34,7 @@ export default function OnboardingModal() {
             onClick={() => setShow(false)}
             className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
           >
-            Proceed to workshop
+            Proceed to studio
           </button>
         </div>
       </div>

@@ -1,14 +1,11 @@
-import {
-  ConflictNodeData,
-  ImpressionNodeData,
-  NodeType,
-  PartNodeData,
-} from "@/features/workspace/types/Nodes";
-
-import ConflictNode from "./ConflictNode";
-import ImpressionNode from "./ImpressionNode";
-import PartNode from "./PartNode/PartNode";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
+import { TensionNodeData, ImpressionNodeData, NodeType, PartNodeData, RelationshipSelectionNodeData } from "@/features/workspace/types/Nodes";
+
+import ImpressionNode from "./ImpressionNode";
+import NewPartNode from "./PartNode/NewPartNode";
+import TensionNode from "./RelationshipNode/TensionNode";
+import RelationshipNode from "./RelationshipNode/RelationshipNode";
+import RelationshipSelectionNode from "./RelationshipNode/RelationshipSelectionNode";
 
 const NodeComponent = ({
   type,
@@ -16,16 +13,24 @@ const NodeComponent = ({
   id,
 }: {
   type: NodeType;
-  data: ImpressionNodeData | ConflictNodeData | PartNodeData;
+  data: ImpressionNodeData | TensionNodeData | PartNodeData | RelationshipSelectionNodeData;
   id: string;
 }) => {
   if ("type" in data) {
-    if (data.type === "partData") return <PartNode partId={id} data={data} />;
+    if (data.type === "partData") return <NewPartNode partId={id} data={data} />;
 
-    if (data.type === "conflictData") {
-      return (
-        <ConflictNode key={id} id={id} connectedNodes={data.connectedNodes} />
+    if (data.type === "tensionData") {
+      // Check if this is an interaction node based on relationshipType
+      const isInteraction = data.relationshipType === "interaction";
+      return isInteraction ? (
+        <RelationshipNode key={id} id={id} connectedNodes={data.connectedNodes} />
+      ) : (
+        <TensionNode key={id} id={id} connectedNodes={data.connectedNodes} />
       );
+    }
+
+    if (data.type === "relationshipSelectionData") {
+      return <RelationshipSelectionNode key={id} id={id} />;
     }
   }
 
@@ -46,8 +51,9 @@ export const nodeTypes = {
   thought: NodeComponent,
   sensation: NodeComponent,
   behavior: NodeComponent,
-  conflict: NodeComponent,
+  tension: NodeComponent,
+  interaction: NodeComponent,
   part: NodeComponent,
-  self: NodeComponent,
   other: NodeComponent,
+  relationship: NodeComponent,
 };

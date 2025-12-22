@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @keyframes fadeIn {
@@ -12,8 +13,32 @@
   }
 }
 
+@keyframes scrollUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(calc(-100% - 128px));
+  }
+}
+
+.animate-scroll {
+  animation: scrollUp 15s linear infinite;
+}
+
 .radix-tooltip-content {
   animation: fadeIn 150ms ease-out;
+}
+
+@keyframes expandMenu {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
 }
 
 :root {
@@ -24,22 +49,24 @@
   --text-color-alt: white;
   --box-shadow: #00000082 0px 9px 13px -4px;
   --font-inter: "Inter", sans-serif;
+  --font-lato: "Lato", sans-serif;
   --tooltip-background: white;
   --tooltip-text: black;
   --overlay-background: #000000c9;
-  --conflict-handle-bg: #5a4784;
+  --tension-handle-bg: #5a4784;
+  --interaction-handle-bg: #386183;
   --part-handle-bg: #88b7fd;
-  --create-conflict-bg: #5a4784;
+  --create-tension-bg: #5a4784;
   --toggle-utilities: white;
   --aside-shadow: #171717;
   --part-button-shadow: #00000082;
   --impression-button-shadow: black;
-  --conflict-button-shadow: black;
+  --tension-button-shadow: black;
 }
 
 .dark {
   --background: #2a3545;
-  --aside-background: linear-gradient(135deg, #101418, #142235);
+  --aside-background: linear-gradient(145deg, #2a2e32, #272b2f);
   --text-color: white;
   --text-color-alt: black;
   --text-against-part-node: var(--text-color);
@@ -47,14 +74,15 @@
   --tooltip-background: #161616;
   --tooltip-text: white;
   --overlay-background: #000000b0;
-  --conflict-handle-bg: #5a4784;
+  --tension-handle-bg: #5a4784;
+  --interaction-handle-bg: #386183;
   --part-handle-bg: #baceec;
-  --create-conflict-bg: #5a4784;
+  --create-tension-bg: #5a4784;
   --toggle-utilities: white;
   --aside-shadow: #171717;
   --part-button-shadow: #00000082;
   --impression-button-shadow: black;
-  --conflict-button-shadow: black;
+  --tension-button-shadow: black;
 }
 
 @layer base {
@@ -97,14 +125,11 @@
   .bg-overlay {
     background: var(--overlay-background);
   }
-  .bg-conflict-handle {
-    background-color: var(--conflict-handle-bg);
+  .bg-tension-handle {
+    background-color: var(--tension-handle-bg);
   }
   .bg-part-handle {
     background-color: var(--part-handle-bg);
-  }
-  .bg-create-conflict {
-    background: var(--create-conflict-bg);
   }
   .text-toggle-utilities {
     color: var(--toggle-utilities);
@@ -117,9 +142,6 @@
   }
   .shadow-impression-button {
     box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
-  }
-  .shadow-conflict-button {
-    box-shadow: 1px 2px 4px 0px var(--conflict-button-shadow);
   }
   .modal-overlay {
     background: var(--overlay-background);
@@ -160,12 +182,37 @@
   font-family: var(--font-inter);
 }
 
+p {
+  font-family: var(--font-inter);
+}
+
+p:not([class*="font-bold"]):not([class*="font-semibold"]):not([class*="font-medium"]):not([class*="font-weight"]) {
+  font-family: var(--font-inter);
+  font-weight: 400;
+}
+
 body {
   background: var(--background);
 }
 
 .react-flow__node {
   box-shadow: var(--box-shadow);
+}
+
+.react-flow__node-emotion,
+.react-flow__node-thought,
+.react-flow__node-sensation,
+.react-flow__node-behavior,
+.react-flow__node-other,
+.react-flow__node-default {
+  border-radius: 12px !important;
+}
+
+.react-flow__node-relationship,
+.react-flow__node-tension,
+.react-flow__node-interaction {
+  border-radius: 26px !important;
+  background: transparent !important;
 }
 
 .img-cropper {
@@ -199,10 +246,17 @@ button {
   color: var(--tooltip-text);
 }
 
-.conflict-handle {
-  width: 16px !important;
-  height: 16px !important;
-  background-color: var(--conflict-handle-bg) !important;
+.tension-handle {
+  width: 12px !important;
+  height: 12px !important;
+  background-color: var(--tension-handle-bg) !important;
+  border: none !important;
+}
+
+.interaction-handle {
+  width: 12px !important;
+  height: 12px !important;
+  background-color: var(--interaction-handle-bg) !important;
   border: none !important;
 }
 
@@ -217,15 +271,47 @@ button {
   height: calc(100vh - 100px);
 }
 
-.light #create-conflict-button {
-  background: var(--create-conflict-bg) !important;
-  box-shadow: 1px 2px 4px 0px var(--conflict-button-shadow);
-}
-
 #create-part-button {
   box-shadow: 0 4px 9px -4px var(--part-button-shadow);
 }
 
 #create-impression-button {
   box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
+}
+
+.animate-scroll {
+  animation: scroll 12s linear infinite;
+}
+
+@keyframes rotateOrbit {
+  0% {
+    transform: translate(-50%, -50%) rotate(-90deg) translateX(120px);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(270deg) translateX(120px);
+  }
+}
+
+@keyframes pulseRight {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(4px);
+  }
+  20% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(4px);
+  }
+  40%,
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.arrow-pulse:hover .arrow-icon {
+  animation: pulseRight 3s ease-in-out infinite;
 }

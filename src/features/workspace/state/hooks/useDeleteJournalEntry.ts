@@ -5,8 +5,22 @@ export const useDeleteJournalEntry = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (nodeId: string) => {
-      const res = await fetch(`/api/journal/node/${nodeId}`, {
+    mutationFn: async ({
+      entryId,
+      nodeId,
+    }: {
+      entryId?: string;
+      nodeId?: string | null;
+    }) => {
+      const baseUrl = nodeId
+        ? `/api/journal/node/${nodeId}`
+        : "/api/journal/global";
+      const url =
+        entryId && entryId.length > 0
+          ? `${baseUrl}?entryId=${encodeURIComponent(entryId)}`
+          : baseUrl;
+
+      const res = await fetch(url, {
         method: "DELETE",
       });
 
@@ -14,13 +28,27 @@ export const useDeleteJournalEntry = () => {
         throw new Error("Failed to delete journal entry");
       }
     },
-    onSuccess: (_, nodeId) => {
+    onSuccess: (_, variables) => {
       queryClient.setQueryData(
         ["journal", "all"],
-        (prev: JournalEntry[] = []) =>
-          prev.filter((entry) => entry.nodeId !== nodeId)
+        (prev: JournalEntry[] = []) => {
+          if (variables?.entryId) {
+            return prev.filter((entry) => entry.id !== variables.entryId);
+          }
+
+          if (variables?.nodeId) {
+            return prev.filter((entry) => entry.nodeId !== variables.nodeId);
+          }
+
+          return prev;
+        }
       );
-      queryClient.removeQueries({ queryKey: ["journal", nodeId] });
+
+      if (variables?.nodeId) {
+        queryClient.removeQueries({
+          queryKey: ["journal", variables.nodeId],
+        });
+      }
     },
   });
 };

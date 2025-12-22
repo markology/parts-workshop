@@ -19,6 +19,7 @@ import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { createEmptyImpressionGroups } from "../state/stores/useWorkingStore";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import PageLoader from "@/components/PageLoader";
 
 export type HydratedMap = Omit<
   PrismaMap,
@@ -84,7 +85,13 @@ export default function DesktopWorkspace() {
   }
 
   if (loading || status === "loading") {
-    return <div>Loading...</div>;
+    return (
+      <PageLoader
+        title="Opening your studio workspace"
+        subtitle="We’re gathering your parts, relationships, and impressions."
+        message="Loading workspace data..."
+      />
+    );
   }
 
   if (error) {

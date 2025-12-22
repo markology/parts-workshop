@@ -7,20 +7,34 @@ export interface BaseNodeData {
   [key: string]: unknown; // ✅ add this line
 }
 
+export type PartType = "manager" | "firefighter" | "exile" | "custom";
+
 export interface PartNodeData extends BaseNodeData {
   type: "partData";
   label: string;
+  name: string;
+  image?: string;
+  partType: PartType;
+  customPartType?: string;
+  age?: number;
+  gender?: string;
+  scratchpad?: string;
   needs: string[];
+  fears: string[];
+  insights: string[];
   Emotions: ImpressionNode[];
   Thoughts: ImpressionNode[];
   Sensations: ImpressionNode[];
   Behaviors: ImpressionNode[];
   Others: ImpressionNode[];
-  Self: ImpressionNode[];
+  customImpressionBuckets: { [key: string]: ImpressionNode[] };
 }
 
-export interface ConflictNodeData extends BaseNodeData {
-  type: "conflictData";
+export type RelationshipType = "tension" | "interaction";
+
+export interface TensionNodeData extends BaseNodeData {
+  type: "tensionData";
+  relationshipType: RelationshipType;
   connectedNodes: ConnectedNodeType[];
 }
 
@@ -28,9 +42,13 @@ export interface ImpressionNodeData extends BaseNodeData {
   type: "impressionData";
 }
 
+export interface RelationshipSelectionNodeData extends BaseNodeData {
+  type: "relationshipSelectionData";
+}
+
 export type ConnectedNodeType = {
   part: PartNode;
-  conflictDescription: string;
+  tensionDescription: string;
 };
 
 export type ImpressionNode = Node<BaseNodeData> & {
@@ -41,10 +59,19 @@ export type PartNode = Node<PartNodeData> & {
   type: "part";
 };
 
-export type ConflictNode = Node<ConflictNodeData> & {
-  type: "conflict";
+export type TensionNode = Node<TensionNodeData> & {
+  type: "tension";
 };
 
-export type WorkshopNode = ImpressionNode | PartNode | ConflictNode;
+export type InteractionNode = Node<TensionNodeData> & {
+  type: "interaction";
+};
 
-export type NodeType = "impression" | "part" | "conflict";
+
+export type RelationshipSelectionNode = Node<RelationshipSelectionNodeData> & {
+  type: "relationship";
+};
+
+export type WorkshopNode = ImpressionNode | PartNode | TensionNode | InteractionNode | RelationshipSelectionNode;
+
+export type NodeType = "impression" | "part" | "tension" | "interaction" | "relationship";

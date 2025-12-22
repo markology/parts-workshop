@@ -9,6 +9,8 @@ import {
 } from "@/features/workspace/types/Impressions";
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useThemeContext } from "@/state/context/ThemeContext";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 const isValidImpression = (text: string) => {
   const trimmed = text.trim();
@@ -22,38 +24,82 @@ const isValidImpression = (text: string) => {
   return true;
 };
 
-const ImpressionInput = () => {
-  const [selectedType, setSelectedType] = useState<ImpressionType>("emotion");
+interface ImpressionInputProps {
+  onAddImpression?: (impressionData: { id: string; label: string; type: ImpressionType }) => void;
+  onTypeChange?: (type: ImpressionType) => void;
+  defaultType?: ImpressionType;
+  onInputChange?: (value: string, isValid: boolean) => void;
+  addButtonRef?: React.RefObject<{ add: () => void; isValid: boolean } | null>;
+}
+
+const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion", onInputChange, addButtonRef }: ImpressionInputProps) => {
+  const [selectedType, setSelectedType] = useState<ImpressionType>(defaultType);
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false);
+  const [inputValue, setInputValue] = useState<string>("");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleTextAreaKeyDown = (e: {
-    preventDefault(): unknown;
-    key: string;
-  }) => {
+  // Expose add function and validity to parent via ref
+  useEffect(() => {
+    if (addButtonRef) {
+      (addButtonRef as any).current = {
+        add: handleAddImpression,
+        isValid: isValidImpression(inputValue),
+      };
+    }
+  }, [inputValue, selectedType, addButtonRef]);
+
+  // Notify parent of input changes
+  useEffect(() => {
+    if (onInputChange) {
+      onInputChange(inputValue, isValidImpression(inputValue));
+    }
+  }, [inputValue, onInputChange]);
+
+  const handleAddImpression = () => {
+    if (selectedType !== null && isValidImpression(inputValue)) {
+      const impressionData = {
+        id: uuidv4(),
+        label: inputValue,
+        type: selectedType,
+      };
+      
+      if (onAddImpression) {
+        onAddImpression(impressionData);
+      } else {
+        useWorkingStore.getState().addImpression(impressionData);
+      }
+      setInputValue("");
+      // Refocus the textarea after adding
+      if (textAreaRef.current) {
+        textAreaRef.current.focus();
+      }
+    }
+  };
+
+  const handleTextAreaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (
       e.key === "Enter" &&
       selectedType !== null &&
-      isValidImpression(textAreaRef.current!.value)
+      isValidImpression(inputValue)
     ) {
       e.preventDefault();
-      useWorkingStore.getState().addImpression({
-        id: uuidv4(),
-        label: textAreaRef.current!.value,
-        type: selectedType,
-      });
-      textAreaRef.current!.value = "";
+      handleAddImpression();
     } else if (e.key === "Tab") {
       e.preventDefault();
-      setSelectedType(
-        ImpressionList[
-          ImpressionList.indexOf(selectedType) < ImpressionList.length - 1
-            ? ImpressionList.indexOf(selectedType) + 1
-            : 0
-        ]
-      );
+      const currentIndex = ImpressionList.indexOf(selectedType);
+      let newIndex;
+      
+      if (e.shiftKey) {
+        // Shift+Tab: go backwards
+        newIndex = currentIndex > 0 ? currentIndex - 1 : ImpressionList.length - 1;
+      } else {
+        // Tab: go forwards
+        newIndex = currentIndex < ImpressionList.length - 1 ? currentIndex + 1 : 0;
+      }
+      
+      setSelectedType(ImpressionList[newIndex]);
     }
   };
 
@@ -61,7 +107,10 @@ const ImpressionInput = () => {
     if (textAreaRef.current) {
       textAreaRef.current.focus();
     }
-  }, [selectedType]);
+    if (onTypeChange) {
+      onTypeChange(selectedType);
+    }
+  }, [selectedType, onTypeChange]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -76,48 +125,132 @@ const ImpressionInput = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Ensure input regains focus after mouse interactions
+  useEffect(() => {
+    const handleMouseUp = () => {
+      // Small delay to ensure any focus changes from click are complete
+      setTimeout(() => {
+        if (textAreaRef.current && document.activeElement !== textAreaRef.current) {
+          textAreaRef.current.focus();
+        }
+      }, 0);
+    };
+
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
+  // Global Tab key handler to catch Tab even when input might not have focus
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Only handle if the container is active and Tab is pressed
+      if (
+        containerRef.current &&
+        document.activeElement &&
+        (containerRef.current.contains(document.activeElement) || 
+         document.activeElement === textAreaRef.current) &&
+        e.key === "Tab"
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const currentIndex = ImpressionList.indexOf(selectedType);
+        let newIndex;
+        
+        if (e.shiftKey) {
+          // Shift+Tab: go backwards
+          newIndex = currentIndex > 0 ? currentIndex - 1 : ImpressionList.length - 1;
+        } else {
+          // Tab: go forwards
+          newIndex = currentIndex < ImpressionList.length - 1 ? currentIndex + 1 : 0;
+        }
+        
+        setSelectedType(ImpressionList[newIndex]);
+        
+        // Ensure input has focus for next key press
+        if (textAreaRef.current) {
+          textAreaRef.current.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleGlobalKeyDown, true);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown, true);
+  }, [selectedType]);
+
+  const { darkMode } = useThemeContext();
+  const theme = useTheme();
+
   return (
-    <div ref={containerRef} className="relative space-y-2">
-      <div className="flex flex-wrap m-0">
-        {ImpressionList.map((type) => (
-          <button
-            key={type}
-            onClick={() => {
-              setSelectedType(type);
-              setIsSelectorOpen(false);
-            }}
-            className={`px-3 py-1 text-sm flex-1 rounded-t-xl ${
-              selectedType === type
-                ? "font-bold z-[9999] bg-white"
-                : `text-white`
-            }`}
+    <div ref={containerRef} className="relative">
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {ImpressionList.map((type) => (
+            <button
+              key={type}
+              type="button"
+              tabIndex={-1}
+              onMouseDown={(e) => {
+                e.preventDefault(); // Prevent focus on mousedown
+              }}
+              onClick={() => {
+                setSelectedType(type);
+                setIsSelectorOpen(false);
+                // Refocus the hidden input so Tab key handling works
+                if (textAreaRef.current) {
+                  textAreaRef.current.focus();
+                }
+              }}
+              className={`px-3.5 py-2 rounded-full font-semibold ${
+                selectedType === type
+                  ? "shadow-sm"
+                  : "opacity-60"
+              }`}
+              style={{
+                fontSize: '14px',
+                backgroundColor: selectedType === type 
+                  ? `${NodeBackgroundColors[type]}20` 
+                  : "transparent",
+                color: NodeBackgroundColors[type],
+                border: selectedType === type 
+                  ? `1.5px solid ${NodeBackgroundColors[type]}40` 
+                  : "1.5px solid transparent",
+              }}
+            >
+              {ImpressionTextType[type]}
+            </button>
+          ))}
+        </div>
+        <div className="relative">
+          <textarea
+            ref={textAreaRef as React.RefObject<HTMLTextAreaElement>}
+            className="min-h-[120px] px-4 pb-4 pt-[30px] rounded-xl border-0 w-full focus:outline-none resize-none"
             style={{
-              backgroundColor:
-                selectedType === type ? "white" : NodeBackgroundColors[type],
-              color:
-                selectedType === type ? NodeBackgroundColors[type] : "white",
+              color: inputValue ? NodeBackgroundColors[selectedType] : theme.textPrimary,
+              backgroundColor: "transparent",
+              fontSize: '16px',
+              lineHeight: '1.6',
+              caretColor: NodeBackgroundColors[selectedType],
             }}
-          >
-            {ImpressionTextType[type]}
-          </button>
-        ))}
-      </div>
-      <div className="relative rounded-b bg-white shadow-[1px_4px_5px_2px_black]">
-        <textarea
-          style={{
-            visibility: !isSelectorOpen ? "visible" : "hidden",
-            color: NodeBackgroundColors[selectedType],
-          }}
-          ref={textAreaRef}
-          className="w-full p-2 pt-11 px-5 rounded resize-y focus:outline-none focus:ring-0 focus:border-none font-semibold"
-          rows={3}
-          autoFocus
-          onKeyDown={handleTextAreaKeyDown}
-          placeholder="Add Impression and Press Enter ↵ + (Tab switches types)"
-        />
+            placeholder="Type your impression here..."
+            autoFocus
+            onKeyDown={handleTextAreaKeyDown}
+            onChange={(e) => setInputValue(e.target.value)}
+            value={inputValue}
+          />
+          <style dangerouslySetInnerHTML={{
+            __html: `
+              textarea::placeholder {
+                opacity: 0.7;
+                color: ${NodeBackgroundColors[selectedType]} !important;
+              }
+            `
+          }} />
+        </div>
       </div>
     </div>
   );
 };
 
 export default ImpressionInput;
+

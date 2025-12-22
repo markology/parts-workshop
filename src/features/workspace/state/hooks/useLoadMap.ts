@@ -1,13 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 
-export const useLoadMap = (mapId: string) =>
-  useQuery({
+export const useLoadMap = (mapId: string) => {
+  return useQuery({
     queryKey: ["map", mapId],
     queryFn: async () => {
-      console.log("📡 Fetching map from API...");
       const res = await fetch(`/api/maps/${mapId}`);
-      if (!res.ok) throw new Error("Failed to load map");
-      return res.json();
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Failed to load map: ${res.status} ${res.statusText} - ${errorText}`);
+      }
+      
+      const data = await res.json();
+      return data;
     },
-    staleTime: Infinity,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache data
+    enabled: !!mapId, // Only run if mapId exists
   });
+};

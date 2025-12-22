@@ -6,13 +6,14 @@ export const useDebouncedJournalSave = () => {
   const journalData = useJournalStore((s) => s.journalData);
   const journalTarget = useJournalStore((s) => s.journalTarget);
   const lastSaved = useJournalStore((s) => s.lastSavedJournalData);
+  const activeEntryId = useJournalStore((s) => s.activeEntryId);
   const markSaved = useJournalStore((s) => s.markJournalSaved);
   const saveJournal = useSaveJournalEntry();
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!journalTarget || journalData === null || journalData === lastSaved)
+    if (!journalTarget || journalData === lastSaved || !activeEntryId)
       return;
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -21,7 +22,12 @@ export const useDebouncedJournalSave = () => {
       const nodeId =
         journalTarget.type === "node" ? journalTarget.nodeId : undefined;
       saveJournal.mutate(
-        { nodeId, content: journalData },
+        {
+          nodeId,
+          content: journalData,
+          entryId: activeEntryId ?? undefined,
+          createNewVersion: false,
+        },
         {
           onSuccess: () => {
             markSaved();
@@ -33,5 +39,12 @@ export const useDebouncedJournalSave = () => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [journalData, journalTarget, lastSaved, markSaved, saveJournal]);
+  }, [
+    activeEntryId,
+    journalData,
+    journalTarget,
+    lastSaved,
+    markSaved,
+    saveJournal,
+  ]);
 };

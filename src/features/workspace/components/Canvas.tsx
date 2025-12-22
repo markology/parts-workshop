@@ -5,17 +5,57 @@ import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext
 import {
   Background,
   Controls,
-  Node,
+  type Node,
   OnNodesChange,
   ReactFlow,
+  useReactFlow,
 } from "@xyflow/react";
-import Utilities from "./Utilities/Utilities";
-import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useAutoSave } from "../state/hooks/useAutoSave";
+import { useEffect, useRef, useState } from "react";
+import { useWorkingStore } from "../state/stores/useWorkingStore";
+import { Paintbrush } from "lucide-react";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
+import { useThemeContext } from "@/state/context/ThemeContext";
+import { ThemeName, getThemeByName } from "@/features/workspace/constants/theme";
+import { useSaveMap } from "../state/hooks/useSaveMap";
+import { useUIStore } from "../state/stores/UI";
+
+const themeDescriptions: Record<
+  ThemeName,
+  { label: string; description: string }
+> = {
+  light: {
+    label: "Light",
+    description: "White canvas, foggy blues, charcoal text",
+  },
+  dark: {
+    label: "Dark",
+    description: "Graphite canvas with teal accents",
+  },
+  red: {
+    label: "Cherry",
+    description: "Coming soon — red gradients + white text",
+  },
+};
 
 const Workspace = () => {
-  const isOpen = useJournalStore((s) => s.isOpen);
   const isMobile = useIsMobile();
+  const hasFitViewRun = useRef(false);
+  const selectedPartId = useUIStore((s) => s.selectedPartId);
+  const theme = useTheme();
+  const { themeName, setThemeName } = useThemeContext();
+  const defaultBg = theme.workspace;
+  const mapId = useWorkingStore((s) => s.mapId);
+  const savedBgColor = useWorkingStore((s) => (s as any).workspaceBgColor);
+  const [workspaceBgColor, setWorkspaceBgColor] = useState(savedBgColor || defaultBg);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const colorPickerRef = useRef<HTMLDivElement>(null);
+  const colorButtonRef = useRef<HTMLButtonElement>(null);
+  const hasDispatchedDragClose = useRef(false);
+  const saveMap = useSaveMap();
+  // Call auto-save inside ReactFlow context
+  useAutoSave();
 
   const {
     edges,
@@ -29,11 +69,350 @@ const Workspace = () => {
     onNodesChange,
   } = useFlowNodesContext();
 
+  // Get mapId to reset fitView when map changes
+  const prevMapIdRef = useRef<string>("");
+
+  // Load saved background color when map changes (but not when theme changes)
+  useEffect(() => {
+    if (savedBgColor && savedBgColor !== defaultBg) {
+      // Only use saved color if it's different from the current theme's default
+      // This allows custom colors to persist within the same theme
+      setWorkspaceBgColor(savedBgColor);
+    } else {
+      setWorkspaceBgColor(defaultBg);
+    }
+  }, [mapId, savedBgColor]);
+
+  // Reset to theme default when theme changes
+  useEffect(() => {
+    setWorkspaceBgColor(defaultBg);
+    // Clear saved background color when theme changes
+    useWorkingStore.setState({ workspaceBgColor: undefined } as any);
+  }, [themeName, defaultBg]);
+
+  // Save background color to store when it changes (only if it's a custom color)
+  useEffect(() => {
+    if (workspaceBgColor && workspaceBgColor !== defaultBg) {
+      useWorkingStore.setState({ workspaceBgColor } as any);
+    } else if (workspaceBgColor === defaultBg) {
+      // Clear saved color if it matches the default
+      useWorkingStore.setState({ workspaceBgColor: undefined } as any);
+    }
+  }, [workspaceBgColor, defaultBg]);
+
+  // Helper function to adjust brightness of a hex color
+  const adjustBrightness = (hex: string, percent: number) => {
+    const num = parseInt(hex.replace("#", ""), 16);
+    const r = Math.min(255, Math.max(0, ((num >> 16) & 0xff) + percent));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + percent));
+    const b = Math.min(255, Math.max(0, (num & 0xff) + percent));
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+
+  // Get gradient background for all themes, but allow custom colors
+  const getBackgroundStyle = () => {
+    // If user has selected a custom color, use it (even in dark mode)
+    if (workspaceBgColor && workspaceBgColor !== defaultBg && workspaceBgColor !== theme.workspace) {
+      return workspaceBgColor;
+    }
+    // Otherwise, use subtle gradient for all themes
+    if (workspaceBgColor === defaultBg) {
+      if (themeName === "dark") {
+        // Subtle gradient for dark theme: slightly lighter to slightly darker
+        return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 3)}, ${adjustBrightness(theme.workspace, -3)})`;
+      } else if (themeName === "light") {
+        // Subtle gradient for light theme: slightly brighter to slightly darker
+        return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 2)}, ${adjustBrightness(theme.workspace, -2)})`;
+      } else if (themeName === "red") {
+        // Subtle gradient for red theme: slightly lighter to slightly darker
+        return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 3)}, ${adjustBrightness(theme.workspace, -3)})`;
+      }
+    }
+    return workspaceBgColor;
+  };
+
+  const handlePaneClickWrapped = () => {
+    setShowColorPicker(false);
+    window.dispatchEvent(new CustomEvent("workspace-pane-click"));
+    handlePaneClick();
+  };
+
+  const handlePaneDragStart = () => {
+    if (hasDispatchedDragClose.current) return;
+    setShowColorPicker(false);
+    window.dispatchEvent(new CustomEvent("workspace-pane-click"));
+    hasDispatchedDragClose.current = true;
+    // reset after a brief moment to allow future drags to retrigger
+    setTimeout(() => {
+      hasDispatchedDragClose.current = false;
+    }, 500);
+  };
+
+  useEffect(() => {
+    if (!showColorPicker) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      const insideButton = colorButtonRef.current && target instanceof Node && colorButtonRef.current.contains(target);
+      const insidePicker = colorPickerRef.current && target instanceof Node && colorPickerRef.current.contains(target);
+      if (insideButton) return; // button click is handled by its own onClick
+      if (!insidePicker) {
+        setShowColorPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showColorPicker]);
+
+  // Listen for custom event to open theme picker
+  useEffect(() => {
+    const handleOpenThemePicker = () => {
+      setShowColorPicker(true);
+    };
+    window.addEventListener("open-theme-picker", handleOpenThemePicker);
+    return () => window.removeEventListener("open-theme-picker", handleOpenThemePicker);
+  }, []);
+
+  // Reset fitView when map changes
+  useEffect(() => {
+    if (mapId && mapId !== prevMapIdRef.current) {
+      hasFitViewRun.current = false;
+      prevMapIdRef.current = mapId;
+    }
+  }, [mapId]);
+
+	// Component to call fitView on load, then zoom out
+	const FitViewOnLoad = () => {
+		const { fitView, getViewport, setCenter, screenToFlowPosition } = useReactFlow();
+    
+	useEffect(() => {
+	  if (hasFitViewRun.current) return;
+	  if (!nodes || nodes.length === 0) return; // wait until nodes exist
+	  // Wait briefly to allow measurements, then run once
+	  const fitTimer = setTimeout(() => {
+	    fitView();
+	    const postTimer = setTimeout(() => {
+	      const viewportAfterFit = getViewport();
+	      const screenCenter = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+	      const flowCenterAfterFit = screenToFlowPosition(screenCenter);
+	      const targetZoom = Math.max(viewportAfterFit.zoom * 0.75, 0.02);
+	      setCenter(flowCenterAfterFit.x - (250 / targetZoom), flowCenterAfterFit.y, { zoom: targetZoom, duration: 200 });
+	      hasFitViewRun.current = true;
+	    }, 300);
+	    return () => clearTimeout(postTimer);
+	  }, 200);
+	  return () => clearTimeout(fitTimer);
+	}, [nodes.length]);
+    
+    return null;
+  };
+
+  // Calculate button background color - darken when picker is open in dark mode
+  const getColorButtonBackground = () => {
+    if (showColorPicker && themeName === 'dark') {
+      // Apply same darkening effect as floating action buttons (reduce RGB by 20)
+      const hex = theme.elevated.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      const darkerR = Math.max(0, r - 20);
+      const darkerG = Math.max(0, g - 20);
+      const darkerB = Math.max(0, b - 20);
+      return `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+    }
+    return theme.elevated;
+  };
+
+  const colorButtonStyle = {
+    backgroundColor: getColorButtonBackground(),
+    borderColor: theme.border,
+    color: theme.textPrimary,
+    boxShadow: '0 12px 28px rgba(0,0,0,0.45)',
+  };
+
+  const colorPickerStyle = {
+    backgroundColor: theme.surface,
+    borderColor: theme.border,
+    color: theme.textPrimary,
+    boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
+    width: 320,
+    maxWidth: 320,
+  };
+
   return (
-    <div id="canvas" className="h-full flex-grow">
+    <div id="canvas" className="h-full flex-grow relative">
+      {!selectedPartId && (
+        <div 
+          className="fixed" 
+          style={{ left: "146px", bottom: "15px", zIndex: 75, pointerEvents: "auto", display: "flex", alignItems: "center" }}
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            ref={colorButtonRef}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (showColorPicker) {
+                setShowColorPicker(false);
+                return;
+              }
+              setShowColorPicker(true);
+            }}
+            className="w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center"
+            style={colorButtonStyle}
+            aria-label="Pick workspace background color"
+          >
+            <Paintbrush className="w-5 h-5" />
+          </button>
+          {showColorPicker && (
+            <div
+              ref={colorPickerRef}
+              className="absolute bottom-[56px] left-0 z-[80] rounded-xl shadow-2xl p-2 border"
+              style={colorPickerStyle}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+            <div className="flex items-center justify-between pb-2 px-1 mb-3">
+              <div className={`flex items-center gap-2 text-sm`} style={{ color: theme.textSecondary }}>
+                <Paintbrush className="w-4 h-4" />
+                <span>Theme</span>
+              </div>
+            </div>
+            
+            {/* Theme Selection */}
+            <div className="space-y-2 mb-4">
+              {(["light", "dark", "red"] as ThemeName[]).map((option) => {
+                const isActive = themeName === option;
+                const isComingSoon = option === "red";
+                const optionTheme = getThemeByName(option);
+                const previewSwatches = [
+                  optionTheme.workspace,
+                  optionTheme.card,
+                  optionTheme.accent,
+                ];
+                return (
+                  <button
+                    key={option}
+                    disabled={isComingSoon}
+                    aria-disabled={isComingSoon}
+                    onClick={async () => {
+                      if (isComingSoon) return;
+                      // Workspace-specific theme: do NOT persist as global site preference
+                      setThemeName(option, false);
+                      setWorkspaceBgColor(optionTheme.workspace);
+                      
+                      // Save workspace theme to map immediately
+                      if (mapId) {
+                        const { nodes, edges, sidebarImpressions } = useWorkingStore.getState();
+                        const sidebarImpressionsData = {
+                          ...sidebarImpressions,
+                          _metadata: {
+                            ...(typeof sidebarImpressions === "object" &&
+                            "_metadata" in sidebarImpressions
+                              ? (sidebarImpressions as any)._metadata
+                              : {}),
+                            workspaceBgColor: optionTheme.workspace,
+                            themeName: option,
+                          },
+                        };
+                        
+                        try {
+                          await fetch(`/api/maps/${mapId}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              nodes,
+                              edges,
+                              sidebarImpressions: sidebarImpressionsData,
+                              workspaceBgColor: optionTheme.workspace,
+                              themeName: option,
+                            }),
+                          });
+                          console.log(`[Workspace] Saved workspace theme: ${option}`);
+                        } catch (error) {
+                          console.error("Failed to save workspace theme:", error);
+                        }
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm rounded-2xl flex items-center gap-3 border transition-all"
+                    style={{
+                      backgroundColor: isActive ? theme.elevated : theme.surface,
+                      borderColor: isActive ? theme.accent : theme.border,
+                      color: theme.textPrimary,
+                      boxShadow: isActive ? "0 12px 28px rgba(0,0,0,0.35)" : "none",
+                      opacity: isComingSoon ? 0.55 : 1,
+                      cursor: isComingSoon ? "not-allowed" : "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive && !isComingSoon) {
+                        e.currentTarget.style.backgroundColor = theme.buttonHover;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive && !isComingSoon) {
+                        e.currentTarget.style.backgroundColor = theme.surface;
+                      }
+                    }}
+                  >
+                    <div className="flex gap-1.5">
+                      {previewSwatches.map((color, idx) => (
+                        <span
+                          key={`${option}-${idx}`}
+                          className="h-7 w-4 rounded-full border"
+                          style={{
+                            backgroundColor: color,
+                            borderColor: theme.border,
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="font-semibold capitalize">
+                        {themeDescriptions[option].label}
+                      </span>
+                      <span
+                        className="text-xs truncate"
+                        style={{ color: theme.textSecondary }}
+                      >
+                        {themeDescriptions[option].description}
+                      </span>
+                    </div>
+                    {isComingSoon ? (
+                      <span
+                        className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
+                        style={{
+                          backgroundColor: "rgba(148, 163, 184, 0.15)",
+                          color: theme.textSecondary,
+                          borderColor: theme.border,
+                        }}
+                      >
+                        Coming soon
+                      </span>
+                    ) : (
+                      isActive && (
+                        <span
+                          className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
+                          style={{
+                            backgroundColor: optionTheme.button,
+                            color: optionTheme.buttonText,
+                            borderColor: optionTheme.accent,
+                          }}
+                        >
+                          Active
+                        </span>
+                      )
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          )}
+        </div>
+      )}
       {!isMobile ? (
         <ReactFlow
           className="h-[4000px] w-[4000px]"
+          style={{ background: getBackgroundStyle() }}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange as OnNodesChange<Node>}
@@ -42,20 +421,31 @@ const Workspace = () => {
           onConnect={onConnect}
           onDrop={onDrop}
           onDragOver={onDragOver}
-          fitView
-          onPaneClick={handlePaneClick}
+          onPaneClick={handlePaneClickWrapped}
+          onMouseDown={handlePaneDragStart}
           nodeTypes={nodeTypes}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           minZoom={0}
-          deleteKeyCode="Delete"
+          deleteKeyCode="Delete" 
           maxZoom={2}
         >
-          <Background />
-          <Controls className="absolute bottom-4 left-4 text-black" />
+          <FitViewOnLoad />
+          <Background
+            color={theme.border}
+            gap={32}
+            size={1.2}
+          />
+          <Controls
+            className="absolute bottom-4 left-4"
+            orientation="horizontal"
+            showInteractive={false}
+            style={{ flexDirection: 'row-reverse', color: theme.textPrimary }}
+          />
         </ReactFlow>
       ) : (
         <ReactFlow
           className="h-[4000px] w-[4000px]"
+          style={{ background: getBackgroundStyle() }}
           nodes={nodes}
           edges={edges}
           onNodesChange={() => {}}
@@ -65,16 +455,50 @@ const Workspace = () => {
           nodesConnectable={false}
           elementsSelectable={false}
           nodeTypes={nodeTypes}
-          fitView
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           minZoom={0}
           maxZoom={2}
         >
-          <Background />
-          <Controls className="absolute bottom-4 left-4 text-black" />
+          <FitViewOnLoad />
+          <Background
+            color={theme.border}
+            gap={32}
+            size={1.2}
+          />
+          <Controls
+            className="absolute bottom-4 left-4"
+            orientation="horizontal"
+            showInteractive={false}
+            style={{ flexDirection: 'row-reverse', color: theme.textPrimary }}
+          />
         </ReactFlow>
       )}
-      {!isOpen && <Utilities full />} {/* now Zustand-powered */}
+      <style jsx global>{`
+        .react-flow__controls {
+          display: inline-flex;
+          gap: 0.4rem;
+          align-items: center;
+          background: transparent !important;
+          box-shadow: none !important;
+          border: none !important;
+          padding: 0;
+        }
+        .react-flow__controls button {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          border: ${themeName === 'light' ? `1px solid ${theme.border}` : 'none'} !important;
+          background: ${getColorButtonBackground()};
+          color: ${theme.textPrimary};
+          box-shadow: ${themeName === 'light' ? '0 12px 28px rgba(0,0,0,0.45)' : 'none'} !important;
+          transition: transform 150ms ease, background 150ms ease, color 150ms ease;
+        }
+        .react-flow__controls button:hover {
+          transform: scale(1.05);
+          background: ${theme.buttonHover};
+          color: ${theme.textPrimary};
+        }
+      `}</style>
     </div>
   );
 };

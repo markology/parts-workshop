@@ -1,11 +1,14 @@
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import {
-  ConflictNode,
-  ConflictNodeData,
+  InteractionNode,
+  TensionNode,
+  TensionNodeData,
   ImpressionNode,
   NodeType,
   PartNode,
   PartNodeData,
+  RelationshipSelectionNode,
+  RelationshipSelectionNodeData,
   WorkshopNode,
 } from "@/features/workspace/types/Nodes";
 import { XYPosition } from "@xyflow/react";
@@ -46,6 +49,10 @@ export default function createNodeFN({
       newNode = {
         ...baseNode,
         type: impressionType, // e.g., 'emotion', 'thought'
+        style: {
+          ...baseNode.style,
+          borderRadius: 12, // Match rounded-xl (12px) to prevent border radius from poking through
+        },
         data: {
           label,
         },
@@ -65,31 +72,72 @@ export default function createNodeFN({
         data: {
           type: "partData",
           label,
+          name: label,
+          partType: "custom",
           needs: [],
+          fears: [],
+          insights: [],
           Emotions: [],
           Thoughts: [],
           Sensations: [],
           Behaviors: [],
           Others: [],
-          Self: [],
+          customImpressionBuckets: {},
         } as PartNodeData,
       } as PartNode;
       break;
 
-    case "conflict":
+    case "tension":
       newNode = {
         ...baseNode,
-        type: "conflict",
+        type: "tension",
         style: {
           ...baseNode.style,
           textAlign: "right",
+          borderRadius: 26,
         },
         data: {
-          type: "conflictData",
+          type: "tensionData",
           label,
+          relationshipType: "tension" as const,
           connectedNodes: [],
-        } as ConflictNodeData,
-      } as ConflictNode;
+        } as TensionNodeData,
+      } as TensionNode;
+
+      break;
+
+    case "interaction":
+      newNode = {
+        ...baseNode,
+        type: "interaction",
+        style: {
+          ...baseNode.style,
+          textAlign: "right",
+          borderRadius: 26,
+        },
+        data: {
+          type: "tensionData",
+          label,
+          relationshipType: "interaction" as const,
+          connectedNodes: [],
+        } as TensionNodeData,
+      } as InteractionNode;
+
+      break;
+
+    case "relationship":
+      newNode = {
+        ...baseNode,
+        type: "relationship",
+        style: {
+          ...baseNode.style,
+          textAlign: "center",
+        },
+        data: {
+          type: "relationshipSelectionData",
+          label: "Choose Relationship Type",
+        } as RelationshipSelectionNodeData,
+      } as RelationshipSelectionNode;
 
       break;
 

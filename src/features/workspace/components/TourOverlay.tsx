@@ -75,8 +75,8 @@ const tourSteps = [
     }),
   },
   {
-    target: "#create-conflict-button",
-    content: "This button will create a new conflict to attach parts to",
+    target: "#create-relationship-button",
+    content: "This button will create a new tension or interaction to attach parts to",
     arrow: "left",
     arrowPos: "top",
     overlayStyle: {

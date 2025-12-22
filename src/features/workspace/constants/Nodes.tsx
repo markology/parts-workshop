@@ -3,50 +3,48 @@ export const NodeColors = {
   thought: "#7ab3e0ad",
   sensation: "#f9b17aad",
   behavior: "#8bcb8bad",
-  conflict: "#b19cd9ad",
+  tension: "#b19cd9ad",
   part: "#f7e68fad",
-  self: "#4ecdc4ad",
   other: "#efa9c8ad",
 };
 
 export const NodeBackgroundColors = {
-  emotion: "#F28C82",
+  emotion: "#8BCB8B", // rgb(139, 203, 139) - Green (was behavior)
   thought: "#7AB3E0",
-  sensation: "#F9B17A",
-  behavior: "#8BCB8B",
-  conflict: "#B19CD9",
+  sensation: "#F28C82", // Coral/salmon red (was emotion)
+  behavior: "#F9B17A", // Orange (was sensation)
+  tension: "#B19CD9",
+  interaction: "#87CEEB", // Light blue for interaction
   part: "#a1c7dd",
-  self: "#80d7d1",
-  other: "#EFA9C8",
+  other: "#14B8A6", // Teal/cyan - distinct from emotions
+  default: "#9CA3AF", // Gray for default
 };
 
 export const NodeTextColors = {
-  emotion: "#994936",
+  emotion: "#3f7142", // Dark green (was behavior)
   thought: "#3e6e91",
-  sensation: "#9b6034",
-  behavior: "#3f7142",
-  conflict: "#5a4784",
+  sensation: "#994936", // Brown (was emotion)
+  behavior: "#9b6034", // Brown (matching original sensation text)
+  tension: "#5a4784",
+  interaction: "#1e3a8a", // Dark blue text for interaction
   part: "#998f3a",
-  self: "#396c6d",
-  other: "#934b6d",
+  other: "#0D9488", // Deep teal for contrast
+  default: "#374151", // Dark gray for default
 };
 
 export const NodeTextColorsLight = {
-  emotion: "#f4b4a3", // soft light red
+  emotion: "#b5e8c1", // Light mint green (was behavior)
   thought: "#abdefd", // from you
-  sensation: "#f8cfa5", // warm cream
-  behavior: "#b5e8c1", // light mint green
-  conflict: "#d5caf1", // lavender
+  sensation: "#f4b4a3", // Soft light red (was emotion)
+  behavior: "#f8cfa5", // Warm cream (matching original sensation light)
+  tension: "#d5caf1", // lavender
   part: "#f4edb3", // pale yellow
-  self: "#b4e5e6", // light aqua
-  other: "#f4bfd3", // rose
+  other: "#a7f3d0", // soft light teal
 };
 
-// emotion	#F28C82	#f28c82ad	#994936
-// thought	#7AB3E0	#7ab3e0ad	#3e6e91
-// sensation	#F9B17A	#f9b17aad	#9b6034
-// behavior	#8BCB8B	#8bcb8bad	#3f7142
-// conflict	#B19CD9	#b19cd9ad	#5a4784
-// part	#F7E68F	#f7e68fad	#998f3a
-// self	#4ECDC4	#4ecdc4ad	#396c6d ✅ (yours)
-// other	#EFA9C8	#efa9c8ad
+// Palette reference:
+// emotion   #F28C82
+// thought   #7AB3E0
+// sensation #F9B17A
+// behavior  #8BCB8B
+// other     #EFA9C8

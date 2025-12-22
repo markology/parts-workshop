@@ -2,7 +2,7 @@ import {
   ImpressionTextType,
   ImpressionType,
 } from "@/features/workspace/types/Impressions";
-import { PartNode, WorkshopNode } from "@/features/workspace/types/Nodes";
+import { ImpressionNode, PartNode, WorkshopNode } from "@/features/workspace/types/Nodes";
 
 export default function detachImpressionFromPartCB({
   nodes,
@@ -23,8 +23,8 @@ export default function detachImpressionFromPartCB({
 
     if (node.id === partId && node.type === "part") {
       // Update the parent node by removing the impression from its data
-      const updatedImpressions = node.data[ImpressionTextType[type]] // fix typescript
-        .filter((impression) => impression.id !== impressionId);
+      const updatedImpressions = (node.data[ImpressionTextType[type]] as ImpressionNode[] || [])
+        .filter((impression: ImpressionNode) => impression.id !== impressionId);
 
       const updatedNode = {
         ...node,

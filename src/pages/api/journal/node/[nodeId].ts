@@ -16,38 +16,111 @@ export default async function handler(
   if (!nodeId) return res.status(400).json({ error: "Missing nodeId" });
 
   if (req.method === "GET") {
-    let entry = await prisma.journalEntry.findFirst({
+    const includeHistory =
+      req.query.history === "true" || req.query.history === "1";
+    const entries = await prisma.journalEntry.findMany({
       where: { userId, nodeId },
+      orderBy: {
+        updatedAt: "desc",
+      },
     });
 
-    if (!entry) {
-      entry = await prisma.journalEntry.create({
-        data: {
-          userId,
-          nodeId,
-          content: "", // default empty content
-        },
+    if (includeHistory) {
+      return res.json({
+        entries,
       });
     }
 
-    return res.json(entry);
+    if (entries.length === 0) {
+      const shouldCreate =
+        req.query.createIfMissing !== "false" &&
+        req.query.createIfMissing !== "0";
+
+      if (!shouldCreate) {
+        return res.status(404).json({ error: "No journal entries found" });
+      }
+
+      const entry = await prisma.journalEntry.create({
+        data: {
+          userId,
+          nodeId,
+          content: "",
+        },
+      });
+
+      return res.json(entry);
+    }
+
+    return res.json(entries[0]);
   }
   if (req.method === "POST") {
-    const { content } = req.body;
-    const existing = await prisma.journalEntry.findFirst({
-      where: { userId, nodeId },
+    const { content, title, entryId, createNewVersion } = req.body ?? {};
+
+    if (typeof content !== "string") {
+      return res.status(400).json({ error: "Content is required" });
+    }
+
+    const shouldCreateNew = createNewVersion || !entryId;
+
+    if (!shouldCreateNew) {
+      const existing = await prisma.journalEntry.findUnique({
+        where: { id: entryId },
+      });
+
+      if (!existing || existing.userId !== userId || existing.nodeId !== nodeId) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
+
+      const entry = await prisma.journalEntry.update({
+        where: { id: entryId },
+        data: {
+          content,
+          title: typeof title === "string" ? title : undefined,
+          speakers: Array.isArray(req.body.speakers) ? req.body.speakers : undefined,
+        },
+      });
+
+      return res.json(entry);
+    }
+
+    const entry = await prisma.journalEntry.create({
+      data: {
+        userId,
+        nodeId,
+        content,
+        title: typeof title === "string" ? title : null,
+        speakers: Array.isArray(req.body.speakers) ? req.body.speakers : [],
+      },
     });
 
-    const entry = existing
-      ? await prisma.journalEntry.update({
-          where: { id: existing.id },
-          data: { content },
-        })
-      : await prisma.journalEntry.create({
-          data: { userId, nodeId, content },
-        });
-
     return res.json(entry);
+  }
+
+  if (req.method === "DELETE") {
+    const entryId =
+      (req.query.entryId as string | undefined) ?? req.body?.entryId;
+
+    if (!entryId) {
+      await prisma.journalEntry.deleteMany({
+        where: { userId, nodeId },
+      });
+
+      return res.status(204).end();
+    }
+
+    const existing = await prisma.journalEntry.findUnique({
+      where: { id: entryId },
+    });
+
+    if (!existing || existing.userId !== userId || existing.nodeId !== nodeId) {
+      return res.status(404).json({ error: "Journal entry not found" });
+    }
+
+    await prisma.journalEntry.delete({
+      where: { id: entryId },
+    });
+
+    return res.status(204).end();
   }
 
   return res.status(405).end();

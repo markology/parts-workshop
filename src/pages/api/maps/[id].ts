@@ -41,9 +41,44 @@ export default async function handler(
     return res.status(400).json({ error: "Missing or invalid ID" });
   }
 
+  if (req.method === "GET") {
+    try {
+      const map = await prisma.map.findFirst({
+        where: { 
+          id,
+          userId: session.user.id 
+        }
+      });
+
+      if (!map) {
+        return res.status(404).json({ error: "Map not found" });
+      }
+
+      // Fetch journal entries separately since there's no direct relation
+      const journalEntries = await prisma.journalEntry.findMany({
+        where: { 
+          userId: session.user.id,
+          nodeId: null // Global journal entries, not linked to specific nodes
+        }
+      });
+
+      // Map data fetched successfully
+
+      return res.status(200).json({
+        ...map,
+        journalEntries,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ error: "Failed to fetch map" });
+    }
+  }
+
   if (req.method === "POST" || req.method === "PUT") {
     try {
       let body = req.body;
+      
+      // Saving map data to database
+      
       if (!Array.isArray(body.nodes) || !Array.isArray(body.edges)) {
         return res
           .status(400)
@@ -54,7 +89,6 @@ export default async function handler(
       if (body instanceof ReadableStream) {
         const raw = await streamToString(body);
         body = JSON.parse(raw);
-        console.log("READABLE STREAM", body);
       }
 
       const validNodeIds = body.nodes.map((n: { id: string }) => n.id);
@@ -70,22 +104,49 @@ export default async function handler(
         },
       });
 
+      // Store workspaceBgColor in sidebarImpressions as metadata for now
+      // TODO: Add dedicated workspaceBgColor field to schema
+      const sidebarImpressionsWithBg = body.sidebarImpressions || {};
+      const sidebarImpressionsData = {
+        ...sidebarImpressionsWithBg,
+        _metadata: {
+          ...(typeof sidebarImpressionsWithBg === "object" &&
+          "_metadata" in sidebarImpressionsWithBg
+            ? (sidebarImpressionsWithBg as any)._metadata
+            : {}),
+          workspaceBgColor: body.workspaceBgColor,
+          themeName: body.themeName,
+        },
+      };
+
       await prisma.map.update({
         where: { id },
         data: {
           nodes: body.nodes,
           edges: body.edges,
-          sidebarImpressions: body.sidebarImpressions,
+          sidebarImpressions: sidebarImpressionsData,
         },
       });
 
       return res.status(200).json({ success: true });
     } catch (error) {
-      console.error("Map save failed:", error);
       return res.status(500).json({ error: "Update failed" });
     }
   }
 
-  res.setHeader("Allow", ["POST", "PUT"]);
+  if (req.method === "DELETE") {
+    try {
+      // Delete the map
+      await prisma.map.delete({
+        where: { id },
+      });
+
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      return res.status(500).json({ error: "Delete failed" });
+    }
+  }
+
+  res.setHeader("Allow", ["GET", "POST", "PUT", "DELETE"]);
   return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

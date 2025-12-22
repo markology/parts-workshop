@@ -15,8 +15,9 @@ type WorkingState = {
   edges: Edge[];
   sidebarImpressions: Record<ImpressionType, Record<string, SidebarImpression>>;
   journalEntries: JournalEntry[];
+  workspaceBgColor?: string;
   updateJournalEntry: (entry: JournalEntry) => void;
-  deleteJournalEntry: (nodeId: string) => void;
+  deleteJournalEntry: (args: { entryId?: string; nodeId?: string | null }) => void;
   addImpression: ({ id, label, type }: SidebarImpression) => void;
   removeImpression: ({
     type,
@@ -33,6 +34,11 @@ export const createEmptyImpressionGroups = (): Record<
   ImpressionType,
   Record<string, SidebarImpression>
 > => {
+  if (!ImpressionList || !Array.isArray(ImpressionList)) {
+    console.error("ImpressionList is not defined or not an array:", ImpressionList);
+    return {} as Record<ImpressionType, Record<string, SidebarImpression>>;
+  }
+  
   return Object.fromEntries(ImpressionList.map((type) => [type, {}])) as Record<
     ImpressionType,
     Record<string, SidebarImpression>
@@ -47,6 +53,7 @@ export const useWorkingStore = create<WorkingState>()(
       edges: [],
       sidebarImpressions: createEmptyImpressionGroups(),
       journalEntries: [],
+      workspaceBgColor: undefined,
       setState: (partial) => set((state) => ({ ...state, ...partial })),
       addImpression: ({ id, label, type }) =>
         set((state) => ({
@@ -71,21 +78,36 @@ export const useWorkingStore = create<WorkingState>()(
         }),
       updateJournalEntry: (newEntry) => {
         const current = get().journalEntries;
-        const rest = current.filter((e) =>
-          newEntry.nodeId ? e.nodeId !== newEntry.nodeId : e.nodeId !== null
-        );
-        set({ journalEntries: [...rest, newEntry] });
+        const rest = current.filter((e) => e.id !== newEntry.id);
+        set({
+          journalEntries: [...rest, newEntry].sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() -
+              new Date(a.updatedAt).getTime()
+          ),
+        });
       },
-      deleteJournalEntry: (nodeId) => {
+      deleteJournalEntry: ({ entryId, nodeId }) => {
         const current = get().journalEntries;
-        const rest = current.filter((e) => e.nodeId !== nodeId);
+        const rest = current.filter((entry) => {
+          if (entryId) {
+            return entry.id !== entryId;
+          }
+
+          if (typeof nodeId !== "undefined") {
+            return entry.nodeId !== nodeId;
+          }
+
+          return true;
+        });
         set({ journalEntries: rest });
       },
       hydrated: false,
     }),
     {
-      name: "working-map",
-      storage: createIndexedDbStorage<WorkingState>(), // <- pass generic here!
+      name: "working-map-temp",
+      // Temporarily disable persistence to prevent cross-map contamination
+      // storage: createIndexedDbStorage<WorkingState>(),
     }
   )
 );
