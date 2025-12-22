@@ -2,6 +2,7 @@
 
 import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map, Sparkles, Paintbrush } from "lucide-react";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
+import StudioAssistant from "@/components/StudioAssistant";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
@@ -36,24 +37,13 @@ const FloatingActionButtons = () => {
     other: true,
   });
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
   const [isCollapsing, setIsCollapsing] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: "user" | "assistant"; content: string }>>([
-    {
-      id: "assistant-initial",
-      role: "assistant",
-      content: "Hi! I'm here to help you navigate Parts Studio. Ask me anything."
-    }
-  ]);
-  const [isChatSending, setIsChatSending] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchInputContainerRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
-  const expandedInputRef = useRef<HTMLTextAreaElement>(null);
-  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const menuWidthRef = useRef<number>(0);
   const [menuWidthMeasured, setMenuWidthMeasured] = useState(false);
-  const [chatboxPosition, setChatboxPosition] = useState<{ top: number; left: number } | null>(null);
+  const [chatboxPosition, setChatboxPosition] = useState<{ top: number; right: number } | null>(null);
   // Use actions-only hook to prevent re-renders when nodes/edges change
   const { createNode } = useFlowNodesActions();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -151,15 +141,6 @@ const FloatingActionButtons = () => {
   }, [isSearchExpanded]);
 
   // Scroll to bottom of chat messages
-  useEffect(() => {
-    if (!isSearchExpanded) {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    });
-  }, [chatMessages, isSearchExpanded]);
 
   // Track window width for responsive behavior
   useEffect(() => {
@@ -180,7 +161,7 @@ const FloatingActionButtons = () => {
         const rect = searchInputContainerRef.current.getBoundingClientRect();
         setChatboxPosition({
           top: rect.top,
-          left: rect.left
+          right: window.innerWidth - rect.right
         });
       } else {
         setChatboxPosition(null);
@@ -199,14 +180,6 @@ const FloatingActionButtons = () => {
     }
   }, [isSearchExpanded]);
 
-  // Focus input when expanded
-  useEffect(() => {
-    if (isSearchExpanded && expandedInputRef.current && !isCollapsing) {
-      setTimeout(() => {
-        expandedInputRef.current?.focus();
-      }, 50);
-    }
-  }, [isSearchExpanded, isCollapsing]);
 
   // Measure menu width when it opens - use useLayoutEffect for synchronous measurement
   useLayoutEffect(() => {
@@ -249,101 +222,12 @@ const FloatingActionButtons = () => {
     setIsCollapsing(true);
     setIsSearchExpanded(false);
     
-    // Clear the input and reset state after the animation completes (300ms)
+    // Clear the collapsing state after the animation completes (300ms)
     setTimeout(() => {
       setIsCollapsing(false);
-      setSearchInput("");
     }, 300);
   };
 
-  const handleSendChat = async () => {
-    const trimmedMessage = searchInput.trim();
-    if (!trimmedMessage || isChatSending) {
-      return;
-    }
-
-    const userMessage = {
-      id: `user-${Date.now()}`,
-      role: "user" as const,
-      content: trimmedMessage
-    };
-
-    const assistantMessageId = `assistant-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    setChatMessages(prev => [
-      ...prev,
-      userMessage,
-      {
-        id: assistantMessageId,
-        role: "assistant" as const,
-        content: ""
-      }
-    ]);
-
-    setSearchInput("");
-    setIsChatSending(true);
-
-    try {
-      const response = await fetch("/api/ai/ifs-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userMessage: trimmedMessage
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to reach assistant");
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error("No response body");
-      }
-
-      const decoder = new TextDecoder();
-      let fullContent = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-
-        fullContent += decoder.decode(value, { stream: true });
-
-        const content = fullContent;
-        setChatMessages(prev =>
-          prev.map(message =>
-            message.id === assistantMessageId ? { ...message, content } : message
-          )
-        );
-      }
-
-      setChatMessages(prev =>
-        prev.map(message =>
-          message.id === assistantMessageId ? { ...message, content: fullContent } : message
-        )
-      );
-    } catch (error) {
-      console.error("Chat error:", error);
-      setChatMessages(prev =>
-        prev.map(message =>
-          message.id === assistantMessageId
-            ? {
-                ...message,
-                content:
-                  "I'm sorry, I'm having trouble responding right now. Please try again in a moment."
-              }
-            : message
-        )
-      );
-    } finally {
-      setIsChatSending(false);
-    }
-  };
   
   const handleSaveAndCleanup = async () => {
     setLocalIsSaving(true);
@@ -992,125 +876,11 @@ const FloatingActionButtons = () => {
       )}
 
       {isSearchExpanded && chatboxPosition && (
-        <div
-          ref={searchBoxRef}
-          className="fixed w-[320px] pointer-events-auto z-[80]"
-          style={{
-            top: `${chatboxPosition.top}px`,
-            left: `${chatboxPosition.left}px`
-          }}
-        >
-          <div className="relative w-full h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)]"
-            style={{ 
-              background: darkMode 
-                ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
-                : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
-              borderColor: theme.border 
-            }}>
-            <button
-              onClick={handleSearchClose}
-              className="absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10"
-              style={{ color: theme.textSecondary }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.buttonHover;
-                e.currentTarget.style.color = theme.textPrimary;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = theme.textSecondary;
-              }}
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
-              <div>
-                <p
-                  style={{ fontWeight: 600, fontSize: '15px' }}
-                >
-                  <span
-                    style={{
-                      background: 'linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)',
-                      WebkitBackgroundClip: 'text',
-                      backgroundClip: 'text',
-                      color: 'transparent',
-                    }}
-                  >
-                    Studio Assistant
-                  </span>
-                </p>
-                <p
-                  className="mt-3 text-sm leading-relaxed"
-                  style={{ color: theme.textSecondary }}
-                >
-                  Ask for guidance, shortcuts, or reflections tailored to
-                  your Parts Studio flow.
-                </p>
-              </div>
-
-              <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
-                {chatMessages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words border"
-                      style={
-                        message.role === "user"
-                          ? {
-                              background:
-                                "linear-gradient(135deg, #a855f7, #6366f1)",
-                              color: "#ffffff",
-                              borderColor: "rgba(129, 140, 248, 0.6)",
-                            }
-                          : {
-                              background: darkMode
-                                ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
-                                : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
-                              color: theme.textPrimary,
-                              borderColor: theme.border,
-                            }
-                      }
-                    >
-                      {message.content.trim().length > 0 ? message.content : "..."}
-                    </div>
-                  </div>
-                ))}
-                <div ref={chatMessagesEndRef} />
-              </div>
-            </div>
-
-            <div className="px-6 pb-6 border-0">
-                    <div className="relative">
-                      <textarea
-                        ref={expandedInputRef}
-                        autoFocus
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            e.preventDefault();
-                            setIsSearchExpanded(false);
-                          } else if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendChat();
-                          }
-                        }}
-                        placeholder="Ask me anything..."
-                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent break-words"
-                        style={{
-                          background: darkMode
-                            ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
-                            : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
-                          borderColor: theme.border,
-                          color: theme.textPrimary,
-                        }}
-                      />
-                    </div>
-                  </div>
-          </div>
-        </div>
+        <StudioAssistant
+          isOpen={isSearchExpanded}
+          onClose={handleSearchClose}
+          position={chatboxPosition}
+        />
       )}
  
       {/* Plus button and 9 dots on the left */}
@@ -1185,8 +955,8 @@ const FloatingActionButtons = () => {
         >
           <div 
             className="rounded-full shadow-xl flex items-center overflow-hidden"
-            style={{ backgroundColor: theme.card }}
             style={{
+              backgroundColor: theme.card,
               width: 'max-content',
               transform: 'scaleX(0)',
               transformOrigin: 'left center',
@@ -1195,27 +965,13 @@ const FloatingActionButtons = () => {
           >
             {/* Part option */}
             <button
-              onMouseEnter={() => setHoveredOption('part')}
-              onMouseLeave={() => setHoveredOption(null)}
-              onClick={() => {
-                const newNode = createNode("part", "");
-                if (newNode && newNode.id) {
-                  // Set flag to auto-enable editing when part details panel opens
-                  setShouldAutoEditPart(true);
-                  // Select the newly created part so the detail panel opens
-                  setTimeout(() => {
-                    setSelectedPartId(newNode.id);
-                  }, 100);
-                }
-                // Keep action button active so impressions sidebar stays open
-                // Keep options menu open
-              }}
               className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
               style={{ 
                 backgroundColor: theme.button,
                 color: theme.buttonText 
               }}
               onMouseEnter={(e) => {
+                setHoveredOption('part');
                 // Darken the button on hover by reducing RGB values
                 let r: number, g: number, b: number;
                 
@@ -1272,6 +1028,7 @@ const FloatingActionButtons = () => {
                 }
               }}
               onMouseLeave={(e) => {
+                setHoveredOption(null);
                 e.currentTarget.style.backgroundColor = theme.button;
                 
                 // Reset the Add pill color
@@ -1279,6 +1036,19 @@ const FloatingActionButtons = () => {
                 if (pill) {
                   pill.style.backgroundColor = theme.buttonActive;
                 }
+              }}
+              onClick={() => {
+                const newNode = createNode("part", "");
+                if (newNode && newNode.id) {
+                  // Set flag to auto-enable editing when part details panel opens
+                  setShouldAutoEditPart(true);
+                  // Select the newly created part so the detail panel opens
+                  setTimeout(() => {
+                    setSelectedPartId(newNode.id);
+                  }, 100);
+                }
+                // Keep action button active so impressions sidebar stays open
+                // Keep options menu open
               }}
             >
               Part
@@ -1295,19 +1065,13 @@ const FloatingActionButtons = () => {
             
             {/* Relationship option */}
             <button
-              onMouseEnter={() => setHoveredOption('relationship')}
-              onMouseLeave={() => setHoveredOption(null)}
-              onClick={() => {
-                createNode("relationship", "Choose Relationship Type");
-                // Keep action button active so impressions sidebar stays open
-                // Keep options menu open
-              }}
               className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
               style={{ 
                 backgroundColor: theme.button,
                 color: theme.buttonText 
               }}
               onMouseEnter={(e) => {
+                setHoveredOption('relationship');
                 // Darken the button on hover by reducing RGB values
                 let r: number, g: number, b: number;
                 
@@ -1364,6 +1128,7 @@ const FloatingActionButtons = () => {
                 }
               }}
               onMouseLeave={(e) => {
+                setHoveredOption(null);
                 e.currentTarget.style.backgroundColor = theme.button;
                 
                 // Reset the Add pill color
@@ -1371,6 +1136,11 @@ const FloatingActionButtons = () => {
                 if (pill) {
                   pill.style.backgroundColor = theme.buttonActive;
                 }
+              }}
+              onClick={() => {
+                createNode("relationship", "Choose Relationship Type");
+                // Keep action button active so impressions sidebar stays open
+                // Keep options menu open
               }}
             >
               Relationship
@@ -1391,12 +1161,12 @@ const FloatingActionButtons = () => {
         className="absolute top-4 right-4 flex flex-row gap-3 items-start z-50"
       >
         {/* Assistant input (hidden when chat open) */}
-        <div ref={searchInputContainerRef} className="relative w-[320px] pointer-events-auto">
+        <div 
+          ref={searchInputContainerRef} 
+          className="relative w-[320px] pointer-events-auto"
+          style={{ height: '49px', alignContent: 'center' }}
+        >
           <StudioSparkleInput
-            inputRef={searchInputRef}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onFocus={() => setIsSearchExpanded(true)}
             onClick={() => setIsSearchExpanded(true)}
             placeholder="Ask the Studio Assistant"
             className={`${
