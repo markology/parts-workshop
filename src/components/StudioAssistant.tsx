@@ -195,7 +195,7 @@ export default function StudioAssistant({
       <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
         <div>
           <p
-            style={{ fontWeight: 600, fontSize: '15px' }}
+            style={{ fontWeight: 300, fontSize: '12px', letterSpacing: '0.2em', textTransform: 'uppercase' }}
           >
             <span
               style={{
@@ -266,7 +266,7 @@ export default function StudioAssistant({
               }
             }}
             placeholder="Ask me anything..."
-            className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent break-words shadow-inner"
+            className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none break-words shadow-inner"
             style={{
               background: darkMode
                 ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`

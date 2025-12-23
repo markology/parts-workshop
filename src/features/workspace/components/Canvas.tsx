@@ -115,14 +115,14 @@ const Workspace = () => {
     if (workspaceBgColor && workspaceBgColor !== defaultBg && workspaceBgColor !== theme.workspace) {
       return workspaceBgColor;
     }
-    // Otherwise, use subtle gradient for all themes
+    // Otherwise, use vignette effect for light theme, subtle gradient for other themes
     if (workspaceBgColor === defaultBg) {
-      if (themeName === "dark") {
+      if (themeName === "light") {
+        // Radial gradient: white center fading to light peach at edges
+        return "radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)";
+      } else if (themeName === "dark") {
         // Subtle gradient for dark theme: slightly lighter to slightly darker
         return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 3)}, ${adjustBrightness(theme.workspace, -3)})`;
-      } else if (themeName === "light") {
-        // Subtle gradient for light theme: slightly brighter to slightly darker
-        return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 2)}, ${adjustBrightness(theme.workspace, -2)})`;
       } else if (themeName === "red") {
         // Subtle gradient for red theme: slightly lighter to slightly darker
         return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 3)}, ${adjustBrightness(theme.workspace, -3)})`;

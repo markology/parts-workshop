@@ -924,10 +924,11 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col border"
+            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col"
             style={{ 
               backgroundColor: theme.sidebar,
-              borderColor: theme.border,
+              border: 'none',
+              borderTop: 'solid 1px #d3d3d340',
               zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
               width: '313px',
               transform: 'scaleX(0)',

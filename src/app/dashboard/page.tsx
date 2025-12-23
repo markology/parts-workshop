@@ -315,7 +315,7 @@ export default function WorkspacesPage() {
             }
           : {
               backgroundImage:
-                "linear-gradient(to bottom, #e6f8ff 0%, #dbeafe 400px, #e0e7ff calc(400px + 500px), #fef1f2 calc(400px + 1000px), #fff1f2 100%)",
+                "linear-gradient(to bottom, #e6f8ff 0%, #dbeafe 400px, #e0e7ff calc(400px + 500px), #fef1f2 calc(400px + 1000px), #f3e8ff 100%)",
               color: theme.textPrimary,
             }
       }

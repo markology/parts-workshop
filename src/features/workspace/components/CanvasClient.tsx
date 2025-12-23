@@ -392,7 +392,9 @@ export default function CanvasClient({
           <div
             className="absolute inset-0 pointer-events-none backdrop-blur-sm"
             style={{
-              backgroundColor: darkMode ? `${theme.modal}f2` : `${theme.modal}99`,
+              background: darkMode 
+                ? `${theme.modal}f2` 
+                : 'radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)',
             }}
           />
           <div
@@ -402,7 +404,7 @@ export default function CanvasClient({
             <div
               className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
               style={{
-                backgroundColor: theme.elevated,
+                backgroundColor: darkMode ? theme.elevated : 'white',
                 borderColor: theme.border,
               }}
             >
@@ -456,7 +458,7 @@ export default function CanvasClient({
                 <div
                   className="rounded-2xl border px-6 py-6 shadow-inner"
                   style={{
-                    backgroundColor: theme.surface,
+                    backgroundColor: 'transparent',
                     borderColor: theme.border,
                   }}
                 >
@@ -471,19 +473,34 @@ export default function CanvasClient({
                 <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-1.5">
-                      <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                      <kbd 
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 border-none"
+                        style={{
+                          background: 'linear-gradient(152deg, #f0f0f0, #e8e8e8)',
+                        }}
+                      >
                         {isMac() ? '⇧ Tab' : 'Shift+Tab'}
                       </kbd>
                       <span className="text-xs">Previous Type</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                      <kbd 
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 border-none"
+                        style={{
+                          background: 'linear-gradient(152deg, #f0f0f0, #e8e8e8)',
+                        }}
+                      >
                         Tab
                       </kbd>
                       <span className="text-xs">Next Type</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                      <kbd 
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 border-none"
+                        style={{
+                          background: 'linear-gradient(152deg, #f0f0f0, #e8e8e8)',
+                        }}
+                      >
                         {isMac() ? '⏎' : 'Enter'}
                       </kbd>
                       <span className="text-xs">Submit</span>

@@ -32,7 +32,11 @@ const Modal = ({
     <div
       onClick={handleOverlayClick}
       className="fixed inset-0 z-76 flex items-center justify-center modal-overlay"
-      style={{ background: black ? "black" : "" }}
+      style={{ 
+        background: black ? "black" : "rgba(0,0,0,0.5)",
+        backdropFilter: black ? "none" : "blur(2px)",
+        WebkitBackdropFilter: black ? "none" : "blur(2px)",
+      }}
     >
       <div
         ref={modalRef}
