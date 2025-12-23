@@ -38,7 +38,7 @@ const PartsStudioLogo = ({
     >
       <div className={`${sizeClasses[size]} relative transition-all group-hover:scale-105`}>
         <Image
-          src="/official_logo_bw.svg"
+          src="/official_logo_complete.svg"
           alt="Parts Studio Logo"
           width={size === "sm" ? 24 : size === "md" ? 32 : 48}
           height={size === "sm" ? 24 : size === "md" ? 32 : 48}

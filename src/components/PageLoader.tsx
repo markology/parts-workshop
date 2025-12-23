@@ -187,7 +187,7 @@ export default function PageLoader({
         <div className="relative flex flex-col items-center text-center" style={{ gap: '10px' }}>
           <div className="relative" style={{ height: '100px', width: '115px' }}>
             <Image
-              src="/official_logo_bw.svg"
+              src="/official_logo_complete.svg"
               alt="Parts Studio Logo"
               width={115}
               height={115}
