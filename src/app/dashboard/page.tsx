@@ -133,23 +133,15 @@ export default function WorkspacesPage() {
       return;
     }
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
-        setIsSearchExpanded(false);
-      }
-    };
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsSearchExpanded(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isSearchExpanded]);
@@ -329,8 +321,8 @@ export default function WorkspacesPage() {
       }
     >
       <div
-        className={`fixed inset-0 pointer-events-none ${
-          isSearchExpanded ? 'opacity-100' : 'opacity-0'
+        className={`fixed inset-0 ${
+          isSearchExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         style={{
           backgroundColor: isSearchExpanded ? 'rgba(0,0,0,0.35)' : 'transparent',
@@ -338,7 +330,18 @@ export default function WorkspacesPage() {
           WebkitBackdropFilter: isSearchExpanded ? 'blur(2px)' : 'none',
           zIndex: isSearchExpanded ? 70 : 40
         }}
-      />
+        onClick={() => setIsSearchExpanded(false)}
+      >
+        {isSearchExpanded && (
+          <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6" style={{ top: '20px' }} ref={searchBoxRef} onClick={(e) => e.stopPropagation()}>
+            <StudioAssistant
+              isOpen={isSearchExpanded}
+              onClose={() => setIsSearchExpanded(false)}
+              containerRef={searchBoxRef}
+            />
+          </div>
+        )}
+      </div>
       {/* Header */}
       <header
         className={`sticky top-0 z-[65] ${headerBackgroundClass}`}
@@ -379,19 +382,13 @@ export default function WorkspacesPage() {
           {/* Search Input - Absolutely positioned, centered */}
           <div
             className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6 pointer-events-none"
-            style={{ zIndex: isSearchExpanded ? 75 : 60, top: '20px' }}
+            style={{ zIndex: 60, top: '20px' }}
           >
             <div
               ref={searchBoxRef}
               className="relative pointer-events-auto"
             >
-              {isSearchExpanded ? (
-                <StudioAssistant
-                  isOpen={isSearchExpanded}
-                  onClose={() => setIsSearchExpanded(false)}
-                  containerRef={searchBoxRef}
-                />
-              ) : (
+              {!isSearchExpanded && (
                 <StudioSparkleInput
                   onClick={() => {
                     setIsSearchExpanded(true);
