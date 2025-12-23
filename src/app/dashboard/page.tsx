@@ -725,27 +725,41 @@ export default function WorkspacesPage() {
                         style={darkMode ? {
                           borderColor: theme.border,
                           backgroundColor: theme.surface,
-                        } : undefined}
-                        className={`rounded-2xl border px-4 py-3 ${
-                          darkMode ? '' : 'border-sky-100 bg-gradient-to-br from-sky-50 via-white to-white/90'
+                        } : {
+                          border: 'none',
+                          borderBottom: 'solid 1px #dcdcdc1c',
+                          boxShadow: '0px 1px 2px 1px #dcdcdc82 inset',
+                          background: '#f7ebf352',
+                        }}
+                        className={`rounded-2xl px-4 py-3 ${
+                          darkMode ? 'border' : ''
                         }`}
                       >
-                        <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-sky-600'}`}>Sessions</p>
-                        <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{workspaces.length}</p>
-                        <p style={darkMode ? { color: theme.textMuted } : undefined} className={`text-xs ${darkMode ? '' : 'text-slate-500'}`}>Saved journeys</p>
+                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 500 } : { fontWeight: 500 }} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-sky-600'}`}>Sessions</p>
+                        <div className="flex items-baseline gap-1.5">
+                          <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{workspaces.length}</p>
+                          <p style={darkMode ? { color: theme.textPrimary, fontWeight: 400 } : { color: '#000000', fontWeight: 400 }} className="text-xs uppercase tracking-wider">saved</p>
+                        </div>
                       </div>
                       <div 
                         style={darkMode ? {
                           borderColor: theme.border,
                           backgroundColor: theme.surface,
-                        } : undefined}
-                        className={`rounded-2xl border px-4 py-3 ${
-                          darkMode ? '' : 'border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-white/90'
+                        } : {
+                          border: 'none',
+                          borderBottom: 'solid 1px #dcdcdc1c',
+                          boxShadow: '0px 1px 2px 1px #dcdcdc82 inset',
+                          background: '#8e7ff812',
+                        }}
+                        className={`rounded-2xl px-4 py-3 ${
+                          darkMode ? 'border' : ''
                         }`}
                       >
-                        <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-indigo-600'}`}>Parts</p>
-                        <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{totalParts}</p>
-                        <p style={darkMode ? { color: theme.textMuted } : undefined} className={`text-xs ${darkMode ? '' : 'text-slate-500'}`}>Mapped across sessions</p>
+                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 500 } : { fontWeight: 500 }} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-indigo-600'}`}>Parts</p>
+                        <div className="flex items-baseline gap-1.5">
+                          <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{totalParts}</p>
+                          <p style={darkMode ? { color: theme.textPrimary, fontWeight: 400 } : { color: '#000000', fontWeight: 400 }} className="text-xs uppercase tracking-wider">mapped</p>
+                        </div>
                       </div>
                     </div>
                     <div 
