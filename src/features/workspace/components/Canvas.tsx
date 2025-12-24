@@ -222,11 +222,14 @@ const Workspace = () => {
     return theme.elevated;
   };
 
+  const { darkMode } = useThemeContext();
+  
   const colorButtonStyle = {
-    backgroundColor: getColorButtonBackground(),
+    backgroundColor: darkMode ? getColorButtonBackground() : (showColorPicker ? 'transparent' : 'white'),
+    backgroundImage: (!darkMode && showColorPicker) ? 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))' : 'none',
     borderColor: theme.border,
     color: theme.textPrimary,
-    boxShadow: '0 12px 28px rgba(0,0,0,0.45)',
+    boxShadow: darkMode ? '0 12px 28px rgba(0,0,0,0.45)' : '0 2px 4px rgba(0,0,0,0.1)',
   };
 
   const colorPickerStyle = {
@@ -259,6 +262,17 @@ const Workspace = () => {
             }}
             className="w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center"
             style={colorButtonStyle}
+            onMouseEnter={(e) => {
+              if (!darkMode && !showColorPicker) {
+                e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!darkMode && !showColorPicker) {
+                e.currentTarget.style.backgroundImage = 'none';
+                e.currentTarget.style.backgroundColor = 'white';
+              }
+            }}
             aria-label="Pick workspace background color"
           >
             <Paintbrush className="w-5 h-5" />
@@ -336,9 +350,9 @@ const Workspace = () => {
                     className="w-full text-left px-3 py-2 text-sm rounded-2xl flex items-center gap-3 border transition-all"
                     style={{
                       backgroundColor: isActive ? theme.elevated : theme.surface,
-                      borderColor: isActive ? theme.accent : theme.border,
+                      borderColor: theme.border,
                       color: theme.textPrimary,
-                      boxShadow: isActive ? "0 12px 28px rgba(0,0,0,0.35)" : "none",
+                      boxShadow: "none",
                       opacity: isComingSoon ? 0.55 : 1,
                       cursor: isComingSoon ? "not-allowed" : "pointer",
                     }}
@@ -390,11 +404,12 @@ const Workspace = () => {
                     ) : (
                       isActive && (
                         <span
-                          className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
+                          className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide flex-shrink-0"
                           style={{
-                            backgroundColor: optionTheme.button,
-                            color: optionTheme.buttonText,
-                            borderColor: optionTheme.accent,
+                            backgroundImage: 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))',
+                            backgroundColor: 'transparent',
+                            color: '#475569',
+                            border: '1px solid rgb(151 151 151 / 35%)',
                           }}
                         >
                           Active

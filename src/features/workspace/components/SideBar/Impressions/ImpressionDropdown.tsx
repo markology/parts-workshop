@@ -90,12 +90,12 @@ const ImpressionDropdown = ({
           {Object.values(filteredImpressions).map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-sm font-medium shadow-sm transition-all duration-150 hover:-translate-y-[1px] cursor-grab"
+              className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm transition-all duration-150 hover:-translate-y-[1px] cursor-grab"
               onDragStart={(event) => onDragStart(event, item.id, item.type)}
               draggable
               style={{
                 backgroundColor: chipBackground,
-                borderColor: chipBorder,
+                border: 'none',
                 color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
               }}
             >

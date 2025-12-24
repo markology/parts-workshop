@@ -157,11 +157,16 @@ const TensionNode = ({
                 if (darkMode) {
                   e.currentTarget.style.backgroundColor = "#7a3a3a";
                 } else {
-                  e.currentTarget.style.backgroundColor = "#f1f5f9";
+                  e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = darkMode ? "#924949" : "white";
+                if (darkMode) {
+                  e.currentTarget.style.backgroundColor = "#924949";
+                } else {
+                  e.currentTarget.style.backgroundImage = 'none';
+                  e.currentTarget.style.backgroundColor = 'white';
+                }
               }}
               title="Open journal"
             >

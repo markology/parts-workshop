@@ -87,34 +87,9 @@ const ImpressionNode = ({
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  // Calculate opaque color that matches translucent color on background
-  // result = (1 - alpha) * background + alpha * color
-  const blendOnBackground = (hex: string, opacity: number, backgroundHex: string) => {
-    const sanitized = hex.replace("#", "");
-    const bigint = parseInt(sanitized, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    
-    // Parse background color
-    const bgSanitized = backgroundHex.replace("#", "");
-    const bgBigint = parseInt(bgSanitized, 16);
-    const bgR = (bgBigint >> 16) & 255;
-    const bgG = (bgBigint >> 8) & 255;
-    const bgB = bgBigint & 255;
-    
-    const blendedR = Math.round((1 - opacity) * bgR + opacity * r);
-    const blendedG = Math.round((1 - opacity) * bgG + opacity * g);
-    const blendedB = Math.round((1 - opacity) * bgB + opacity * b);
-    
-    return `rgb(${blendedR}, ${blendedG}, ${blendedB})`;
-  };
-
-  // Use sidebar opacity values: 0.24 for light mode, 0.45 for dark mode
-  const sidebarOpacity = darkMode ? 0.45 : 0.24;
-  // Blend with workspace background (canvas background)
-  const chipBackground = blendOnBackground(accent, sidebarOpacity, theme.workspace);
-  const chipBorder = blendOnBackground(accent, darkMode ? 0.65 : 0.32, theme.workspace);
+  // Use the same background calculation as sidebar, part nodes, and part details pane
+  const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
+  const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(
@@ -131,11 +106,10 @@ const ImpressionNode = ({
         onContextMenu={handleContextMenu}
         onDragStart={handleDragStart}
         draggable
-        className="text-left rounded-xl border px-3 pt-2 pb-3 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden cursor-grab active:cursor-grabbing"
+        className="text-left rounded-xl px-3 pt-2 pb-3 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden cursor-grab active:cursor-grabbing"
         style={{
           backgroundColor: chipBackground,
-          borderColor: chipBorder,
-          color: darkMode ? theme.textPrimary : accentText,
+          color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
         }}
       >
         <div className="flex items-center justify-between gap-2">
@@ -166,11 +140,16 @@ const ImpressionNode = ({
               if (darkMode) {
                 e.currentTarget.style.backgroundColor = "#7a3a3a";
               } else {
-                e.currentTarget.style.backgroundColor = "#f1f5f9";
+                e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = darkMode ? "#924949" : "white";
+              if (darkMode) {
+                e.currentTarget.style.backgroundColor = "#924949";
+              } else {
+                e.currentTarget.style.backgroundImage = 'none';
+                e.currentTarget.style.backgroundColor = 'white';
+              }
             }}
             title="Open Journal"
           >

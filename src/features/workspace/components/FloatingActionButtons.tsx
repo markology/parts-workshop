@@ -592,36 +592,46 @@ const FloatingActionButtons = () => {
             ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
           }}
           onMouseEnter={(e) => {
-            // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
-            let r: number, g: number, b: number;
-            
-            if (theme.button.startsWith('#')) {
-              // Hex format
-              const hex = theme.button.replace('#', '');
-              r = parseInt(hex.substr(0, 2), 16);
-              g = parseInt(hex.substr(2, 2), 16);
-              b = parseInt(hex.substr(4, 2), 16);
-            } else if (theme.button.startsWith('rgb')) {
-              // RGB format
-              const matches = theme.button.match(/\d+/g);
-              if (matches && matches.length >= 3) {
-                r = parseInt(matches[0]);
-                g = parseInt(matches[1]);
-                b = parseInt(matches[2]);
+            if (darkMode) {
+              // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
+              let r: number, g: number, b: number;
+              
+              if (theme.button.startsWith('#')) {
+                // Hex format
+                const hex = theme.button.replace('#', '');
+                r = parseInt(hex.substr(0, 2), 16);
+                g = parseInt(hex.substr(2, 2), 16);
+                b = parseInt(hex.substr(4, 2), 16);
+              } else if (theme.button.startsWith('rgb')) {
+                // RGB format
+                const matches = theme.button.match(/\d+/g);
+                if (matches && matches.length >= 3) {
+                  r = parseInt(matches[0]);
+                  g = parseInt(matches[1]);
+                  b = parseInt(matches[2]);
+                } else {
+                  return; // Can't parse, don't change color
+                }
               } else {
-                return; // Can't parse, don't change color
+                return; // Unknown format, don't change color
               }
+              
+              const darkerR = Math.max(0, r - 20);
+              const darkerG = Math.max(0, g - 20);
+              const darkerB = Math.max(0, b - 20);
+              e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
             } else {
-              return; // Unknown format, don't change color
+              // Apply gradient background on hover
+              e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
             }
-            
-            const darkerR = Math.max(0, r - 20);
-            const darkerG = Math.max(0, g - 20);
-            const darkerB = Math.max(0, b - 20);
-            e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = theme.button;
+            if (darkMode) {
+              e.currentTarget.style.backgroundColor = theme.button;
+            } else {
+              e.currentTarget.style.backgroundImage = 'none';
+              e.currentTarget.style.backgroundColor = theme.button;
+            }
           }}
           title={label}
         >
@@ -807,14 +817,23 @@ const FloatingActionButtons = () => {
                   onClick={closeOptionsModal}
                   className="absolute top-4 right-4 rounded-full p-2 transition shadow-md"
                   style={{ 
-                    backgroundColor: theme.button, 
+                    backgroundColor: darkMode ? theme.button : 'white', 
                     color: theme.buttonText 
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    } else {
+                      e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.button;
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = theme.button;
+                    } else {
+                      e.currentTarget.style.backgroundImage = 'none';
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
                   }}
                   aria-label="Close options"
                 >
@@ -924,9 +943,9 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col"
+            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col backdrop-blur-xl"
             style={{ 
-              backgroundColor: theme.sidebar,
+              backgroundColor: darkMode ? theme.sidebar : 'rgba(255, 255, 255, 0.92)',
               border: 'none',
               borderTop: 'solid 1px #d3d3d340',
               zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
@@ -954,7 +973,7 @@ const FloatingActionButtons = () => {
             overflow: 'visible'
           }}
         >
-          <div 
+          <div
             className="rounded-full shadow-xl flex items-center overflow-hidden"
             style={{
               backgroundColor: theme.card,
@@ -973,69 +992,86 @@ const FloatingActionButtons = () => {
               }}
               onMouseEnter={(e) => {
                 setHoveredOption('part');
-                // Darken the button on hover by reducing RGB values
-                let r: number, g: number, b: number;
-                
-                if (theme.button.startsWith('#')) {
-                  // Hex format
-                  const hex = theme.button.replace('#', '');
-                  r = parseInt(hex.substr(0, 2), 16);
-                  g = parseInt(hex.substr(2, 2), 16);
-                  b = parseInt(hex.substr(4, 2), 16);
-                } else if (theme.button.startsWith('rgb')) {
-                  // RGB format
-                  const matches = theme.button.match(/\d+/g);
-                  if (matches && matches.length >= 3) {
-                    r = parseInt(matches[0]);
-                    g = parseInt(matches[1]);
-                    b = parseInt(matches[2]);
-                  } else {
-                    return; // Can't parse, don't change color
-                  }
-                } else {
-                  return; // Unknown format, don't change color
-                }
-                
-                const darkerR = Math.max(0, r - 20);
-                const darkerG = Math.max(0, g - 20);
-                const darkerB = Math.max(0, b - 20);
-                e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-                
-                // Darken the Add pill when button is hovered
-                const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                if (pill) {
-                  let pillR: number, pillG: number, pillB: number;
-                  if (theme.buttonActive.startsWith('#')) {
-                    const pillHex = theme.buttonActive.replace('#', '');
-                    pillR = parseInt(pillHex.substr(0, 2), 16);
-                    pillG = parseInt(pillHex.substr(2, 2), 16);
-                    pillB = parseInt(pillHex.substr(4, 2), 16);
-                  } else if (theme.buttonActive.startsWith('rgb')) {
-                    const matches = theme.buttonActive.match(/\d+/g);
+                if (darkMode) {
+                  // Darken the button on hover by reducing RGB values
+                  let r: number, g: number, b: number;
+                  
+                  if (theme.button.startsWith('#')) {
+                    // Hex format
+                    const hex = theme.button.replace('#', '');
+                    r = parseInt(hex.substr(0, 2), 16);
+                    g = parseInt(hex.substr(2, 2), 16);
+                    b = parseInt(hex.substr(4, 2), 16);
+                  } else if (theme.button.startsWith('rgb')) {
+                    // RGB format
+                    const matches = theme.button.match(/\d+/g);
                     if (matches && matches.length >= 3) {
-                      pillR = parseInt(matches[0]);
-                      pillG = parseInt(matches[1]);
-                      pillB = parseInt(matches[2]);
+                      r = parseInt(matches[0]);
+                      g = parseInt(matches[1]);
+                      b = parseInt(matches[2]);
+                    } else {
+                      return; // Can't parse, don't change color
+                    }
+                  } else {
+                    return; // Unknown format, don't change color
+                  }
+                  
+                  const darkerR = Math.max(0, r - 20);
+                  const darkerG = Math.max(0, g - 20);
+                  const darkerB = Math.max(0, b - 20);
+                  e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+                  
+                  // Darken the Add pill when button is hovered
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    let pillR: number, pillG: number, pillB: number;
+                    if (theme.buttonActive.startsWith('#')) {
+                      const pillHex = theme.buttonActive.replace('#', '');
+                      pillR = parseInt(pillHex.substr(0, 2), 16);
+                      pillG = parseInt(pillHex.substr(2, 2), 16);
+                      pillB = parseInt(pillHex.substr(4, 2), 16);
+                    } else if (theme.buttonActive.startsWith('rgb')) {
+                      const matches = theme.buttonActive.match(/\d+/g);
+                      if (matches && matches.length >= 3) {
+                        pillR = parseInt(matches[0]);
+                        pillG = parseInt(matches[1]);
+                        pillB = parseInt(matches[2]);
+                      } else {
+                        return;
+                      }
                     } else {
                       return;
                     }
-                  } else {
-                    return;
+                    const darkerPillR = Math.max(0, pillR - 10);
+                    const darkerPillG = Math.max(0, pillG - 10);
+                    const darkerPillB = Math.max(0, pillB - 10);
+                    pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
                   }
-                  const darkerPillR = Math.max(0, pillR - 10);
-                  const darkerPillG = Math.max(0, pillG - 10);
-                  const darkerPillB = Math.max(0, pillB - 10);
-                  pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
+                } else {
+                  // Apply gradient to span on button hover
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                  }
                 }
               }}
               onMouseLeave={(e) => {
                 setHoveredOption(null);
-                e.currentTarget.style.backgroundColor = theme.button;
-                
-                // Reset the Add pill color
-                const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                if (pill) {
-                  pill.style.backgroundColor = theme.buttonActive;
+                if (darkMode) {
+                  e.currentTarget.style.backgroundColor = theme.button;
+                  
+                  // Reset the Add pill color
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundColor = theme.buttonActive;
+                  }
+                } else {
+                  // Reset span gradient
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundImage = 'none';
+                    pill.style.backgroundColor = 'white';
+                  }
                 }
               }}
               onClick={() => {
@@ -1053,11 +1089,13 @@ const FloatingActionButtons = () => {
               }}
             >
               Part
-              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
+              <span 
+                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{ 
-                  backgroundColor: theme.buttonActive, 
+                  backgroundColor: darkMode ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
-                }}>
+                }}
+              >
                 Add
               </span>
             </button>
@@ -1073,69 +1111,86 @@ const FloatingActionButtons = () => {
               }}
               onMouseEnter={(e) => {
                 setHoveredOption('relationship');
-                // Darken the button on hover by reducing RGB values
-                let r: number, g: number, b: number;
-                
-                if (theme.button.startsWith('#')) {
-                  // Hex format
-                  const hex = theme.button.replace('#', '');
-                  r = parseInt(hex.substr(0, 2), 16);
-                  g = parseInt(hex.substr(2, 2), 16);
-                  b = parseInt(hex.substr(4, 2), 16);
-                } else if (theme.button.startsWith('rgb')) {
-                  // RGB format
-                  const matches = theme.button.match(/\d+/g);
-                  if (matches && matches.length >= 3) {
-                    r = parseInt(matches[0]);
-                    g = parseInt(matches[1]);
-                    b = parseInt(matches[2]);
-                  } else {
-                    return; // Can't parse, don't change color
-                  }
-                } else {
-                  return; // Unknown format, don't change color
-                }
-                
-                const darkerR = Math.max(0, r - 20);
-                const darkerG = Math.max(0, g - 20);
-                const darkerB = Math.max(0, b - 20);
-                e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-                
-                // Darken the Add pill when button is hovered
-                const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                if (pill) {
-                  let pillR: number, pillG: number, pillB: number;
-                  if (theme.buttonActive.startsWith('#')) {
-                    const pillHex = theme.buttonActive.replace('#', '');
-                    pillR = parseInt(pillHex.substr(0, 2), 16);
-                    pillG = parseInt(pillHex.substr(2, 2), 16);
-                    pillB = parseInt(pillHex.substr(4, 2), 16);
-                  } else if (theme.buttonActive.startsWith('rgb')) {
-                    const matches = theme.buttonActive.match(/\d+/g);
+                if (darkMode) {
+                  // Darken the button on hover by reducing RGB values
+                  let r: number, g: number, b: number;
+                  
+                  if (theme.button.startsWith('#')) {
+                    // Hex format
+                    const hex = theme.button.replace('#', '');
+                    r = parseInt(hex.substr(0, 2), 16);
+                    g = parseInt(hex.substr(2, 2), 16);
+                    b = parseInt(hex.substr(4, 2), 16);
+                  } else if (theme.button.startsWith('rgb')) {
+                    // RGB format
+                    const matches = theme.button.match(/\d+/g);
                     if (matches && matches.length >= 3) {
-                      pillR = parseInt(matches[0]);
-                      pillG = parseInt(matches[1]);
-                      pillB = parseInt(matches[2]);
+                      r = parseInt(matches[0]);
+                      g = parseInt(matches[1]);
+                      b = parseInt(matches[2]);
+                    } else {
+                      return; // Can't parse, don't change color
+                    }
+                  } else {
+                    return; // Unknown format, don't change color
+                  }
+                  
+                  const darkerR = Math.max(0, r - 20);
+                  const darkerG = Math.max(0, g - 20);
+                  const darkerB = Math.max(0, b - 20);
+                  e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+                  
+                  // Darken the Add pill when button is hovered
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    let pillR: number, pillG: number, pillB: number;
+                    if (theme.buttonActive.startsWith('#')) {
+                      const pillHex = theme.buttonActive.replace('#', '');
+                      pillR = parseInt(pillHex.substr(0, 2), 16);
+                      pillG = parseInt(pillHex.substr(2, 2), 16);
+                      pillB = parseInt(pillHex.substr(4, 2), 16);
+                    } else if (theme.buttonActive.startsWith('rgb')) {
+                      const matches = theme.buttonActive.match(/\d+/g);
+                      if (matches && matches.length >= 3) {
+                        pillR = parseInt(matches[0]);
+                        pillG = parseInt(matches[1]);
+                        pillB = parseInt(matches[2]);
+                      } else {
+                        return;
+                      }
                     } else {
                       return;
                     }
-                  } else {
-                    return;
+                    const darkerPillR = Math.max(0, pillR - 10);
+                    const darkerPillG = Math.max(0, pillG - 10);
+                    const darkerPillB = Math.max(0, pillB - 10);
+                    pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
                   }
-                  const darkerPillR = Math.max(0, pillR - 10);
-                  const darkerPillG = Math.max(0, pillG - 10);
-                  const darkerPillB = Math.max(0, pillB - 10);
-                  pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
+                } else {
+                  // Apply gradient to span on button hover
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                  }
                 }
               }}
               onMouseLeave={(e) => {
                 setHoveredOption(null);
-                e.currentTarget.style.backgroundColor = theme.button;
-                
-                // Reset the Add pill color
-                const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                if (pill) {
-                  pill.style.backgroundColor = theme.buttonActive;
+                if (darkMode) {
+                  e.currentTarget.style.backgroundColor = theme.button;
+                  
+                  // Reset the Add pill color
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundColor = theme.buttonActive;
+                  }
+                } else {
+                  // Reset span gradient
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundImage = 'none';
+                    pill.style.backgroundColor = 'white';
+                  }
                 }
               }}
               onClick={() => {
@@ -1145,11 +1200,13 @@ const FloatingActionButtons = () => {
               }}
             >
               Relationship
-              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
+              <span 
+                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{ 
-                  backgroundColor: theme.buttonActive, 
+                  backgroundColor: darkMode ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
-                }}>
+                }}
+              >
                 Add
               </span>
             </button>

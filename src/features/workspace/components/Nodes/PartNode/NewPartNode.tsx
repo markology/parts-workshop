@@ -242,7 +242,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                   }}
                   className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm"
                   style={{
-                    backgroundColor: darkMode ? "#924949" : "white",
+                    backgroundColor: darkMode ? "#924949" : 'white',
                     color: darkMode ? "#e7b8b8" : "#475569",
                     border: "none",
                     ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
@@ -252,11 +252,16 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                     if (darkMode) {
                       e.currentTarget.style.backgroundColor = "#7a3a3a";
                     } else {
-                      e.currentTarget.style.backgroundColor = "#f1f5f9";
+                      e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = darkMode ? "#924949" : "white";
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = "#924949";
+                    } else {
+                      e.currentTarget.style.backgroundImage = 'none';
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
                   }}
                   title="Open journal"
                 >
@@ -277,7 +282,7 @@ const NewPartNode = ({ data, partId }: { data: PartNodeData; partId: string }) =
                         className="inline-flex items-center rounded-xl border px-3 py-[6px] text-xs font-medium leading-none whitespace-nowrap shadow-sm"
                         style={{
                           backgroundColor: chipBackground,
-                          borderColor: chipBorder,
+                          // borderColor: chipBorder,
                           color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
                         }}
                       >

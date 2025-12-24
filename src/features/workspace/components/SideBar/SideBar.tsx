@@ -78,12 +78,14 @@ const SideBar = () => {
             id="create-part-button"
             onClick={() => setShowPartModal(true)}
             className={`flex-1 font-medium rounded shadow-md transition p-none flex justify-center items-center ${
-              darkMode ? "text-white" : "bg-white text-black"
+              darkMode ? "text-white" : "text-black"
             }`}
             style={darkMode ? {
               backgroundColor: theme.button,
               boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px",
-            } : {}}
+            } : {
+              backgroundColor: 'white'
+            }}
             onMouseEnter={(e) => {
               if (darkMode) {
                 // Darken the button on hover by reducing RGB values
@@ -97,11 +99,16 @@ const SideBar = () => {
                   const darkerB = Math.max(0, b - 20);
                   e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
                 }
+              } else {
+                e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
               }
             }}
             onMouseLeave={(e) => {
               if (darkMode) {
                 e.currentTarget.style.backgroundColor = theme.button;
+              } else {
+                e.currentTarget.style.backgroundImage = 'none';
+                e.currentTarget.style.backgroundColor = 'white';
               }
             }}
           >

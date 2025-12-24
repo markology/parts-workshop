@@ -195,7 +195,7 @@ export default function StudioAssistant({
       <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
         <div>
           <p
-            style={{ fontWeight: 300, fontSize: '12px', letterSpacing: '0.2em', textTransform: 'uppercase' }}
+            style={{ fontWeight: 500, fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase' }}
           >
             <span
               style={{
