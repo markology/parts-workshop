@@ -850,6 +850,14 @@ const PartDetailPanel = () => {
           {/* Table of Contents - Left Column */}
           {windowWidth >= 800 && (
           <div className="w-52 flex-shrink-0 flex flex-col border-r overflow-visible" style={navContainerStyle}>
+            {/* Part Name Header */}
+            <div className="px-5 pt-5 pb-3 border-b bg-white" style={{ borderColor: theme.border }}>
+              <h2 className={`text-sm font-semibold truncate ${
+                darkMode ? "text-slate-200" : "text-slate-900"
+              }`}>
+                {tempName || (data.name as string) || (data.label as string) || "Untitled"}
+              </h2>
+            </div>
             <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2 overflow-x-visible">
               <button
                 onClick={() => scrollToSection(infoRef, 'info')}
@@ -1660,7 +1668,7 @@ const PartDetailPanel = () => {
                     {((data.needs as string[]) || []).map((need: string, index: number) => (
                       <div
                         key={index}
-                        className="group flex items-center justify-between rounded-lg px-3 py-2"
+                        className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
                         style={{
                           ...listItemStyle,
                           backgroundColor: 'white',
@@ -1730,7 +1738,7 @@ const PartDetailPanel = () => {
                     {((data.fears as string[]) || []).map((fear: string, index: number) => (
                       <div
                         key={index}
-                        className="group flex items-center justify-between rounded-lg px-3 py-2"
+                        className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
                         style={{
                           ...listItemStyle,
                           backgroundColor: 'white',
@@ -1984,11 +1992,11 @@ const PartDetailPanel = () => {
                               <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
                                 isTextThread
                                   ? darkMode
-                                    ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
-                                    : "bg-purple-50 text-purple-700 border border-purple-200"
+                                    ? "bg-purple-900/40 text-purple-200"
+                                    : "bg-purple-50 text-purple-700"
                                   : darkMode
-                                    ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
-                                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                                    ? "bg-blue-900/40 text-blue-200"
+                                    : "bg-blue-50 text-blue-700"
                               }`}>
                                 {isTextThread ? (
                                   <>
@@ -2111,9 +2119,16 @@ const PartDetailPanel = () => {
                         </div>
                         
                         {/* Content Preview */}
-                        <div className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
-                          darkMode ? "text-slate-300" : "text-slate-700"
-                        }`}>
+                        <div 
+                          className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
+                            darkMode ? "text-slate-300" : "text-slate-700"
+                          }`}
+                          style={{
+                            border: `2px solid ${isTextThread ? '#faf5ff' : '#eff6ff'}`,
+                            padding: '10px',
+                            borderRadius: '10px',
+                          }}
+                        >
                           {contentPreview}
                         </div>
                       </div>
@@ -2252,6 +2267,23 @@ const PartDetailPanel = () => {
                                         }}
                                       >
                                         {part?.data?.label || part?.data?.name || "Unknown Part"}
+                                        {part?.id === selectedPartId && (
+                                          <span 
+                                            className="ml-2 inline-block font-medium"
+                                            style={{
+                                              color: isInteraction 
+                                                ? (darkMode ? "#dbeafe" : NodeTextColors.interaction)
+                                                : (darkMode ? "#e9d5ff" : NodeTextColors.tension),
+                                              fontSize: '11px',
+                                              fontWeight: '500',
+                                              background: isInteraction ? '#dbeafe' : '#e8dff7',
+                                              borderRadius: '10px',
+                                              padding: '1px 5px',
+                                            }}
+                                          >
+                                            current
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                     {statement && (
@@ -2834,11 +2866,11 @@ const PartDetailPanel = () => {
                               <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
                                 isTextThread
                                   ? darkMode
-                                    ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
-                                    : "bg-purple-50 text-purple-700 border border-purple-200"
+                                    ? "bg-purple-900/40 text-purple-200"
+                                    : "bg-purple-50 text-purple-700"
                                   : darkMode
-                                    ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
-                                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                                    ? "bg-blue-900/40 text-blue-200"
+                                    : "bg-blue-50 text-blue-700"
                               }`}>
                                 {isTextThread ? (
                                   <>
@@ -2963,9 +2995,16 @@ const PartDetailPanel = () => {
                         </div>
                         
                         {/* Content Preview */}
-                        <div className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
-                          darkMode ? "text-slate-300" : "text-slate-700"
-                        }`}>
+                        <div 
+                          className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
+                            darkMode ? "text-slate-300" : "text-slate-700"
+                          }`}
+                          style={{
+                            border: `2px solid ${isTextThread ? '#faf5ff' : '#eff6ff'}`,
+                            padding: '10px',
+                            borderRadius: '10px',
+                          }}
+                        >
                           {contentPreview}
                         </div>
                       </div>
