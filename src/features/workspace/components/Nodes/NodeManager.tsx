@@ -2,7 +2,7 @@ import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { TensionNodeData, ImpressionNodeData, NodeType, PartNodeData, RelationshipSelectionNodeData } from "@/features/workspace/types/Nodes";
 
 import ImpressionNode from "./ImpressionNode";
-import NewPartNode from "./PartNode/NewPartNode";
+import PartNode from "./PartNode/PartNode";
 import TensionNode from "./RelationshipNode/TensionNode";
 import RelationshipNode from "./RelationshipNode/RelationshipNode";
 import RelationshipSelectionNode from "./RelationshipNode/RelationshipSelectionNode";
@@ -17,7 +17,7 @@ const NodeComponent = ({
   id: string;
 }) => {
   if ("type" in data) {
-    if (data.type === "partData") return <NewPartNode partId={id} data={data} />;
+    if (data.type === "partData") return <PartNode partId={id} data={data} />;
 
     if (data.type === "tensionData") {
       // Check if this is an interaction node based on relationshipType

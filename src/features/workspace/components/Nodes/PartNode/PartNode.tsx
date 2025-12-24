@@ -1,41 +1,58 @@
-// import PartNeeds from "./PartNeeds";
+"use client";
+
+import React, { useMemo, memo } from "react";
+import Image from "next/image";
+import { Handle, Position } from "@xyflow/react";
+import {
+  BookOpen,
+  SquareUserRound,
+  Trash2,
+  User,
+  Heart,
+  Brain,
+  Eye,
+  Shield,
+  Sparkles,
+} from "lucide-react";
 import RightClickMenu from "@/components/RightClickMenu";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
+import { ImpressionTextType } from "@/features/workspace/types/Impressions";
+import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
+import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
-import detachImpressionFromPart from "@/features/workspace/state/updaters/detachImpressionFromPart";
-import { ImpressionTextType } from "@/features/workspace/types/Impressions";
-import { ImpressionNode, PartNodeData } from "@/features/workspace/types/Nodes";
-import { Handle, Position } from "@xyflow/react";
-import { Pencil, PencilIcon, SquareUserRound, Trash2, Palette } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PartNodeData } from "@/features/workspace/types/Nodes";
+import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import { useThemeContext } from "@/state/context/ThemeContext";
-import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
-import PartImpressionList from "./PartImpressionList/PartImpressionList";
-import Part3DMappingModal from "../../Part3DMapping/Part3DMappingModal";
-
-let index = 0;
 const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [title, setTitle] = useState(data.label);
-  const [show3DMapping, setShow3DMapping] = useState(false);
   const {
     deleteEdges,
     deleteNode,
     removePartFromAllTensions,
-    updatePartName,
-    updateNode,
+    nodes,
+    edges,
   } = useFlowNodesContext();
   const { setJournalTarget } = useJournalStore();
 
-  const isEditing = useUIStore((s) => s.isEditing);
-  const setIsEditing = useUIStore((s) => s.setIsEditing);
-  const inputRef = useRef<HTMLInputElement>(null);
   const { darkMode } = useThemeContext();
+  const theme = useTheme();
   const palette = workspaceDarkPalette;
+
+  const toRgba = (hex: string, opacity: number) => {
+    const sanitized = hex.replace("#", "");
+    const bigint = parseInt(sanitized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  const selectedPartId = useUIStore((s) => s.selectedPartId);
+  const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -50,189 +67,263 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
               deleteEdges(partId);
             },
           },
-          {
-            icon: <PencilIcon size={16} />,
-            onClick: () =>
-              setJournalTarget({
-                type: "node",
-                nodeId: partId,
-                nodeType: "part",
-                title: data.label,
-              }),
-          },
         ],
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [detachImpressionFromPart, partId]
+        [deleteNode, removePartFromAllTensions, deleteEdges, partId]
       ),
     });
 
-  const handleSave = useCallback(() => {
-    if (title === data.label || title === "") {
-      setIsEditing(false);
-      setIsEditingTitle(false);
-      if (title === "") setTitle(data.label);
-      return;
-    }
+  // Get relationships
+  const relationships = useMemo(() => {
+    const connectedEdges = edges.filter(
+      (edge) => edge.source === partId || edge.target === partId
+    );
 
-    updatePartName(partId, title);
-
-    setIsEditing(false);
-    setIsEditingTitle(false);
-  }, [title, data, updatePartName, partId, setIsEditing]);
-
-  const handleSave3DMapping = useCallback((imageData: string, paintPoints: any[]) => {
-    // Update the part node with the 3D mapping data
-    updateNode<PartNodeData>(partId, {
-      data: {
-        ...data,
-        image: imageData,
-        // Store paint points as a custom property for potential future use
-        scratchpad: data.scratchpad ? 
-          `${data.scratchpad}\n\n3D Mapping Data: ${JSON.stringify(paintPoints)}` : 
-          `3D Mapping Data: ${JSON.stringify(paintPoints)}`
-      }
+    return connectedEdges.map((edge) => {
+      const connectedNodeId = edge.source === partId ? edge.target : edge.source;
+      const connectedNode = nodes.find((node) => node.id === connectedNodeId);
+      
+      return {
+        id: edge.id,
+        nodeId: connectedNodeId,
+        nodeType: connectedNode?.type || "unknown",
+        nodeLabel: connectedNode?.data?.label || "Unknown",
+        relationshipType: edge.data?.relationshipType || "tension",
+      };
     });
-  }, [updateNode, partId, data]);
+  }, [edges, nodes, partId]);
 
-  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSave();
+  // Get all observations for display, sorted by recency
+  const allObservations = useMemo(() => {
+    const observations = ImpressionList.flatMap((impressionType) => {
+      const impressions = (data[ImpressionTextType[impressionType]] as ImpressionNode[]) || [];
+      return impressions.map((imp) => ({
+        ...imp,
+        impressionType,
+        addedAt: imp.data?.addedAt || imp.data?.createdAt || imp.data?.timestamp,
+      }));
+    });
+
+    return observations.sort((a, b) => {
+      const dateA = typeof a.addedAt === "string" ? new Date(a.addedAt).getTime() : Number(a.addedAt || 0);
+      const dateB = typeof b.addedAt === "string" ? new Date(b.addedAt).getTime() : Number(b.addedAt || 0);
+      return dateB - dateA;
+    });
+  }, [data]);
+
+  const getPartTypePill = (partType: string | undefined) => {
+    if (!partType) {
+      return (
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${
+          darkMode
+            ? "text-slate-300"
+            : "text-slate-500"
+        }`}>
+          <User className="w-3.5 h-3.5" />
+          No type set
+        </span>
+      );
     }
+
+    const mapping: Record<string, { icon: React.ReactNode; className: string }> = {
+      manager: {
+        icon: <Brain className="w-3.5 h-3.5" />,
+        className: darkMode
+          ? "bg-sky-500/15 text-sky-100"
+          : "bg-sky-100 text-sky-600",
+      },
+      firefighter: {
+        icon: <Shield className="w-3.5 h-3.5" />,
+        className: darkMode
+          ? "bg-rose-500/15 text-rose-100"
+          : "bg-rose-100 text-rose-600",
+      },
+      exile: {
+        icon: <Heart className="w-3.5 h-3.5" />,
+        className: darkMode
+          ? "bg-purple-500/15 text-purple-100"
+          : "bg-purple-100 text-purple-600",
+      },
+    };
+
+    const pill = mapping[partType] || {
+      icon: <User className="w-3.5 h-3.5" />,
+      className: darkMode
+        ? "bg-slate-800/60 text-slate-200"
+        : "bg-slate-100 text-slate-600",
+    };
+
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${pill.className}`}
+      >
+        {pill.icon}
+        {partType}
+      </span>
+    );
   };
 
-  // Detect clicks outside the input
-  useEffect(() => {
-    if (!isEditing) handleSave();
-  }, [handleSave, isEditing]);
+  const observationPreview = allObservations.slice(0, 8);
+
+  const isSelected = selectedPartId === partId;
+  const cardBase = darkMode
+    ? "border text-slate-100 shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
+    : "bg-white/90 border border-slate-200/70 text-slate-900 shadow-[0_26px_60px_rgba(15,23,42,0.14)]";
+  
+  const cardStyle = darkMode
+    ? {
+        background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
+        borderColor: "rgba(255,255,255,0.06)",
+      }
+    : undefined;
+
 
   return (
     <>
       <div
         onContextMenu={handleContextMenu}
         ref={nodeRef}
-        className={`node part-node border rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl z-[-999] p-10 w-80 flex flex-col w-[1000px] h-auto text-left ${
-          darkMode
-            ? "border-transparent text-slate-100 shadow-[0_35px_90px_rgba(0,0,0,0.65)]"
-            : "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200/50 hover:border-blue-300 hover:from-blue-100 hover:via-indigo-100 hover:to-purple-100 text-slate-900"
-        }`}
-        style={
-          darkMode
-            ? {
-                background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
-                borderColor: "rgba(255,255,255,0.05)",
-              }
-            : undefined
-        }
+        className="node part-node relative"
+        style={{ width: 420 }}
       >
-        {/* Title */}
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            {isEditingTitle ? (
-              <input
-                className={`part-name font-semibold mb-2 text-4xl pb-4 flex gap-[20px] ${
-                  darkMode ? "text-slate-100 bg-transparent" : "text-gray-800"
-                }`}
-                ref={inputRef}
-                onKeyDown={handleEnter}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                autoFocus
-              />
-            ) : (
-              <h3
-                onClick={() => {
-                  setIsEditingTitle(true);
-                  setIsEditing(true);
-                }} // TODO
-                className={`part-name font-semibold mb-2 text-4xl pb-4 flex gap-[20px] ${
-                  darkMode ? "text-slate-100" : "text-theme"
-                }`}
-              >
-                {data.label}
-                <button>
-                  <Pencil
-                    className={darkMode ? "text-slate-300 cursor-default" : "text-[#3d4f6a] cursor-default"}
-                    strokeWidth={3}
-                    size={20}
-                  />
-                </button>
-              </h3>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {/* 3D Mapping Button */}
-            <button
-              onClick={() => setShow3DMapping(true)}
-              className={`p-2 rounded-lg transition-colors ${
-                darkMode
-                  ? "bg-purple-900/40 hover:bg-purple-900/60"
-                  : "bg-purple-100 hover:bg-purple-200"
-              }`}
-              title="3D Body Mapping"
-            >
-              <Palette className={`w-5 h-5 ${darkMode ? "text-purple-300" : "text-purple-600"}`} />
-            </button>
-            <SquareUserRound
-              className={darkMode ? "text-slate-400" : "text-[#a7c0dd]"}
-              strokeWidth={2}
-              size={40}
-            />
-          </div>
-        </div>
         <div
-          className={`flex flex-row gap-4 flex-grow space-evenly flex gap-2 flex-col min-h-[300px] ${
-            darkMode ? "text-slate-200/90" : "text-gray-700"
+          className={`relative overflow-hidden rounded-[24px] transition-all duration-300 cursor-pointer ${cardBase} ${
+            isSelected
+              ? "ring-2 ring-sky-400 border-sky-300"
+              : ""
           }`}
+          style={cardStyle}
+          onClick={() => setSelectedPartId(partId)}
         >
-          {ImpressionList.map((impression) => (
-            <PartImpressionList
-              key={`PartImpressionList ${index++}`}
-              data={(data[ImpressionTextType[impression]] as ImpressionNode[]) || []}
-              type={impression}
-              partId={partId}
-            />
-          ))}
+          <div className="relative p-6 lg:p-7 space-y-6">
+            <div className="flex flex-wrap items-start gap-6">
+              <div className="flex-1 space-y-4">
+                <div className="space-y-2">
+                  <h2 className="text-2xl lg:text-[28px] font-semibold leading-tight">
+                    {data.name || data.label || "Untitled"}
+                  </h2>
+                  <div>{getPartTypePill(data.customPartType || (data.partType as string | undefined))}</div>
+                </div>
+                <div className="min-h-[48px]">
+                  {data.scratchpad ? (
+                    <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-300 line-clamp-3">
+                      {data.scratchpad}
+                    </p>
+                  ) : (
+                    <p className="text-sm leading-relaxed text-slate-400 dark:text-slate-500 italic">
+                      No description added yet.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="relative h-[110px] w-[110px] sm:h-[120px] sm:w-[120px] rounded-2xl overflow-hidden">
+                {data.image ? (
+                  <Image src={data.image} alt="Part" fill className="object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-200">
+                    <SquareUserRound size={40} className="text-gray-400 dark:text-gray-500" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pl-3 pr-2">
+                <p className={`text-xs uppercase tracking-[0.28em] ${darkMode ? "text-white" : "text-slate-400"}`}>Recent impressions</p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setJournalTarget({
+                      type: "node",
+                      nodeId: partId,
+                      nodeType: "part",
+                      title: data.name || data.label,
+                    });
+                  }}
+                  className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm"
+                  style={{
+                    backgroundColor: darkMode ? "#924949" : 'white',
+                    color: darkMode ? "#e7b8b8" : "#475569",
+                    border: "none",
+                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                  }}
+                  onMouseEnter={(e) => {
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = "#7a3a3a";
+                    } else {
+                      e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = "#924949";
+                    } else {
+                      e.currentTarget.style.backgroundImage = 'none';
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
+                  }}
+                  title="Open journal"
+                >
+                  <BookOpen size={16} />
+                </button>
+              </div>
+
+              <div className="relative min-h-[90px] p-3 flex flex-wrap gap-2 items-start content-start overflow-hidden">
+                {observationPreview.length > 0 ? (
+                  observationPreview.map((obs, index) => {
+                    const accent = NodeBackgroundColors[obs.impressionType];
+                    const accentText = NodeTextColors[obs.impressionType] || accent;
+                    const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
+                    const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
+                    return (
+                      <span
+                        key={`${obs.impressionType}-${index}`}
+                        className="inline-flex items-center rounded-xl px-3 py-[6px] text-xs font-medium leading-none whitespace-nowrap shadow-sm"
+                        style={{
+                          backgroundColor: chipBackground,
+                          color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+                        }}
+                      >
+                        {obs.data?.label || obs.id}
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    No observations yet
+                  </span>
+                )}
+                {allObservations.length > observationPreview.length && (
+                  <span 
+                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap"
+                    style={{
+                      backgroundColor: darkMode ? "#383838" : "rgba(226, 232, 240, 0.8)",
+                      color: darkMode ? "rgba(255, 255, 255, 0.8)" : "#475569",
+                    }}
+                  >
+                    +{allObservations.length - observationPreview.length} more
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-        {/* <PartNeeds needs={data.needs} partId={partId} /> */}
-        {/* Handles for edges */}
-        <Handle
-          className="part-handle"
-          type="source"
-          position={Position.Top}
-          id="top"
-        />
-        <Handle
-          className="part-handle"
-          type="source"
-          position={Position.Bottom}
-          id="bottom"
-        />
-        <Handle
-          className="part-handle"
-          type="source"
-          position={Position.Left}
-          id="left"
-        />
-        <Handle
-          className="part-handle"
-          type="source"
-          position={Position.Right}
-          id="right"
-        />
       </div>
+
+        {/* Handles for edges */}
+        <Handle className="part-handle" type="source" position={Position.Top} id="top" />
+        <Handle className="part-handle" type="source" position={Position.Bottom} id="bottom" />
+        <Handle className="part-handle" type="source" position={Position.Left} id="left" />
+        <Handle className="part-handle" type="source" position={Position.Right} id="right" />
       {showContextMenu && <RightClickMenu items={menuItems} />}
-      
-      {/* 3D Mapping Modal */}
-      <Part3DMappingModal
-        isOpen={show3DMapping}
-        onClose={() => setShow3DMapping(false)}
-        partName={data.label}
-        partId={partId}
-        currentImage={data.image}
-        onSave={handleSave3DMapping}
-      />
     </>
   );
 };
 
-export default PartNode;
+// Memoize to prevent re-renders when other nodes move
+// Only re-renders when this node's data actually changes or related edges change
+export default memo(PartNode, (prevProps, nextProps) => {
+  // Only re-render if the node's data actually changed
+  return prevProps.data === nextProps.data && prevProps.partId === nextProps.partId;
+});

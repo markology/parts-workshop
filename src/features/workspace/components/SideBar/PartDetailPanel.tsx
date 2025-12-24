@@ -209,6 +209,8 @@ const PartDetailPanel = () => {
   const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
   const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [hoveredPartType, setHoveredPartType] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -237,6 +239,16 @@ const PartDetailPanel = () => {
       setActiveSection("info"); // Reset to top section when part changes
     }
   }, [selectedPartId, partNode]); // Only sync when selectedPartId or partNode changes
+
+  // Cleanup hover timeout when editing mode changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+        hoverTimeoutRef.current = null;
+      }
+    };
+  }, [isEditingInfo]);
 
   // Separate effect to handle auto-edit flag when part is selected
   useEffect(() => {
@@ -627,11 +639,39 @@ const PartDetailPanel = () => {
   };
 
   const saveAllInfo = () => {
-    saveName();
-    savePartType();
-    saveAge();
-    saveGender();
-    saveScratchpad();
+    if (!selectedPartId || !partNode) return;
+    
+    const trimmedName = tempName.trim();
+    const trimmedScratchpad = tempScratchpad.trim();
+    const trimmedAge = tempAge === "" || tempAge === "Unknown" ? "" : tempAge.trim();
+    const trimmedGender = tempGender.trim();
+    
+    // Use requestAnimationFrame to batch the update and avoid ResizeObserver issues
+    requestAnimationFrame(() => {
+      updateNode(selectedPartId, {
+        data: {
+          ...partNode.data,
+          name: trimmedName || "",
+          label: trimmedName || "",
+          scratchpad: trimmedScratchpad,
+          customPartType: tempPartType || undefined,
+          partType: tempPartType || undefined,
+          age: trimmedAge || undefined,
+          gender: trimmedGender || undefined,
+        },
+      });
+      
+      // Update part name separately if it changed
+      if (trimmedName !== ((partNode.data.name as string) || (partNode.data.label as string) || "")) {
+        updatePartName(selectedPartId, trimmedName);
+      }
+      
+      setTempName(trimmedName);
+      setTempScratchpad(trimmedScratchpad);
+      setTempAge(trimmedAge || "Unknown");
+      setTempGender(trimmedGender);
+    });
+    
     setIsEditingInfo(false);
   };
 
@@ -924,27 +964,29 @@ const PartDetailPanel = () => {
           <div ref={scrollableContentRef} className={`${windowWidth < 800 ? 'w-full' : 'flex-1'} p-8 overflow-y-auto space-y-12 bg-transparent`}>
 
           {/* Info Section */}
-          <div ref={infoRef} className="relative space-y-4">
+          <div ref={infoRef} className="relative space-y-4 mb-12">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex items-center justify-between">
-                  <h3 className={`text-[18px] font-semibold flex items-center gap-2 ${
+                  <h3 className={`text-[16px] font-semibold flex items-center gap-2 ${
                     darkMode ? "text-slate-400" : "text-slate-500"
                   }`}>
                     <User className="w-[17px] h-[17px]" style={{ color: '#8f85e7' }} />
                     Info
                   </h3>
-                  <button
-                    onClick={() => {
-                      setIsEditingInfo((prev) => !prev);
-                    }}
-                    className={`p-2 rounded-full transition-colors ${
-                      darkMode ? "text-slate-300 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"
-                    }`}
-                    aria-label={isEditingInfo ? "Stop editing" : "Edit info"}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
+                  {!isEditingInfo && (
+                    <button
+                      onClick={() => {
+                        setIsEditingInfo((prev) => !prev);
+                      }}
+                      className={`p-2 rounded-full transition-colors ${
+                        darkMode ? "text-slate-300 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"
+                      }`}
+                      aria-label="Edit info"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -952,16 +994,26 @@ const PartDetailPanel = () => {
                   <button
                     type="button"
                     onClick={saveAllInfo}
-                    className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition text-white shadow-sm"
+                    className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold transition-all duration-200 text-black shadow-sm hover:scale-105 hover:shadow-md"
                     style={{
-                      backgroundColor: "#396bbc",
+                      backgroundImage: darkMode ? undefined : 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))',
+                      backgroundColor: darkMode ? "#396bbc" : undefined,
                       boxShadow: "0 6px 16px rgba(57, 107, 188, 0.28)",
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2f5aa3";
+                      if (darkMode) {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2f5aa3";
+                      } else {
+                        // Slightly darker gradient on hover
+                        e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(224, 242, 254), rgb(221, 214, 254), rgb(254, 226, 226))';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#396bbc";
+                      if (darkMode) {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#396bbc";
+                      } else {
+                        e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                      }
                     }}
                   >
                     <Check className="w-4 h-4" />
@@ -972,10 +1024,10 @@ const PartDetailPanel = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditingInfo(false)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition border ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold transition ${
                       darkMode
-                        ? "border-slate-600 text-slate-200 hover:bg-slate-800/60"
-                        : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                        ? "text-slate-200 hover:bg-slate-800/60"
+                        : "text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     Cancel
@@ -1007,9 +1059,9 @@ const PartDetailPanel = () => {
             
             {/* Main Info Grid */}
             <div 
-              className="p-6 space-y-6 transition-all duration-200 rounded-3xl border shadow-sm"
+              className="p-6 space-y-6 transition-all duration-200 rounded-3xl shadow-sm"
               style={{
-                ...sectionCardStyle,
+                ...subCardStyle,
                 ...(isEditingInfo ? {
                   boxShadow: `0 0 0 2px ${toRgba("#3b82f6", 0.3)}, ${darkMode ? "0 16px 40px rgba(8,15,30,0.32)" : "0 18px 45px rgba(15,23,42,0.10)"}`,
                   backgroundColor: darkMode ? `${theme.surface}66` : `${toRgba("#3b82f6", 0.1)}4d`,
@@ -1082,11 +1134,16 @@ const PartDetailPanel = () => {
                                 setTempName(trimmed);
                               }
                             }}
-                             className={`w-full bg-transparent text-3xl font-semibold tracking-tight pb-1 focus:outline-none ${
+                             className={`w-full bg-white shadow-inner font-semibold tracking-tight focus:outline-none ${
                                darkMode
                                  ? "text-slate-50 placeholder:text-slate-500"
                                  : "text-slate-900 placeholder:text-slate-400"
                              }`}
+                            style={{
+                              fontSize: '16px',
+                              height: '52px',
+                              padding: '10px',
+                            }}
                             placeholder="Name this part"
                             autoFocus
                           />
@@ -1106,7 +1163,17 @@ const PartDetailPanel = () => {
                           Part Type
                         </label>
                         {isEditingInfo ? (
-                          <div className="flex flex-wrap gap-2 pl-0.5">
+                          <div 
+                            className="flex flex-wrap gap-2 pl-0.5"
+                            onMouseLeave={() => {
+                              // Clear timeout and immediately reset hover state when leaving container
+                              if (hoverTimeoutRef.current) {
+                                clearTimeout(hoverTimeoutRef.current);
+                                hoverTimeoutRef.current = null;
+                              }
+                              setHoveredPartType(null);
+                            }}
+                          >
                             {["manager", "firefighter", "exile"].map((type) => {
                               const currentType =
                                 tempPartType ||
@@ -1116,31 +1183,40 @@ const PartDetailPanel = () => {
                               const isSelected = currentType === type;
 
                               const pillBase =
-                                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize transition cursor-pointer";
-                              const typeStyles: Record<string, { selected: string; idle: string }> = {
+                                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize cursor-pointer";
+                              const typeStyles: Record<string, { selected: string; idle: string; hover: string }> = {
                                 manager: {
                                   selected: darkMode
                                     ? "bg-sky-500/15 text-sky-100"
                                     : "bg-sky-100 text-sky-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
-                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                    ? "bg-slate-800/40 text-slate-400"
+                                    : "bg-slate-100/60 text-slate-400",
+                                  hover: darkMode
+                                    ? "bg-sky-500/15 text-sky-100"
+                                    : "bg-sky-100 text-sky-600",
                                 },
                                 firefighter: {
                                   selected: darkMode
                                     ? "bg-rose-500/15 text-rose-100"
                                     : "bg-rose-100 text-rose-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
-                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                    ? "bg-slate-800/40 text-slate-400"
+                                    : "bg-slate-100/60 text-slate-400",
+                                  hover: darkMode
+                                    ? "bg-rose-500/15 text-rose-100"
+                                    : "bg-rose-100 text-rose-600",
                                 },
                                 exile: {
                                   selected: darkMode
                                     ? "bg-purple-500/15 text-purple-100"
                                     : "bg-purple-100 text-purple-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
-                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                    ? "bg-slate-800/40 text-slate-400"
+                                    : "bg-slate-100/60 text-slate-400",
+                                  hover: darkMode
+                                    ? "bg-purple-500/15 text-purple-100"
+                                    : "bg-purple-100 text-purple-600",
                                 },
                               };
 
@@ -1151,6 +1227,14 @@ const PartDetailPanel = () => {
                               };
 
                               const styles = typeStyles[type] || typeStyles.manager;
+                              const isHovered = hoveredPartType === type;
+                              
+                              // Determine which style to use: hovered > selected > idle
+                              const getPillStyle = () => {
+                                if (isHovered) return styles.hover;
+                                if (isSelected && !hoveredPartType) return styles.selected;
+                                return styles.idle;
+                              };
 
                               return (
                                 <button
@@ -1165,7 +1249,22 @@ const PartDetailPanel = () => {
                                       },
                                     });
                                   }}
-                                  className={`${pillBase} ${isSelected ? styles.selected : styles.idle}`}
+                                  className={`${pillBase} ${getPillStyle()}`}
+                                  onMouseEnter={() => {
+                                    // Clear any existing timeout when entering a pill
+                                    if (hoverTimeoutRef.current) {
+                                      clearTimeout(hoverTimeoutRef.current);
+                                      hoverTimeoutRef.current = null;
+                                    }
+                                    setHoveredPartType(type);
+                                  }}
+                                  onMouseLeave={() => {
+                                    // Set a timeout to clear hover state after 1 second
+                                    hoverTimeoutRef.current = setTimeout(() => {
+                                      setHoveredPartType(null);
+                                      hoverTimeoutRef.current = null;
+                                    }, 1000);
+                                  }}
                                 >
                                   {typeIcons[type]}
                                   {type}
@@ -1238,74 +1337,87 @@ const PartDetailPanel = () => {
                           </div>
                         )}
                       </div>
+                    </div>
+                  </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                            Age
-                          </label>
-                          {isEditingInfo ? (
-                            <input
-                              type="number"
-                              value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
-                              onChange={(e) => setTempAge(e.target.value || "Unknown")}
-                              onBlur={() => {
-                                if (tempAge !== ((data.age as string) || "Unknown")) {
-                                  updateNode(selectedPartId, {
-                                    data: {
-                                      ...partNode.data,
-                                      age: tempAge === "Unknown" ? "" : tempAge,
-                                    },
-                                  });
-                                }
-                              }}
-                               className={`block w-auto max-w-[100px] bg-transparent text-base focus:outline-none ${
-                                 darkMode
-                                   ? "text-slate-100 placeholder:text-slate-500"
-                                   : "text-slate-900 placeholder:text-slate-400"
-                               }`}
-                               placeholder="Unknown"
-                               min="0"
-                             />
-                          ) : (
-                            <div className={`text-base ${tempAge && tempAge !== "Unknown" ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
-                              {tempAge && tempAge !== "Unknown" ? tempAge : "—"}
-                            </div>
-                          )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                        Age
+                      </label>
+                      {isEditingInfo ? (
+                        <input
+                          type="number"
+                          value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
+                          onChange={(e) => setTempAge(e.target.value || "Unknown")}
+                          onBlur={() => {
+                            if (tempAge !== ((data.age as string) || "Unknown")) {
+                              updateNode(selectedPartId, {
+                                data: {
+                                  ...partNode.data,
+                                  age: tempAge === "Unknown" ? "" : tempAge,
+                                },
+                              });
+                            }
+                          }}
+                           className={`block w-auto max-w-[100px] bg-white shadow-inner focus:outline-none font-medium ${
+                             darkMode
+                               ? "text-slate-100 placeholder:text-slate-500"
+                               : "text-slate-900 placeholder:text-slate-400"
+                           }`}
+                           style={{
+                             fontSize: '13px',
+                             height: '40px',
+                             padding: '10px',
+                             fontWeight: '500',
+                           }}
+                           placeholder="Unknown"
+                           min="0"
+                         />
+                      ) : (
+                        <div className={`text-base ${tempAge && tempAge !== "Unknown" ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
+                          {tempAge && tempAge !== "Unknown" ? tempAge : "—"}
                         </div>
-                        <div className="space-y-2">
-                          <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                            Gender
-                          </label>
-                          {isEditingInfo ? (
-                            <input
-                              type="text"
-                              value={tempGender}
-                              onChange={(e) => setTempGender(e.target.value)}
-                              onBlur={() => {
-                                if (tempGender !== ((data.gender as string) || "")) {
-                                  updateNode(selectedPartId, {
-                                    data: {
-                                      ...partNode.data,
-                                      gender: tempGender,
-                                    },
-                                  });
-                                }
-                              }}
-                               className={`w-auto max-w-[200px] bg-transparent text-base focus:outline-none ${
-                                 darkMode
-                                   ? "text-slate-100 placeholder:text-slate-500"
-                                   : "text-slate-900 placeholder:text-slate-400"
-                               }`}
-                               placeholder="Gender"
-                             />
-                          ) : (
-                            <div className={`text-base ${tempGender ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
-                              {tempGender || "—"}
-                            </div>
-                          )}
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                        Gender
+                      </label>
+                      {isEditingInfo ? (
+                        <input
+                          type="text"
+                          value={tempGender}
+                          onChange={(e) => setTempGender(e.target.value)}
+                          onBlur={() => {
+                            if (tempGender !== ((data.gender as string) || "")) {
+                              updateNode(selectedPartId, {
+                                data: {
+                                  ...partNode.data,
+                                  gender: tempGender,
+                                },
+                              });
+                            }
+                          }}
+                           className={`w-auto max-w-[200px] bg-white shadow-inner focus:outline-none font-medium ${
+                             darkMode
+                               ? "text-slate-100 placeholder:text-slate-500"
+                               : "text-slate-900 placeholder:text-slate-400"
+                           }`}
+                           style={{
+                             fontSize: '13px',
+                             height: '40px',
+                             padding: '10px',
+                             width: '169px',
+                             fontWeight: '500',
+                           }}
+                           placeholder="Gender"
+                         />
+                      ) : (
+                        <div className={`text-base ${tempGender ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
+                          {tempGender || "—"}
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
@@ -1328,11 +1440,15 @@ const PartDetailPanel = () => {
                             });
                           }
                         }}
-                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-slate-500/60 bg-transparent ${
+                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none leading-relaxed focus:outline-none bg-white shadow-inner font-medium ${
                           darkMode
                             ? "text-slate-100 placeholder:text-slate-500"
                             : "text-slate-800 placeholder:text-slate-400"
                         }`}
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: '500',
+                        }}
                         placeholder="Add a description..."
                       />
                     ) : (
@@ -1351,8 +1467,8 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Impressions Section */}
-          <div ref={impressionsRef} className="relative space-y-4">
-            <h3 className={`text-[18px] font-semibold flex items-center gap-2 ${
+          <div ref={impressionsRef} className="relative space-y-4 mb-12">
+            <h3 className={`text-[16px] font-semibold flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
               <Eye className="w-[17px] h-[17px]" style={{ color: NodeBackgroundColors["emotion"] }} />
@@ -1492,13 +1608,14 @@ const PartDetailPanel = () => {
 
           {/* Insights Section */}
           <div ref={insightsRef} className="relative space-y-4">
-            <h4 className={`text-[18px] font-semibold flex items-center gap-2 ${
+            <h4 className={`text-[16px] font-semibold flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
               <Brain className="w-[17px] h-[17px]" style={{ color: NodeBackgroundColors["thought"] }} />
               Insights
             </h4>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="mb-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Needs */}
               <div className="p-4 shadow-sm rounded-2xl" style={subCardStyle}>
                   <div className="flex items-center justify-between mb-3">
@@ -1639,30 +1756,68 @@ const PartDetailPanel = () => {
                   </div>
               </div>
             </div>
+            </div>
 
           {/* Journal History Section */}
-          <div ref={journalRef} className="relative space-y-4">
-            <h3 className={`text-[18px] font-semibold flex items-center gap-2 ${
+          <div ref={journalRef} className="relative space-y-4 mb-12">
+            <h3 className={`text-[16px] font-semibold flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
               <BookOpen className="w-[17px] h-[17px] text-amber-600" />
               Journal
             </h3>
 
-            <div className="shadow-sm rounded-2xl" style={subCardStyle}>
+            <div className="shadow-sm rounded-2xl" style={{
+              ...subCardStyle,
+              padding: '20px',
+            }}>
               {isLoadingJournal ? (
                 <div className="rounded-2xl border flex flex-col items-center justify-center gap-3 py-8" style={subCardStyle}>
                   <LoadingSpinner variant="sparkles" size="md" message="Loading journal entries..." />
                 </div>
               ) : journalEntries.length === 0 ? (
-                <div className="rounded-2xl text-center py-8 px-4" style={subCardStyle}> 
-                  <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
-                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
-                    No journal entries yet
-                  </h3>
-                  <p className={darkMode ? "text-slate-400" : "text-slate-500"}>
-                    Start writing about this part to see entries here.
-                  </p>
+                <div className="rounded-2xl py-8 px-4" style={subCardStyle}>
+                  <div className="text-center mb-4">
+                    <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
+                    <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
+                      No journal entries yet
+                    </h3>
+                    <p className={darkMode ? "text-slate-400" : "text-slate-500"}>
+                      Start writing about this part to see entries here.
+                    </p>
+                  </div>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => {
+                        if (selectedPartId && partNode) {
+                          setJournalTarget({
+                            type: "node",
+                            nodeId: selectedPartId,
+                            nodeType: "part",
+                            title: partNode.data?.label || "Part",
+                          });
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
+                      style={{
+                        border: "none",
+                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                        color: darkMode ? theme.textPrimary : "#475569",
+                        backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
+                        ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = darkMode ? "rgb(59, 63, 67)" : "#ffffff";
+                      }}
+                      title="Start a new journal entry"
+                    >
+                      <Plus size={14} />
+                      New Entry
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1802,7 +1957,10 @@ const PartDetailPanel = () => {
                     const charCount = entry.content?.length || 0;
 
                     return (
-                      <div key={entry.id} className="rounded-2xl border p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow" style={subCardStyle}>
+                      <div key={entry.id} className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow" style={{
+                        ...subCardStyle,
+                        backgroundColor: 'white',
+                      }}>
                         {/* Header with dates and actions */}
                         <div className="flex items-start justify-between mb-3 gap-4">
                           <div className="flex-1 space-y-1.5">
@@ -1968,8 +2126,8 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Relationships Section */}
-          <div ref={relationshipsRef} className="relative space-y-4">
-            <h3 className={`text-[18px] font-semibold flex items-center gap-2 ${
+          <div ref={relationshipsRef} className="relative space-y-4 mb-12">
+            <h3 className={`text-[16px] font-semibold flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
               <Users className="w-[17px] h-[17px] text-rose-600" />
@@ -2531,6 +2689,7 @@ const PartDetailPanel = () => {
             </div>
           </div>
         )}
+          </div>
 
         {/* Journal History Modal */}
         {showJournalHistoryModal && (
@@ -2648,7 +2807,10 @@ const PartDetailPanel = () => {
                     const charCount = entry.content?.length || 0;
 
                     return (
-                      <div key={entry.id} className="rounded-2xl border p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow" style={subCardStyle}>
+                      <div key={entry.id} className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow" style={{
+                        ...subCardStyle,
+                        backgroundColor: 'white',
+                      }}>
                         {/* Header with dates and actions */}
                         <div className="flex items-start justify-between mb-3 gap-4">
                           <div className="flex-1 space-y-1.5">
@@ -2816,7 +2978,6 @@ const PartDetailPanel = () => {
         )}
 
         </div>
-      </div>
       </div>
     </div>
   );
