@@ -1021,31 +1021,10 @@ const FloatingActionButtons = () => {
                   const darkerB = Math.max(0, b - 20);
                   e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
                   
-                  // Darken the Add pill when button is hovered
+                  // Set Add pill to impression sidebar background color on hover
                   const pill = e.currentTarget.querySelector('span') as HTMLElement;
                   if (pill) {
-                    let pillR: number, pillG: number, pillB: number;
-                    if (theme.buttonActive.startsWith('#')) {
-                      const pillHex = theme.buttonActive.replace('#', '');
-                      pillR = parseInt(pillHex.substr(0, 2), 16);
-                      pillG = parseInt(pillHex.substr(2, 2), 16);
-                      pillB = parseInt(pillHex.substr(4, 2), 16);
-                    } else if (theme.buttonActive.startsWith('rgb')) {
-                      const matches = theme.buttonActive.match(/\d+/g);
-                      if (matches && matches.length >= 3) {
-                        pillR = parseInt(matches[0]);
-                        pillG = parseInt(matches[1]);
-                        pillB = parseInt(matches[2]);
-                      } else {
-                        return;
-                      }
-                    } else {
-                      return;
-                    }
-                    const darkerPillR = Math.max(0, pillR - 10);
-                    const darkerPillG = Math.max(0, pillG - 10);
-                    const darkerPillB = Math.max(0, pillB - 10);
-                    pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
+                    pill.style.backgroundColor = theme.sidebar;
                   }
                 } else {
                   // Apply gradient to span on button hover
@@ -1140,31 +1119,10 @@ const FloatingActionButtons = () => {
                   const darkerB = Math.max(0, b - 20);
                   e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
                   
-                  // Darken the Add pill when button is hovered
+                  // Set Add pill to impression sidebar background color on hover
                   const pill = e.currentTarget.querySelector('span') as HTMLElement;
                   if (pill) {
-                    let pillR: number, pillG: number, pillB: number;
-                    if (theme.buttonActive.startsWith('#')) {
-                      const pillHex = theme.buttonActive.replace('#', '');
-                      pillR = parseInt(pillHex.substr(0, 2), 16);
-                      pillG = parseInt(pillHex.substr(2, 2), 16);
-                      pillB = parseInt(pillHex.substr(4, 2), 16);
-                    } else if (theme.buttonActive.startsWith('rgb')) {
-                      const matches = theme.buttonActive.match(/\d+/g);
-                      if (matches && matches.length >= 3) {
-                        pillR = parseInt(matches[0]);
-                        pillG = parseInt(matches[1]);
-                        pillB = parseInt(matches[2]);
-                      } else {
-                        return;
-                      }
-                    } else {
-                      return;
-                    }
-                    const darkerPillR = Math.max(0, pillR - 10);
-                    const darkerPillG = Math.max(0, pillG - 10);
-                    const darkerPillB = Math.max(0, pillB - 10);
-                    pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
+                    pill.style.backgroundColor = theme.sidebar;
                   }
                 } else {
                   // Apply gradient to span on button hover

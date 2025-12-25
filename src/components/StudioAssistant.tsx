@@ -165,13 +165,12 @@ export default function StudioAssistant({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)] ${className}`}
+      className={`relative w-full h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)] ${className}`}
       style={{
         ...containerStyle,
         background: darkMode 
-          ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
+          ? `linear-gradient(152deg, rgb(29, 29, 30), rgb(28, 31, 35))`
           : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
-        borderColor: theme.border 
       }}
     >
       {onClose && (

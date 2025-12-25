@@ -166,13 +166,12 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
 
   const isSelected = selectedPartId === partId;
   const cardBase = darkMode
-    ? "border text-slate-100 shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
-    : "bg-white/90 border border-slate-200/70 text-slate-900 shadow-[0_26px_60px_rgba(15,23,42,0.14)]";
+    ? "text-slate-100 shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
+    : "bg-white/90 text-slate-900 shadow-[0_26px_60px_rgba(15,23,42,0.14)]";
   
   const cardStyle = darkMode
     ? {
         background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
-        borderColor: "rgba(255,255,255,0.06)",
       }
     : undefined;
 
@@ -188,7 +187,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
         <div
           className={`relative overflow-hidden rounded-[24px] transition-all duration-300 cursor-pointer ${cardBase} ${
             isSelected
-              ? "ring-2 ring-sky-400 border-sky-300"
+              ? "ring-2 ring-sky-400"
               : ""
           }`}
           style={cardStyle}
