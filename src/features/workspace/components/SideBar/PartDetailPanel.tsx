@@ -104,7 +104,7 @@ const PartDetailPanel = () => {
 
   const handleClose = () => {
     // Detach close behavior from options/sidebar completely
-    setAddingImpressionType(null); // Close impression input if open
+    setShowImpressionModal(false); // Close impression input if open
     setAddingNeedsOrFears(null); // Close needs/fears input if open
     setNeedsFearsInput(""); // Clear input
     setSelectedPartId(undefined);
@@ -139,30 +139,10 @@ const PartDetailPanel = () => {
     const b = bigint & 255;
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
-  const [addingImpressionType, setAddingImpressionType] = useState<string | null>(null);
-  const setShowPartDetailImpressionInput = useUIStore((s) => s.setShowPartDetailImpressionInput);
-  const [currentImpressionType, setCurrentImpressionType] = useState<string>("emotion");
+  const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
+  const setImpressionModalTarget = useUIStore((s) => s.setImpressionModalTarget);
   const [addingNeedsOrFears, setAddingNeedsOrFears] = useState<'needs' | 'fears' | null>(null);
   const [needsFearsInput, setNeedsFearsInput] = useState<string>("");
-  const [canAddImpression, setCanAddImpression] = useState(false);
-  const impressionAddRef = useRef<{ add: () => void; isValid: boolean } | null>(null);
-  const accentHex =
-    NodeBackgroundColors[
-      currentImpressionType as keyof typeof NodeBackgroundColors
-    ] ?? "#6366f1";
-  const accentTextHex = darkMode
-    ? NodeBackgroundColors[
-        currentImpressionType as keyof typeof NodeBackgroundColors
-      ] ?? "#6366f1"
-    : NodeTextColors[
-        currentImpressionType as keyof typeof NodeTextColors
-      ] ?? "#312e81";
-  const accentSoftBg = toRgba(accentHex, darkMode ? 0.26 : 0.14);
-  const accentBorder = toRgba(accentHex, darkMode ? 0.55 : 0.28);
-  const accentGlow = toRgba(accentHex, darkMode ? 0.42 : 0.24);
-  const impressionTypeLabel = currentImpressionType
-    ? currentImpressionType.charAt(0).toUpperCase() + currentImpressionType.slice(1)
-    : "Impression";
   const [editingAge, setEditingAge] = useState(false);
   const [editingGender, setEditingGender] = useState(false);
   const [editingPartType, setEditingPartType] = useState(false);
@@ -378,23 +358,6 @@ const PartDetailPanel = () => {
   };
 
   // Handle Escape key to close impression modal
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && addingImpressionType) {
-        setAddingImpressionType(null);
-      }
-    };
-
-    if (addingImpressionType) {
-      document.addEventListener("keydown", handleEscape);
-      return () => document.removeEventListener("keydown", handleEscape);
-    }
-  }, [addingImpressionType]);
-
-  // Sync addingImpressionType with global state for sidebar visibility
-  useEffect(() => {
-    setShowPartDetailImpressionInput(!!addingImpressionType);
-  }, [addingImpressionType, setShowPartDetailImpressionInput]);
 
   const handleRemoveImpression = (impressionType: string, impressionId: string) => {
     if (!selectedPartId || !partNode) return;
@@ -776,11 +739,6 @@ const PartDetailPanel = () => {
   };
 
   // When adding an impression, softly blur the background card
-  const backdropCardClasses = addingImpressionType
-    ? darkMode
-      ? "backdrop-blur-sm"
-      : "backdrop-blur-sm bg-white"
-    : "";
 
   const handleDeletePart = () => {
     if (!selectedPartId) return;
@@ -793,7 +751,6 @@ const PartDetailPanel = () => {
   };
 
   const handleBackdropClick = () => {
-    if (addingImpressionType) return;
     setSelectedPartId(undefined);
   };
 
@@ -816,7 +773,7 @@ const PartDetailPanel = () => {
       onClick={handleBackdropClick}
     >
       <div 
-        className={`relative w-full max-w-5xl ${backdropCardClasses}`}
+        className="relative w-full max-w-5xl"
         style={{
           transform: shiftAmount > 0 ? `translateX(${shiftAmount}px)` : 'none'
         }}
@@ -843,11 +800,8 @@ const PartDetailPanel = () => {
           style={containerStyle}
           onClick={(e) => e.stopPropagation()}
         >
-        {addingImpressionType && (
-          <div className="absolute inset-0 backdrop-blur-sm bg-white/10 dark:bg-slate-950/10 z-10 pointer-events-none" />
-        )}
         {/* Content with TOC */}
-        <div className={`flex flex-row flex-1 overflow-hidden min-h-0 ${addingImpressionType ? 'pointer-events-none' : ''}`}>
+        <div className="flex flex-row flex-1 overflow-hidden min-h-0">
           {/* Table of Contents - Left Column */}
           {windowWidth >= 800 && (
           <div className="w-52 flex-shrink-0 flex flex-col border-r overflow-visible" style={navContainerStyle}>
@@ -1586,8 +1540,10 @@ const PartDetailPanel = () => {
                           </div>
                           <button
                             onClick={() => {
-                              setAddingImpressionType(impression);
-                              setCurrentImpressionType(impression);
+                              if (selectedPartId) {
+                                setImpressionModalTarget(selectedPartId, impression);
+                                setShowImpressionModal(true);
+                              }
                             }}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
                               darkMode
@@ -2397,197 +2353,6 @@ const PartDetailPanel = () => {
         </div>
       </div>
         
-        {/* Impression Input Modal */}
-        {addingImpressionType && (
-          <div
-            className="fixed inset-0 z-[55] flex items-center justify-center px-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setAddingImpressionType(null);
-              }
-            }}
-          >
-            <div
-              className="absolute inset-0 pointer-events-none backdrop-blur-sm"
-              style={{
-                backgroundColor: darkMode ? `${theme.modal}f2` : `${theme.modal}99`,
-              }}
-            />
-            <div
-              className="relative w-full max-w-3xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div
-                className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
-                style={{
-                  backgroundColor: accentSoftBg,
-                  borderColor: theme.border,
-                }}
-              >
-                <div className="relative px-8 pt-8 pb-6 space-y-7">
-                  <div className="flex items-start justify-between gap-6">
-                    <div className="space-y-3">
-                      <span
-                        className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
-                        style={{
-                          backgroundColor: accentSoftBg,
-                          color: accentTextHex,
-                        }}
-                      >
-                        <Sparkles size={14} />
-                        {impressionTypeLabel}
-                      </span>
-                      <div>
-                        <h3
-                          className={`text-2xl font-semibold ${
-                            darkMode ? "text-white" : "text-slate-900"
-                          }`}
-                        >
-                          Add a new {impressionTypeLabel.toLowerCase()} to {(data.name as string) || (data.label as string) || "this part"}
-                        </h3>
-                        <p
-                          className={`mt-2 text-sm leading-relaxed ${
-                            darkMode ? "text-slate-300" : "text-slate-600"
-                          }`}
-                        >
-                          Give {(data.name as string) || (data.label as string) || "this part"} a voice by noting what you're sensing right now.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setAddingImpressionType(null)}
-                      className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
-                      style={{
-                        backgroundColor: accentSoftBg,
-                        color: accentTextHex,
-                      }}
-                      aria-label="Close"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-
-                  <div
-                    className="rounded-2xl border px-6 py-6 shadow-inner"
-                    style={{
-                      backgroundColor: 'rgb(255 255 255 / 86%)',
-                      borderColor: theme.border,
-                    }}
-                  >
-                    <ImpressionInput
-                      onAddImpression={(impressionData) => {
-                        // Add impression directly to the part using the actual selected type
-                        const impressionTypeKey =
-                          ImpressionTextType[
-                            impressionData.type as keyof typeof ImpressionTextType
-                          ];
-                        const currentImpressions =
-                          (data[impressionTypeKey] as ImpressionNode[]) || [];
-                        const newImpression: ImpressionNode = {
-                          id: impressionData.id,
-                          type: impressionData.type,
-                          data: {
-                            label: impressionData.label,
-                            addedAt: Date.now(),
-                          },
-                          position: { x: 0, y: 0 },
-                        };
-
-                        updateNode(selectedPartId!, {
-                          data: {
-                            ...data,
-                            [impressionTypeKey]: [...currentImpressions, newImpression],
-                          },
-                        });
-
-                        // Don't close the modal, just clear the input
-                        // setAddingImpressionType(null);
-                      }}
-                      onTypeChange={(type) => setCurrentImpressionType(type)}
-                      defaultType={addingImpressionType as ImpressionType}
-                      onInputChange={(value, isValid) => setCanAddImpression(isValid)}
-                      addButtonRef={impressionAddRef}
-                    />
-                  </div>
-
-                  <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center gap-1.5">
-                        <kbd 
-                          className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
-                          style={{
-                            backgroundColor: 'white',
-                          }}
-                        >
-                          {isMac() ? '⇧ Tab' : 'Shift+Tab'}
-                        </kbd>
-                        <span className="text-xs">Previous Type</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <kbd 
-                          className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
-                          style={{
-                            backgroundColor: 'white',
-                          }}
-                        >
-                          Tab
-                        </kbd>
-                        <span className="text-xs">Next Type</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <kbd 
-                          className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
-                          style={{
-                            backgroundColor: 'white',
-                          }}
-                        >
-                          {isMac() ? '⏎' : 'Enter'}
-                        </kbd>
-                        <span className="text-xs">Submit</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (impressionAddRef.current) {
-                          impressionAddRef.current.add();
-                        }
-                      }}
-                      disabled={!canAddImpression}
-                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                      style={{
-                        backgroundColor: canAddImpression 
-                          ? (darkMode ? NodeBackgroundColors[currentImpressionType as keyof typeof NodeBackgroundColors] : 'white')
-                          : darkMode 
-                            ? "rgb(42, 46, 50)"
-                            : "#e2e8f0",
-                        color: canAddImpression 
-                          ? (darkMode ? "#ffffff" : "#475569")
-                          : darkMode
-                            ? theme.textMuted
-                            : "#94a3b8",
-                        border: "none",
-                        ...(darkMode ? { borderTop: canAddImpression ? undefined : "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: canAddImpression ? undefined : "1px solid #00000012" }),
-                        ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
-                      }}
-                      onMouseEnter={(e) => {
-                        if (canAddImpression) {
-                          e.currentTarget.style.opacity = "0.9";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (canAddImpression) {
-                          e.currentTarget.style.opacity = "1";
-                        }
-                      }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Needs/Fears Input Modal */}
         {addingNeedsOrFears && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useLoadMap } from "../state/hooks/useLoadMap";
 import Canvas from "./Canvas";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
@@ -21,7 +21,9 @@ import { User, Settings, Moon, Mail, LogOut, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import { NodeBackgroundColors, NodeTextColors } from "../constants/Nodes";
 import { ImpressionTextType, ImpressionType } from "../types/Impressions";
+import { ImpressionNode } from "../types/Nodes";
 import { Sparkles, X } from "lucide-react";
+import { useFlowNodesContext } from "../state/FlowNodesContext";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import type { ThemeName } from "@/features/workspace/constants/theme";
@@ -53,6 +55,305 @@ const normalizeSidebarImpressions = (sidebarImpressions: any) => {
   return createEmptyImpressionGroups();
 };
 
+// Inner component to handle impression input modal with access to FlowNodesContext
+const ImpressionInputModalContent = ({
+  sidebarImpressionType,
+  setSidebarImpressionType,
+  canAddImpression,
+  setCanAddImpression,
+  impressionAddRef,
+  impressionModalTargetPartId,
+  impressionModalType,
+}: {
+  sidebarImpressionType: ImpressionType;
+  setSidebarImpressionType: (type: ImpressionType) => void;
+  canAddImpression: boolean;
+  setCanAddImpression: (can: boolean) => void;
+  impressionAddRef: React.RefObject<{ add: () => void; isValid: boolean } | null>;
+  impressionModalTargetPartId?: string;
+  impressionModalType?: string;
+}) => {
+  const { darkMode } = useThemeContext();
+  const theme = useTheme();
+  const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
+  const { updateNode } = useFlowNodesContext();
+  const nodes = useWorkingStore((s) => s.nodes);
+  
+  // Get part data if target part ID is set
+  const partNode = impressionModalTargetPartId 
+    ? nodes.find(node => node.id === impressionModalTargetPartId) 
+    : null;
+  const partName = partNode?.data?.name || partNode?.data?.label || "this part";
+  
+  // Determine if this is for a part or sidebar
+  const isForPart = !!impressionModalTargetPartId;
+  
+  // Set initial type from modal type if provided
+  const [currentType, setCurrentType] = useState<ImpressionType>(
+    (impressionModalType as ImpressionType) || sidebarImpressionType
+  );
+  
+  useEffect(() => {
+    if (impressionModalType) {
+      setCurrentType(impressionModalType as ImpressionType);
+    }
+  }, [impressionModalType]);
+
+  // Reset canAddImpression when modal opens
+  useEffect(() => {
+    setCanAddImpression(false);
+  }, [impressionModalTargetPartId, impressionModalType, setCanAddImpression]);
+  
+  const toRgba = (hex: string, opacity: number) => {
+    if (!hex) return `rgba(99, 102, 241, ${opacity})`;
+    const sanitized = hex.replace("#", "");
+    const bigint = parseInt(sanitized, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  const accentHex =
+    NodeBackgroundColors[currentType as keyof typeof NodeBackgroundColors] ?? "#6366f1";
+  const accentTextHex = darkMode
+    ? NodeBackgroundColors[currentType as keyof typeof NodeBackgroundColors] ?? "#6366f1"
+    : NodeTextColors[currentType as keyof typeof NodeTextColors] ?? "#312e81";
+  const accentSoftBg = toRgba(accentHex, darkMode ? 0.26 : 0.14);
+  const impressionTypeLabel =
+    ImpressionTextType[currentType] ?? "Impression";
+
+  const handleAddImpression = (impressionData: { id: string; label: string; type: ImpressionType }) => {
+    if (isForPart && impressionModalTargetPartId && partNode) {
+      // Add to part
+      const impressionTypeKey =
+        ImpressionTextType[
+          impressionData.type as keyof typeof ImpressionTextType
+        ];
+      const currentImpressions =
+        (partNode.data[impressionTypeKey] as ImpressionNode[]) || [];
+      const newImpression: ImpressionNode = {
+        id: impressionData.id,
+        type: impressionData.type,
+        data: {
+          label: impressionData.label,
+          addedAt: Date.now(),
+        },
+        position: { x: 0, y: 0 },
+      };
+
+      updateNode(impressionModalTargetPartId, {
+        data: {
+          ...partNode.data,
+          [impressionTypeKey]: [...currentImpressions, newImpression],
+        },
+      });
+    } else {
+      // Add to sidebar (default behavior)
+      useWorkingStore.getState().addImpression(impressionData);
+    }
+  };
+
+  const handleTypeChange = (type: ImpressionType) => {
+    setCurrentType(type);
+    if (!isForPart) {
+      setSidebarImpressionType(type);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center px-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          setShowImpressionModal(false);
+        }
+      }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none backdrop-blur-sm"
+        style={{
+          background: darkMode 
+            ? `${theme.modal}f2` 
+            : 'radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)',
+        }}
+      />
+      <div
+        className="relative w-full max-w-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
+          style={{
+            backgroundColor: accentSoftBg,
+            borderColor: theme.border,
+          }}
+        >
+          <div className="relative px-8 pt-8 pb-6 space-y-7">
+            <div className="flex items-start justify-between gap-6">
+              <div className="space-y-3">
+                <span
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
+                  style={{
+                    backgroundColor: accentSoftBg,
+                    color: accentTextHex,
+                  }}
+                >
+                  <Sparkles size={14} />
+                  {impressionTypeLabel}
+                </span>
+                <div>
+                  <h3
+                    className="text-2xl font-semibold"
+                    style={{ color: theme.textPrimary }}
+                  >
+                    {isForPart
+                      ? (
+                          <>
+                            Add a new {impressionTypeLabel.toLowerCase()} to{' '}
+                            <span
+                              style={{
+                                background: '#fefefe80',
+                                padding: '2px 10px',
+                                borderRadius: '10px',
+                              }}
+                            >
+                              {partName}
+                            </span>{' '}
+                            part
+                          </>
+                        )
+                      : `Add a new ${impressionTypeLabel.toLowerCase()} to the impressions library`}
+                  </h3>
+                  <p
+                    className="mt-2 text-sm leading-relaxed"
+                    style={{ color: theme.textSecondary }}
+                  >
+                    {isForPart
+                      ? `Give ${partName} a voice by noting what you're sensing right now.`
+                      : `Give the impressions library a voice by noting what you're sensing right now.`}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowImpressionModal(false)}
+                className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
+                style={{
+                  backgroundColor: accentSoftBg,
+                  color: accentTextHex,
+                }}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div
+              className="rounded-2xl border px-6 py-6 shadow-inner"
+              style={{
+                backgroundColor: darkMode ? 'rgb(48 49 50)' : 'rgb(255 255 255 / 86%)',
+                borderColor: theme.border,
+              }}
+            >
+              <ImpressionInput
+                onAddImpression={isForPart ? handleAddImpression : undefined}
+                onTypeChange={handleTypeChange}
+                defaultType={currentType}
+                onInputChange={(value, isValid) => setCanAddImpression(isValid)}
+                addButtonRef={impressionAddRef}
+              />
+            </div>
+
+            <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <kbd 
+                    className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
+                      darkMode ? 'text-slate-200' : 'text-slate-700'
+                    }`}
+                    style={{
+                      backgroundColor: darkMode ? 'rgb(59 63 67)' : 'white',
+                    }}
+                  >
+                    {isMac() ? '⇧ Tab' : 'Shift+Tab'}
+                  </kbd>
+                  <span className="text-xs">Previous Type</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <kbd 
+                    className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
+                      darkMode ? 'text-slate-200' : 'text-slate-700'
+                    }`}
+                    style={{
+                      backgroundColor: darkMode ? 'rgb(59 63 67)' : 'white',
+                    }}
+                  >
+                    Tab
+                  </kbd>
+                  <span className="text-xs">Next Type</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <kbd 
+                    className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
+                      darkMode ? 'text-slate-200' : 'text-slate-700'
+                    }`}
+                    style={{
+                      backgroundColor: darkMode ? 'rgb(59 63 67)' : 'white',
+                    }}
+                  >
+                    {isMac() ? '⏎' : 'Enter'}
+                  </kbd>
+                  <span className="text-xs">Submit</span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (impressionAddRef.current) {
+                    impressionAddRef.current.add();
+                  }
+                }}
+                disabled={!canAddImpression}
+                className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                style={{
+                  backgroundColor: darkMode
+                    ? accentSoftBg
+                    : canAddImpression
+                      ? NodeBackgroundColors[currentType]
+                      : "#e2e8f0",
+                  color: darkMode
+                    ? "#ffffff"
+                    : canAddImpression
+                      ? "#ffffff"
+                      : "#94a3b8",
+                  border: darkMode
+                    ? "none"
+                    : canAddImpression
+                      ? `1px solid ${NodeBackgroundColors[currentType]}`
+                      : "none",
+                  ...(darkMode ? { borderTop: canAddImpression ? undefined : "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: canAddImpression ? undefined : "1px solid #00000012" }),
+                  ...(darkMode && !canAddImpression ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                }}
+                onMouseEnter={(e) => {
+                  if (canAddImpression) {
+                    e.currentTarget.style.opacity = "0.9";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (canAddImpression) {
+                    e.currentTarget.style.opacity = "1";
+                  }
+                }}
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function CanvasClient({
   mapId,
   showOnboarding,
@@ -73,6 +374,8 @@ export default function CanvasClient({
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const showImpressionModal = useUIStore((s) => s.showImpressionModal);
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
+  const impressionModalTargetPartId = useUIStore((s) => s.impressionModalTargetPartId);
+  const impressionModalType = useUIStore((s) => s.impressionModalType);
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const { darkMode, themeName, setThemeName } = useThemeContext();
@@ -381,170 +684,16 @@ export default function CanvasClient({
       
       {/* Sidebar Impression Input Modal */}
       {showImpressionModal && (
-        <div
-          className="fixed inset-0 z-[80] flex items-center justify-center px-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowImpressionModal(false);
-            }
-          }}
-        >
-          <div
-            className="absolute inset-0 pointer-events-none backdrop-blur-sm"
-            style={{
-              background: darkMode 
-                ? `${theme.modal}f2` 
-                : 'radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)',
-            }}
-          />
-          <div
-            className="relative w-full max-w-3xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
-              style={{
-                backgroundColor: accentSoftBg,
-                borderColor: theme.border,
-              }}
-            >
-              <div className="relative px-8 pt-8 pb-6 space-y-7">
-                <div className="flex items-start justify-between gap-6">
-                  <div className="space-y-3">
-                    <span
-                      className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
-                      style={{
-                        backgroundColor: accentSoftBg,
-                        color: accentTextHex,
-                      }}
-                    >
-                      <Sparkles size={14} />
-                      {impressionTypeLabel}
-                    </span>
-                    <div>
-                      <h3
-                        className="text-2xl font-semibold"
-                        style={{ color: theme.textPrimary }}
-                      >
-                        Add a new {impressionTypeLabel.toLowerCase()} to the impressions library
-                      </h3>
-                      <p
-                        className="mt-2 text-sm leading-relaxed"
-                        style={{ color: theme.textSecondary }}
-                      >
-                        Give the impressions library a voice by noting what you're sensing right now.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowImpressionModal(false)}
-                    className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
-                    style={{
-                      backgroundColor: accentSoftBg,
-                      color: accentTextHex,
-                    }}
-                    aria-label="Close"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-
-                <div
-                  className="rounded-2xl border px-6 py-6 shadow-inner"
-                  style={{
-                    backgroundColor: 'rgb(255 255 255 / 86%)',
-                    borderColor: theme.border,
-                  }}
-                >
-                  <ImpressionInput
-                    onTypeChange={(type) => setSidebarImpressionType(type)}
-                    defaultType={sidebarImpressionType}
-                    onInputChange={(value, isValid) => setCanAddImpression(isValid)}
-                    addButtonRef={impressionAddRef}
-                  />
-                </div>
-
-                <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-1.5">
-                      <kbd 
-                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
-                        style={{
-                          backgroundColor: 'white',
-                        }}
-                      >
-                        {isMac() ? '⇧ Tab' : 'Shift+Tab'}
-                      </kbd>
-                      <span className="text-xs">Previous Type</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <kbd 
-                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
-                        style={{
-                          backgroundColor: 'white',
-                        }}
-                      >
-                        Tab
-                      </kbd>
-                      <span className="text-xs">Next Type</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <kbd 
-                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
-                        style={{
-                          backgroundColor: 'white',
-                        }}
-                      >
-                        {isMac() ? '⏎' : 'Enter'}
-                      </kbd>
-                      <span className="text-xs">Submit</span>
-                    </div>
-                  </div>
-                    <button
-                      onClick={() => {
-                        if (impressionAddRef.current) {
-                          impressionAddRef.current.add();
-                        }
-                      }}
-                      disabled={!canAddImpression}
-                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                    style={{
-                      backgroundColor: canAddImpression 
-                        ? NodeBackgroundColors[sidebarImpressionType]
-                        : darkMode 
-                          ? theme.elevated 
-                          : "#e2e8f0",
-                      color: canAddImpression 
-                        ? "#ffffff"
-                        : darkMode
-                          ? theme.textMuted
-                          : "#94a3b8",
-                      border: canAddImpression 
-                        ? `1px solid ${NodeBackgroundColors[sidebarImpressionType]}`
-                        : "none",
-                      ...(darkMode ? { borderTop: canAddImpression ? undefined : "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: canAddImpression ? undefined : "1px solid #00000012" }),
-                      ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
-                    }}
-                    onMouseEnter={(e) => {
-                      if (canAddImpression) {
-                        e.currentTarget.style.opacity = "0.9";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (canAddImpression) {
-                        e.currentTarget.style.opacity = "1";
-                      }
-                    }}
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ImpressionInputModalContent
+          sidebarImpressionType={sidebarImpressionType}
+          setSidebarImpressionType={setSidebarImpressionType}
+          canAddImpression={canAddImpression}
+          setCanAddImpression={setCanAddImpression}
+          impressionAddRef={impressionAddRef}
+          impressionModalTargetPartId={impressionModalTargetPartId}
+          impressionModalType={impressionModalType}
+        />
       )}
-      
       <Modal
         show={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}

@@ -11,6 +11,8 @@ type UIState = {
   showPartDetailImpressionInput: boolean;
   shouldCollapseSidebar: boolean;
   shouldAutoEditPart: boolean;
+  impressionModalTargetPartId?: string; // If set, modal adds to this part instead of sidebar
+  impressionModalType?: string; // The impression type to default to
   setIsEditing: (show: boolean) => void;
   setContextMenuParentNodeId: (id: string) => void;
   setSelectedPartId: (id: string | undefined) => void;
@@ -20,6 +22,7 @@ type UIState = {
   setShowPartDetailImpressionInput: (show: boolean) => void;
   setShouldCollapseSidebar: (should: boolean) => void;
   setShouldAutoEditPart: (should: boolean) => void;
+  setImpressionModalTarget: (partId: string | undefined, type?: string) => void;
 };
 
 export const useUIStore = create<UIState>((set) => ({
@@ -32,13 +35,22 @@ export const useUIStore = create<UIState>((set) => ({
   selectedPartId: undefined,
   shouldCollapseSidebar: false,
   shouldAutoEditPart: false,
+  impressionModalTargetPartId: undefined,
+  impressionModalType: undefined,
   setShowPartModal: (show) => set({ showPartModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
-  setShowImpressionModal: (show) => set({ showImpressionModal: show }),
+  setShowImpressionModal: (show) => {
+    set({ showImpressionModal: show });
+    // Clear target when closing modal
+    if (!show) {
+      set({ impressionModalTargetPartId: undefined, impressionModalType: undefined });
+    }
+  },
   setShowPartDetailImpressionInput: (show) => set({ showPartDetailImpressionInput: show }),
   setContextMenuParentNodeId: (id) => set({ contextMenuParentNodeId: id }),
   setIsEditing: (show) => set({ isEditing: show }),
   setSelectedPartId: (id) => set({ selectedPartId: id }),
   setShouldCollapseSidebar: (should) => set({ shouldCollapseSidebar: should }),
   setShouldAutoEditPart: (should) => set({ shouldAutoEditPart: should }),
+  setImpressionModalTarget: (partId, type) => set({ impressionModalTargetPartId: partId, impressionModalType: type }),
 }));
