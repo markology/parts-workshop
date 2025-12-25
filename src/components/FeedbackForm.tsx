@@ -248,7 +248,7 @@ export default function FeedbackPopup() {
         <div 
           className="rounded-2xl p-4 mb-1.5" 
           style={{
-            background: 'white',
+            background: darkMode ? 'rgb(33, 37, 41)' : 'white',
             border: 'none',
             boxShadow: 'none',
             marginBottom: '6px',

@@ -223,21 +223,19 @@ export default function StudioAssistant({
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words border"
+                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words"
                 style={
                   message.role === "user"
                     ? {
                         background:
                           "linear-gradient(135deg, #a855f7, #6366f1)",
                         color: "#ffffff",
-                        borderColor: "rgba(129, 140, 248, 0.6)",
                       }
                     : {
                         background: darkMode
                           ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
                           : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
                         color: theme.textPrimary,
-                        borderColor: theme.border,
                       }
                 }
               >

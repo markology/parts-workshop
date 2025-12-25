@@ -1013,7 +1013,26 @@ const PartDetailPanel = () => {
           )}
 
           {/* Main Content - Right Column */}
-          <div ref={scrollableContentRef} className={`${windowWidth < 800 ? 'w-full' : 'flex-1'} p-8 overflow-y-auto space-y-12 bg-transparent`}>
+          <div 
+            className={`${windowWidth < 800 ? 'w-full' : 'flex-1'} pl-8`}
+            style={{
+              overflow: 'hidden',
+              maxHeight: '85vh',
+              paddingRight: '15px',
+              paddingTop: '20px',
+              paddingBottom: '20px',
+            }}
+          >
+            <div 
+              ref={scrollableContentRef} 
+              className={`overflow-y-scroll space-y-12 bg-transparent`}
+              style={{
+                height: '100%',
+                paddingRight: '15px',
+                paddingTop: '12px',
+                paddingBottom: '22px',
+              }}
+            >
 
           {/* Info Section */}
           <div ref={infoRef} className="relative space-y-4 mb-12">
@@ -2178,10 +2197,10 @@ const PartDetailPanel = () => {
                             darkMode ? "text-slate-300" : "text-slate-700"
                           }`}
                           style={{
-                            border: darkMode ? 'none' : `2px solid ${isTextThread ? '#faf5ff' : '#eff6ff'}`,
+                            border: 'none',
                             padding: '10px',
                             borderRadius: '10px',
-                            ...(darkMode ? { background: '#272b2f' } : {}),
+                            ...(darkMode ? { background: '#272b2f' } : { background: '#f8fafc' }),
                           }}
                         >
                           {contentPreview}
@@ -3068,10 +3087,10 @@ const PartDetailPanel = () => {
                             darkMode ? "text-slate-300" : "text-slate-700"
                           }`}
                           style={{
-                            border: darkMode ? 'none' : `2px solid ${isTextThread ? '#faf5ff' : '#eff6ff'}`,
+                            border: 'none',
                             padding: '10px',
                             borderRadius: '10px',
-                            ...(darkMode ? { background: '#272b2f' } : {}),
+                            ...(darkMode ? { background: '#272b2f' } : { background: '#f8fafc' }),
                           }}
                         >
                           {contentPreview}
@@ -3085,7 +3104,8 @@ const PartDetailPanel = () => {
           </div>
         )}
 
-        </div>
+            </div>
+          </div>
       </div>
     </div>
   );
