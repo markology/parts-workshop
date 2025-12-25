@@ -2420,7 +2420,7 @@ const PartDetailPanel = () => {
               <div
                 className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
                 style={{
-                  backgroundColor: theme.elevated,
+                  backgroundColor: accentSoftBg,
                   borderColor: theme.border,
                 }}
               >
@@ -2456,15 +2456,10 @@ const PartDetailPanel = () => {
                     </div>
                     <button
                       onClick={() => setAddingImpressionType(null)}
-                      className={`h-10 w-10 flex items-center justify-center rounded-full border ${
-                        darkMode
-                          ? "border-slate-700 hover:bg-slate-800/70"
-                          : "border-slate-200 hover:bg-slate-100"
-                      }`}
-                      style={darkMode ? {
-                        color: "#cbd5e1",
-                      } : {
-                        color: "#000000",
+                      className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
+                      style={{
+                        backgroundColor: accentSoftBg,
+                        color: accentTextHex,
                       }}
                       aria-label="Close"
                     >
@@ -2475,7 +2470,7 @@ const PartDetailPanel = () => {
                   <div
                     className="rounded-2xl border px-6 py-6 shadow-inner"
                     style={{
-                      backgroundColor: theme.surface,
+                      backgroundColor: 'rgb(255 255 255 / 86%)',
                       borderColor: theme.border,
                     }}
                   >
@@ -2518,31 +2513,34 @@ const PartDetailPanel = () => {
                   <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                     <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex items-center gap-1.5">
-                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold border ${
-                          darkMode 
-                            ? "bg-slate-800 border-slate-700 text-slate-200"
-                            : "bg-white border-slate-200 text-slate-700"
-                        }`}>
+                        <kbd 
+                          className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
+                          style={{
+                            backgroundColor: 'white',
+                          }}
+                        >
                           {isMac() ? '⇧ Tab' : 'Shift+Tab'}
                         </kbd>
                         <span className="text-xs">Previous Type</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold border ${
-                          darkMode 
-                            ? "bg-slate-800 border-slate-700 text-slate-200"
-                            : "bg-white border-slate-200 text-slate-700"
-                        }`}>
+                        <kbd 
+                          className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
+                          style={{
+                            backgroundColor: 'white',
+                          }}
+                        >
                           Tab
                         </kbd>
                         <span className="text-xs">Next Type</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold border ${
-                          darkMode 
-                            ? "bg-slate-800 border-slate-700 text-slate-200"
-                            : "bg-white border-slate-200 text-slate-700"
-                        }`}>
+                        <kbd 
+                          className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
+                          style={{
+                            backgroundColor: 'white',
+                          }}
+                        >
                           {isMac() ? '⏎' : 'Enter'}
                         </kbd>
                         <span className="text-xs">Submit</span>
@@ -2783,9 +2781,9 @@ const PartDetailPanel = () => {
                   >
                     <div className="flex items-center gap-1.5">
                       <kbd 
-                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 border-none"
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
                         style={{
-                          background: 'linear-gradient(152deg, #f0f0f0, #e8e8e8)',
+                          backgroundColor: 'white',
                         }}
                       >
                         {isMac() ? '⏎' : 'Enter'}
@@ -2794,9 +2792,9 @@ const PartDetailPanel = () => {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <kbd 
-                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 border-none"
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
                         style={{
-                          background: 'linear-gradient(152deg, #f0f0f0, #e8e8e8)',
+                          backgroundColor: 'white',
                         }}
                       >
                         Esc

@@ -404,7 +404,7 @@ export default function CanvasClient({
             <div
               className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
               style={{
-                backgroundColor: darkMode ? theme.elevated : 'white',
+                backgroundColor: accentSoftBg,
                 borderColor: theme.border,
               }}
             >
@@ -438,16 +438,10 @@ export default function CanvasClient({
                   </div>
                   <button
                     onClick={() => setShowImpressionModal(false)}
-                    className="h-10 w-10 flex items-center justify-center rounded-full border transition-colors"
+                    className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
                     style={{
-                      borderColor: theme.border,
-                      color: theme.textSecondary,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
+                      backgroundColor: accentSoftBg,
+                      color: accentTextHex,
                     }}
                     aria-label="Close"
                   >
@@ -458,7 +452,7 @@ export default function CanvasClient({
                 <div
                   className="rounded-2xl border px-6 py-6 shadow-inner"
                   style={{
-                    backgroundColor: 'transparent',
+                    backgroundColor: 'rgb(255 255 255 / 86%)',
                     borderColor: theme.border,
                   }}
                 >
@@ -474,9 +468,9 @@ export default function CanvasClient({
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-1.5">
                       <kbd 
-                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 border-none"
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
                         style={{
-                          background: 'linear-gradient(152deg, #f0f0f0, #e8e8e8)',
+                          backgroundColor: 'white',
                         }}
                       >
                         {isMac() ? '⇧ Tab' : 'Shift+Tab'}
@@ -485,9 +479,9 @@ export default function CanvasClient({
                     </div>
                     <div className="flex items-center gap-1.5">
                       <kbd 
-                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 border-none"
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
                         style={{
-                          background: 'linear-gradient(152deg, #f0f0f0, #e8e8e8)',
+                          backgroundColor: 'white',
                         }}
                       >
                         Tab
@@ -496,9 +490,9 @@ export default function CanvasClient({
                     </div>
                     <div className="flex items-center gap-1.5">
                       <kbd 
-                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 border-none"
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
                         style={{
-                          background: 'linear-gradient(152deg, #f0f0f0, #e8e8e8)',
+                          backgroundColor: 'white',
                         }}
                       >
                         {isMac() ? '⏎' : 'Enter'}

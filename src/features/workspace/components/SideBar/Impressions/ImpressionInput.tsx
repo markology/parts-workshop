@@ -212,9 +212,7 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
                   ? `${NodeBackgroundColors[type]}20` 
                   : "transparent",
                 color: NodeBackgroundColors[type],
-                border: selectedType === type 
-                  ? `1.5px solid ${NodeBackgroundColors[type]}40` 
-                  : "1.5px solid transparent",
+                border: "1.5px solid transparent",
               }}
             >
               {ImpressionTextType[type]}
