@@ -19,6 +19,7 @@ import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
 import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
 import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
+import { getImpressionBaseColors, getImpressionPillFontColor } from "@/features/workspace/constants/ImpressionColors";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
@@ -271,17 +272,18 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
               <div className="relative min-h-[90px] p-3 flex flex-wrap gap-2 items-start content-start overflow-hidden">
                 {observationPreview.length > 0 ? (
                   observationPreview.map((obs, index) => {
-                    const accent = NodeBackgroundColors[obs.impressionType];
-                    const accentText = NodeTextColors[obs.impressionType] || accent;
-                    const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
-                    const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
+                    const baseColors = getImpressionBaseColors(darkMode)[obs.impressionType] || {
+                      background: NodeBackgroundColors[obs.impressionType] || "#9CA3AF",
+                      font: NodeTextColors[obs.impressionType] || "#374151",
+                    };
+                    const pillFontColor = getImpressionPillFontColor(obs.impressionType, darkMode);
                     return (
                       <span
                         key={`${obs.impressionType}-${index}`}
                         className="inline-flex items-center rounded-xl px-3 py-[6px] text-xs font-medium leading-none whitespace-nowrap shadow-sm"
                         style={{
-                          backgroundColor: chipBackground,
-                          color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+                          backgroundColor: baseColors.background,
+                          color: pillFontColor,
                         }}
                       >
                         {obs.data?.label || obs.id}
@@ -297,8 +299,8 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                   <span 
                     className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap"
                     style={{
-                      backgroundColor: darkMode ? "#383838" : "rgba(226, 232, 240, 0.8)",
-                      color: darkMode ? "rgba(255, 255, 255, 0.8)" : "#475569",
+                      backgroundColor: darkMode ? "#383838" : "#e2e8f0",
+                      color: darkMode ? "#ffffff" : "#475569",
                     }}
                   >
                     +{allObservations.length - observationPreview.length} more

@@ -3,6 +3,7 @@
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
+import { getImpressionInputModalColors, getImpressionPartDetailsHeaderColor } from "@/features/workspace/constants/ImpressionColors";
 import {
   ImpressionTextType,
   ImpressionType,
@@ -180,55 +181,66 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
 
   const { darkMode } = useThemeContext();
   const theme = useTheme();
+  const selectedModalColors = getImpressionInputModalColors(darkMode)[selectedType];
+  const inputPillFontColor = darkMode 
+    ? selectedModalColors.inputPillFont 
+    : getImpressionPartDetailsHeaderColor(selectedType, darkMode);
 
   return (
     <div ref={containerRef} className="relative">
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          {ImpressionList.map((type) => (
-            <button
-              key={type}
-              type="button"
-              tabIndex={-1}
-              onMouseDown={(e) => {
-                e.preventDefault(); // Prevent focus on mousedown
-              }}
-              onClick={() => {
-                setSelectedType(type);
-                setIsSelectorOpen(false);
-                // Refocus the hidden input so Tab key handling works
-                if (textAreaRef.current) {
-                  textAreaRef.current.focus();
-                }
-              }}
-              className={`px-3.5 py-2 rounded-full font-semibold ${
-                selectedType === type
-                  ? "shadow-sm"
-                  : "opacity-60"
-              }`}
-              style={{
-                fontSize: '14px',
-                backgroundColor: selectedType === type 
-                  ? `${NodeBackgroundColors[type]}20` 
-                  : "transparent",
-                color: NodeBackgroundColors[type],
-                border: "1.5px solid transparent",
-              }}
-            >
-              {ImpressionTextType[type]}
-            </button>
-          ))}
+          {ImpressionList.map((type) => {
+            const typeModalColors = getImpressionInputModalColors(darkMode)[type];
+            return (
+              <button
+                key={type}
+                type="button"
+                tabIndex={-1}
+                onMouseDown={(e) => {
+                  e.preventDefault(); // Prevent focus on mousedown
+                }}
+                onClick={() => {
+                  setSelectedType(type);
+                  setIsSelectorOpen(false);
+                  // Refocus the hidden input so Tab key handling works
+                  if (textAreaRef.current) {
+                    textAreaRef.current.focus();
+                  }
+                }}
+                className={`px-3.5 py-2 rounded-full font-semibold ${
+                  selectedType === type
+                    ? "shadow-sm"
+                    : "opacity-60"
+                }`}
+                style={{
+                  fontSize: '14px',
+                  backgroundColor: selectedType === type 
+                    ? (darkMode 
+                        ? typeModalColors.modalBg.replace('rgb(', 'rgba(').replace(')', ', 0.7)')
+                        : typeModalColors.topLeftPillBg)
+                    : "transparent",
+                  color: darkMode 
+                    ? typeModalColors.pillFont 
+                    : getImpressionPartDetailsHeaderColor(type, darkMode),
+                  border: "1.5px solid transparent",
+                }}
+              >
+                {ImpressionTextType[type]}
+              </button>
+            );
+          })}
         </div>
         <div className="relative">
           <textarea
             ref={textAreaRef as React.RefObject<HTMLTextAreaElement>}
             className="min-h-[120px] px-4 pb-4 pt-[30px] rounded-xl border-0 w-full focus:outline-none resize-none"
             style={{
-              color: inputValue ? NodeBackgroundColors[selectedType] : theme.textPrimary,
+              color: inputValue ? inputPillFontColor : theme.textPrimary,
               backgroundColor: "transparent",
               fontSize: '16px',
               lineHeight: '1.6',
-              caretColor: NodeBackgroundColors[selectedType],
+              caretColor: inputPillFontColor,
             }}
             placeholder="Type your impression here..."
             autoFocus
@@ -240,7 +252,7 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
             __html: `
               textarea::placeholder {
                 opacity: 0.7;
-                color: ${NodeBackgroundColors[selectedType]} !important;
+                color: ${inputPillFontColor} !important;
               }
             `
           }} />

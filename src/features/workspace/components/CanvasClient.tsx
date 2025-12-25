@@ -21,6 +21,7 @@ import { User, Settings, Moon, Mail, LogOut, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import { NodeBackgroundColors, NodeTextColors } from "../constants/Nodes";
 import { ImpressionTextType, ImpressionType } from "../types/Impressions";
+import { getImpressionInputModalColors, getImpressionPartDetailsHeaderColor } from "../constants/ImpressionColors";
 import { ImpressionNode } from "../types/Nodes";
 import { Sparkles, X } from "lucide-react";
 import { useFlowNodesContext } from "../state/FlowNodesContext";
@@ -104,22 +105,7 @@ const ImpressionInputModalContent = ({
     setCanAddImpression(false);
   }, [impressionModalTargetPartId, impressionModalType, setCanAddImpression]);
   
-  const toRgba = (hex: string, opacity: number) => {
-    if (!hex) return `rgba(99, 102, 241, ${opacity})`;
-    const sanitized = hex.replace("#", "");
-    const bigint = parseInt(sanitized, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-  };
-
-  const accentHex =
-    NodeBackgroundColors[currentType as keyof typeof NodeBackgroundColors] ?? "#6366f1";
-  const accentTextHex = darkMode
-    ? NodeBackgroundColors[currentType as keyof typeof NodeBackgroundColors] ?? "#6366f1"
-    : NodeTextColors[currentType as keyof typeof NodeTextColors] ?? "#312e81";
-  const accentSoftBg = toRgba(accentHex, darkMode ? 0.26 : 0.14);
+  const impressionModalColors = getImpressionInputModalColors(darkMode)[currentType];
   const impressionTypeLabel =
     ImpressionTextType[currentType] ?? "Impression";
 
@@ -185,7 +171,7 @@ const ImpressionInputModalContent = ({
         <div
           className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
           style={{
-            backgroundColor: accentSoftBg,
+            backgroundColor: impressionModalColors.modalBg,
             borderColor: theme.border,
           }}
         >
@@ -195,8 +181,8 @@ const ImpressionInputModalContent = ({
                 <span
                   className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
                   style={{
-                    backgroundColor: accentSoftBg,
-                    color: accentTextHex,
+                    backgroundColor: impressionModalColors.topLeftPillBg,
+                    color: impressionModalColors.pillFont,
                   }}
                 >
                   <Sparkles size={14} />
@@ -239,8 +225,8 @@ const ImpressionInputModalContent = ({
                 onClick={() => setShowImpressionModal(false)}
                 className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
                 style={{
-                  backgroundColor: accentSoftBg,
-                  color: accentTextHex,
+                  backgroundColor: darkMode ? impressionModalColors.inputPillBg : impressionModalColors.topLeftPillBg,
+                  color: impressionModalColors.pillFont,
                 }}
                 aria-label="Close"
               >
@@ -251,7 +237,7 @@ const ImpressionInputModalContent = ({
             <div
               className="rounded-2xl border px-6 py-6 shadow-inner"
               style={{
-                backgroundColor: darkMode ? 'rgb(48 49 50)' : 'rgb(255 255 255 / 86%)',
+                backgroundColor: impressionModalColors.inputPillBg,
                 borderColor: theme.border,
               }}
             >
@@ -315,22 +301,14 @@ const ImpressionInputModalContent = ({
                 disabled={!canAddImpression}
                 className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                 style={{
-                  backgroundColor: darkMode
-                    ? accentSoftBg
-                    : canAddImpression
-                      ? NodeBackgroundColors[currentType]
-                      : "#e2e8f0",
-                  color: darkMode
-                    ? "#ffffff"
-                    : canAddImpression
-                      ? "#ffffff"
-                      : "#94a3b8",
-                  border: darkMode
-                    ? "none"
-                    : canAddImpression
-                      ? `1px solid ${NodeBackgroundColors[currentType]}`
-                      : "none",
-                  ...(darkMode ? { borderTop: canAddImpression ? undefined : "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: canAddImpression ? undefined : "1px solid #00000012" }),
+                  backgroundColor: canAddImpression
+                    ? impressionModalColors.addButtonBg
+                    : darkMode ? "rgb(59, 63, 67)" : "#e2e8f0",
+                  color: canAddImpression
+                    ? (darkMode ? "rgb(255, 255, 255)" : "#ffffff")
+                    : darkMode ? "#94a3b8" : "#94a3b8",
+                  border: "none",
+                  transitionDuration: "75ms",
                   ...(darkMode && !canAddImpression ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                 }}
                 onMouseEnter={(e) => {

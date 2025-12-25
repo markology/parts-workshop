@@ -1,14 +1,10 @@
 import {
-  NodeBackgroundColors,
-  NodeTextColors,
-} from "@/features/workspace/constants/Nodes";
-import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
-import {
   ImpressionTextType,
   ImpressionType,
 } from "@/features/workspace/types/Impressions";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { ReactElement } from "react";
+import { getImpressionBaseColors, getImpressionPartDetailsHeaderColor } from "@/features/workspace/constants/ImpressionColors";
 
 const PartImpressionContainer = ({
   type,
@@ -18,18 +14,13 @@ const PartImpressionContainer = ({
   children: ReactElement[];
 }) => {
   const { darkMode } = useThemeContext();
-  const palette = workspaceDarkPalette;
+  const baseColors = getImpressionBaseColors(darkMode)[type];
 
-  const containerStyle = darkMode
-    ? {
-        background: `linear-gradient(145deg, ${palette.surface}, ${palette.base})`,
-        boxShadow: "0 18px 36px rgba(0,0,0,0.45)",
-      }
-    : {
-        backgroundColor: NodeBackgroundColors[type],
-      };
+  const containerStyle = {
+    backgroundColor: baseColors.background,
+  };
 
-  const labelColor = darkMode ? "#f3f4f6" : NodeTextColors[type];
+  const labelColor = getImpressionPartDetailsHeaderColor(type, darkMode);
 
   return (
     <div

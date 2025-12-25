@@ -13,6 +13,7 @@ import ImpressionDisplay from "./SideBar/Impressions/ImpressionDisplay";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { NodeBackgroundColors } from "../constants/Nodes";
+import { getImpressionBaseColors, getImpressionSidebarHeaderBg, getImpressionPillFontColor, getImpressionHeaderBorderColor } from "../constants/ImpressionColors";
 import { useSidebarStore } from "../state/stores/Sidebar";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
@@ -473,17 +474,25 @@ const FloatingActionButtons = () => {
     return (
       <div className="mb-3">
         <button
-          className="capitalize flex items-center justify-between w-full p-2 text-left font-semibold rounded transition-colors"
+          className={`capitalize flex items-center justify-between w-full p-2 text-left font-semibold rounded transition-colors ${
+            isImpressionsEmpty ? "" : "hover:opacity-80"
+          }`}
           disabled={isImpressionsEmpty}
           onClick={toggleOpen}
           style={{
-            color: NodeBackgroundColors[type],
+            color: getImpressionSidebarHeaderBg(type, darkMode),
             opacity: emptyOpacityStyle,
+            backgroundColor: isImpressionsEmpty && !darkMode ? "rgb(255, 255, 255)" : getImpressionSidebarHeaderBg(type, darkMode),
+            borderColor: isImpressionsEmpty 
+              ? (darkMode ? "transparent" : getImpressionHeaderBorderColor(type, darkMode))
+              : getImpressionHeaderBorderColor(type, darkMode),
+            borderWidth: "2px",
+            borderStyle: "solid",
           }}
         >
           <p
             style={{
-              color: NodeBackgroundColors[type],
+              color: getImpressionSidebarHeaderBg(type, darkMode),
             }}
           >
             {type}
@@ -517,7 +526,8 @@ const FloatingActionButtons = () => {
                 onDragStart={(event) => onDragStart(event, item.id, item.type)}
                 draggable
                 style={{
-                  background: NodeBackgroundColors[item.type],
+                  background: (getImpressionBaseColors(darkMode) as any)[item.type]?.background || NodeBackgroundColors[item.type],
+                  color: getImpressionPillFontColor(item.type as ImpressionType, darkMode),
                   userSelect: 'none',
                 }}
               >

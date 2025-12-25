@@ -24,6 +24,7 @@ import { ImpressionList } from "../../constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
+import { getImpressionBaseColors, getImpressionPillFontColor } from "../../constants/ImpressionColors";
 
 const IMPRESSION_NODE_TYPES: ImpressionType[] = [
   "emotion",
@@ -956,19 +957,20 @@ export default function JournalDrawer() {
               <div className="flex flex-wrap gap-2">
                 {allImpressions.map((item) => {
                   const impressionType = item.impressionType as ImpressionType;
-                  const accentText = NodeTextColors[impressionType];
-                  const accent = NodeBackgroundColors[impressionType];
-                  const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
-                  const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
+                  const baseColors = getImpressionBaseColors(darkMode)[impressionType] || {
+                    background: NodeBackgroundColors[impressionType] || "#9CA3AF",
+                    font: NodeTextColors[impressionType] || "#374151",
+                  };
+                  const pillFontColor = getImpressionPillFontColor(impressionType, darkMode);
 
                   return (
                     <div
                       key={item.id}
                       className="flex items-center justify-between rounded-xl border px-3 py-2"
                       style={{
-                        backgroundColor: chipBackground,
-                        borderColor: chipBorder,
-                        color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+                        backgroundColor: baseColors.background,
+                        borderColor: "transparent",
+                        color: pillFontColor,
                       }}
                     >
                       <span className="font-medium text-xs break-words">

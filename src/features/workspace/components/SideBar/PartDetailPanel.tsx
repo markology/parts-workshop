@@ -67,6 +67,7 @@ import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType, ImpressionType } from "@/features/workspace/types/Impressions";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
+import { getImpressionBaseColors, getImpressionPartDetailsHeaderColor, getImpressionPillFontColor } from "@/features/workspace/constants/ImpressionColors";
 import ImpressionInput from "./Impressions/ImpressionInput";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
@@ -1524,15 +1525,15 @@ const PartDetailPanel = () => {
                           <div className="flex items-center gap-2">
                             <h4
                               className="font-semibold capitalize text-sm"
-                              style={{ color: NodeBackgroundColors[impression] }}
+                              style={{ color: darkMode ? getImpressionBaseColors(darkMode)[impression].font : getImpressionPartDetailsHeaderColor(impression, darkMode) }}
                             >
                               {impression}
                             </h4>
                             <span
                               className="px-2 py-1 rounded-full text-xs font-medium"
                               style={{
-                                backgroundColor: toRgba(NodeBackgroundColors[impression], darkMode ? 0.45 : 0.24),
-                                color: darkMode ? "rgba(255,255,255,0.92)" : (NodeTextColors[impression] || NodeBackgroundColors[impression]),
+                                backgroundColor: getImpressionBaseColors(darkMode)[impression].background,
+                                color: darkMode ? "rgb(255, 255, 255)" : getImpressionBaseColors(darkMode)[impression].font,
                               }}
                             >
                               {impressions.length}
@@ -1576,11 +1577,8 @@ const PartDetailPanel = () => {
                         <div className="space-y-2 mb-2">
                           {impressions.length > 0 ? (
                             impressions.map((imp, index) => {
-                              const accent = NodeBackgroundColors[impression];
-                              const accentText = NodeTextColors[impression] || accent;
-                              const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
-                              const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
-                              const iconColor = darkMode ? "rgba(255,255,255,0.75)" : accentText;
+                              const baseColors = getImpressionBaseColors(darkMode)[impression];
+                              const pillFontColor = getImpressionPillFontColor(impression, darkMode);
 
                               return (
                                 <div
@@ -1588,9 +1586,9 @@ const PartDetailPanel = () => {
                                   className="group flex items-center justify-between rounded-xl px-3 py-2 shadow-sm"
                                   style={{
                                     ...listItemStyle,
-                                    backgroundColor: chipBackground,
+                                    backgroundColor: baseColors.background,
                                     border: 'none',
-                                    color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+                                    color: pillFontColor,
                                   }}
                                 >
                                   <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
@@ -1599,7 +1597,7 @@ const PartDetailPanel = () => {
                                       onClick={() => handleReturnToSidebar(impression, imp.id)}
                                       className="p-1"
                                       style={{
-                                        color: iconColor,
+                                        color: pillFontColor,
                                       }}
                                       title="Return to sidebar"
                                     >
@@ -1609,7 +1607,7 @@ const PartDetailPanel = () => {
                                       onClick={() => handleRemoveImpression(impression, imp.id)}
                                       className="p-1"
                                       style={{
-                                        color: iconColor,
+                                        color: pillFontColor,
                                       }}
                                       title="Delete"
                                     >

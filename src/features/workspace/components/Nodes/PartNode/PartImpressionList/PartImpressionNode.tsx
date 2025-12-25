@@ -1,4 +1,3 @@
-import { NodeTextColors } from "@/features/workspace/constants/Nodes";
 import { useMemo } from "react";
 import { ListRestart, Trash2 } from "lucide-react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
@@ -8,6 +7,8 @@ import { ImpressionType } from "@/features/workspace/types/Impressions";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
+import { getImpressionBaseColors, getImpressionPillFontColor } from "@/features/workspace/constants/ImpressionColors";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 const PartImpressionNode = ({
   item,
@@ -20,6 +21,9 @@ const PartImpressionNode = ({
 }) => {
   const { detachImpressionFromPart } = useFlowNodesContext();
   const { setJournalTarget } = useJournalStore();
+  const { darkMode } = useThemeContext();
+  const baseColors = getImpressionBaseColors(darkMode)[type];
+  const pillFontColor = getImpressionPillFontColor(type, darkMode);
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -57,10 +61,11 @@ const PartImpressionNode = ({
     <div ref={nodeRef} className="part-impression-node text-right">
       <li
         onContextMenu={handleContextMenu}
-        className="text-white text-left bg-[#4ecdc4] rounded py-1 px-4 break-words relative"
+        className="text-white text-left rounded py-1 px-4 break-words relative"
         style={{
-          backgroundColor: NodeTextColors[type],
-          boxShadow: "0px 1px 4px 0px rgba(0, 0, 0, 0.35)",
+          backgroundColor: baseColors.background,
+          color: pillFontColor,
+          boxShadow: "0px 1px 4px 0px rgb(0, 0, 0)",
           border: 'none',
         }}
       >

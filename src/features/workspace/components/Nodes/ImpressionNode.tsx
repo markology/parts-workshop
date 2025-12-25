@@ -1,8 +1,3 @@
-import {
-  NodeBackgroundColors,
-  NodeTextColors,
-  NodeTextColorsLight,
-} from "@/features/workspace/constants/Nodes";
 import { useCallback, useMemo } from "react";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { ListRestart, Trash2, BookOpen } from "lucide-react";
@@ -17,6 +12,7 @@ import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useWorkingStore } from "../../state/stores/useWorkingStore";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
+import { getImpressionBaseColors, getPartNodeImpressionTypeFont, getImpressionPillFontColor } from "@/features/workspace/constants/ImpressionColors";
 
 const ImpressionNode = ({
   id,
@@ -63,33 +59,9 @@ const ImpressionNode = ({
     [deleteNode, label]
   );
 
-  const accent = NodeBackgroundColors[type];
-  const accentText = NodeTextColors[type] || accent;
-  
-  // Create darker version of the color for dark mode
-  const darkenColor = (hex: string, factor: number = 0.5) => {
-    const sanitized = hex.replace("#", "");
-    const bigint = parseInt(sanitized, 16);
-    const r = Math.max(0, Math.floor(((bigint >> 16) & 255) * factor));
-    const g = Math.max(0, Math.floor(((bigint >> 8) & 255) * factor));
-    const b = Math.max(0, Math.floor((bigint & 255) * factor));
-    return `rgb(${r}, ${g}, ${b})`;
-  };
-  
-  const darkerAccentText = darkMode ? darkenColor(accent, 0.4) : accentText;
-
-  const toRgba = (hex: string, opacity: number) => {
-    const sanitized = hex.replace("#", "");
-    const bigint = parseInt(sanitized, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-  };
-
-  // Use the same background calculation as sidebar, part nodes, and part details pane
-  const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
-  const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
+  const baseColors = getImpressionBaseColors(darkMode)[type];
+  const typeLabelFont = getPartNodeImpressionTypeFont(type, darkMode);
+  const pillFontColor = getImpressionPillFontColor(type, darkMode);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(
@@ -108,15 +80,15 @@ const ImpressionNode = ({
         draggable
         className="text-left rounded-xl px-3 pt-2 pb-3 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden cursor-grab active:cursor-grabbing"
         style={{
-          backgroundColor: chipBackground,
-          color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+          backgroundColor: baseColors.background,
+          color: pillFontColor,
         }}
       >
         <div className="flex items-center justify-between gap-2">
           <strong 
             className="text-sm font-semibold"
             style={{
-              color: darkerAccentText,
+              color: typeLabelFont,
             }}
           >
             {`${ImpressionTextType[type]}`}
