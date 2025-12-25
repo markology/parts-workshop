@@ -72,16 +72,18 @@ const ImpressionDropdown = ({
 
       {open && filteredImpressions && Object.values(filteredImpressions).length > 0 && (
         <div className="mt-2 space-y-2">
-          {Object.values(filteredImpressions).map((item) => (
+          {Object.values(filteredImpressions).map((item, index) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm transition-all duration-150 hover:-translate-y-[1px] cursor-grab"
+              className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm transition-all duration-150 hover:-translate-y-[1px] cursor-grab relative"
               onDragStart={(event) => onDragStart(event, item.id, item.type)}
               draggable
               style={{
                 backgroundColor: baseColors.background,
                 border: 'none',
                 color: getImpressionPillFontColor(item.type, darkMode),
+                zIndex: index === 0 ? 10 : 1,
+                marginTop: index === 0 ? '4px' : '0',
               }}
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">

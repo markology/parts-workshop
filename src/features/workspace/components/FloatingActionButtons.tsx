@@ -519,16 +519,18 @@ const FloatingActionButtons = () => {
         <div className="flex flex-col gap-2">
           {open &&
             filteredImpressions &&
-            Object.values(filteredImpressions).map((item) => (
+            Object.values(filteredImpressions).map((item, index) => (
               <div
                 key={item.id}
-                className="sidebar-impression text-white rounded-lg px-3 py-2 cursor-grab flex justify-between items-center shadow-sm transition-transform hover:scale-[1.02] active:cursor-grabbing"
+                className="sidebar-impression text-white rounded-lg px-3 py-2 cursor-grab flex justify-between items-center shadow-sm transition-transform hover:-translate-y-[1px] active:cursor-grabbing relative"
                 onDragStart={(event) => onDragStart(event, item.id, item.type)}
                 draggable
                 style={{
                   background: (getImpressionBaseColors(darkMode) as any)[item.type]?.background || NodeBackgroundColors[item.type],
                   color: getImpressionPillFontColor(item.type as ImpressionType, darkMode),
                   userSelect: 'none',
+                  zIndex: index === 0 ? 10 : 1,
+                  marginTop: index === 0 ? '4px' : '0',
                 }}
               >
                 <span>{item.label}</span>
