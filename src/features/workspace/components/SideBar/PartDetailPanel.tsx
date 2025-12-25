@@ -728,6 +728,7 @@ const PartDetailPanel = () => {
     backgroundColor: theme.modal,
     borderColor: theme.border,
     color: theme.textPrimary,
+    ...(darkMode ? { boxShadow: '0px 1px 15px 1px #00000030' } : {}),
   };
 
   const navContainerStyle = {
@@ -851,7 +852,10 @@ const PartDetailPanel = () => {
           {windowWidth >= 800 && (
           <div className="w-52 flex-shrink-0 flex flex-col border-r overflow-visible" style={navContainerStyle}>
             {/* Part Name Header */}
-            <div className="px-5 pt-5 pb-3 border-b bg-white" style={{ borderColor: theme.border }}>
+            <div className={`px-5 pt-5 pb-3 border-b ${darkMode ? '' : 'bg-white'}`} style={{ 
+              borderColor: theme.border,
+              ...(darkMode ? { backgroundColor: theme.card } : {})
+            }}>
               <h2 className={`text-sm font-semibold truncate ${
                 darkMode ? "text-slate-200" : "text-slate-900"
               }`}>
@@ -867,12 +871,20 @@ const PartDetailPanel = () => {
                   transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = darkMode ? theme.textPrimary : "#000000";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -888,12 +900,20 @@ const PartDetailPanel = () => {
                   transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = darkMode ? theme.textPrimary : "#000000";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -909,12 +929,20 @@ const PartDetailPanel = () => {
                   transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = darkMode ? theme.textPrimary : "#000000";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -930,12 +958,20 @@ const PartDetailPanel = () => {
                   transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = darkMode ? theme.textPrimary : "#000000";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -951,12 +987,20 @@ const PartDetailPanel = () => {
                   transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = darkMode ? theme.textPrimary : "#000000";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)";
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
                 <div className="flex items-center gap-2 overflow-visible">
@@ -1070,6 +1114,7 @@ const PartDetailPanel = () => {
               className="p-6 space-y-6 transition-all duration-200 rounded-3xl shadow-sm"
               style={{
                 ...subCardStyle,
+                ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
                 ...(isEditingInfo ? {
                   boxShadow: `0 0 0 2px ${toRgba("#3b82f6", 0.3)}, ${darkMode ? "0 16px 40px rgba(8,15,30,0.32)" : "0 18px 45px rgba(15,23,42,0.10)"}`,
                   backgroundColor: darkMode ? `${theme.surface}66` : `${toRgba("#3b82f6", 0.1)}4d`,
@@ -1080,7 +1125,10 @@ const PartDetailPanel = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Image - Left Column */}
                 <div className="lg:col-span-1">
-                  <div className="w-full aspect-square relative shadow-sm overflow-hidden group rounded-2xl border" style={subCardStyle}>
+                  <div className="w-full aspect-square relative shadow-sm overflow-hidden group rounded-2xl border" style={{
+                    ...subCardStyle,
+                    ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+                  }}>
                     {data.image ? (
                       <>
                         <Image
@@ -1142,10 +1190,10 @@ const PartDetailPanel = () => {
                                 setTempName(trimmed);
                               }
                             }}
-                             className={`w-full bg-white shadow-inner font-semibold tracking-tight focus:outline-none ${
+                             className={`w-full shadow-inner font-semibold tracking-tight focus:outline-none ${
                                darkMode
-                                 ? "text-slate-50 placeholder:text-slate-500"
-                                 : "text-slate-900 placeholder:text-slate-400"
+                                 ? "bg-slate-800 text-slate-50 placeholder:text-slate-500"
+                                 : "bg-white text-slate-900 placeholder:text-slate-400"
                              }`}
                             style={{
                               fontSize: '16px',
@@ -1368,10 +1416,10 @@ const PartDetailPanel = () => {
                               });
                             }
                           }}
-                           className={`block w-auto max-w-[100px] bg-white shadow-inner focus:outline-none font-medium ${
+                           className={`block w-auto max-w-[100px] shadow-inner focus:outline-none font-medium ${
                              darkMode
-                               ? "text-slate-100 placeholder:text-slate-500"
-                               : "text-slate-900 placeholder:text-slate-400"
+                               ? "bg-slate-800 text-slate-100 placeholder:text-slate-500"
+                               : "bg-white text-slate-900 placeholder:text-slate-400"
                            }`}
                            style={{
                              fontSize: '13px',
@@ -1407,10 +1455,10 @@ const PartDetailPanel = () => {
                               });
                             }
                           }}
-                           className={`w-auto max-w-[200px] bg-white shadow-inner focus:outline-none font-medium ${
+                           className={`w-auto max-w-[200px] shadow-inner focus:outline-none font-medium ${
                              darkMode
-                               ? "text-slate-100 placeholder:text-slate-500"
-                               : "text-slate-900 placeholder:text-slate-400"
+                               ? "bg-slate-800 text-slate-100 placeholder:text-slate-500"
+                               : "bg-white text-slate-900 placeholder:text-slate-400"
                            }`}
                            style={{
                              fontSize: '13px',
@@ -1448,10 +1496,10 @@ const PartDetailPanel = () => {
                             });
                           }
                         }}
-                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none leading-relaxed focus:outline-none bg-white shadow-inner font-medium ${
+                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none leading-relaxed focus:outline-none shadow-inner font-medium ${
                           darkMode
-                            ? "text-slate-100 placeholder:text-slate-500"
-                            : "text-slate-800 placeholder:text-slate-400"
+                            ? "bg-slate-800 text-slate-100 placeholder:text-slate-500"
+                            : "bg-white text-slate-800 placeholder:text-slate-400"
                         }`}
                         style={{
                           fontSize: '13px',
@@ -1495,7 +1543,10 @@ const PartDetailPanel = () => {
                     const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
 
                     return (
-                      <div key={impression} className="break-inside-avoid rounded-2xl p-4 shadow-sm mb-4" style={subCardStyle}>
+                      <div key={impression} className="break-inside-avoid rounded-2xl p-4 shadow-sm mb-4" style={{
+                        ...subCardStyle,
+                        ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+                      }}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <h4
@@ -1625,7 +1676,10 @@ const PartDetailPanel = () => {
             <div className="mb-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Needs */}
-              <div className="p-4 shadow-sm rounded-2xl" style={subCardStyle}>
+              <div className="p-4 shadow-sm rounded-2xl" style={{
+                ...subCardStyle,
+                ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+              }}>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className={`font-semibold capitalize text-sm flex items-center gap-2 ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                       <Heart className="w-4 h-4" style={{ color: '#7b42e2' }} />
@@ -1671,7 +1725,7 @@ const PartDetailPanel = () => {
                         className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
                         style={{
                           ...listItemStyle,
-                          backgroundColor: 'white',
+                          backgroundColor: darkMode ? 'rgb(33, 37, 41)' : 'white',
                           border: 'none',
                           color: '#7b42e2',
                         }}
@@ -1695,7 +1749,10 @@ const PartDetailPanel = () => {
                 </div>
 
               {/* Fears */}
-              <div className="rounded-2xl p-4 shadow-sm" style={subCardStyle}>
+              <div className="rounded-2xl p-4 shadow-sm" style={{
+                ...subCardStyle,
+                ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+              }}>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className={`font-semibold capitalize text-sm flex items-center gap-2 ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                       <Shield className="w-4 h-4" style={{ color: '#f78585' }} />
@@ -1741,7 +1798,7 @@ const PartDetailPanel = () => {
                         className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
                         style={{
                           ...listItemStyle,
-                          backgroundColor: 'white',
+                          backgroundColor: darkMode ? 'rgb(33, 37, 41)' : 'white',
                           border: 'none',
                           color: '#f78585',
                         }}
@@ -1777,6 +1834,7 @@ const PartDetailPanel = () => {
 
             <div className="shadow-sm rounded-2xl" style={{
               ...subCardStyle,
+              ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
               padding: '20px',
             }}>
               {isLoadingJournal ? (
@@ -1812,7 +1870,6 @@ const PartDetailPanel = () => {
                         ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                         color: darkMode ? theme.textPrimary : "#475569",
                         backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
-                        ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
@@ -1851,7 +1908,6 @@ const PartDetailPanel = () => {
                           ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                           color: darkMode ? theme.textPrimary : "#475569",
                           backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
-                          ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
@@ -1872,7 +1928,6 @@ const PartDetailPanel = () => {
                           ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                           color: darkMode ? theme.textPrimary : "#475569",
                           backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
-                          ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                           transition: "none !important",
                           WebkitTransition: "none !important",
                           MozTransition: "none !important",
@@ -1967,7 +2022,7 @@ const PartDetailPanel = () => {
                     return (
                       <div key={entry.id} className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow" style={{
                         ...subCardStyle,
-                        backgroundColor: 'white',
+                        backgroundColor: darkMode ? 'rgb(33, 37, 41)' : 'white',
                       }}>
                         {/* Header with dates and actions */}
                         <div className="flex items-start justify-between mb-3 gap-4">
@@ -2078,7 +2133,6 @@ const PartDetailPanel = () => {
                           MozTransition: "none !important",
                           OTransition: "none !important",
                           msTransition: "none !important",
-                                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
@@ -2124,9 +2178,10 @@ const PartDetailPanel = () => {
                             darkMode ? "text-slate-300" : "text-slate-700"
                           }`}
                           style={{
-                            border: `2px solid ${isTextThread ? '#faf5ff' : '#eff6ff'}`,
+                            border: darkMode ? 'none' : `2px solid ${isTextThread ? '#faf5ff' : '#eff6ff'}`,
                             padding: '10px',
                             borderRadius: '10px',
+                            ...(darkMode ? { background: '#272b2f' } : {}),
                           }}
                         >
                           {contentPreview}
@@ -2164,14 +2219,14 @@ const PartDetailPanel = () => {
                           border: 'none',
                           backgroundColor: isTension
                             ? darkMode
-                              ? undefined
+                              ? 'rgba(42, 46, 50, 0.75)'
                               : "rgba(247,242,255,0.7)"
                             : isInteraction
                               ? darkMode
-                                ? undefined
+                                ? 'rgba(42, 46, 50, 0.75)'
                                 : "rgba(224,242,254,0.7)"
                               : darkMode
-                                ? theme.card
+                                ? 'rgba(42, 46, 50, 0.75)'
                                 : "#ffffff",
                           background: isTension && darkMode
                             ? "linear-gradient(140deg, rgb(42, 31, 61), rgb(39, 33, 47))"
@@ -2256,7 +2311,7 @@ const PartDetailPanel = () => {
                                     key={index}
                                     className="rounded-lg px-3 py-2.5 shadow-sm hover:shadow-md transition"
                                     style={{
-                                      backgroundColor: theme.surface,
+                                      backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : theme.surface,
                                     }}
                                   >
                                     <div className="flex items-start justify-between gap-2">
@@ -2276,7 +2331,9 @@ const PartDetailPanel = () => {
                                                 : (darkMode ? "#e9d5ff" : NodeTextColors.tension),
                                               fontSize: '11px',
                                               fontWeight: '500',
-                                              background: isInteraction ? '#dbeafe' : '#e8dff7',
+                                              background: isInteraction 
+                                                ? (darkMode ? "rgba(59,130,246,0.2)" : '#dbeafe')
+                                                : (darkMode ? "rgba(168,85,247,0.2)" : '#e8dff7'),
                                               borderRadius: '10px',
                                               padding: '1px 5px',
                                             }}
@@ -2442,19 +2499,31 @@ const PartDetailPanel = () => {
                   <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                     <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex items-center gap-1.5">
-                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold border ${
+                          darkMode 
+                            ? "bg-slate-800 border-slate-700 text-slate-200"
+                            : "bg-white border-slate-200 text-slate-700"
+                        }`}>
                           {isMac() ? '⇧ Tab' : 'Shift+Tab'}
                         </kbd>
                         <span className="text-xs">Previous Type</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold border ${
+                          darkMode 
+                            ? "bg-slate-800 border-slate-700 text-slate-200"
+                            : "bg-white border-slate-200 text-slate-700"
+                        }`}>
                           Tab
                         </kbd>
                         <span className="text-xs">Next Type</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
+                        <kbd className={`px-2 py-1 rounded text-[10px] font-semibold border ${
+                          darkMode 
+                            ? "bg-slate-800 border-slate-700 text-slate-200"
+                            : "bg-white border-slate-200 text-slate-700"
+                        }`}>
                           {isMac() ? '⏎' : 'Enter'}
                         </kbd>
                         <span className="text-xs">Submit</span>
@@ -2841,7 +2910,7 @@ const PartDetailPanel = () => {
                     return (
                       <div key={entry.id} className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow" style={{
                         ...subCardStyle,
-                        backgroundColor: 'white',
+                        backgroundColor: darkMode ? 'rgb(33, 37, 41)' : 'white',
                       }}>
                         {/* Header with dates and actions */}
                         <div className="flex items-start justify-between mb-3 gap-4">
@@ -2954,7 +3023,6 @@ const PartDetailPanel = () => {
                           MozTransition: "none !important",
                           OTransition: "none !important",
                           msTransition: "none !important",
-                                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
@@ -3000,9 +3068,10 @@ const PartDetailPanel = () => {
                             darkMode ? "text-slate-300" : "text-slate-700"
                           }`}
                           style={{
-                            border: `2px solid ${isTextThread ? '#faf5ff' : '#eff6ff'}`,
+                            border: darkMode ? 'none' : `2px solid ${isTextThread ? '#faf5ff' : '#eff6ff'}`,
                             padding: '10px',
                             borderRadius: '10px',
+                            ...(darkMode ? { background: '#272b2f' } : {}),
                           }}
                         >
                           {contentPreview}

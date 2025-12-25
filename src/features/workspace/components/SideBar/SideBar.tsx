@@ -1,3 +1,9 @@
+/**
+ * @deprecated This file is deprecated and no longer in use.
+ * The sidebar functionality has been moved to FloatingActionButtons.tsx.
+ * This file is kept for reference but should not be used.
+ */
+
 "use client";
 
 import Modal from "@/components/Modal";
@@ -156,68 +162,7 @@ const SideBar = () => {
 
   return (
     <>
-      <aside 
-        className={`bg-aside flex-[0_0_230px] p-[15px_10px] shadow-[var(--aside-shadow)_0px_0px_10px_0px] z-[70] transition-opacity duration-300 ${
-          shouldHideSidebar ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}
-      >
-        {CreateButtons}
-        <ImpressionDisplay />
-
-        {/* Part Input Modal */}
-        <Modal show={showPartModal} onClose={() => setShowPartModal(false)}>
-          <PartInput />
-        </Modal>
-        <Modal
-          show={showFeedbackModal}
-          onClose={() => setShowFeedbackModal(false)}
-          width="auto"
-        >
-          <FeedbackForm />
-        </Modal>
-
-        {/* Relationship Type Selection Modal */}
-        <Modal
-          show={showRelationshipTypeModal}
-          onClose={() => setShowRelationshipTypeModal(false)}
-          width="auto"
-        >
-          <div className="p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Choose Relationship Type</h3>
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  createNode("tension", "Tension", undefined, undefined, { relationshipType: "tension" });
-                  setShowRelationshipTypeModal(false);
-                }}
-                className="flex-1 p-4 rounded-lg border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors"
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Sword size={24} className="text-purple-600" />
-                  <span className="font-semibold text-purple-800">Tension</span>
-                  <span className="text-xs text-purple-600">Parts in opposition</span>
-                </div>
-              </button>
-              <button
-                onClick={() => {
-                  createNode("interaction", "Interaction", undefined, undefined, { relationshipType: "interaction" });
-                  setShowRelationshipTypeModal(false);
-                }}
-                className="flex-1 p-4 rounded-lg border-2 border-sky-200 bg-sky-50 hover:bg-sky-100 transition-colors"
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Users size={24} className="text-sky-600" />
-                  <span className="font-semibold text-sky-800">Interaction</span>
-                  <span className="text-xs text-sky-600">Parts working together</span>
-                </div>
-              </button>
-            </div>
-          </div>
-        </Modal>
-      </aside>
-      
-      {/* Part Detail Panel */}
-      <PartDetailPanel />
+    
     </>
   );
 };

@@ -99,13 +99,12 @@ const TensionNode = ({
   const accent = NodeBackgroundColors["tension"];
   const accentText = NodeTextColors["tension"];
   const shellClasses = darkMode
-    ? "border border-transparent text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
-    : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white border border-purple-200/70 text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
+    ? "text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
+    : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
 
   const shellStyle = darkMode
     ? {
         background: `linear-gradient(140deg, #2a1f3d, #27212f)`,
-        borderColor: "rgba(168,85,247,0.35)",
       }
     : undefined;
 
@@ -179,14 +178,13 @@ const TensionNode = ({
               connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
-                  className={`rounded-2xl border px-4 py-3 shadow-sm ${
-                    darkMode ? "border-transparent text-slate-100" : "bg-white border-purple-200"
+                  className={`rounded-2xl px-4 py-3 shadow-sm ${
+                    darkMode ? "text-slate-100" : "bg-white"
                   }`}
                   style={
                     darkMode
                       ? {
                           background: palette.surface,
-                          borderColor: "rgba(168,85,247,0.15)",
                           boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
                         }
                       : undefined

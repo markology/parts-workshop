@@ -94,12 +94,7 @@ const Impressions = () => {
   };
 
   return (
-    <div 
-      className="flex h-full flex-col"
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-    >
+    <>
       <button
         onClick={() => setShowImpressionModal(true)}
         className="mx-1 mt-1 flex flex-col rounded-2xl px-3 py-2.5 text-left group"
@@ -192,7 +187,7 @@ const Impressions = () => {
           />
         ))}
       </div>
-    </div>
+    </>
   );
 };
 

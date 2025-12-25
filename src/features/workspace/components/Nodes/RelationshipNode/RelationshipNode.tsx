@@ -101,12 +101,11 @@ const RelationshipNode = ({
   const accent = NodeBackgroundColors["interaction"];
   const accentText = NodeTextColors["interaction"];
   const shellClasses = darkMode
-    ? "border border-transparent text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
-    : "bg-gradient-to-br from-[#eaf7ff] via-[#e4f4ff] to-white border border-sky-200/70 text-slate-900 shadow-[0_26px_62px_rgba(28,102,143,0.16)]";
+    ? "text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
+    : "bg-gradient-to-br from-[#eaf7ff] via-[#e4f4ff] to-white text-slate-900 shadow-[0_26px_62px_rgba(28,102,143,0.16)]";
   const shellStyle = darkMode
     ? {
         background: `linear-gradient(140deg, #1f2a3d, #21272f)`,
-        borderColor: "rgba(59,130,246,0.35)",
       }
     : undefined;
 
@@ -178,14 +177,13 @@ const RelationshipNode = ({
               connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
-                  className={`rounded-2xl border px-4 py-3 shadow-sm ${
-                    darkMode ? "border-transparent text-slate-100" : "bg-white border-sky-200"
+                  className={`rounded-2xl px-4 py-3 shadow-sm ${
+                    darkMode ? "text-slate-100" : "bg-white"
                   }`}
                   style={
                     darkMode
                       ? {
                           background: palette.surface,
-                          borderColor: "rgba(59,130,246,0.15)",
                           boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
                         }
                       : undefined
