@@ -205,11 +205,17 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                 </div>
                 <div className="min-h-[48px]">
                   {data.scratchpad ? (
-                    <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-300 line-clamp-3">
+                    <p 
+                      className="text-sm leading-relaxed line-clamp-3"
+                      style={{ color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)" }}
+                    >
                       {data.scratchpad}
                     </p>
                   ) : (
-                    <p className="text-sm leading-relaxed text-slate-400 dark:text-slate-500 italic">
+                    <p 
+                      className="text-sm leading-relaxed italic"
+                      style={{ color: darkMode ? "rgb(100, 116, 139)" : "rgb(148, 163, 184)" }}
+                    >
                       No description added yet.
                     </p>
                   )}
