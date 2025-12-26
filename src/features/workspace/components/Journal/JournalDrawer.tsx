@@ -18,7 +18,7 @@ import {
   WorkshopNode,
 } from "@/features/workspace/types/Nodes";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import { Brain, Book, Clock, FilePlus2, Heart, History, Layers, MessagesSquare, Plus, Save, Shield, SquareUserRound, User, X, Trash2 } from "lucide-react";
+import { Brain, Book, Clock, FilePlus2, Heart, History, Layers, MessagesSquare, Plus, Save, Shield, SquareUserRound, User, X, Trash2, Maximize2, Minimize2 } from "lucide-react";
 import { NodeBackgroundColors, NodeTextColors } from "../../constants/Nodes";
 import { ImpressionList } from "../../constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
@@ -220,6 +220,7 @@ export default function JournalDrawer() {
   const [journalMode, setJournalMode] = useState<"normal" | "textThread" | null>(null);
   const [showModeSelection, setShowModeSelection] = useState(false);
   const [isStartingNewEntry, setIsStartingNewEntry] = useState(false);
+  const [distractionFree, setDistractionFree] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1375,29 +1376,98 @@ export default function JournalDrawer() {
         }`}
       >
         <div className="flex h-full flex-col overflow-hidden shadow-2xl" style={{ backgroundColor: theme.modal }}>
-          <header className="border-b px-4 py-3 shadow-sm backdrop-blur" style={{ borderColor: theme.border, backgroundColor: theme.elevated }}>
-            <div className="flex items-center justify-center">
-              <div 
-                className="flex items-center justify-between gap-3 w-full transition-all duration-300 ease-in-out"
-                style={{
-                  maxWidth: journalMode === 'textThread'
-                    ? showLeftPanel 
-                      ? 'calc(600px + 19.5rem)' 
-                      : '600px'
-                    : showLeftPanel 
-                      ? 'calc(56rem + 19.5rem)' 
-                      : '56rem',
-                }}
-              >
-                <h2 className="text-lg font-semibold truncate flex-1 min-w-0" style={{ color: theme.textPrimary }}>
-                  {nodeLabel}
-                </h2>
-              
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setShowLeftPanel((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
+          {distractionFree ? (
+            <>
+              {/* Distraction-free header */}
+              <header className="border-b px-4 py-3 shadow-sm backdrop-blur" style={{ borderColor: theme.border, backgroundColor: theme.elevated }}>
+              <div className="flex items-center justify-center">
+                <div 
+                  className="flex items-center justify-end gap-2 w-full transition-all duration-300 ease-in-out"
+                  style={{
+                    maxWidth: journalMode === 'textThread' ? '600px' : '56rem',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => void handleSave()}
+                    disabled={!canSave || isSaving}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold flex-shrink-0 shadow-sm ${isSaving ? "animate-pulse" : ""}`}
+                    style={{
+                      backgroundColor: canSave && !isSaving ? theme.info : theme.button,
+                      color: canSave && !isSaving ? theme.buttonText : theme.textMuted,
+                      ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                      ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                      transition: "none !important",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (canSave && !isSaving) {
+                        e.currentTarget.style.backgroundColor = "#2563eb";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (canSave && !isSaving) {
+                        e.currentTarget.style.backgroundColor = theme.info;
+                      }
+                    }}
+                  >
+                    <Save size={14} />
+                    {isSaving ? "Saving…" : "Save"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDistractionFree(false)}
+                    className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
+                    style={{
+                      backgroundColor: theme.card,
+                      color: theme.textSecondary,
+                      border: "none",
+                      ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                      ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                      transition: "none !important",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.buttonHover;
+                      e.currentTarget.style.color = theme.textPrimary;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.card;
+                      e.currentTarget.style.color = theme.textSecondary;
+                    }}
+                    title="Exit distraction-free mode"
+                  >
+                    <Minimize2 size={18} />
+                  </button>
+                </div>
+              </div>
+            </header>
+            </>
+          ) : (
+            <>
+              {/* Normal header */}
+              <header className="border-b px-4 py-3 shadow-sm backdrop-blur" style={{ borderColor: theme.border, backgroundColor: theme.elevated }}>
+              <div className="flex items-center justify-center">
+                <div 
+                  className="flex items-center justify-between gap-3 w-full transition-all duration-300 ease-in-out"
+                  style={{
+                    maxWidth: journalMode === 'textThread'
+                      ? showLeftPanel 
+                        ? 'calc(600px + 19.5rem)' 
+                        : '600px'
+                      : showLeftPanel 
+                        ? 'calc(56rem + 19.5rem)' 
+                        : '56rem',
+                  }}
+                >
+                  <h2 className="text-lg font-semibold truncate flex-1 min-w-0" style={{ color: theme.textPrimary }}>
+                    {nodeLabel}
+                  </h2>
+                
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowLeftPanel((prev) => !prev)}
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
                   style={{
                     backgroundColor: darkMode 
                       ? (showLeftPanel ? theme.card : theme.card)
@@ -1507,32 +1577,45 @@ export default function JournalDrawer() {
                 >
                   <X size={18} />
                 </button>
-              </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setDistractionFree(true)}
+                      className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
+                      style={{
+                        backgroundColor: theme.card,
+                        color: theme.textSecondary,
+                        border: "none",
+                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                        ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                        transition: "none !important",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.buttonHover;
+                        e.currentTarget.style.color = theme.textPrimary;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.card;
+                        e.currentTarget.style.color = theme.textSecondary;
+                      }}
+                      title="Enter distraction-free mode"
+                    >
+                      <Maximize2 size={18} />
+                    </button>
+                  </div>
               </div>
             </div>
           </header>
+            </>
+          )}
 
           <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto px-6 pb-6 pt-6">
-              {/* Container wrapper for centering */}
-              <div 
-                className="relative flex items-start gap-6 w-full h-full transition-all duration-300 ease-in-out"
-                style={{
-                  maxWidth: journalMode === 'textThread'
-                    ? showLeftPanel 
-                      ? 'calc(600px + 19.5rem)' 
-                      : '600px'
-                    : showLeftPanel 
-                      ? 'calc(56rem + 19.5rem)' 
-                      : '56rem',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  height: '100%',
-                }}
-              >
-              {/* Left panel with tabs */}
-              {showLeftPanel && (
+            <div className={`relative flex flex-1 flex-col gap-6 overflow-y-auto transition-all duration-300 ease-in-out ${distractionFree ? 'px-0 pb-0 pt-0' : 'px-6 pb-6 pt-6'}`}>
+              {!distractionFree && (
                 <>
+                  {/* Left panel with tabs */}
+                  {showLeftPanel && (
+                    <>
                   <aside className="hidden lg:absolute lg:flex w-72 flex-col overflow-hidden rounded-2xl border shadow-inner transition-all duration-300 ease-in-out" style={{ left: 0, top: 0, height: '100%', backgroundColor: theme.card, borderColor: theme.border }}>
                     {/* Tab buttons */}
                     <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
@@ -1675,11 +1758,31 @@ export default function JournalDrawer() {
                       </div>
                     </div>
                   </div>
+                    </>
+                  )}
                 </>
               )}
+              {/* Container wrapper for centering */}
+              <div 
+                className={`relative flex items-start gap-6 w-full h-full transition-all duration-300 ease-in-out ${distractionFree ? 'mx-auto' : ''}`}
+                style={{
+                  maxWidth: distractionFree 
+                    ? (journalMode === 'textThread' ? '600px' : '56rem')
+                    : (journalMode === 'textThread'
+                      ? showLeftPanel 
+                        ? 'calc(600px + 19.5rem)' 
+                        : '600px'
+                      : showLeftPanel 
+                        ? 'calc(56rem + 19.5rem)' 
+                        : '56rem'),
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  height: '100%',
+                }}
+              >
                 {/* Main content area */}
-                <main className={`flex flex-1 flex-col gap-6 overflow-hidden transition-all duration-300 ease-in-out ${showLeftPanel ? 'lg:ml-[19.5rem]' : ''}`} style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', height: '100%' }}>
-                  <div className="flex-1 overflow-hidden rounded-3xl border p-6 shadow-xl w-full transition-all duration-300 ease-in-out" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                <main className={`flex flex-1 flex-col gap-6 overflow-hidden transition-all duration-300 ease-in-out ${distractionFree ? '' : (showLeftPanel ? 'lg:ml-[19.5rem]' : '')}`} style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', height: '100%' }}>
+                  <div className={`flex-1 overflow-hidden border shadow-xl w-full transition-all duration-300 ease-in-out ${distractionFree ? 'rounded-none border-0 shadow-none' : 'rounded-3xl border p-6'}`} style={{ backgroundColor: theme.card, borderColor: distractionFree ? 'transparent' : theme.border, ...(distractionFree ? { padding: 0 } : {}) }}>
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
                     <div className="flex items-center justify-center h-full">
