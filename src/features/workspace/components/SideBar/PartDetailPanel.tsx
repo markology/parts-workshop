@@ -191,7 +191,6 @@ const PartDetailPanel = () => {
   const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [hoveredPartType, setHoveredPartType] = useState<string | null>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -222,14 +221,6 @@ const PartDetailPanel = () => {
   }, [selectedPartId, partNode]); // Only sync when selectedPartId or partNode changes
 
   // Cleanup hover timeout when editing mode changes or component unmounts
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-        hoverTimeoutRef.current = null;
-      }
-    };
-  }, [isEditingInfo]);
 
   // Separate effect to handle auto-edit flag when part is selected
   useEffect(() => {
@@ -1005,9 +996,10 @@ const PartDetailPanel = () => {
                       onClick={() => {
                         setIsEditingInfo((prev) => !prev);
                       }}
-                      className={`p-2 rounded-full transition-colors ${
+                      className={`p-2 rounded-full ${
                         darkMode ? "text-slate-300 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"
                       }`}
+                      style={{ transition: 'none' }}
                       aria-label="Edit info"
                     >
                       <Pencil className="w-4 h-4" />
@@ -1020,11 +1012,13 @@ const PartDetailPanel = () => {
                   <button
                     type="button"
                     onClick={saveAllInfo}
-                    className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold transition-all duration-200 text-black shadow-sm hover:scale-105 hover:shadow-md"
+                    className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold shadow-sm hover:shadow-md"
                     style={{
                       backgroundImage: darkMode ? undefined : 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))',
                       backgroundColor: darkMode ? "#396bbc" : undefined,
                       boxShadow: "0 6px 16px rgba(57, 107, 188, 0.28)",
+                      transition: 'none',
+                      color: darkMode ? 'white' : 'black',
                     }}
                     onMouseEnter={(e) => {
                       if (darkMode) {
@@ -1050,11 +1044,17 @@ const PartDetailPanel = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditingInfo(false)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold transition ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold ${
                       darkMode
-                        ? "text-slate-200 hover:bg-slate-800/60"
+                        ? "text-slate-200 hover:bg-slate-700/60"
                         : "text-slate-700 hover:bg-slate-100"
                     }`}
+                    style={{ 
+                      transition: 'none',
+                      ...(darkMode ? {
+                        backgroundColor: 'rgba(51, 65, 85, 0.4)',
+                      } : {}),
+                    }}
                   >
                     Cancel
                   </button>
@@ -1085,13 +1085,12 @@ const PartDetailPanel = () => {
             
             {/* Main Info Grid */}
             <div 
-              className="p-6 space-y-6 transition-all duration-200 rounded-3xl shadow-sm"
+              className="p-6 space-y-6 rounded-3xl shadow-sm"
               style={{
                 ...subCardStyle,
                 ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
                 ...(isEditingInfo ? {
-                  boxShadow: `0 0 0 2px ${toRgba("#3b82f6", 0.3)}, ${darkMode ? "0 16px 40px rgba(8,15,30,0.32)" : "0 18px 45px rgba(15,23,42,0.10)"}`,
-                  backgroundColor: darkMode ? `${theme.surface}66` : `${toRgba("#3b82f6", 0.1)}4d`,
+                  border: '3px solid rgba(57, 107, 188, 0.3)',
                 } : {}),
               }}
             >
@@ -1166,13 +1165,19 @@ const PartDetailPanel = () => {
                             }}
                              className={`w-full shadow-inner font-semibold tracking-tight focus:outline-none ${
                                darkMode
-                                 ? "bg-slate-800 text-slate-50 placeholder:text-slate-500"
-                                 : "bg-white text-slate-900 placeholder:text-slate-400"
+                                 ? "text-slate-50 placeholder:text-slate-500"
+                                 : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
                              }`}
                             style={{
                               fontSize: '16px',
                               height: '52px',
                               padding: '10px',
+                              borderRadius: '12px',
+                              ...(darkMode ? {
+                                backgroundColor: 'rgb(33 37 41)',
+                                WebkitBoxShadow: '0 0 0 1000px rgb(33 37 41) inset',
+                                boxShadow: 'none',
+                              } : {}),
                             }}
                             placeholder="Name this part"
                             autoFocus
@@ -1193,17 +1198,7 @@ const PartDetailPanel = () => {
                           Part Type
                         </label>
                         {isEditingInfo ? (
-                          <div 
-                            className="flex flex-wrap gap-2 pl-0.5"
-                            onMouseLeave={() => {
-                              // Clear timeout and immediately reset hover state when leaving container
-                              if (hoverTimeoutRef.current) {
-                                clearTimeout(hoverTimeoutRef.current);
-                                hoverTimeoutRef.current = null;
-                              }
-                              setHoveredPartType(null);
-                            }}
-                          >
+                          <div className="flex flex-wrap gap-2 pl-0.5">
                             {["manager", "firefighter", "exile"].map((type) => {
                               const currentType =
                                 tempPartType ||
@@ -1220,7 +1215,7 @@ const PartDetailPanel = () => {
                                     ? "bg-sky-500/15 text-sky-100"
                                     : "bg-sky-100 text-sky-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400"
+                                    ? "text-slate-400"
                                     : "bg-slate-100/60 text-slate-400",
                                   hover: darkMode
                                     ? "bg-sky-500/15 text-sky-100"
@@ -1231,7 +1226,7 @@ const PartDetailPanel = () => {
                                     ? "bg-rose-500/15 text-rose-100"
                                     : "bg-rose-100 text-rose-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400"
+                                    ? "text-slate-400"
                                     : "bg-slate-100/60 text-slate-400",
                                   hover: darkMode
                                     ? "bg-rose-500/15 text-rose-100"
@@ -1242,7 +1237,7 @@ const PartDetailPanel = () => {
                                     ? "bg-purple-500/15 text-purple-100"
                                     : "bg-purple-100 text-purple-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400"
+                                    ? "text-slate-400"
                                     : "bg-slate-100/60 text-slate-400",
                                   hover: darkMode
                                     ? "bg-purple-500/15 text-purple-100"
@@ -1259,10 +1254,10 @@ const PartDetailPanel = () => {
                               const styles = typeStyles[type] || typeStyles.manager;
                               const isHovered = hoveredPartType === type;
                               
-                              // Determine which style to use: hovered > selected > idle
+                              // Determine which style to use: selected pills stay selected, hovered (non-selected) pills show hover
                               const getPillStyle = () => {
+                                if (isSelected) return styles.selected;
                                 if (isHovered) return styles.hover;
-                                if (isSelected && !hoveredPartType) return styles.selected;
                                 return styles.idle;
                               };
 
@@ -1280,21 +1275,13 @@ const PartDetailPanel = () => {
                                     });
                                   }}
                                   className={`${pillBase} ${getPillStyle()}`}
-                                  onMouseEnter={() => {
-                                    // Clear any existing timeout when entering a pill
-                                    if (hoverTimeoutRef.current) {
-                                      clearTimeout(hoverTimeoutRef.current);
-                                      hoverTimeoutRef.current = null;
-                                    }
-                                    setHoveredPartType(type);
+                                  style={{
+                                    ...(darkMode && !isSelected && !isHovered ? {
+                                      backgroundColor: 'rgb(33 37 41)',
+                                    } : {}),
                                   }}
-                                  onMouseLeave={() => {
-                                    // Set a timeout to clear hover state after 1 second
-                                    hoverTimeoutRef.current = setTimeout(() => {
-                                      setHoveredPartType(null);
-                                      hoverTimeoutRef.current = null;
-                                    }, 1000);
-                                  }}
+                                  onMouseEnter={() => setHoveredPartType(type)}
+                                  onMouseLeave={() => setHoveredPartType(null)}
                                 >
                                   {typeIcons[type]}
                                   {type}
@@ -1353,12 +1340,19 @@ const PartDetailPanel = () => {
                                 partTypeMapping[currentType] || {
                                   icon: <User className="w-3.5 h-3.5" />,
                                   className: darkMode
-                                    ? "bg-slate-800/60 text-slate-200"
+                                    ? "text-slate-200"
                                     : "bg-slate-100 text-slate-600",
                                 };
 
                               return (
-                                <span className={`${pillBase} ${pill.className}`}>
+                                <span 
+                                  className={`${pillBase} ${pill.className}`}
+                                  style={{
+                                    ...(darkMode ? {
+                                      backgroundColor: 'rgb(33 37 41)',
+                                    } : {}),
+                                  }}
+                                >
                                   {pill.icon}
                                   {currentType}
                                 </span>
@@ -1392,14 +1386,20 @@ const PartDetailPanel = () => {
                           }}
                            className={`block w-auto max-w-[100px] shadow-inner focus:outline-none font-medium ${
                              darkMode
-                               ? "bg-slate-800 text-slate-100 placeholder:text-slate-500"
-                               : "bg-white text-slate-900 placeholder:text-slate-400"
+                               ? "text-slate-100 placeholder:text-slate-500"
+                               : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
                            }`}
                            style={{
                              fontSize: '13px',
                              height: '40px',
                              padding: '10px',
                              fontWeight: '500',
+                             borderRadius: '12px',
+                             ...(darkMode ? {
+                               backgroundColor: 'rgb(33 37 41)',
+                               WebkitBoxShadow: '0 0 0 1000px rgb(33 37 41) inset',
+                               boxShadow: 'none',
+                             } : {}),
                            }}
                            placeholder="Unknown"
                            min="0"
@@ -1429,17 +1429,22 @@ const PartDetailPanel = () => {
                               });
                             }
                           }}
-                           className={`w-auto max-w-[200px] shadow-inner focus:outline-none font-medium ${
+                           className={`block w-full max-w-[200px] shadow-inner focus:outline-none font-medium ${
                              darkMode
-                               ? "bg-slate-800 text-slate-100 placeholder:text-slate-500"
-                               : "bg-white text-slate-900 placeholder:text-slate-400"
+                               ? "text-slate-100 placeholder:text-slate-500"
+                               : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
                            }`}
                            style={{
                              fontSize: '13px',
                              height: '40px',
                              padding: '10px',
-                             width: '169px',
                              fontWeight: '500',
+                             borderRadius: '12px',
+                             ...(darkMode ? {
+                               backgroundColor: 'rgb(33 37 41)',
+                               WebkitBoxShadow: '0 0 0 1000px rgb(33 37 41) inset',
+                               boxShadow: 'none',
+                             } : {}),
                            }}
                            placeholder="Gender"
                          />
@@ -1470,14 +1475,20 @@ const PartDetailPanel = () => {
                             });
                           }
                         }}
-                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none leading-relaxed focus:outline-none shadow-inner font-medium ${
+                        className={`w-full px-3.5 py-3 min-h-[140px] resize-none leading-relaxed shadow-inner focus:outline-none font-medium ${
                           darkMode
-                            ? "bg-slate-800 text-slate-100 placeholder:text-slate-500"
-                            : "bg-white text-slate-800 placeholder:text-slate-400"
+                            ? "text-slate-100 placeholder:text-slate-500"
+                            : "bg-white focus:bg-white text-slate-800 placeholder:text-slate-400"
                         }`}
                         style={{
+                          ...(darkMode ? {
+                            backgroundColor: 'rgb(33 37 41)',
+                            WebkitBoxShadow: '0 0 0 1000px rgb(33 37 41) inset',
+                            boxShadow: 'none',
+                          } : {}),
                           fontSize: '13px',
                           fontWeight: '500',
+                          borderRadius: '12px',
                         }}
                         placeholder="Add a description..."
                       />

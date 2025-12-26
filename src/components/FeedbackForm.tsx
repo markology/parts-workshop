@@ -66,9 +66,13 @@ export default function FeedbackPopup() {
 
   // Autofocus message input when form opens
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
+    // Use setTimeout to ensure the form is fully rendered
+    const timer = setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   // Handle file selection
@@ -264,6 +268,7 @@ export default function FeedbackPopup() {
           <textarea
             id="message"
             ref={textareaRef}
+            autoFocus
             placeholder="Let us know what feels helpful, confusing, or still missing."
             rows={6}
             value={message}

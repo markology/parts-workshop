@@ -893,7 +893,7 @@ export default function JournalDrawer() {
 
                     return (
                       <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${pill.className}`}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize shadow-sm ${pill.className}`}
                       >
                         {pill.icon}
                         {partType || "No type set"}
@@ -901,7 +901,7 @@ export default function JournalDrawer() {
                     );
                   })()}
                   {data.age && String(data.age).toLowerCase() !== "unknown" && (
-                    <span className="inline-flex items-center gap-1 rounded-full border px-3 py-0.5 font-medium" style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.textMuted }}>
+                    <span className="inline-flex items-center gap-1 rounded-full px-3 py-0.5 font-medium shadow-sm" style={{ backgroundColor: theme.surface, color: theme.textMuted }}>
                       Age{" "}
                       <span className="font-semibold" style={{ color: theme.textPrimary }}>
                         {data.age}
@@ -909,7 +909,7 @@ export default function JournalDrawer() {
                     </span>
                   )}
                   {data.gender && data.gender.toLowerCase() !== "unknown" && (
-                    <span className="inline-flex items-center gap-1 rounded-full border px-3 py-0.5 font-medium" style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.textMuted }}>
+                    <span className="inline-flex items-center gap-1 rounded-full px-3 py-0.5 font-medium shadow-sm" style={{ backgroundColor: theme.surface, color: theme.textMuted }}>
                       Gender{" "}
                       <span className="font-semibold" style={{ color: theme.textPrimary }}>
                         {data.gender}
@@ -919,8 +919,8 @@ export default function JournalDrawer() {
                   {metadata.map((item) => (
                     <span
                       key={item.label}
-                      className="inline-flex items-center gap-1 rounded-full border px-3 py-0.5 font-medium"
-                      style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.textMuted }}
+                      className="inline-flex items-center gap-1 rounded-full px-3 py-0.5 font-medium shadow-sm"
+                      style={{ backgroundColor: theme.surface, color: theme.textMuted }}
                     >
                       {item.label}{" "}
                       <span className="font-semibold" style={{ color: theme.textPrimary }}>
@@ -943,7 +943,7 @@ export default function JournalDrawer() {
             </div>
 
             {data.scratchpad?.trim() && (
-              <div className="mt-4 rounded-xl px-3.5 py-3 text-sm leading-relaxed shadow-inner" style={{ backgroundColor: theme.surface, color: theme.textSecondary }}>
+              <div className="mt-4 rounded-xl px-3.5 py-3 text-sm leading-relaxed shadow-sm" style={{ backgroundColor: theme.surface, color: theme.textSecondary }}>
                 {data.scratchpad}
               </div>
             )}
@@ -966,7 +966,7 @@ export default function JournalDrawer() {
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between rounded-xl border px-3 py-2"
+                      className="flex items-center justify-between rounded-xl border px-3 py-2 shadow-sm"
                       style={{
                         backgroundColor: baseColors.background,
                         borderColor: "transparent",
@@ -1001,7 +1001,7 @@ export default function JournalDrawer() {
                   .map((need, idx) => (
                     <li
                       key={`${need}-${idx}`}
-                      className="rounded-full px-3 py-1 text-xs font-medium"
+                      className="rounded-full px-3 py-1 text-xs font-medium shadow-sm"
                       style={{ backgroundColor: theme.surface, color: theme.textPrimary }}
                     >
                       {need}
@@ -1161,7 +1161,7 @@ export default function JournalDrawer() {
                     {partData && (
                       <div className="mt-3 flex flex-wrap items-center gap-2">
                         <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${partTypePill.className}`}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize shadow-sm ${partTypePill.className}`}
                         >
                           {partTypePill.icon}
                           {partType || "No type set"}
@@ -1260,12 +1260,14 @@ export default function JournalDrawer() {
                     e.stopPropagation();
                     handleSelectEntry(entry);
                   }}
-                  className="w-full rounded-xl border-2 transition text-left p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  className={`w-full rounded-xl transition text-left p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isActive ? 'border-0' : 'border-2'}`}
                   style={{
                     backgroundColor: isActive ? theme.elevated : (darkMode ? theme.surface : theme.card),
-                    borderColor: isActive ? theme.accent : theme.border,
+                    borderColor: isActive ? 'transparent' : theme.border,
                     ...(isActive ? {
-                      boxShadow: `0 0 0 2px ${theme.accent}33, 0 10px 15px -3px rgba(0, 0, 0, 0.1)`,
+                      boxShadow: darkMode 
+                        ? 'rgb(148 146 204) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px'
+                        : `0 0 0 2px ${theme.accent}33, 0 10px 15px -3px rgba(0, 0, 0, 0.1)`,
                     } : {}),
                   }}
                   onMouseEnter={(e) => {
@@ -1283,53 +1285,21 @@ export default function JournalDrawer() {
                 >
                   {/* Header with dates and actions */}
                   <div className="flex items-start justify-between mb-3 gap-4">
-                    <div className="flex-1 space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-xs">
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-xs min-w-0">
                         <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: isActive ? theme.textPrimary : theme.textSecondary }} />
-                        <span style={{ color: isActive ? theme.textPrimary : theme.textSecondary }}>
+                        <span className="truncate" style={{ color: isActive ? theme.textPrimary : theme.textSecondary }}>
                           {new Date(entry.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(entry.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      
-                      {/* Entry type */}
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border ${
-                          entryIsTextThread
-                            ? isActive
-                              ? darkMode
-                                ? "bg-purple-900/60 text-purple-200 border-purple-700/70"
-                                : "bg-purple-100 text-purple-700 border-purple-300"
-                              : darkMode
-                                ? "bg-purple-900/40 text-purple-200 border-purple-700/50"
-                                : "bg-purple-50 text-purple-700 border-purple-200"
-                            : isActive
-                              ? darkMode
-                                ? "bg-blue-900/60 text-blue-200 border-blue-700/70"
-                                : "bg-blue-100 text-blue-700 border-blue-300"
-                              : darkMode
-                                ? "bg-blue-900/40 text-blue-200 border-blue-700/50"
-                                : "bg-blue-50 text-blue-700 border-blue-200"
-                        }`}>
-                          {entryIsTextThread ? (
-                            <>
-                              <MessagesSquare className="w-3 h-3" />
-                              Text Thread
-                            </>
-                          ) : (
-                            <>
-                              <Book className="w-3 h-3" />
-                              Journal
-                            </>
-                          )}
                         </span>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {isActive && (
-                        <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide" style={{
-                          backgroundColor: theme.elevated,
-                          color: theme.textPrimary,
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{
+                          backgroundColor: darkMode ? '#4c4d4d' : 'white',
+                          color: darkMode ? '#eeeeee' : theme.textPrimary,
+                          boxShadow: 'none',
                         }}>
                           Current
                         </span>
