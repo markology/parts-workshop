@@ -1376,10 +1376,22 @@ export default function JournalDrawer() {
       >
         <div className="flex h-full flex-col overflow-hidden shadow-2xl" style={{ backgroundColor: theme.modal }}>
           <header className="border-b px-4 py-3 shadow-sm backdrop-blur" style={{ borderColor: theme.border, backgroundColor: theme.elevated }}>
-            <div className="flex items-center justify-between gap-3 max-w-4xl mx-auto">
-              <h2 className="text-lg font-semibold truncate flex-1 min-w-0" style={{ color: theme.textPrimary }}>
-                {nodeLabel}
-              </h2>
+            <div className="flex items-center justify-center">
+              <div 
+                className="flex items-center justify-between gap-3 w-full transition-all duration-300 ease-in-out"
+                style={{
+                  maxWidth: (journalMode === 'textThread' || journalMode === null)
+                    ? showLeftPanel 
+                      ? 'calc(600px + 19.5rem)' 
+                      : '600px'
+                    : showLeftPanel 
+                      ? 'calc(56rem + 19.5rem)' 
+                      : '56rem',
+                }}
+              >
+                <h2 className="text-lg font-semibold truncate flex-1 min-w-0" style={{ color: theme.textPrimary }}>
+                  {nodeLabel}
+                </h2>
               
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button
@@ -1496,15 +1508,32 @@ export default function JournalDrawer() {
                   <X size={18} />
                 </button>
               </div>
+              </div>
             </div>
           </header>
 
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="relative flex flex-1 flex-col gap-6 overflow-y-auto px-6 pb-6 pt-6">
+              {/* Container wrapper for centering */}
+              <div 
+                className="relative flex items-start gap-6 w-full h-full transition-all duration-300 ease-in-out"
+                style={{
+                  maxWidth: (journalMode === 'textThread' || journalMode === null)
+                    ? showLeftPanel 
+                      ? 'calc(600px + 19.5rem)' 
+                      : '600px'
+                    : showLeftPanel 
+                      ? 'calc(56rem + 19.5rem)' 
+                      : '56rem',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  height: '100%',
+                }}
+              >
               {/* Left panel with tabs */}
               {showLeftPanel && (
                 <>
-                  <aside className="hidden lg:absolute lg:flex h-[calc(100%-3rem)] w-72 flex-col overflow-hidden rounded-2xl border shadow-inner" style={{ left: '1.5rem', top: '1.5rem', backgroundColor: theme.card, borderColor: theme.border }}>
+                  <aside className="hidden lg:absolute lg:flex w-72 flex-col overflow-hidden rounded-2xl border shadow-inner transition-all duration-300 ease-in-out" style={{ left: 0, top: 0, height: '100%', backgroundColor: theme.card, borderColor: theme.border }}>
                     {/* Tab buttons */}
                     <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
                       <button
@@ -1648,10 +1677,9 @@ export default function JournalDrawer() {
                   </div>
                 </>
               )}
-
-              {/* Main content area - expands to fill space */}
-              <main className={`flex flex-1 flex-col gap-6 overflow-hidden ${showLeftPanel ? 'lg:ml-[19.5rem] lg:mr-6' : 'items-center'}`}>
-                <div className={`flex-1 overflow-hidden rounded-3xl border p-6 shadow-xl w-full ${showLeftPanel ? '' : journalMode === 'textThread' ? 'max-w-[600px]' : 'max-w-4xl'}`} style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                {/* Main content area */}
+                <main className={`flex flex-1 flex-col gap-6 overflow-hidden transition-all duration-300 ease-in-out ${showLeftPanel ? 'lg:ml-[19.5rem]' : ''}`} style={{ width: (journalMode === 'textThread' || journalMode === null) ? '600px' : '56rem', maxWidth: (journalMode === 'textThread' || journalMode === null) ? '600px' : '56rem', height: '100%' }}>
+                  <div className="flex-1 overflow-hidden rounded-3xl border p-6 shadow-xl w-full transition-all duration-300 ease-in-out" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
                     <div className="flex items-center justify-center h-full">
@@ -1765,8 +1793,9 @@ export default function JournalDrawer() {
                       nodeId={nodeId}
                     />
                   )}
-                </div>
-              </main>
+                  </div>
+                </main>
+              </div>
             </div>
           </div>
         </div>
