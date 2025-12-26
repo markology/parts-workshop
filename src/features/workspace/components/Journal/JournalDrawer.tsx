@@ -1380,7 +1380,7 @@ export default function JournalDrawer() {
               <div 
                 className="flex items-center justify-between gap-3 w-full transition-all duration-300 ease-in-out"
                 style={{
-                  maxWidth: (journalMode === 'textThread' || journalMode === null)
+                  maxWidth: journalMode === 'textThread'
                     ? showLeftPanel 
                       ? 'calc(600px + 19.5rem)' 
                       : '600px'
@@ -1518,7 +1518,7 @@ export default function JournalDrawer() {
               <div 
                 className="relative flex items-start gap-6 w-full h-full transition-all duration-300 ease-in-out"
                 style={{
-                  maxWidth: (journalMode === 'textThread' || journalMode === null)
+                  maxWidth: journalMode === 'textThread'
                     ? showLeftPanel 
                       ? 'calc(600px + 19.5rem)' 
                       : '600px'
@@ -1678,12 +1678,12 @@ export default function JournalDrawer() {
                 </>
               )}
                 {/* Main content area */}
-                <main className={`flex flex-1 flex-col gap-6 overflow-hidden transition-all duration-300 ease-in-out ${showLeftPanel ? 'lg:ml-[19.5rem]' : ''}`} style={{ width: (journalMode === 'textThread' || journalMode === null) ? '600px' : '56rem', maxWidth: (journalMode === 'textThread' || journalMode === null) ? '600px' : '56rem', height: '100%' }}>
+                <main className={`flex flex-1 flex-col gap-6 overflow-hidden transition-all duration-300 ease-in-out ${showLeftPanel ? 'lg:ml-[19.5rem]' : ''}`} style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', height: '100%' }}>
                   <div className="flex-1 overflow-hidden rounded-3xl border p-6 shadow-xl w-full transition-all duration-300 ease-in-out" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
                     <div className="flex items-center justify-center h-full">
-                      <div className="max-w-2xl w-full p-8">
+                      <div className="w-full p-8" style={{ width: '56rem', maxWidth: '56rem' }}>
                         <div className="text-center mb-8">
                           <h3 className="text-2xl font-bold mb-2" style={{ color: theme.textPrimary }}>
                             Choose Journal Type
