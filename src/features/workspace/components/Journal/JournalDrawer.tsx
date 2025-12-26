@@ -1610,13 +1610,29 @@ export default function JournalDrawer() {
           )}
 
           <div className="flex flex-1 flex-col overflow-hidden">
-            <div className={`relative flex flex-1 flex-col gap-6 overflow-y-auto transition-all duration-300 ease-in-out ${distractionFree ? 'px-0 pb-0 pt-0' : 'px-6 pb-6 pt-6'}`}>
-              {!distractionFree && (
-                <>
-                  {/* Left panel with tabs */}
-                  {showLeftPanel && (
-                    <>
-                  <aside className="hidden lg:absolute lg:flex w-72 flex-col overflow-hidden rounded-2xl border shadow-inner transition-all duration-300 ease-in-out" style={{ left: 0, top: 0, height: '100%', backgroundColor: theme.card, borderColor: theme.border }}>
+            <div className={`relative flex flex-1 flex-col gap-6 overflow-y-auto transition-all duration-300 ease-in-out ${distractionFree ? 'px-0 pb-0 pt-0' : 'px-6 pb-6 pt-6'}`} style={distractionFree ? {} : { paddingTop: '1.5rem' }}>
+              {/* Container wrapper for centering */}
+              <div 
+                className={`relative flex items-start gap-6 w-full h-full transition-all duration-300 ease-in-out ${distractionFree ? 'mx-auto' : ''}`}
+                style={{
+                  maxWidth: distractionFree 
+                    ? (journalMode === 'textThread' ? '600px' : '56rem')
+                    : (journalMode === 'textThread'
+                      ? showLeftPanel 
+                        ? 'calc(600px + 19.5rem)' 
+                        : '600px'
+                      : showLeftPanel 
+                        ? 'calc(56rem + 19.5rem)' 
+                        : '56rem'),
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  height: '100%',
+                }}
+              >
+                {/* Left panel with tabs */}
+                {!distractionFree && showLeftPanel && (
+                  <>
+                    <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-inner transition-all duration-300 ease-in-out" style={{ height: '100%', backgroundColor: theme.card, borderColor: theme.border }}>
                     {/* Tab buttons */}
                     <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
                       <button
@@ -1758,30 +1774,10 @@ export default function JournalDrawer() {
                       </div>
                     </div>
                   </div>
-                    </>
-                  )}
-                </>
-              )}
-              {/* Container wrapper for centering */}
-              <div 
-                className={`relative flex items-start gap-6 w-full h-full transition-all duration-300 ease-in-out ${distractionFree ? 'mx-auto' : ''}`}
-                style={{
-                  maxWidth: distractionFree 
-                    ? (journalMode === 'textThread' ? '600px' : '56rem')
-                    : (journalMode === 'textThread'
-                      ? showLeftPanel 
-                        ? 'calc(600px + 19.5rem)' 
-                        : '600px'
-                      : showLeftPanel 
-                        ? 'calc(56rem + 19.5rem)' 
-                        : '56rem'),
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  height: '100%',
-                }}
-              >
+                  </>
+                )}
                 {/* Main content area */}
-                <main className={`flex flex-1 flex-col gap-6 overflow-hidden transition-all duration-300 ease-in-out ${distractionFree ? '' : (showLeftPanel ? 'lg:ml-[19.5rem]' : '')}`} style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', height: '100%' }}>
+                <main className="flex flex-1 flex-col gap-6 overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0" style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', height: '100%' }}>
                   <div className={`flex-1 overflow-hidden border shadow-xl w-full transition-all duration-300 ease-in-out ${distractionFree ? 'rounded-none border-0 shadow-none' : 'rounded-3xl border p-6'}`} style={{ backgroundColor: theme.card, borderColor: distractionFree ? 'transparent' : theme.border, ...(distractionFree ? { padding: 0 } : {}) }}>
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
