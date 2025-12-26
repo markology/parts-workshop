@@ -1394,7 +1394,7 @@ export default function JournalDrawer() {
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold flex-shrink-0 shadow-sm ${isSaving ? "animate-pulse" : ""}`}
                     style={{
                       backgroundColor: canSave && !isSaving ? theme.info : theme.button,
-                      color: canSave && !isSaving ? theme.buttonText : theme.textMuted,
+                      color: canSave && !isSaving ? 'white' : theme.textMuted,
                       ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                       ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                       transition: "none !important",
@@ -1407,6 +1407,7 @@ export default function JournalDrawer() {
                     onMouseLeave={(e) => {
                       if (canSave && !isSaving) {
                         e.currentTarget.style.backgroundColor = theme.info;
+                        e.currentTarget.style.color = 'white';
                       }
                     }}
                   >
@@ -1448,7 +1449,7 @@ export default function JournalDrawer() {
               <header className="border-b px-4 py-3 shadow-sm backdrop-blur" style={{ borderColor: theme.border, backgroundColor: theme.elevated }}>
               <div className="flex items-center justify-center">
                 <div 
-                  className="flex items-center justify-between gap-3 w-full transition-all duration-300 ease-in-out"
+                  className="flex items-center justify-between gap-3 w-full"
                   style={{
                     maxWidth: journalMode === 'textThread'
                       ? showLeftPanel 
@@ -1457,6 +1458,7 @@ export default function JournalDrawer() {
                       : showLeftPanel 
                         ? 'calc(56rem + 19.5rem)' 
                         : '56rem',
+                    transition: 'max-width 300ms ease-in-out',
                   }}
                 >
                   <h2 className="text-lg font-semibold truncate flex-1 min-w-0" style={{ color: theme.textPrimary }}>
@@ -1533,7 +1535,7 @@ export default function JournalDrawer() {
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold flex-shrink-0 shadow-sm ${isSaving ? "animate-pulse" : ""}`}
                   style={{
                     backgroundColor: canSave && !isSaving ? theme.info : theme.button,
-                    color: canSave && !isSaving ? theme.buttonText : theme.textMuted,
+                    color: canSave && !isSaving ? 'white' : theme.textMuted,
                     ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                     ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                     transition: "none !important",
@@ -1541,11 +1543,13 @@ export default function JournalDrawer() {
                   onMouseEnter={(e) => {
                     if (canSave && !isSaving) {
                       e.currentTarget.style.backgroundColor = "#2563eb"; // Darker blue on hover
+                      e.currentTarget.style.color = 'white';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (canSave && !isSaving) {
                       e.currentTarget.style.backgroundColor = theme.info;
+                      e.currentTarget.style.color = 'white';
                     }
                   }}
                 >
@@ -1613,7 +1617,7 @@ export default function JournalDrawer() {
             <div className={`relative flex flex-1 flex-col gap-6 transition-all duration-300 ease-in-out ${distractionFree ? 'px-0 pt-0 overflow-hidden' : 'px-6 pb-6 pt-6 overflow-y-auto'}`} style={distractionFree ? { paddingBottom: '1.5rem' } : { paddingTop: '1.5rem' }}>
               {/* Container wrapper for centering */}
               <div 
-                className={`relative flex items-start gap-6 w-full transition-all duration-300 ease-in-out ${distractionFree ? 'mx-auto h-full' : 'h-full'}`}
+                className={`relative flex items-start gap-6 w-full ${distractionFree ? 'mx-auto h-full' : 'h-full'}`}
                 style={{
                   maxWidth: distractionFree 
                     ? (journalMode === 'textThread' ? '600px' : '56rem')
@@ -1627,6 +1631,7 @@ export default function JournalDrawer() {
                   marginLeft: 'auto',
                   marginRight: 'auto',
                   ...(distractionFree ? { height: '100%' } : {}),
+                  transition: distractionFree ? 'height 300ms ease-in-out' : 'max-width 300ms ease-in-out, height 300ms ease-in-out',
                 }}
               >
                 {/* Left panel with tabs */}
@@ -1777,7 +1782,7 @@ export default function JournalDrawer() {
                   </>
                 )}
                 {/* Main content area */}
-                <main className={`flex flex-col overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${distractionFree ? 'flex-1 gap-0' : 'gap-6'}`} style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', ...(distractionFree ? { height: '100%', maxHeight: '100%' } : { height: '100%' }) }}>
+                <main className={`flex flex-col overflow-hidden flex-shrink-0 ${distractionFree ? 'flex-1 gap-0' : 'gap-6 transition-all duration-300 ease-in-out'}`} style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', ...(distractionFree ? { height: '100%', maxHeight: '100%', transition: 'height 300ms ease-in-out' } : { height: '100%' }) }}>
                   <div className={`flex-1 overflow-hidden border shadow-xl w-full transition-all duration-300 ease-in-out ${distractionFree ? 'rounded-none border-0 shadow-none flex flex-col' : 'rounded-3xl border p-6'}`} style={{ backgroundColor: theme.card, borderColor: distractionFree ? 'transparent' : theme.border, ...(distractionFree ? { padding: 0, minHeight: 0 } : {}) }}>
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
