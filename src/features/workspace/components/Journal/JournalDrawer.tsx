@@ -1379,7 +1379,7 @@ export default function JournalDrawer() {
           {distractionFree ? (
             <>
               {/* Distraction-free header */}
-              <header className="border-b px-4 py-3 shadow-sm backdrop-blur" style={{ borderColor: theme.border, backgroundColor: theme.elevated }}>
+              <header className="px-4 py-3" style={{ border: 'none', backgroundColor: 'transparent', boxShadow: 'none' }}>
               <div className="flex items-center justify-center">
                 <div 
                   className="flex items-center justify-end gap-2 w-full transition-all duration-300 ease-in-out"
@@ -1610,10 +1610,10 @@ export default function JournalDrawer() {
           )}
 
           <div className="flex flex-1 flex-col overflow-hidden">
-            <div className={`relative flex flex-1 flex-col gap-6 overflow-y-auto transition-all duration-300 ease-in-out ${distractionFree ? 'px-0 pb-0 pt-0' : 'px-6 pb-6 pt-6'}`} style={distractionFree ? {} : { paddingTop: '1.5rem' }}>
+            <div className={`relative flex flex-1 flex-col gap-6 transition-all duration-300 ease-in-out ${distractionFree ? 'px-0 pt-0 overflow-hidden' : 'px-6 pb-6 pt-6 overflow-y-auto'}`} style={distractionFree ? { paddingBottom: '1.5rem' } : { paddingTop: '1.5rem' }}>
               {/* Container wrapper for centering */}
               <div 
-                className={`relative flex items-start gap-6 w-full h-full transition-all duration-300 ease-in-out ${distractionFree ? 'mx-auto' : ''}`}
+                className={`relative flex items-start gap-6 w-full transition-all duration-300 ease-in-out ${distractionFree ? 'mx-auto h-full' : 'h-full'}`}
                 style={{
                   maxWidth: distractionFree 
                     ? (journalMode === 'textThread' ? '600px' : '56rem')
@@ -1626,15 +1626,15 @@ export default function JournalDrawer() {
                         : '56rem'),
                   marginLeft: 'auto',
                   marginRight: 'auto',
-                  height: '100%',
+                  ...(distractionFree ? { height: '100%' } : {}),
                 }}
               >
                 {/* Left panel with tabs */}
                 {!distractionFree && showLeftPanel && (
                   <>
                     <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-inner transition-all duration-300 ease-in-out" style={{ height: '100%', backgroundColor: theme.card, borderColor: theme.border }}>
-                    {/* Tab buttons */}
-                    <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
+                      {/* Tab buttons */}
+                      <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
                       <button
                         type="button"
                         onClick={() => setLeftPanelTab("info")}
@@ -1777,8 +1777,8 @@ export default function JournalDrawer() {
                   </>
                 )}
                 {/* Main content area */}
-                <main className="flex flex-1 flex-col gap-6 overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0" style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', height: '100%' }}>
-                  <div className={`flex-1 overflow-hidden border shadow-xl w-full transition-all duration-300 ease-in-out ${distractionFree ? 'rounded-none border-0 shadow-none' : 'rounded-3xl border p-6'}`} style={{ backgroundColor: theme.card, borderColor: distractionFree ? 'transparent' : theme.border, ...(distractionFree ? { padding: 0 } : {}) }}>
+                <main className={`flex flex-col overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${distractionFree ? 'flex-1 gap-0' : 'gap-6'}`} style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', ...(distractionFree ? { height: '100%', maxHeight: '100%' } : { height: '100%' }) }}>
+                  <div className={`flex-1 overflow-hidden border shadow-xl w-full transition-all duration-300 ease-in-out ${distractionFree ? 'rounded-none border-0 shadow-none flex flex-col' : 'rounded-3xl border p-6'}`} style={{ backgroundColor: theme.card, borderColor: distractionFree ? 'transparent' : theme.border, ...(distractionFree ? { padding: 0, minHeight: 0 } : {}) }}>
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
                     <div className="flex items-center justify-center h-full">
