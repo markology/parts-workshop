@@ -1302,12 +1302,14 @@ export default function JournalDrawer() {
                     if (!isActive) {
                       e.currentTarget.style.borderColor = theme.border;
                       e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                      e.currentTarget.style.backgroundColor = theme.elevated;
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.borderColor = theme.border;
                       e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
+                      e.currentTarget.style.backgroundColor = darkMode ? theme.surface : theme.card;
                     }
                   }}
                 >
@@ -1539,7 +1541,7 @@ export default function JournalDrawer() {
                   title={showLeftPanel ? "Info active - Hide sidebar" : "Info inactive - Show sidebar"}
                 >
                   <Layers size={14} />
-                  Info
+                  {showLeftPanel ? "Hide Info" : "Info"}
                 </button>
 
                 <button
@@ -1692,7 +1694,9 @@ export default function JournalDrawer() {
                         className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                         style={{
                           borderBottom: leftPanelTab === "info" ? `2px solid ${theme.accent}` : 'none',
-                          backgroundColor: leftPanelTab === "info" ? theme.card : 'transparent',
+                          backgroundColor: leftPanelTab === "info" 
+                            ? (darkMode ? theme.elevated : theme.card)
+                            : (darkMode ? theme.card : 'transparent'),
                           transition: "none !important",
                           color: leftPanelTab === "info" ? theme.textPrimary : theme.textSecondary,
                         }}
@@ -1704,7 +1708,7 @@ export default function JournalDrawer() {
                         }}
                         onMouseLeave={(e) => {
                           if (leftPanelTab !== "info") {
-                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.backgroundColor = darkMode ? theme.card : 'transparent';
                             e.currentTarget.style.color = theme.textSecondary;
                           }
                         }}
@@ -1720,7 +1724,9 @@ export default function JournalDrawer() {
                         className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                         style={{
                           borderBottom: leftPanelTab === "history" ? `2px solid ${theme.accent}` : 'none',
-                          backgroundColor: leftPanelTab === "history" ? theme.card : 'transparent',
+                          backgroundColor: leftPanelTab === "history" 
+                            ? (darkMode ? theme.elevated : theme.card)
+                            : (darkMode ? theme.card : 'transparent'),
                           color: leftPanelTab === "history" ? theme.textPrimary : theme.textSecondary,
                         }}
                         onMouseEnter={(e) => {
@@ -1731,7 +1737,7 @@ export default function JournalDrawer() {
                         }}
                         onMouseLeave={(e) => {
                           if (leftPanelTab !== "history") {
-                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.backgroundColor = darkMode ? theme.card : 'transparent';
                             e.currentTarget.style.color = theme.textSecondary;
                           }
                         }}
@@ -1764,7 +1770,9 @@ export default function JournalDrawer() {
                           className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                           style={{
                             borderBottom: leftPanelTab === "info" ? `2px solid ${theme.accent}` : 'none',
-                            backgroundColor: leftPanelTab === "info" ? theme.card : 'transparent',
+                            backgroundColor: leftPanelTab === "info" 
+                              ? (darkMode ? theme.elevated : theme.card)
+                              : (darkMode ? theme.card : 'transparent'),
                             color: leftPanelTab === "info" ? theme.textPrimary : theme.textSecondary,
                           }}
                           onMouseEnter={(e) => {
@@ -1775,7 +1783,7 @@ export default function JournalDrawer() {
                           }}
                           onMouseLeave={(e) => {
                             if (leftPanelTab !== "info") {
-                              e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.backgroundColor = darkMode ? theme.card : 'transparent';
                               e.currentTarget.style.color = theme.textSecondary;
                             }
                           }}
@@ -1791,7 +1799,9 @@ export default function JournalDrawer() {
                           className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                           style={{
                             borderBottom: leftPanelTab === "history" ? `2px solid ${theme.accent}` : 'none',
-                            backgroundColor: leftPanelTab === "history" ? theme.card : 'transparent',
+                            backgroundColor: leftPanelTab === "history" 
+                              ? (darkMode ? theme.elevated : theme.card)
+                              : (darkMode ? theme.card : 'transparent'),
                             color: leftPanelTab === "history" ? theme.textPrimary : theme.textSecondary,
                           }}
                           onMouseEnter={(e) => {
@@ -1802,7 +1812,7 @@ export default function JournalDrawer() {
                           }}
                           onMouseLeave={(e) => {
                             if (leftPanelTab !== "history") {
-                              e.currentTarget.style.backgroundColor = 'transparent';
+                              e.currentTarget.style.backgroundColor = darkMode ? theme.card : 'transparent';
                               e.currentTarget.style.color = theme.textSecondary;
                             }
                           }}

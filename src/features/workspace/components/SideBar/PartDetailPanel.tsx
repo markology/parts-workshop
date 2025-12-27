@@ -708,7 +708,7 @@ const PartDetailPanel = () => {
   };
 
   const modalContainerStyle = {
-    backgroundColor: 'rgb(248, 250, 252)',
+    backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : theme.surface,
     borderColor: theme.border,
     color: theme.textPrimary,
   };
@@ -1709,7 +1709,7 @@ const PartDetailPanel = () => {
                         className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
                         style={{
                           ...listItemStyle,
-                          backgroundColor: darkMode ? 'rgb(33, 37, 41)' : 'white',
+                          backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : 'white',
                           border: 'none',
                           color: '#7b42e2',
                         }}
@@ -1782,7 +1782,7 @@ const PartDetailPanel = () => {
                         className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
                         style={{
                           ...listItemStyle,
-                          backgroundColor: darkMode ? 'rgb(33, 37, 41)' : 'white',
+                          backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : 'white',
                           border: 'none',
                           color: '#f78585',
                         }}
@@ -2600,7 +2600,7 @@ const PartDetailPanel = () => {
               style={modalContainerStyle}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="px-6 py-5 flex items-center justify-between" style={{ backgroundColor: 'white' }}>
+              <div className="px-6 py-5 flex items-center justify-between" style={{ backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : theme.surface }}>
                 <div>
                   <h3 className={`text-xl font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                     Journal History
