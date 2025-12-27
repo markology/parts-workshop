@@ -459,6 +459,13 @@ export default function JournalDrawer() {
     return nodeType && IMPRESSION_NODE_TYPES.includes(nodeType as ImpressionType);
   }, [nodeType]);
 
+  // Reset isStartingNewEntry when an entry is loaded
+  useEffect(() => {
+    if (activeEntryId !== null) {
+      setIsStartingNewEntry(false);
+    }
+  }, [activeEntryId]);
+
   // Show mode selection when opening journal with no specific entry
   useEffect(() => {
     if (!isOpen || !journalTarget) return;
@@ -944,8 +951,9 @@ export default function JournalDrawer() {
             </div>
 
             {data.scratchpad?.trim() && (
-              <div className="mt-4 rounded-xl px-3.5 py-3 text-sm leading-relaxed shadow-sm" style={{ backgroundColor: theme.surface, color: theme.textSecondary }}>
-                {data.scratchpad}
+              <div className="rounded-xl px-3.5 py-3 text-xs leading-relaxed shadow-sm" style={{ backgroundColor: theme.surface, color: theme.textSecondary, marginTop: '10px' }}>
+                <span className="font-medium" style={{ color: theme.textMuted }}>Description </span>
+                <span style={{ color: theme.textPrimary }}>{data.scratchpad}</span>
               </div>
             )}
           </section>
@@ -1219,10 +1227,26 @@ export default function JournalDrawer() {
       );
     }
 
+    // Check if there's a draft entry (show even if no content yet)
+    // Only show draft when explicitly starting a new entry
+    const isDraft = isStartingNewEntry;
+    const draftEntry: JournalEntry | null = isDraft ? {
+      id: 'draft',
+      nodeId: nodeId || null,
+      content: journalData,
+      title: deriveTitleFromContent(journalData, "Draft"),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      speakers: speakersArray,
+    } : null;
+
+    // Combine draft entry with saved entries (draft first)
+    const allEntriesToShow = draftEntry ? [draftEntry, ...relevantEntries] : relevantEntries;
+
     return (
       <div className="space-y-3">
         {/* History List */}
-        {relevantEntries.length === 0 ? (
+        {allEntriesToShow.length === 0 ? (
           <div className="space-y-3 text-sm py-4" style={{ color: theme.textSecondary }}>
             <p>No saved journal entries yet.</p>
             <p className="text-xs" style={{ color: theme.textMuted }}>
@@ -1231,9 +1255,10 @@ export default function JournalDrawer() {
           </div>
         ) : (
           <div className="space-y-2">
-            {relevantEntries.map((entry) => {
+            {allEntriesToShow.map((entry) => {
+              const isDraftEntry = entry.id === 'draft';
+              const isActive = entry.id === activeEntryId || isDraftEntry;
               const preview = extractPlainText(entry.content, partNodes);
-              const isActive = entry.id === activeEntryId;
               const entryIsTextThread = isTextThread(entry.content || "");
               
               // Calculate word and character counts
@@ -1259,7 +1284,9 @@ export default function JournalDrawer() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    handleSelectEntry(entry);
+                    if (!isDraftEntry) {
+                      handleSelectEntry(entry);
+                    }
                   }}
                   className={`w-full rounded-xl transition text-left p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isActive ? 'border-0' : 'border-2'}`}
                   style={{
@@ -1290,7 +1317,7 @@ export default function JournalDrawer() {
                       <div className="flex items-center gap-1.5 text-xs min-w-0">
                         <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: isActive ? theme.textPrimary : theme.textSecondary }} />
                         <span className="truncate" style={{ color: isActive ? theme.textPrimary : theme.textSecondary }}>
-                          {new Date(entry.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(entry.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {isDraftEntry ? 'Now' : `${new Date(entry.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} ${new Date(entry.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                         </span>
                       </div>
                     </div>
@@ -1302,7 +1329,7 @@ export default function JournalDrawer() {
                           color: darkMode ? '#eeeeee' : theme.textPrimary,
                           boxShadow: 'none',
                         }}>
-                          Current
+                          {isDraftEntry ? 'Draft' : 'Current'}
                         </span>
                       )}
                     </div>
@@ -1327,27 +1354,29 @@ export default function JournalDrawer() {
                     <span className="text-[10px]" style={{ color: theme.textMuted }}>
                       {wordCount} words • {charCount.toLocaleString()} chars
                     </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        void handleDeleteEntry(entry.id);
-                      }}
-                      className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium"
-                      style={{ color: theme.textMuted }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = theme.error;
-                        e.currentTarget.style.backgroundColor = darkMode ? `${theme.error}33` : `${theme.error}1a`;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = theme.textMuted;
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                      title="Delete entry"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {!isDraftEntry && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          void handleDeleteEntry(entry.id);
+                        }}
+                        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium"
+                        style={{ color: theme.textMuted }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = theme.error;
+                          e.currentTarget.style.backgroundColor = darkMode ? `${theme.error}33` : `${theme.error}1a`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = theme.textMuted;
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        title="Delete entry"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </button>
               );
@@ -1384,7 +1413,11 @@ export default function JournalDrawer() {
                 <div 
                   className="flex items-center justify-end gap-2 w-full transition-all duration-300 ease-in-out"
                   style={{
-                    maxWidth: journalMode === 'textThread' ? '600px' : '56rem',
+                    maxWidth: (() => {
+                      const isShowingJournalOptions = showModeSelection || (journalMode === null && activeEntryId === null);
+                      if (journalMode === 'textThread') return '600px';
+                      return isShowingJournalOptions ? '700px' : '56rem';
+                    })(),
                   }}
                 >
                   <button
@@ -1451,13 +1484,18 @@ export default function JournalDrawer() {
                 <div 
                   className="flex items-center justify-between gap-3 w-full"
                   style={{
-                    maxWidth: journalMode === 'textThread'
-                      ? showLeftPanel 
-                        ? 'calc(600px + 19.5rem)' 
-                        : '600px'
-                      : showLeftPanel 
-                        ? 'calc(56rem + 19.5rem)' 
-                        : '56rem',
+                    maxWidth: (() => {
+                      const isShowingJournalOptions = showModeSelection || (journalMode === null && activeEntryId === null);
+                      
+                      if (journalMode === 'textThread') {
+                        return showLeftPanel ? 'calc(600px + 19.5rem)' : '600px';
+                      }
+                      
+                      return showLeftPanel 
+                        ? (isShowingJournalOptions ? 'calc(700px + 19.5rem)' : 'calc(56rem + 19.5rem)')
+                        : (isShowingJournalOptions ? '700px' : '56rem');
+                    })(),
+                    paddingRight: (journalMode === 'normal' && !showModeSelection && activeEntryId !== null) ? '24px' : undefined,
                     transition: 'max-width 300ms ease-in-out',
                   }}
                 >
@@ -1557,31 +1595,6 @@ export default function JournalDrawer() {
                   {isSaving ? "Saving…" : "Save"}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => void attemptClose()}
-                  className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
-                  style={{
-                    backgroundColor: theme.card,
-                    color: theme.textSecondary,
-                    border: "none",
-                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
-                    transition: "none !important",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.buttonHover;
-                    e.currentTarget.style.color = theme.textPrimary;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.card;
-                    e.currentTarget.style.color = theme.textSecondary;
-                  }}
-                  title="Close"
-                >
-                  <X size={18} />
-                </button>
-
                     <button
                       type="button"
                       onClick={() => setDistractionFree(true)}
@@ -1606,6 +1619,31 @@ export default function JournalDrawer() {
                     >
                       <Maximize2 size={18} />
                     </button>
+
+                <button
+                  type="button"
+                  onClick={() => void attemptClose()}
+                  className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
+                  style={{
+                    backgroundColor: theme.card,
+                    color: theme.textSecondary,
+                    border: "none",
+                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                    transition: "none !important",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.card;
+                    e.currentTarget.style.color = theme.textSecondary;
+                  }}
+                  title="Close"
+                >
+                  <X size={18} />
+                </button>
                   </div>
               </div>
             </div>
@@ -1619,15 +1657,23 @@ export default function JournalDrawer() {
               <div 
                 className={`relative flex items-start gap-6 w-full ${distractionFree ? 'mx-auto h-full' : 'h-full'}`}
                 style={{
-                  maxWidth: distractionFree 
-                    ? (journalMode === 'textThread' ? '600px' : '56rem')
-                    : (journalMode === 'textThread'
-                      ? showLeftPanel 
-                        ? 'calc(600px + 19.5rem)' 
-                        : '600px'
-                      : showLeftPanel 
-                        ? 'calc(56rem + 19.5rem)' 
-                        : '56rem'),
+                  maxWidth: (() => {
+                    const isShowingJournalOptions = showModeSelection || (journalMode === null && activeEntryId === null);
+                    
+                    if (distractionFree) {
+                      return isShowingJournalOptions ? '700px' : (journalMode === 'textThread' ? '600px' : '56rem');
+                    }
+                    
+                    if (journalMode === 'textThread') {
+                      return showLeftPanel ? 'calc(600px + 19.5rem)' : '600px';
+                    }
+                    
+                    if (isShowingJournalOptions) {
+                      return showLeftPanel ? 'calc(700px + 19.5rem)' : '700px';
+                    }
+                    
+                    return showLeftPanel ? 'calc(56rem + 19.5rem)' : '56rem';
+                  })(),
                   marginLeft: 'auto',
                   marginRight: 'auto',
                   ...(distractionFree ? { height: '100%' } : {}),
@@ -1782,12 +1828,29 @@ export default function JournalDrawer() {
                   </>
                 )}
                 {/* Main content area */}
-                <main className={`flex flex-col overflow-hidden flex-shrink-0 ${distractionFree ? 'flex-1 gap-0' : 'gap-6 transition-all duration-300 ease-in-out'}`} style={{ width: journalMode === 'textThread' ? '600px' : '56rem', maxWidth: journalMode === 'textThread' ? '600px' : '56rem', ...(distractionFree ? { height: '100%', maxHeight: '100%', transition: 'height 300ms ease-in-out' } : { height: '100%' }) }}>
-                  <div className={`flex-1 overflow-hidden w-full transition-all duration-300 ease-in-out ${distractionFree ? 'rounded-none flex flex-col' : 'px-6'}`} style={{ backgroundColor: theme.card, ...(distractionFree ? { padding: 0, minHeight: 0 } : {}) }}>
+                <main className={`flex flex-col overflow-hidden flex-shrink-0 ${distractionFree ? 'flex-1 gap-0' : 'gap-6 transition-all duration-300 ease-in-out'} ${journalMode === 'textThread' ? 'shadow-sm' : ''}`} style={{ 
+                  width: (() => {
+                    const isShowingJournalOptions = showModeSelection || (journalMode === null && activeEntryId === null);
+                    if (journalMode === 'textThread') return '600px';
+                    return isShowingJournalOptions ? '700px' : '56rem';
+                  })(),
+                  maxWidth: (() => {
+                    const isShowingJournalOptions = showModeSelection || (journalMode === null && activeEntryId === null);
+                    if (journalMode === 'textThread') return '600px';
+                    return isShowingJournalOptions ? '700px' : '56rem';
+                  })(), 
+                  ...(distractionFree ? { height: '100%', maxHeight: '100%', transition: 'height 300ms ease-in-out' } : { height: '100%' }),
+                  ...(journalMode === 'textThread' ? {
+                    borderRadius: '16px',
+                    padding: '24px',
+                    backgroundColor: 'rgb(241, 245, 249)',
+                  } : {})
+                }}>
+                  <div className={`flex-1 overflow-hidden w-full transition-all duration-300 ease-in-out ${distractionFree && journalMode !== 'textThread' ? 'rounded-none flex flex-col' : journalMode === 'textThread' ? '' : 'px-6'}`} style={{ backgroundColor: journalMode === 'textThread' ? 'transparent' : theme.card, ...(distractionFree && journalMode !== 'textThread' ? { padding: 0, minHeight: 0 } : {}) }}>
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
                     <div className="flex items-center justify-center h-full">
-                      <div className="w-full p-8" style={{ width: '56rem', maxWidth: '56rem' }}>
+                      <div className="w-full p-8" style={{ width: '700px', maxWidth: '700px' }}>
                         <div className="text-center mb-8">
                           <h3 className="text-2xl font-bold mb-2" style={{ color: theme.textPrimary }}>
                             Choose Journal Type

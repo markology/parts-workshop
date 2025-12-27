@@ -708,7 +708,7 @@ const PartDetailPanel = () => {
   };
 
   const modalContainerStyle = {
-    backgroundColor: theme.modal,
+    backgroundColor: 'rgb(248, 250, 252)',
     borderColor: theme.border,
     color: theme.textPrimary,
   };
@@ -2600,7 +2600,7 @@ const PartDetailPanel = () => {
               style={modalContainerStyle}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="px-6 py-5 flex items-center justify-between">
+              <div className="px-6 py-5 flex items-center justify-between" style={{ backgroundColor: 'white' }}>
                 <div>
                   <h3 className={`text-xl font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                     Journal History
