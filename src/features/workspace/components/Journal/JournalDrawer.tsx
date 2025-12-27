@@ -1843,7 +1843,7 @@ export default function JournalDrawer() {
                   ...(journalMode === 'textThread' ? {
                     borderRadius: '16px',
                     padding: '24px',
-                    backgroundColor: 'rgb(241, 245, 249)',
+                    backgroundColor: darkMode ? theme.surface : 'rgb(241, 245, 249)',
                   } : {})
                 }}>
                   <div className={`flex-1 overflow-hidden w-full transition-all duration-300 ease-in-out ${distractionFree && journalMode !== 'textThread' ? 'rounded-none flex flex-col' : journalMode === 'textThread' ? '' : 'px-6'}`} style={{ backgroundColor: journalMode === 'textThread' ? 'transparent' : theme.card, ...(distractionFree && journalMode !== 'textThread' ? { padding: 0, minHeight: 0 } : {}) }}>
@@ -1865,7 +1865,7 @@ export default function JournalDrawer() {
                             onClick={() => handleModeSelect("normal")}
                             className="group relative p-6 rounded-2xl transition-all text-left"
                             style={{
-                              backgroundColor: theme.card,
+                              backgroundColor: darkMode ? theme.elevated : theme.card,
                               boxShadow: darkMode 
                                 ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
                                 : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
@@ -1873,8 +1873,8 @@ export default function JournalDrawer() {
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = darkMode ? "rgba(59, 130, 246, 0.1)" : "rgba(59, 130, 246, 0.05)";
                               e.currentTarget.style.boxShadow = darkMode 
-                                ? "0 10px 15px -3px rgba(59, 130, 246, 0.3), 0 4px 6px -2px rgba(59, 130, 246, 0.2)"
-                                : "0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1)";
+                                ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+                                : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)";
                               const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
                               if (createPill) {
                                 createPill.style.opacity = "1";
@@ -1882,7 +1882,7 @@ export default function JournalDrawer() {
                               }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = theme.card;
+                              e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : theme.card;
                               e.currentTarget.style.boxShadow = darkMode 
                                 ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
                                 : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)";
@@ -1925,7 +1925,7 @@ export default function JournalDrawer() {
                               onClick={() => handleModeSelect("textThread")}
                               className="group relative p-6 rounded-2xl transition-all text-left"
                               style={{
-                                backgroundColor: theme.card,
+                                backgroundColor: darkMode ? theme.elevated : theme.card,
                                 boxShadow: darkMode 
                                   ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
                                   : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
@@ -1933,8 +1933,8 @@ export default function JournalDrawer() {
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = darkMode ? "rgba(168, 85, 247, 0.1)" : "rgba(168, 85, 247, 0.05)";
                                 e.currentTarget.style.boxShadow = darkMode 
-                                  ? "0 10px 15px -3px rgba(168, 85, 247, 0.3), 0 4px 6px -2px rgba(168, 85, 247, 0.2)"
-                                  : "0 10px 15px -3px rgba(168, 85, 247, 0.2), 0 4px 6px -2px rgba(168, 85, 247, 0.1)";
+                                  ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+                                  : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)";
                                 const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
                                 if (createPill) {
                                   createPill.style.opacity = "1";
@@ -1942,7 +1942,7 @@ export default function JournalDrawer() {
                                 }
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = theme.card;
+                                e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : theme.card;
                                 e.currentTarget.style.boxShadow = darkMode 
                                   ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
                                   : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)";

@@ -1145,7 +1145,7 @@ export default function JournalEditor({
           style={{
             borderColor: theme.border,
             backgroundColor: theme.surface,
-            boxShadow: `0 0 0 1.5px ${accentColor}20`,
+            boxShadow: darkMode ? 'none' : `0 0 0 1.5px ${accentColor}20`,
           }}
         >
           <div className="flex-1 relative overflow-hidden">
