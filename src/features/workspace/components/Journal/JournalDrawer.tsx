@@ -1447,7 +1447,7 @@ export default function JournalDrawer() {
             <>
               {/* Normal header */}
               <header className="border-b px-4 py-3 shadow-sm backdrop-blur" style={{ borderColor: theme.border, backgroundColor: theme.elevated }}>
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center" style={{ transition: 'none' }}>
                 <div 
                   className="flex items-center justify-between gap-3 w-full"
                   style={{
@@ -1465,7 +1465,7 @@ export default function JournalDrawer() {
                     {nodeLabel}
                   </h2>
                 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0 transition-all duration-300 ease-in-out">
                     <button
                       type="button"
                       onClick={() => setShowLeftPanel((prev) => !prev)}
@@ -1800,20 +1800,43 @@ export default function JournalDrawer() {
                           <button
                             type="button"
                             onClick={() => handleModeSelect("normal")}
-                            className="group relative p-6 rounded-2xl border-2 transition-all text-left"
+                            className="group relative p-6 rounded-2xl transition-all text-left"
                             style={{
-                              borderColor: theme.border,
                               backgroundColor: theme.surface,
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.borderColor = "#3b82f6";
                               e.currentTarget.style.backgroundColor = darkMode ? "rgba(59, 130, 246, 0.1)" : "rgba(59, 130, 246, 0.05)";
+                              e.currentTarget.style.boxShadow = darkMode 
+                                ? "0 10px 15px -3px rgba(59, 130, 246, 0.3), 0 4px 6px -2px rgba(59, 130, 246, 0.2)"
+                                : "0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1)";
+                              const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
+                              if (createPill) {
+                                createPill.style.opacity = "1";
+                                createPill.style.visibility = "visible";
+                              }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.borderColor = theme.border;
                               e.currentTarget.style.backgroundColor = theme.surface;
+                              e.currentTarget.style.boxShadow = "none";
+                              const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
+                              if (createPill) {
+                                createPill.style.opacity = "0";
+                                createPill.style.visibility = "hidden";
+                              }
                             }}
                           >
+                            <span 
+                              data-create-pill
+                              className="absolute top-3 right-3 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-opacity duration-200" 
+                              style={{
+                                backgroundColor: darkMode ? "rgba(59, 130, 246, 0.3)" : "rgba(59, 130, 246, 0.15)",
+                                color: darkMode ? "#93c5fd" : "#2563eb",
+                                opacity: 0,
+                                visibility: "hidden",
+                              }}
+                            >
+                              New
+                            </span>
                             <div className="flex items-start gap-4">
                               <div className={`p-3 rounded-xl transition ${darkMode ? "bg-blue-900/40" : "bg-blue-100"}`}>
                                 <Book className="w-6 h-6" style={{ color: darkMode ? "#93c5fd" : "#2563eb" }} />
@@ -1832,20 +1855,43 @@ export default function JournalDrawer() {
                             <button
                               type="button"
                               onClick={() => handleModeSelect("textThread")}
-                              className="group relative p-6 rounded-2xl border-2 transition-all text-left"
+                              className="group relative p-6 rounded-2xl transition-all text-left"
                               style={{
-                                borderColor: theme.border,
                                 backgroundColor: theme.surface,
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = "#a855f7";
                                 e.currentTarget.style.backgroundColor = darkMode ? "rgba(168, 85, 247, 0.1)" : "rgba(168, 85, 247, 0.05)";
+                                e.currentTarget.style.boxShadow = darkMode 
+                                  ? "0 10px 15px -3px rgba(168, 85, 247, 0.3), 0 4px 6px -2px rgba(168, 85, 247, 0.2)"
+                                  : "0 10px 15px -3px rgba(168, 85, 247, 0.2), 0 4px 6px -2px rgba(168, 85, 247, 0.1)";
+                                const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
+                                if (createPill) {
+                                  createPill.style.opacity = "1";
+                                  createPill.style.visibility = "visible";
+                                }
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = theme.border;
                                 e.currentTarget.style.backgroundColor = theme.surface;
+                                e.currentTarget.style.boxShadow = "none";
+                                const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
+                                if (createPill) {
+                                  createPill.style.opacity = "0";
+                                  createPill.style.visibility = "hidden";
+                                }
                               }}
                             >
+                              <span 
+                                data-create-pill
+                                className="absolute top-3 right-3 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-opacity duration-200" 
+                                style={{
+                                  backgroundColor: darkMode ? "rgba(168, 85, 247, 0.3)" : "rgba(168, 85, 247, 0.15)",
+                                  color: darkMode ? "#c4b5fd" : "#9333ea",
+                                  opacity: 0,
+                                  visibility: "hidden",
+                                }}
+                              >
+                                New
+                              </span>
                               <div className="flex items-start gap-4">
                                 <div className={`p-3 rounded-xl transition ${darkMode ? "bg-purple-900/40" : "bg-purple-100"}`}>
                                   <MessagesSquare className="w-6 h-6" style={{ color: darkMode ? "#c4b5fd" : "#9333ea" }} />
