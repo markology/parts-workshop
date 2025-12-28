@@ -353,3 +353,25 @@ button {
 .dark *::-webkit-scrollbar-thumb:hover {
   background-color: #4a4e52;
 }
+
+.journal-icon-button {
+  background-color: #f28b8b;
+  color: white;
+}
+
+.journal-icon-button:hover {
+  background-color: #e07575;
+  color: white;
+  background-image: none;
+}
+
+.dark .journal-icon-button {
+  background-color: #924949;
+  color: #e7b8b8;
+}
+
+.dark .journal-icon-button:hover {
+  background-color: #7a3a3a;
+  color: white;
+  background-image: none;
+}
