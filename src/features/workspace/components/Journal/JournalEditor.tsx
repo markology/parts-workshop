@@ -958,7 +958,7 @@ function ColorPicker({
         onMouseDown={(e) => {
           e.preventDefault();
           if (!disabled) {
-            setIsOpen(!isOpen);
+          setIsOpen(!isOpen);
           }
         }}
         className="relative w-8 rounded-md transition-all duration-200"
@@ -1272,31 +1272,31 @@ function Toolbar({
 
   // Helper function to update formatting state from editor state
   const updateFormattingFromEditorState = useCallback((editorState: EditorState) => {
-    editorState.read(() => {
-      const selection = $getSelection();
+      editorState.read(() => {
+        const selection = $getSelection();
 
-      if ($isRangeSelection(selection)) {
+        if ($isRangeSelection(selection)) {
         const anchorNode = selection.anchor.getNode();
         const focusNode = selection.focus.getNode();
-        // Check if caret/selection is in a list
-        const anchor = selection.anchor;
-        let inList = false;
-        let node = anchor.getNode();
-        while (node) {
-          if ($isListNode(node)) {
-            inList = true;
-            break;
+          // Check if caret/selection is in a list
+          const anchor = selection.anchor;
+          let inList = false;
+          let node = anchor.getNode();
+          while (node) {
+            if ($isListNode(node)) {
+              inList = true;
+              break;
+            }
+            const parent = node.getParent();
+            if (!parent) break;
+            node = parent;
           }
-          const parent = node.getParent();
-          if (!parent) break;
-          node = parent;
-        }
 
         const selectionStyleColor = $getSelectionStyleValueForProperty(
-          selection,
-          "color",
-          undefined
-        );
+            selection,
+            "color",
+            undefined
+          );
 
         // IMPORTANT:
         // Lexical can keep a "current selection style" (used for future typing) even when the caret
@@ -1382,7 +1382,7 @@ function Toolbar({
             effectiveItalic = fromAnchor.italic;
             effectiveUnderline = fromAnchor.underline;
             effectiveFormatSource = "textNode";
-          } else {
+        } else {
             const prev = (anchorNode as any)?.getPreviousSibling?.();
             const next = (anchorNode as any)?.getNextSibling?.();
             const fromPrev = readFormatsFromNode(prev);
@@ -1470,15 +1470,15 @@ function Toolbar({
         }
       } else {
         debugLog("no range selection", { activeColorBefore: activeColor });
-        // No selection: reset formats; leave color alone (color picker controls it)
-        setFormats({
-          bold: false,
-          italic: false,
-          underline: false,
-          list: false,
-        });
-      }
-    });
+          // No selection: reset formats; leave color alone (color picker controls it)
+          setFormats({
+            bold: false,
+            italic: false,
+            underline: false,
+            list: false,
+          });
+        }
+      });
   }, [debugLog, setActiveColor, activeColor, onToggleSpeaker, activeSpeaker]);
 
   // Helper function to update formatting from current editor state (for keyboard events)
@@ -1672,7 +1672,7 @@ function Toolbar({
         if (!activeSpeaker) {
           formatText("italic");
         }
-      }}
+        }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.italic),
@@ -1703,7 +1703,7 @@ function Toolbar({
         onMouseDown={(e) => {
           e.preventDefault();
           if (!activeSpeaker) {
-            formatText("underline");
+          formatText("underline");
           }
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
@@ -1736,7 +1736,7 @@ function Toolbar({
         onMouseDown={(e) => {
           e.preventDefault();
           if (!activeSpeaker) {
-            toggleList();
+          toggleList();
           }
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
@@ -1864,7 +1864,7 @@ function Toolbar({
                   // Don't set color on the label - CSS handles the pill styling
                   labelText.setFormat("bold");
                   speakerLine.append(labelText);
-                  
+                    
                   // Insert an empty non-bold text node after the label for future typing
                   // This ensures the cursor is in a non-bold node so typed content won't be bold
                   const contentText = $createTextNode("");
@@ -1901,8 +1901,8 @@ function Toolbar({
                   const rangeSelection = $createRangeSelection();
                   rangeSelection.anchor.set(contentText.getKey(), 0, "text");
                   rangeSelection.focus.set(contentText.getKey(), 0, "text");
-                  $setSelection(rangeSelection);
-                  
+                    $setSelection(rangeSelection);
+                    
                   // Apply color to future typing (already set on contentText, but ensure selection style matches)
                   $patchStyleText(rangeSelection, { color: speakerColor });
                 });
