@@ -26,6 +26,7 @@ import {
   $createRangeSelection,
   $setSelection,
   TextNode,
+  $isTextNode,
 } from "lexical";
 import {
   $patchStyleText,
@@ -404,6 +405,34 @@ function Toolbar({
   nodeType?: ImpressionType | "part" | "tension" | "interaction";
 }) {
   const [editor] = useLexicalComposerContext();
+  const DEBUG_JOURNAL_EDITOR =
+    typeof window !== "undefined" &&
+    (window.localStorage?.getItem("journalEditorDebug") === "1" ||
+      new URLSearchParams(window.location.search).get("journalEditorDebug") ===
+        "1");
+  const debugLog = useCallback(
+    (message: string, data?: Record<string, unknown>) => {
+      if (!DEBUG_JOURNAL_EDITOR) return;
+      // Use console.log (not console.debug) so it's visible in default DevTools filters.
+      // eslint-disable-next-line no-console
+      console.log(`[JournalEditor][Toolbar] ${message}`, data ?? {});
+    },
+    [DEBUG_JOURNAL_EDITOR]
+  );
+
+  useEffect(() => {
+    if (!DEBUG_JOURNAL_EDITOR) return;
+    // eslint-disable-next-line no-console
+    console.log("[JournalEditor][Toolbar] debug enabled", {
+      viaLocalStorage:
+        typeof window !== "undefined" &&
+        window.localStorage?.getItem("journalEditorDebug") === "1",
+      viaQueryParam:
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("journalEditorDebug") ===
+          "1",
+    });
+  }, [DEBUG_JOURNAL_EDITOR]);
   const [formats, setFormats] = useState({
     bold: false,
     italic: false,
@@ -634,53 +663,192 @@ function Toolbar({
     }
   }, [showAddPartDropdown]);
 
-  useEffect(() => {
-    return editor.registerUpdateListener(({ editorState, prevEditorState }) => {
-      editorState.read(() => {
-        const selection = $getSelection();
-        const root = $getRoot();
+  // Helper function to update formatting state from editor state
+  const updateFormattingFromEditorState = useCallback((editorState: EditorState) => {
+    editorState.read(() => {
+      const selection = $getSelection();
 
-        if ($isRangeSelection(selection)) {
-          // Check if caret/selection is in a list
-          const anchor = selection.anchor;
-          let inList = false;
-          let node = anchor.getNode();
-          while (node) {
-            if ($isListNode(node)) {
-              inList = true;
-              break;
+      if ($isRangeSelection(selection)) {
+        const anchorNode = selection.anchor.getNode();
+        const focusNode = selection.focus.getNode();
+        // Check if caret/selection is in a list
+        const anchor = selection.anchor;
+        let inList = false;
+        let node = anchor.getNode();
+        while (node) {
+          if ($isListNode(node)) {
+            inList = true;
+            break;
+          }
+          const parent = node.getParent();
+          if (!parent) break;
+          node = parent;
+        }
+
+        const selectionStyleColor = $getSelectionStyleValueForProperty(
+          selection,
+          "color",
+          undefined
+        );
+
+        // IMPORTANT:
+        // Lexical can keep a "current selection style" (used for future typing) even when the caret
+        // moves through differently-styled text via Backspace/Delete. To make the toolbar reflect
+        // what the caret is *actually inside*, we try to read the style from the underlying TextNode.
+        let effectiveColor: string | null = null;
+        let effectiveColorSource: "textNode" | "neighborTextNode" | "selectionStyle" | "none" =
+          "none";
+
+        const readColorFromStyleString = (style: string | null | undefined) => {
+          if (!style) return null;
+          // Lexical stores inline styles as a CSS string, e.g. "color: rgb(239, 68, 68); font-weight: 700;"
+          // We'll extract the color value if present.
+          const match = style.match(/(?:^|;)\s*color\s*:\s*([^;]+)\s*(?:;|$)/i);
+          return match?.[1]?.trim() ?? null;
+        };
+
+        if (selection.isCollapsed()) {
+          // Try the node the caret is in.
+          if ($isTextNode(anchorNode)) {
+            const fromNode = readColorFromStyleString(anchorNode.getStyle());
+            if (fromNode) {
+              effectiveColor = fromNode;
+              effectiveColorSource = "textNode";
             }
-            const parent = node.getParent();
-            if (!parent) break;
-            node = parent;
           }
 
-          setFormats({
+          // If caret is at an element boundary, the anchor node might not be the node that visually
+          // "owns" the caret. As a fallback, check nearest text neighbors.
+          if (!effectiveColor) {
+            const tryNeighbor = (node: unknown) => {
+              if ($isTextNode(node as any)) {
+                return readColorFromStyleString((node as TextNode).getStyle());
+              }
+              return null;
+            };
+
+            const prev = (anchorNode as any)?.getPreviousSibling?.();
+            const next = (anchorNode as any)?.getNextSibling?.();
+            const fromPrev = tryNeighbor(prev);
+            const fromNext = tryNeighbor(next);
+            if (fromPrev) {
+              effectiveColor = fromPrev;
+              effectiveColorSource = "neighborTextNode";
+            } else if (fromNext) {
+              effectiveColor = fromNext;
+              effectiveColorSource = "neighborTextNode";
+            }
+          }
+        }
+
+        if (!effectiveColor) {
+          effectiveColor = selectionStyleColor ?? null;
+          effectiveColorSource = selectionStyleColor ? "selectionStyle" : "none";
+        }
+
+        debugLog("selection read", {
+          isCollapsed: selection.isCollapsed(),
+          anchorKey: selection.anchor.key,
+          anchorOffset: selection.anchor.offset,
+          anchorType: selection.anchor.type,
+          anchorNodeType: (anchorNode as any)?.getType?.(),
+          anchorNodeKey: (anchorNode as any)?.getKey?.(),
+          anchorNodeStyle: $isTextNode(anchorNode) ? anchorNode.getStyle() : null,
+          focusKey: selection.focus.key,
+          focusOffset: selection.focus.offset,
+          focusType: selection.focus.type,
+          focusNodeType: (focusNode as any)?.getType?.(),
+          focusNodeKey: (focusNode as any)?.getKey?.(),
+          focusNodeStyle: $isTextNode(focusNode) ? focusNode.getStyle() : null,
+          formats: {
             bold: selection.hasFormat("bold"),
             italic: selection.hasFormat("italic"),
             underline: selection.hasFormat("underline"),
-            list: inList,
-          });
+          },
+          inList,
+          selectionStyleColor: selectionStyleColor ?? null,
+          effectiveColor,
+          effectiveColorSource,
+          activeColorBefore: activeColor,
+        });
 
-          // 👉 Get current color from selection style (works for caret AND ranges)
-          const color = $getSelectionStyleValueForProperty(
-            selection,
-            "color",
-            undefined
-          );
-          setActiveColor(color || null);
-        } else {
-          // No selection: reset formats; leave color alone (color picker controls it)
-          setFormats({
-            bold: false,
-            italic: false,
-            underline: false,
-            list: false,
-          });
-        }
-      });
+        setFormats({
+          bold: selection.hasFormat("bold"),
+          italic: selection.hasFormat("italic"),
+          underline: selection.hasFormat("underline"),
+          list: inList,
+        });
+
+        // 👉 Use effective color (prefer the text node the caret is actually inside)
+        setActiveColor(effectiveColor || null);
+      } else {
+        debugLog("no range selection", { activeColorBefore: activeColor });
+        // No selection: reset formats; leave color alone (color picker controls it)
+        setFormats({
+          bold: false,
+          italic: false,
+          underline: false,
+          list: false,
+        });
+      }
     });
-  }, [editor, setActiveColor]);
+  }, [debugLog, setActiveColor, activeColor]);
+
+  // Helper function to update formatting from current editor state (for keyboard events)
+  const updateFormattingFromSelection = useCallback(() => {
+    const editorState = editor.getEditorState();
+    updateFormattingFromEditorState(editorState);
+  }, [editor, updateFormattingFromEditorState]);
+
+  // Listen for editor state updates
+  useEffect(() => {
+    return editor.registerUpdateListener(({ editorState, prevEditorState }) => {
+      debugLog("registerUpdateListener fired", {});
+      // Schedule formatting update after the current update cycle completes
+      // This is especially important for backspace/delete operations where
+      // the selection might update in a separate cycle
+      setTimeout(() => {
+        debugLog("registerUpdateListener tick", {});
+        // Read from the latest editor state, not the one passed to the listener
+        // This ensures we get the most up-to-date selection
+        const latestState = editor.getEditorState();
+        updateFormattingFromEditorState(latestState);
+      }, 0);
+    });
+  }, [editor, updateFormattingFromEditorState]);
+
+  // Also listen for keyboard events as a backup, especially for backspace/delete
+  // This ensures formatting updates even if the update listener doesn't fire immediately
+  useEffect(() => {
+    const editorElement = editor.getRootElement();
+    if (!editorElement) return;
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      // Handle backspace and delete
+      if (event.key === 'Backspace' || event.key === 'Delete') {
+        debugLog("keyup", { key: event.key });
+        // Use requestAnimationFrame + setTimeout to ensure Lexical has fully processed
+        // First frame: DOM updates
+        requestAnimationFrame(() => {
+          // Second frame: Lexical state updates
+          requestAnimationFrame(() => {
+            // Then read the state after a small delay
+            setTimeout(() => {
+              debugLog("keyup tick", { key: event.key });
+              updateFormattingFromSelection();
+            }, 5);
+          });
+        });
+      }
+    };
+
+    editorElement.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      editorElement.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [editor, updateFormattingFromSelection, debugLog]);
+
 
   const formatText = (format: "bold" | "italic" | "underline") => {
     editor.update(() => {
