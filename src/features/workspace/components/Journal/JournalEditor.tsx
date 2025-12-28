@@ -242,6 +242,8 @@ function SpeakerLineEnterPlugin({
         if (!$isRangeSelection(selection)) {
           return false;
         }
+        
+        console.log("[BACKSPACE] Handler called, collapsed:", selection.isCollapsed());
 
         // If selection includes the label or we're at the start of content, delete entire SpeakerLineNode
         if (selection.isCollapsed()) {
@@ -301,46 +303,230 @@ function SpeakerLineEnterPlugin({
             }
           }
         } else {
-          // Selection is not collapsed - check if it includes the label
+          // Selection is not collapsed - check if selection includes any part of a pill label
+          // If it does, delete the entire speaker line(s) that contain the label(s)
           const anchorNode = selection.anchor.getNode();
           const focusNode = selection.focus.getNode();
-          let anchorParent = anchorNode.getParent();
-          let focusParent = focusNode.getParent();
           
-          // Check if selection spans a SpeakerLineNode's label
-          if ($isSpeakerLineNode(anchorParent) || $isSpeakerLineNode(focusParent)) {
-            const speakerLine = $isSpeakerLineNode(anchorParent) ? anchorParent : focusParent;
-            if (speakerLine) {
-              const children = speakerLine.getChildren();
-              const firstChild = children[0];
-              
-              // Check if the first child is actually a label node (has bold format)
-              const isLabelNode = firstChild && $isTextNode(firstChild) && firstChild.hasFormat("bold");
-              
-              if (isLabelNode) {
-                const labelNode = firstChild;
+          // Get all nodes in the selection to check if any label is included
+          const nodes = selection.getNodes();
+          console.log("[PILL-DELETE] Selection nodes:", nodes.length);
+          
+          // Track all speaker lines that have their labels in the selection
+          const speakerLinesToDelete = new Set<SpeakerLineNode>();
+          
+          // Check each node in the selection to see if it's a label node
+          for (const node of nodes) {
+            if ($isTextNode(node) && node.hasFormat("bold")) {
+              const parent = node.getParent();
+              if ($isSpeakerLineNode(parent)) {
+                const children = parent.getChildren();
+                const firstChild = children[0];
                 
-                // If selection includes the label, delete entire SpeakerLineNode
-                if (anchorNode === labelNode || focusNode === labelNode ||
-                    (anchorParent === speakerLine && anchorNode === labelNode) ||
-                    (focusParent === speakerLine && focusNode === labelNode)) {
-                  editor.update(() => {
-                    const newParagraph = $createParagraphNode();
-                    speakerLine.replace(newParagraph);
-                    const rangeSelection = $createRangeSelection();
-                    rangeSelection.anchor.set(newParagraph.getKey(), 0, "element");
-                    rangeSelection.focus.set(newParagraph.getKey(), 0, "element");
-                    $setSelection(rangeSelection);
-                  });
-                  
-                  if (event) {
-                    event.preventDefault();
-                  }
-                  return true;
+                // Check if this node is the first child (the label)
+                if (firstChild === node && $isTextNode(firstChild) && firstChild.hasFormat("bold")) {
+                  speakerLinesToDelete.add(parent);
                 }
               }
             }
           }
+          
+          // Also check anchor and focus nodes directly (they might not be in getNodes if selection is within a single node)
+          let anchorSpeakerLine: SpeakerLineNode | null = null;
+          let focusSpeakerLine: SpeakerLineNode | null = null;
+          
+          let currentNode: LexicalNode | null = anchorNode;
+          while (currentNode) {
+            if ($isSpeakerLineNode(currentNode)) {
+              anchorSpeakerLine = currentNode;
+              break;
+            }
+            currentNode = currentNode.getParent();
+          }
+          
+          currentNode = focusNode;
+          while (currentNode) {
+            if ($isSpeakerLineNode(currentNode)) {
+              focusSpeakerLine = currentNode;
+              break;
+            }
+            currentNode = currentNode.getParent();
+          }
+          
+          // Check if anchor or focus is in a label node
+          if (anchorSpeakerLine) {
+            const children = anchorSpeakerLine.getChildren();
+            const firstChild = children[0];
+            if (firstChild && $isTextNode(firstChild) && firstChild.hasFormat("bold") && $isTextNode(anchorNode) && anchorNode === firstChild) {
+              speakerLinesToDelete.add(anchorSpeakerLine);
+            }
+          }
+          
+          if (focusSpeakerLine) {
+            const children = focusSpeakerLine.getChildren();
+            const firstChild = children[0];
+            if (firstChild && $isTextNode(firstChild) && firstChild.hasFormat("bold") && $isTextNode(focusNode) && focusNode === firstChild) {
+              speakerLinesToDelete.add(focusSpeakerLine);
+            }
+          }
+          
+          console.log("[PILL-DELETE] Speaker lines to delete:", Array.from(speakerLinesToDelete).map(sl => sl.getSpeakerId()));
+          
+          // If any speaker lines with labels are in the selection, delete all of them
+          if (speakerLinesToDelete.size > 0) {
+            console.log("[PILL-DELETE] ✓ Intercepting - deleting", speakerLinesToDelete.size, "pill(s)");
+            editor.update(() => {
+              // Find where to position cursor BEFORE deleting - find the node before the first deleted pill
+              const root = $getRoot();
+              const rootChildrenBeforeDelete = root.getChildren();
+              const deletedSpeakerLineKeys = new Set(Array.from(speakerLinesToDelete).map(sl => sl.getKey()));
+              
+              // Find the index of the first deleted speaker line
+              let firstDeletedIndex = -1;
+              for (let i = 0; i < rootChildrenBeforeDelete.length; i++) {
+                if (deletedSpeakerLineKeys.has(rootChildrenBeforeDelete[i].getKey())) {
+                  firstDeletedIndex = i;
+                  break;
+                }
+              }
+              
+              // Store the previous node BEFORE deletion (we'll use this to position cursor after deletion)
+              let previousNodeBeforeDelete: LexicalNode | null = null;
+              if (firstDeletedIndex > 0) {
+                previousNodeBeforeDelete = rootChildrenBeforeDelete[firstDeletedIndex - 1];
+              }
+              
+              // Get all nodes in the selection BEFORE we modify anything
+              const originalSelectedNodes = Array.from(selection.getNodes());
+              const replacementParagraphs: ReturnType<typeof $createParagraphNode>[] = [];
+              
+              // Replace all speaker lines that have labels in the selection with empty paragraphs
+              for (const speakerLine of speakerLinesToDelete) {
+                const newParagraph = $createParagraphNode();
+                speakerLine.replace(newParagraph);
+                replacementParagraphs.push(newParagraph);
+              }
+              
+              // Delete all originally selected nodes
+              // First collect what needs to be removed
+              const elementNodesToRemove: LexicalNode[] = [];
+              
+              for (const node of originalSelectedNodes) {
+                if ($isTextNode(node)) {
+                  // For text nodes, just remove the node (which deletes its content)
+                  if (node.getParent()) {
+                    node.remove();
+                  }
+                } else {
+                  // Collect element nodes to remove
+                  if (!node.getParent()) {
+                    continue; // Already removed
+                  }
+                  if ($isSpeakerLineNode(node)) {
+                    continue; // Already replaced
+                  }
+                  elementNodesToRemove.push(node);
+                }
+              }
+              
+              // Remove the element nodes
+              for (const node of elementNodesToRemove) {
+                node.remove();
+              }
+              
+              // Also delete the replacement paragraphs we created
+              for (const replacementParagraph of replacementParagraphs) {
+                if (replacementParagraph.getParent()) {
+                  replacementParagraph.remove();
+                }
+              }
+              
+              // Now find where to position the cursor - at the end of the node that was before the deleted section
+              let targetNode: LexicalNode | null = null;
+              let targetOffset = 0;
+              
+              if (previousNodeBeforeDelete) {
+                // Find this node in the tree after deletions (by key)
+                const targetKey = previousNodeBeforeDelete.getKey();
+                const rootChildrenAfterDelete = root.getChildren();
+                
+                // Find the node with this key
+                for (const child of rootChildrenAfterDelete) {
+                  if (child.getKey() === targetKey) {
+                    targetNode = child;
+                    break;
+                  }
+                }
+                
+                // If we found the node, position cursor at its end
+                if (targetNode) {
+                  if ($isTextNode(targetNode)) {
+                    targetOffset = targetNode.getTextContent().length;
+                  } else {
+                    // It's an element node - find its last text node
+                    if ('getChildren' in targetNode && typeof (targetNode as any).getChildren === 'function') {
+                      const originalElementNode = targetNode;
+                      const children = (targetNode as any).getChildren();
+                      if (children.length > 0) {
+                        // Walk backwards to find last text node
+                        for (let j = children.length - 1; j >= 0; j--) {
+                          const childNode = children[j];
+                          if ($isTextNode(childNode)) {
+                            targetNode = childNode;
+                            targetOffset = childNode.getTextContent().length;
+                            break;
+                          }
+                        }
+                        // If no text node found, position at end of element
+                        if (targetNode === originalElementNode) {
+                          targetOffset = children.length;
+                        }
+                      } else {
+                        targetOffset = 0;
+                      }
+                    } else {
+                      targetOffset = targetNode.getTextContent().length;
+                    }
+                  }
+                }
+              }
+              
+              // Fallback: if we didn't find a target, use first child
+              if (!targetNode) {
+                targetNode = root.getFirstChild();
+                if (targetNode && $isTextNode(targetNode)) {
+                  targetOffset = targetNode.getTextContent().length;
+                } else {
+                  targetOffset = 0;
+                }
+              }
+              
+              // Ensure we have at least one paragraph
+              if (!targetNode) {
+                targetNode = $createParagraphNode();
+                root.append(targetNode);
+                targetOffset = 0;
+              }
+              
+              // Set selection to the target position
+              const rangeSelection = $createRangeSelection();
+              if ($isTextNode(targetNode)) {
+                rangeSelection.anchor.set(targetNode.getKey(), targetOffset, "text");
+                rangeSelection.focus.set(targetNode.getKey(), targetOffset, "text");
+              } else {
+                rangeSelection.anchor.set(targetNode.getKey(), targetOffset, "element");
+                rangeSelection.focus.set(targetNode.getKey(), targetOffset, "element");
+              }
+              $setSelection(rangeSelection);
+            });
+            
+            if (event) {
+              event.preventDefault();
+            }
+            return true;
+          }
+          // If no labels are in the selection, let Lexical handle the deletion normally
+          console.log("[PILL-DELETE] ✗ No pills in selection - allowing normal deletion");
         }
 
         return false;
@@ -387,6 +573,231 @@ function SpeakerLineEnterPlugin({
               // If there's no label node, don't intercept delete - let it work normally
             }
           }
+        } else {
+          // Selection is not collapsed - check if selection includes any part of a pill label
+          // If it does, delete the entire speaker line(s) that contain the label(s)
+          const anchorNode = selection.anchor.getNode();
+          const focusNode = selection.focus.getNode();
+          
+          // Get all nodes in the selection to check if any label is included
+          const nodes = selection.getNodes();
+          console.log("[PILL-DELETE] Selection nodes:", nodes.length);
+          
+          // Track all speaker lines that have their labels in the selection
+          const speakerLinesToDelete = new Set<SpeakerLineNode>();
+          
+          // Check each node in the selection to see if it's a label node
+          for (const node of nodes) {
+            if ($isTextNode(node) && node.hasFormat("bold")) {
+              const parent = node.getParent();
+              if ($isSpeakerLineNode(parent)) {
+                const children = parent.getChildren();
+                const firstChild = children[0];
+                
+                // Check if this node is the first child (the label)
+                if (firstChild === node && $isTextNode(firstChild) && firstChild.hasFormat("bold")) {
+                  speakerLinesToDelete.add(parent);
+                }
+              }
+            }
+          }
+          
+          // Also check anchor and focus nodes directly (they might not be in getNodes if selection is within a single node)
+          let anchorSpeakerLine: SpeakerLineNode | null = null;
+          let focusSpeakerLine: SpeakerLineNode | null = null;
+          
+          let currentNode: LexicalNode | null = anchorNode;
+          while (currentNode) {
+            if ($isSpeakerLineNode(currentNode)) {
+              anchorSpeakerLine = currentNode;
+              break;
+            }
+            currentNode = currentNode.getParent();
+          }
+          
+          currentNode = focusNode;
+          while (currentNode) {
+            if ($isSpeakerLineNode(currentNode)) {
+              focusSpeakerLine = currentNode;
+              break;
+            }
+            currentNode = currentNode.getParent();
+          }
+          
+          // Check if anchor or focus is in a label node
+          if (anchorSpeakerLine) {
+            const children = anchorSpeakerLine.getChildren();
+            const firstChild = children[0];
+            if (firstChild && $isTextNode(firstChild) && firstChild.hasFormat("bold") && $isTextNode(anchorNode) && anchorNode === firstChild) {
+              speakerLinesToDelete.add(anchorSpeakerLine);
+            }
+          }
+          
+          if (focusSpeakerLine) {
+            const children = focusSpeakerLine.getChildren();
+            const firstChild = children[0];
+            if (firstChild && $isTextNode(firstChild) && firstChild.hasFormat("bold") && $isTextNode(focusNode) && focusNode === firstChild) {
+              speakerLinesToDelete.add(focusSpeakerLine);
+            }
+          }
+          
+          console.log("[PILL-DELETE] Speaker lines to delete:", Array.from(speakerLinesToDelete).map(sl => sl.getSpeakerId()));
+          
+          // If any speaker lines with labels are in the selection, delete all of them
+          if (speakerLinesToDelete.size > 0) {
+            console.log("[PILL-DELETE] ✓ Intercepting - deleting", speakerLinesToDelete.size, "pill(s)");
+            editor.update(() => {
+              // Find where to position cursor BEFORE deleting - find the node before the first deleted pill
+              const root = $getRoot();
+              const rootChildrenBeforeDelete = root.getChildren();
+              const deletedSpeakerLineKeys = new Set(Array.from(speakerLinesToDelete).map(sl => sl.getKey()));
+              
+              // Find the index of the first deleted speaker line
+              let firstDeletedIndex = -1;
+              for (let i = 0; i < rootChildrenBeforeDelete.length; i++) {
+                if (deletedSpeakerLineKeys.has(rootChildrenBeforeDelete[i].getKey())) {
+                  firstDeletedIndex = i;
+                  break;
+                }
+              }
+              
+              // Store the previous node BEFORE deletion (we'll use this to position cursor after deletion)
+              let previousNodeBeforeDelete: LexicalNode | null = null;
+              if (firstDeletedIndex > 0) {
+                previousNodeBeforeDelete = rootChildrenBeforeDelete[firstDeletedIndex - 1];
+              }
+              
+              // Get all nodes in the selection BEFORE we modify anything
+              const originalSelectedNodes = Array.from(selection.getNodes());
+              const replacementParagraphs: ReturnType<typeof $createParagraphNode>[] = [];
+              
+              // Replace all speaker lines that have labels in the selection with empty paragraphs
+              for (const speakerLine of speakerLinesToDelete) {
+                const newParagraph = $createParagraphNode();
+                speakerLine.replace(newParagraph);
+                replacementParagraphs.push(newParagraph);
+              }
+              
+              // Delete all originally selected nodes
+              // First collect what needs to be removed
+              const elementNodesToRemove: LexicalNode[] = [];
+              
+              for (const node of originalSelectedNodes) {
+                if ($isTextNode(node)) {
+                  // For text nodes, just remove the node (which deletes its content)
+                  if (node.getParent()) {
+                    node.remove();
+                  }
+                } else {
+                  // Collect element nodes to remove
+                  if (!node.getParent()) {
+                    continue; // Already removed
+                  }
+                  if ($isSpeakerLineNode(node)) {
+                    continue; // Already replaced
+                  }
+                  elementNodesToRemove.push(node);
+                }
+              }
+              
+              // Remove the element nodes
+              for (const node of elementNodesToRemove) {
+                node.remove();
+              }
+              
+              // Also delete the replacement paragraphs we created
+              for (const replacementParagraph of replacementParagraphs) {
+                if (replacementParagraph.getParent()) {
+                  replacementParagraph.remove();
+                }
+              }
+              
+              // Now find where to position the cursor - at the end of the node that was before the deleted section
+              let targetNode: LexicalNode | null = null;
+              let targetOffset = 0;
+              
+              if (previousNodeBeforeDelete) {
+                // Find this node in the tree after deletions (by key)
+                const targetKey = previousNodeBeforeDelete.getKey();
+                const rootChildrenAfterDelete = root.getChildren();
+                
+                // Find the node with this key
+                for (const child of rootChildrenAfterDelete) {
+                  if (child.getKey() === targetKey) {
+                    targetNode = child;
+                    break;
+                  }
+                }
+                
+                // If we found the node, position cursor at its end
+                if (targetNode) {
+                  if ($isTextNode(targetNode)) {
+                    targetOffset = targetNode.getTextContent().length;
+                  } else {
+                    // It's an element node - find its last text node
+                    if ('getChildren' in targetNode && typeof (targetNode as any).getChildren === 'function') {
+                      const originalElementNode = targetNode;
+                      const children = (targetNode as any).getChildren();
+                      if (children.length > 0) {
+                        // Walk backwards to find last text node
+                        for (let j = children.length - 1; j >= 0; j--) {
+                          const childNode = children[j];
+                          if ($isTextNode(childNode)) {
+                            targetNode = childNode;
+                            targetOffset = childNode.getTextContent().length;
+                            break;
+                          }
+                        }
+                        // If no text node found, position at end of element
+                        if (targetNode === originalElementNode) {
+                          targetOffset = children.length;
+                        }
+                      } else {
+                        targetOffset = 0;
+                      }
+                    } else {
+                      targetOffset = targetNode.getTextContent().length;
+                    }
+                  }
+                }
+              }
+              
+              // Fallback: if we didn't find a target, use first child
+              if (!targetNode) {
+                targetNode = root.getFirstChild();
+                if (targetNode && $isTextNode(targetNode)) {
+                  targetOffset = targetNode.getTextContent().length;
+                } else {
+                  targetOffset = 0;
+                }
+              }
+              
+              // Ensure we have at least one paragraph
+              if (!targetNode) {
+                targetNode = $createParagraphNode();
+                root.append(targetNode);
+                targetOffset = 0;
+              }
+              
+              // Set selection to the target position
+              const rangeSelection = $createRangeSelection();
+              if ($isTextNode(targetNode)) {
+                rangeSelection.anchor.set(targetNode.getKey(), targetOffset, "text");
+                rangeSelection.focus.set(targetNode.getKey(), targetOffset, "text");
+              } else {
+                rangeSelection.anchor.set(targetNode.getKey(), targetOffset, "element");
+                rangeSelection.focus.set(targetNode.getKey(), targetOffset, "element");
+              }
+              $setSelection(rangeSelection);
+            });
+            
+            if (event) {
+              event.preventDefault();
+            }
+            return true;
+          }
+          // If no labels are in the selection, let Lexical handle the deletion normally
+          console.log("[PILL-DELETE] ✗ No pills in selection - allowing normal deletion");
         }
 
         return false;

@@ -740,7 +740,6 @@ export default function JournalDrawer() {
   const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
   
   const toggleSpeaker = useCallback((speakerId: string) => {
-    console.log("🎤 toggleSpeaker called with:", speakerId);
     // Toggle: if already active, deselect; otherwise, set as active
     if (activeSpeaker === speakerId) {
       setActiveSpeaker(null);
@@ -752,17 +751,8 @@ export default function JournalDrawer() {
   }, [activeSpeaker, setSelectedSpeakers]);
 
   const renderContextPanel = () => {
-    console.log("🎨 renderContextPanel called", {
-      hasJournalTarget: !!journalTarget,
-      hasTargetNode: !!targetNode,
-      targetNodeType: targetNode?.type,
-      targetNodeLabel: targetNode ? (targetNode.data as { label?: string })?.label : null,
-      flowNodesContext: !!flowNodesContext,
-      nodesLength: nodes.length,
-    });
 
     if (!journalTarget) {
-      console.log("🎨 renderContextPanel: No journalTarget, returning default message");
       return (
         <div className="space-y-3 text-sm" style={{ color: theme.textSecondary }}>
           <p>This journal entry is not linked to a specific node.</p>
@@ -775,7 +765,6 @@ export default function JournalDrawer() {
 
     // Check if we have the target node first - if we do, we can render it even without flowNodesContext
     if (!targetNode) {
-      console.log("🎨 renderContextPanel: No targetNode found");
       // Only show the "context not available" message if we also don't have any nodes
       if (!flowNodesContext && nodes.length === 0) {
         return (
@@ -826,18 +815,9 @@ export default function JournalDrawer() {
       );
     }
 
-    console.log("🎨 renderContextPanel: Rendering node content", {
-      nodeType: targetNode.type,
-      nodeId: targetNode.id,
-    });
 
     if (targetNode.type === "part") {
       const data = targetNode.data as PartNodeData;
-      console.log("🎨 renderContextPanel: Rendering part node", {
-        label: data.label,
-        needs: data.needs?.length || 0,
-        insights: data.insights?.length || 0,
-      });
 
       // Flatten all impressions and sort by recency (most recent first)
       const impressions = ImpressionList.flatMap((impressionType) => {
@@ -1059,33 +1039,12 @@ export default function JournalDrawer() {
     ) {
       // Relationship nodes might have TensionNodeData structure
       const data = targetNode.data as TensionNodeData | { connectedNodes?: ConnectedNodeType[]; relationshipType?: string; label?: string; [key: string]: unknown };
-      
-      console.log("🎨 renderContextPanel: Rendering relationship node", {
-        nodeType: targetNode.type,
-        dataType: data.type,
-        relationshipType: (data as TensionNodeData).relationshipType || "relationship",
-        label: data.label || targetNode.data?.label,
-        hasConnectedNodes: !!(data as TensionNodeData).connectedNodes,
-        connectedNodesType: typeof (data as TensionNodeData).connectedNodes,
-        connectedNodesIsArray: Array.isArray((data as TensionNodeData).connectedNodes),
-        rawData: data,
-        fullTargetNode: targetNode,
-      });
 
       const connectedNodes: ConnectedNodeType[] = Array.isArray(
         (data as TensionNodeData).connectedNodes
       )
         ? ((data as TensionNodeData).connectedNodes as ConnectedNodeType[])
         : [];
-
-      console.log("🎨 renderContextPanel: Connected nodes extracted", {
-        connectedNodesCount: connectedNodes.length,
-        connectedNodes: connectedNodes.map((cn) => ({
-          partId: cn.part?.id,
-          partLabel: cn.part?.data?.label,
-          tensionDescription: cn.tensionDescription,
-        })),
-      });
 
       // Get the actual part nodes from the workspace to ensure we have full data
       const enrichedConnectedNodes = connectedNodes.map(({ part, tensionDescription }) => {
