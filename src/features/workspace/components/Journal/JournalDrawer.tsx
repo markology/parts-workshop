@@ -466,6 +466,13 @@ export default function JournalDrawer() {
     }
   }, [activeEntryId]);
 
+  // Reset active speaker and formatting when entry changes
+  useEffect(() => {
+    // Clear active speaker and selected speakers whenever activeEntryId changes
+    setActiveSpeaker(null);
+    setSelectedSpeakers([]);
+  }, [activeEntryId, setSelectedSpeakers]);
+
   // Show mode selection when opening journal with no specific entry
   useEffect(() => {
     if (!isOpen || !journalTarget) return;
