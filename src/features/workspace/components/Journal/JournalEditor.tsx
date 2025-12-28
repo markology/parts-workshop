@@ -746,6 +746,56 @@ function Toolbar({
           effectiveColorSource = selectionStyleColor ? "selectionStyle" : "none";
         }
 
+        // Compute effective formats. Similar to color, Lexical can keep a "future typing"
+        // format on the selection when the caret moves via deletion. Prefer the TextNode's
+        // real format when the selection is collapsed.
+        let effectiveBold = selection.hasFormat("bold");
+        let effectiveItalic = selection.hasFormat("italic");
+        let effectiveUnderline = selection.hasFormat("underline");
+        let effectiveFormatSource:
+          | "textNode"
+          | "neighborTextNode"
+          | "selection"
+          | "none" = "selection";
+
+        if (selection.isCollapsed()) {
+          const readFormatsFromNode = (node: unknown) => {
+            if (!$isTextNode(node as any)) return null;
+            const t = node as TextNode;
+            return {
+              bold: t.hasFormat("bold"),
+              italic: t.hasFormat("italic"),
+              underline: t.hasFormat("underline"),
+            };
+          };
+
+          const fromAnchor = readFormatsFromNode(anchorNode);
+          if (fromAnchor) {
+            effectiveBold = fromAnchor.bold;
+            effectiveItalic = fromAnchor.italic;
+            effectiveUnderline = fromAnchor.underline;
+            effectiveFormatSource = "textNode";
+          } else {
+            const prev = (anchorNode as any)?.getPreviousSibling?.();
+            const next = (anchorNode as any)?.getNextSibling?.();
+            const fromPrev = readFormatsFromNode(prev);
+            const fromNext = readFormatsFromNode(next);
+            if (fromPrev) {
+              effectiveBold = fromPrev.bold;
+              effectiveItalic = fromPrev.italic;
+              effectiveUnderline = fromPrev.underline;
+              effectiveFormatSource = "neighborTextNode";
+            } else if (fromNext) {
+              effectiveBold = fromNext.bold;
+              effectiveItalic = fromNext.italic;
+              effectiveUnderline = fromNext.underline;
+              effectiveFormatSource = "neighborTextNode";
+            } else {
+              effectiveFormatSource = "selection";
+            }
+          }
+        }
+
         debugLog("selection read", {
           isCollapsed: selection.isCollapsed(),
           anchorKey: selection.anchor.key,
@@ -761,10 +811,11 @@ function Toolbar({
           focusNodeKey: (focusNode as any)?.getKey?.(),
           focusNodeStyle: $isTextNode(focusNode) ? focusNode.getStyle() : null,
           formats: {
-            bold: selection.hasFormat("bold"),
-            italic: selection.hasFormat("italic"),
-            underline: selection.hasFormat("underline"),
+            bold: effectiveBold,
+            italic: effectiveItalic,
+            underline: effectiveUnderline,
           },
+          effectiveFormatSource,
           inList,
           selectionStyleColor: selectionStyleColor ?? null,
           effectiveColor,
@@ -773,9 +824,9 @@ function Toolbar({
         });
 
         setFormats({
-          bold: selection.hasFormat("bold"),
-          italic: selection.hasFormat("italic"),
-          underline: selection.hasFormat("underline"),
+          bold: effectiveBold,
+          italic: effectiveItalic,
+          underline: effectiveUnderline,
           list: inList,
         });
 
