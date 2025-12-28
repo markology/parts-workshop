@@ -56,7 +56,7 @@ interface JournalEditorProps {
 
 const PLACEHOLDER_TEXT = "Start writing your journal entry...";
 
-const theme = {
+const lexicalTheme = {
   paragraph: "mb-1",
   text: {
     bold: "font-bold",
@@ -1333,7 +1333,7 @@ export default function JournalEditor({
 
   const initialConfig = {
     namespace: "JournalEditor",
-    theme,
+    theme: lexicalTheme,
     nodes: [ListNode, ListItemNode],
     onError: (error: Error) => {
       console.error("Lexical error:", error);
