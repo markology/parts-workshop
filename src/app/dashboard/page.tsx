@@ -977,7 +977,7 @@ export default function WorkspacesPage() {
                     className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 ${
                       darkMode
                         ? "shadow-sm hover:shadow-sm hover:-translate-y-1"
-                        : "shadow-sm shadow-slate-200/50 hover:shadow-sm hover:shadow-slate-200/50 hover:-translate-y-1"
+                        : "shadow-sm hover:shadow-sm hover:-translate-y-1"
                     } ${
                       navigatingToWorkspace === workspace.id
                         ? "opacity-60 pointer-events-none"
