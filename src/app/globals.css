@@ -355,23 +355,23 @@ button {
 }
 
 .journal-icon-button {
-  background-color: #f28b8b;
-  color: white;
+  background-color: white;
+  color: white; /* Will be overridden by inline styles */
 }
 
 .journal-icon-button:hover {
-  background-color: #e07575;
-  color: white;
+  background-color: white;
+  color: white; /* Will be overridden by inline styles */
   background-image: none;
 }
 
 .dark .journal-icon-button {
-  background-color: #924949;
+  /* Background color set per node type via inline styles */
   color: #e7b8b8;
 }
 
 .dark .journal-icon-button:hover {
-  background-color: #7a3a3a;
+  /* Background color set per node type via inline styles */
   color: white;
   background-image: none;
 }
