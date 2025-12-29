@@ -94,13 +94,58 @@ const Impressions = () => {
   };
 
   return (
-    <div 
-      className="flex h-full flex-col"
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-    >
-      <div className="mx-1 mt-1 flex flex-col rounded-2xl px-3 py-2.5">
+    <>
+      <button
+        onClick={() => setShowImpressionModal(true)}
+        className="mx-1 mt-1 flex flex-col rounded-2xl px-3 py-2.5 text-left group"
+        style={{
+          backgroundColor: 'transparent',
+        }}
+        title="Add Impression"
+        onMouseEnter={(e) => {
+          const addButton = e.currentTarget.querySelector('[data-add-button]') as HTMLElement;
+          if (addButton) {
+            if (darkMode) {
+              // Darken the Add pill when header is hovered
+              let pillR: number, pillG: number, pillB: number;
+              if (theme.buttonActive.startsWith('#')) {
+                const pillHex = theme.buttonActive.replace('#', '');
+                pillR = parseInt(pillHex.substr(0, 2), 16);
+                pillG = parseInt(pillHex.substr(2, 2), 16);
+                pillB = parseInt(pillHex.substr(4, 2), 16);
+              } else if (theme.buttonActive.startsWith('rgb')) {
+                const matches = theme.buttonActive.match(/\d+/g);
+                if (matches && matches.length >= 3) {
+                  pillR = parseInt(matches[0]);
+                  pillG = parseInt(matches[1]);
+                  pillB = parseInt(matches[2]);
+                } else {
+                  return;
+                }
+              } else {
+                return;
+              }
+              const darkerPillR = Math.max(0, pillR - 10);
+              const darkerPillG = Math.max(0, pillG - 10);
+              const darkerPillB = Math.max(0, pillB - 10);
+              addButton.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
+            } else {
+              addButton.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+            }
+          }
+        }}
+        onMouseLeave={(e) => {
+          const addButton = e.currentTarget.querySelector('[data-add-button]') as HTMLElement;
+          if (addButton) {
+            if (darkMode) {
+              addButton.style.backgroundColor = theme.buttonActive;
+            } else {
+              addButton.style.backgroundImage = 'none';
+              addButton.style.backgroundColor = 'white';
+            }
+          }
+        }}
+      >
         <p className="text-[11px] uppercase tracking-[0.28em] mb-1" style={{ color: theme.textPrimary }}>Impressions</p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -113,29 +158,19 @@ const Impressions = () => {
               {totalImpressions}
             </span>
           </div>
-          <button
-            onClick={() => setShowImpressionModal(true)}
-            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors shadow-sm"
+          <div
+            data-add-button
+            className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm gap-1"
             style={{ 
-              border: "none",
-              ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-              backgroundColor: theme.button, 
+              backgroundColor: darkMode ? theme.buttonActive : 'white', 
               color: theme.buttonText,
-              ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = theme.buttonHover;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = theme.button;
-            }}
-            title="Add Impression"
           >
             <Plus className="h-4 w-4" />
             Add
-          </button>
+          </div>
         </div>
-      </div>
+      </button>
       <div
         id="impression-dropdown-container"
         className="flex-1 space-y-2 overflow-auto px-2 py-2 overscroll-x-none"
@@ -152,7 +187,7 @@ const Impressions = () => {
           />
         ))}
       </div>
-    </div>
+    </>
   );
 };
 

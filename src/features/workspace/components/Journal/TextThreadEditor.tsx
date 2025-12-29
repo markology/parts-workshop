@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
-import { User, SquareUserRound, Plus, ChevronDown, X } from "lucide-react";
+import { User, SquareUserRound, Plus, ChevronDown, X, ArrowUp } from "lucide-react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 
 interface TextThreadEditorProps {
@@ -241,6 +241,26 @@ export default function TextThreadEditor({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "36px"; // Reset to min height
+      const scrollHeight = inputRef.current.scrollHeight;
+      // Limit to 3 lines: approximately 65px for 3 lines with padding
+      inputRef.current.style.height = `${Math.min(scrollHeight, 65)}px`;
+    }
+  }, [inputText]);
+
+  // Autofocus input when component mounts
+  useEffect(() => {
+    if (!readOnly && inputRef.current) {
+      // Small delay to ensure the component is fully rendered
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [readOnly]);
+
   // Handle sending message
   const handleSend = useCallback(() => {
     if (!inputText.trim() || readOnly) return;
@@ -313,7 +333,7 @@ export default function TextThreadEditor({
   return (
     <div className="flex flex-col h-full">
       {/* Messages Display Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex-1 overflow-y-auto space-y-2 rounded-[10px] mb-2.5 p-6 shadow-sm" style={{ backgroundColor: darkMode ? theme.card : 'white' }}>
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes slideIn {
             from {
@@ -380,6 +400,7 @@ export default function TextThreadEditor({
                   style={{
                     backgroundColor: speakerColor,
                     borderRadius: isSelf ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                    whiteSpace: "pre-wrap",
                   }}
                 >
                   {message.text}
@@ -391,200 +412,54 @@ export default function TextThreadEditor({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Speaker Selector */}
+      {/* Input and Speaker Selector Container */}
       {!readOnly && (
-        <div className="border-t p-3" style={{ borderColor: theme.border }}>
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-xs font-medium" style={{ color: theme.textSecondary }}>
-                Speaking as:
-              </span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {allSpeakers.filter(s => !s.isSelf).map((speaker) => {
-                  const isActive = activeSpeaker === speaker.id;
-                  const speakerColor = getSpeakerColor(speaker.id);
-
-                  return (
-                    <button
-                      key={speaker.id}
-                      type="button"
-                    onClick={() => {
-                      setPreviousSpeaker(activeSpeaker); // Save current as previous
-                      setActiveSpeaker(speaker.id);
-                      // Autofocus input after selecting speaker
-                      setTimeout(() => {
-                        inputRef.current?.focus();
-                      }, 0);
-                    }}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                        isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
-                      }`}
-                      style={{
-                        backgroundColor: isActive ? speakerColor : theme.surface,
-                        color: isActive ? "white" : theme.textSecondary,
-                        borderColor: isActive ? speakerColor : theme.border,
-                        boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
-                      }}
-                      title={`Switch to ${speaker.label}`}
-                    >
-                      {speaker.isUnknown ? (
-                        <span className="text-sm font-bold">?</span>
-                      ) : (
-                        <SquareUserRound size={12} />
-                      )}
-                      {speaker.label}
-                      {addedPartIds.includes(speaker.id) && !speaker.isSelf && (
-                        <X
-                          size={10}
-                          className="ml-0.5 opacity-70 hover:opacity-100"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setAddedPartIds(prev => prev.filter(id => id !== speaker.id));
-                            if (activeSpeaker === speaker.id) {
-                              // Switch to self if removing active speaker
-                              setPreviousSpeaker(activeSpeaker);
-                              setActiveSpeaker("self");
-                            }
-                          }}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-                
-                {/* Add Part Dropdown */}
-                {availablePartsToAdd.length > 0 && (
-                  <div className="relative" ref={dropdownRef}>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
-                      className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102"
-                      style={{
-                        borderColor: theme.border,
-                        backgroundColor: theme.surface,
-                        color: theme.textSecondary,
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = theme.buttonHover;
-                        e.currentTarget.style.color = theme.textPrimary;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = theme.surface;
-                        e.currentTarget.style.color = theme.textSecondary;
-                      }}
-                      title="Add another part"
-                    >
-                      <Plus size={12} />
-                      <span>Add Part</span>
-                      <ChevronDown size={10} className={showAddPartDropdown ? "rotate-180" : ""} />
-                    </button>
-                    
-                    {showAddPartDropdown && (
-                      <div className="absolute bottom-full left-0 mb-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden" style={{ borderColor: theme.border, backgroundColor: theme.card }}>
-                        <div className="max-h-60 overflow-y-auto">
-                          {availablePartsToAdd.map((part) => (
-                            <button
-                              key={part.id || (part.isUnknown ? "unknown" : "")}
-                              type="button"
-                              onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
-                              className="w-full text-left px-3 py-2 text-xs font-medium transition"
-                              style={{
-                                color: theme.textPrimary,
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = theme.buttonHover;
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                              }}
-                            >
-                              <div className="flex items-center gap-2">
-                                <div className="w-3.5 flex items-center justify-center">
-                                  {part.isUnknown ? (
-                                    <span className="text-sm font-bold">?</span>
-                                  ) : (
-                                    <SquareUserRound size={14} />
-                                  )}
-                                </div>
-                                <span>{part.label}</span>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            {/* Self pill aligned to the right */}
-            {allSpeakers.filter(s => s.isSelf).map((speaker) => {
-              const isActive = activeSpeaker === speaker.id;
-              const speakerColor = getSpeakerColor(speaker.id);
-
-              return (
-                <button
-                  key={speaker.id}
-                  type="button"
-                    onClick={() => {
-                      setPreviousSpeaker(activeSpeaker); // Save current as previous
-                      setActiveSpeaker(speaker.id);
-                      // Autofocus input after selecting speaker
-                      setTimeout(() => {
-                        inputRef.current?.focus();
-                      }, 0);
-                    }}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                    isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
-                  }`}
-                  style={{
-                    backgroundColor: isActive ? speakerColor : (darkMode ? "rgba(30, 41, 59, 0.8)" : "rgba(255, 255, 255, 0.9)"),
-                    color: isActive ? "white" : (darkMode ? "rgb(203, 213, 225)" : "rgb(71, 85, 105)"),
-                    borderColor: isActive ? speakerColor : (darkMode ? "rgba(148, 163, 184, 0.3)" : "rgba(148, 163, 184, 0.2)"),
-                    boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
-                  }}
-                  title={`Switch to ${speaker.label}`}
-                >
-                  <User size={12} />
-                  {speaker.label}
-                </button>
-              );
-            })}
-          </div>
-
+        <div className="rounded-[20px] p-5 mb-0.5 shadow-sm" style={{ backgroundColor: darkMode ? theme.card : 'white' }}>
           {/* Input Area */}
-          <div className="flex items-end gap-2">
+          <div className="relative w-full">
             <textarea
               ref={inputRef}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              onInput={(e) => {
+                const target = e.currentTarget;
+                target.style.height = "36px";
+                const scrollHeight = target.scrollHeight;
+                // Limit to 3 lines: approximately 65px for 3 lines with padding
+                target.style.height = `${Math.min(scrollHeight, 65)}px`;
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
-              className="flex-1 resize-none rounded-lg border px-4 py-2 text-sm focus:outline-none text-thread-textarea"
+              className="w-full resize-none rounded-lg border px-4 py-2 pr-12 text-sm focus:outline-none text-thread-textarea shadow-inner"
               style={{
                 borderColor: theme.border,
                 backgroundColor: theme.surface,
                 color: theme.textPrimary,
-                minHeight: "40px",
-                maxHeight: "120px",
+                minHeight: "36px",
+                maxHeight: "65px",
+                overflowY: "auto",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = theme.info;
-                e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.info}40`;
+                e.currentTarget.style.borderColor = theme.border;
+                e.currentTarget.style.removeProperty('box-shadow');
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = theme.border;
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.removeProperty('box-shadow');
               }}
             />
             <button
               type="button"
               onClick={handleSend}
               disabled={!inputText.trim()}
-              className="px-4 py-2 rounded-lg font-medium text-sm transition"
+              className="absolute rounded-full flex items-center justify-center transition disabled:opacity-50"
               style={{
+                width: '26px',
+                height: '26px',
+                right: '16px',
+                bottom: '10px',
                 backgroundColor: inputText.trim() ? theme.info : theme.button,
-                color: inputText.trim() ? theme.buttonText : theme.textMuted,
+                color: 'white',
                 cursor: inputText.trim() ? 'pointer' : 'not-allowed',
               }}
               onMouseEnter={(e) => {
@@ -598,8 +473,166 @@ export default function TextThreadEditor({
                 }
               }}
             >
-              Send
+              <ArrowUp className="w-4 h-4" style={{ color: 'white' }} />
             </button>
+          </div>
+
+          {/* Speaker Selector */}
+          <div style={{ paddingTop: '12px', paddingBottom: 0, marginBottom: 0 }}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-xs font-medium" style={{ color: theme.textSecondary }}>
+                  Speaking as:
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {allSpeakers.filter(s => !s.isSelf).map((speaker) => {
+                    const isActive = activeSpeaker === speaker.id;
+                    const speakerColor = getSpeakerColor(speaker.id);
+
+                    return (
+                      <button
+                        key={speaker.id}
+                        type="button"
+                        onClick={() => {
+                          setPreviousSpeaker(activeSpeaker);
+                          setActiveSpeaker(speaker.id);
+                          setTimeout(() => {
+                            inputRef.current?.focus();
+                          }, 0);
+                        }}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                          isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
+                        }`}
+                        style={{
+                          backgroundColor: isActive ? speakerColor : theme.surface,
+                          color: isActive ? "white" : theme.textSecondary,
+                          borderColor: isActive ? speakerColor : theme.border,
+                          boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                        }}
+                        title={`Switch to ${speaker.label}`}
+                      >
+                        {speaker.isUnknown ? (
+                          <span className="text-sm font-bold">?</span>
+                        ) : (
+                          <SquareUserRound size={12} />
+                        )}
+                        {speaker.label}
+                        {addedPartIds.includes(speaker.id) && !speaker.isSelf && (
+                          <X
+                            size={10}
+                            className="ml-0.5 opacity-70 hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAddedPartIds(prev => prev.filter(id => id !== speaker.id));
+                              if (activeSpeaker === speaker.id) {
+                                setPreviousSpeaker(activeSpeaker);
+                                setActiveSpeaker("self");
+                              }
+                            }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                  
+                  {/* Add Part Dropdown */}
+                  {availablePartsToAdd.length > 0 && (
+                    <div className="relative" ref={dropdownRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
+                        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102"
+                        style={{
+                          borderColor: theme.border,
+                          backgroundColor: theme.surface,
+                          color: theme.textSecondary,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = theme.buttonHover;
+                          e.currentTarget.style.color = theme.textPrimary;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = theme.surface;
+                          e.currentTarget.style.color = theme.textSecondary;
+                        }}
+                        title="Add another part"
+                      >
+                        <Plus size={12} />
+                        <span>Add Part</span>
+                        <ChevronDown size={10} className={showAddPartDropdown ? "rotate-180" : ""} />
+                      </button>
+                      
+                      {showAddPartDropdown && (
+                        <div className="absolute bottom-full left-0 mb-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden" style={{ borderColor: theme.border, backgroundColor: theme.card }}>
+                          <div className="max-h-60 overflow-y-auto">
+                            {availablePartsToAdd.map((part) => (
+                              <button
+                                key={part.id || (part.isUnknown ? "unknown" : "")}
+                                type="button"
+                                onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
+                                className="w-full text-left px-3 py-2 text-xs font-medium transition"
+                                style={{
+                                  color: theme.textPrimary,
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = theme.buttonHover;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3.5 flex items-center justify-center">
+                                    {part.isUnknown ? (
+                                      <span className="text-sm font-bold">?</span>
+                                    ) : (
+                                      <SquareUserRound size={14} />
+                                    )}
+                                  </div>
+                                  <span>{part.label}</span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Self pill aligned to the right */}
+              {allSpeakers.filter(s => s.isSelf).map((speaker) => {
+                const isActive = activeSpeaker === speaker.id;
+                const speakerColor = getSpeakerColor(speaker.id);
+
+                return (
+                  <button
+                    key={speaker.id}
+                    type="button"
+                    onClick={() => {
+                      setPreviousSpeaker(activeSpeaker);
+                      setActiveSpeaker(speaker.id);
+                      setTimeout(() => {
+                        inputRef.current?.focus();
+                      }, 0);
+                    }}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                      isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
+                    }`}
+                    style={{
+                      backgroundColor: isActive ? speakerColor : (darkMode ? "rgba(30, 41, 59, 0.8)" : "rgba(255, 255, 255, 0.9)"),
+                      color: isActive ? "white" : (darkMode ? "rgb(203, 213, 225)" : "rgb(71, 85, 105)"),
+                      borderColor: isActive ? speakerColor : (darkMode ? "rgba(148, 163, 184, 0.3)" : "rgba(148, 163, 184, 0.2)"),
+                      boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                    }}
+                    title={`Switch to ${speaker.label}`}
+                  >
+                    <User size={12} />
+                    {speaker.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

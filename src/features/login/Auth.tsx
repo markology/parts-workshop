@@ -27,7 +27,7 @@ export default function Auth() {
       });
 
       if (res?.ok) {
-        router.push("/workspaces");
+        router.push("/dashboard");
       } else {
         setError("Invalid email or password");
       }

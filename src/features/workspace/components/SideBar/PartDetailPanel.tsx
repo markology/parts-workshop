@@ -67,6 +67,7 @@ import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType, ImpressionType } from "@/features/workspace/types/Impressions";
 import { ImpressionNode } from "@/features/workspace/types/Nodes";
 import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
+import { getImpressionBaseColors, getImpressionPartDetailsHeaderColor, getImpressionPillFontColor } from "@/features/workspace/constants/ImpressionColors";
 import ImpressionInput from "./Impressions/ImpressionInput";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useSidebarStore } from "@/features/workspace/state/stores/Sidebar";
@@ -104,7 +105,7 @@ const PartDetailPanel = () => {
 
   const handleClose = () => {
     // Detach close behavior from options/sidebar completely
-    setAddingImpressionType(null); // Close impression input if open
+    setShowImpressionModal(false); // Close impression input if open
     setAddingNeedsOrFears(null); // Close needs/fears input if open
     setNeedsFearsInput(""); // Clear input
     setSelectedPartId(undefined);
@@ -139,30 +140,10 @@ const PartDetailPanel = () => {
     const b = bigint & 255;
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
-  const [addingImpressionType, setAddingImpressionType] = useState<string | null>(null);
-  const setShowPartDetailImpressionInput = useUIStore((s) => s.setShowPartDetailImpressionInput);
-  const [currentImpressionType, setCurrentImpressionType] = useState<string>("emotion");
+  const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
+  const setImpressionModalTarget = useUIStore((s) => s.setImpressionModalTarget);
   const [addingNeedsOrFears, setAddingNeedsOrFears] = useState<'needs' | 'fears' | null>(null);
   const [needsFearsInput, setNeedsFearsInput] = useState<string>("");
-  const [canAddImpression, setCanAddImpression] = useState(false);
-  const impressionAddRef = useRef<{ add: () => void; isValid: boolean } | null>(null);
-  const accentHex =
-    NodeBackgroundColors[
-      currentImpressionType as keyof typeof NodeBackgroundColors
-    ] ?? "#6366f1";
-  const accentTextHex = darkMode
-    ? NodeBackgroundColors[
-        currentImpressionType as keyof typeof NodeBackgroundColors
-      ] ?? "#6366f1"
-    : NodeTextColors[
-        currentImpressionType as keyof typeof NodeTextColors
-      ] ?? "#312e81";
-  const accentSoftBg = toRgba(accentHex, darkMode ? 0.26 : 0.14);
-  const accentBorder = toRgba(accentHex, darkMode ? 0.55 : 0.28);
-  const accentGlow = toRgba(accentHex, darkMode ? 0.42 : 0.24);
-  const impressionTypeLabel = currentImpressionType
-    ? currentImpressionType.charAt(0).toUpperCase() + currentImpressionType.slice(1)
-    : "Impression";
   const [editingAge, setEditingAge] = useState(false);
   const [editingGender, setEditingGender] = useState(false);
   const [editingPartType, setEditingPartType] = useState(false);
@@ -209,6 +190,7 @@ const PartDetailPanel = () => {
   const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
   const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [hoveredPartType, setHoveredPartType] = useState<string | null>(null);
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -237,6 +219,8 @@ const PartDetailPanel = () => {
       setActiveSection("info"); // Reset to top section when part changes
     }
   }, [selectedPartId, partNode]); // Only sync when selectedPartId or partNode changes
+
+  // Cleanup hover timeout when editing mode changes or component unmounts
 
   // Separate effect to handle auto-edit flag when part is selected
   useEffect(() => {
@@ -366,23 +350,6 @@ const PartDetailPanel = () => {
   };
 
   // Handle Escape key to close impression modal
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && addingImpressionType) {
-        setAddingImpressionType(null);
-      }
-    };
-
-    if (addingImpressionType) {
-      document.addEventListener("keydown", handleEscape);
-      return () => document.removeEventListener("keydown", handleEscape);
-    }
-  }, [addingImpressionType]);
-
-  // Sync addingImpressionType with global state for sidebar visibility
-  useEffect(() => {
-    setShowPartDetailImpressionInput(!!addingImpressionType);
-  }, [addingImpressionType, setShowPartDetailImpressionInput]);
 
   const handleRemoveImpression = (impressionType: string, impressionId: string) => {
     if (!selectedPartId || !partNode) return;
@@ -627,11 +594,39 @@ const PartDetailPanel = () => {
   };
 
   const saveAllInfo = () => {
-    saveName();
-    savePartType();
-    saveAge();
-    saveGender();
-    saveScratchpad();
+    if (!selectedPartId || !partNode) return;
+    
+    const trimmedName = tempName.trim();
+    const trimmedScratchpad = tempScratchpad.trim();
+    const trimmedAge = tempAge === "" || tempAge === "Unknown" ? "" : tempAge.trim();
+    const trimmedGender = tempGender.trim();
+    
+    // Use requestAnimationFrame to batch the update and avoid ResizeObserver issues
+    requestAnimationFrame(() => {
+      updateNode(selectedPartId, {
+        data: {
+          ...partNode.data,
+          name: trimmedName || "",
+          label: trimmedName || "",
+          scratchpad: trimmedScratchpad,
+          customPartType: tempPartType || undefined,
+          partType: tempPartType || undefined,
+          age: trimmedAge || undefined,
+          gender: trimmedGender || undefined,
+        },
+      });
+      
+      // Update part name separately if it changed
+      if (trimmedName !== ((partNode.data.name as string) || (partNode.data.label as string) || "")) {
+        updatePartName(selectedPartId, trimmedName);
+      }
+      
+      setTempName(trimmedName);
+      setTempScratchpad(trimmedScratchpad);
+      setTempAge(trimmedAge || "Unknown");
+      setTempGender(trimmedGender);
+    });
+    
     setIsEditingInfo(false);
   };
 
@@ -688,10 +683,11 @@ const PartDetailPanel = () => {
     backgroundColor: theme.modal,
     borderColor: theme.border,
     color: theme.textPrimary,
+    ...(darkMode ? { boxShadow: '0px 1px 15px 1px #00000030' } : {}),
   };
 
   const navContainerStyle = {
-    backgroundColor: darkMode ? `${theme.elevated}bf` : `${theme.card}e6`, // 75% opacity for dark, 90% for light
+    backgroundColor: darkMode ? `${theme.elevated}bf` : '#f7f7f7',
     borderRightColor: theme.border,
   };
 
@@ -712,7 +708,7 @@ const PartDetailPanel = () => {
   };
 
   const modalContainerStyle = {
-    backgroundColor: theme.modal,
+    backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : theme.surface,
     borderColor: theme.border,
     color: theme.textPrimary,
   };
@@ -735,11 +731,6 @@ const PartDetailPanel = () => {
   };
 
   // When adding an impression, softly blur the background card
-  const backdropCardClasses = addingImpressionType
-    ? darkMode
-      ? "backdrop-blur-sm"
-      : "backdrop-blur-sm bg-white"
-    : "";
 
   const handleDeletePart = () => {
     if (!selectedPartId) return;
@@ -752,7 +743,6 @@ const PartDetailPanel = () => {
   };
 
   const handleBackdropClick = () => {
-    if (addingImpressionType) return;
     setSelectedPartId(undefined);
   };
 
@@ -775,7 +765,7 @@ const PartDetailPanel = () => {
       onClick={handleBackdropClick}
     >
       <div 
-        className={`relative w-full max-w-5xl ${backdropCardClasses}`}
+        className="relative w-full max-w-5xl"
         style={{
           transform: shiftAmount > 0 ? `translateX(${shiftAmount}px)` : 'none'
         }}
@@ -802,68 +792,74 @@ const PartDetailPanel = () => {
           style={containerStyle}
           onClick={(e) => e.stopPropagation()}
         >
-        {addingImpressionType && (
-          <div className="absolute inset-0 backdrop-blur-sm bg-white/10 dark:bg-slate-950/10 z-10 pointer-events-none" />
-        )}
         {/* Content with TOC */}
-        <div className={`flex flex-row flex-1 overflow-hidden min-h-0 ${addingImpressionType ? 'pointer-events-none' : ''}`}>
+        <div className="flex flex-row flex-1 overflow-hidden min-h-0">
           {/* Table of Contents - Left Column */}
           {windowWidth >= 800 && (
-          <div className="w-52 flex-shrink-0 flex flex-col border-r" style={navContainerStyle}>
-            <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2">
+          <div className="w-52 flex-shrink-0 flex flex-col border-r overflow-visible" style={navContainerStyle}>
+            {/* Part Name Header */}
+            <div className={`px-5 pt-5 pb-3 border-b ${darkMode ? '' : 'bg-white'}`} style={{ 
+              borderColor: theme.border,
+              ...(darkMode ? { backgroundColor: theme.card } : {})
+            }}>
+              <h2 className={`text-sm font-semibold truncate ${
+                darkMode ? "text-slate-200" : "text-slate-900"
+              }`}>
+                {tempName || (data.name as string) || (data.label as string) || "Untitled"}
+              </h2>
+            </div>
+            <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2 overflow-x-visible">
               <button
                 onClick={() => scrollToSection(infoRef, 'info')}
-                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium"
                 style={{
-                  color: theme.textSecondary,
+                  color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)",
+                  transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = theme.textPrimary;
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = theme.textSecondary;
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-emerald-600" />
+                  <User className="w-4 h-4" style={{ color: '#8f85e7' }} />
                   <span>Info</span>
                 </div>
               </button>
               <button
-                onClick={() => scrollToSection(insightsRef, 'insights')}
-                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
-                style={{
-                  color: theme.textSecondary,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = theme.textPrimary;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = theme.textSecondary;
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4" style={{ color: NodeBackgroundColors["thought"] }} />
-                  <span>Insights</span>
-                </div>
-              </button>
-              <button
                 onClick={() => scrollToSection(impressionsRef, 'impressions')}
-                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium"
                 style={{
-                  color: theme.textSecondary,
+                  color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)",
+                  transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = theme.textPrimary;
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = theme.textSecondary;
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -872,18 +868,56 @@ const PartDetailPanel = () => {
                 </div>
               </button>
               <button
-                onClick={() => scrollToSection(journalRef, 'journal')}
-                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                onClick={() => scrollToSection(insightsRef, 'insights')}
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium"
                 style={{
-                  color: theme.textSecondary,
+                  color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)",
+                  transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = theme.textPrimary;
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = theme.textSecondary;
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <Brain className="w-4 h-4" style={{ color: NodeBackgroundColors["thought"] }} />
+                  <span>Insights</span>
+                </div>
+              </button>
+              <button
+                onClick={() => scrollToSection(journalRef, 'journal')}
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium"
+                style={{
+                  color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)",
+                  transition: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -893,21 +927,30 @@ const PartDetailPanel = () => {
               </button>
               <button
                 onClick={() => scrollToSection(relationshipsRef, 'relationships')}
-                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm transition-colors"
+                className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium overflow-visible"
                 style={{
-                  color: theme.textSecondary,
+                  color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)",
+                  transition: 'none',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = darkMode ? `${theme.surface}66` : theme.surface;
-                  e.currentTarget.style.color = theme.textPrimary;
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = `${theme.surface}66`;
+                    e.currentTarget.style.color = theme.textPrimary;
+                  } else {
+                    e.currentTarget.style.color = "#000000";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = theme.textSecondary;
+                  if (darkMode) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = "rgb(148, 163, 184)";
+                  } else {
+                    e.currentTarget.style.color = "rgb(100, 116, 139)";
+                  }
                 }}
               >
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-rose-600" />
+                <div className="flex items-center gap-2 overflow-visible">
+                  <Users className="w-4 h-4 text-rose-600 flex-shrink-0" />
                   <span>Relationships</span>
                 </div>
               </button>
@@ -916,30 +959,52 @@ const PartDetailPanel = () => {
           )}
 
           {/* Main Content - Right Column */}
-          <div ref={scrollableContentRef} className={`${windowWidth < 800 ? 'w-full' : 'flex-1'} p-8 overflow-y-auto space-y-12 bg-transparent`}>
+          <div 
+            className={`${windowWidth < 800 ? 'w-full' : 'flex-1'} pl-8`}
+            style={{
+              overflow: 'hidden',
+              maxHeight: '85vh',
+              paddingRight: '15px',
+              paddingTop: '20px',
+              paddingBottom: '20px',
+            }}
+          >
+            <div 
+              ref={scrollableContentRef} 
+              className={`overflow-y-scroll space-y-12 bg-transparent`}
+              style={{
+                height: '100%',
+                paddingRight: '15px',
+                paddingTop: '12px',
+                paddingBottom: '22px',
+              }}
+            >
 
           {/* Info Section */}
-          <div ref={infoRef} className="relative space-y-4">
+          <div ref={infoRef} className="relative space-y-4 mb-12">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex items-center justify-between">
-                  <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+                  <h3 className={`text-[16px] font-semibold flex items-center gap-2 ${
                     darkMode ? "text-slate-400" : "text-slate-500"
                   }`}>
-                    <User className="w-3 h-3 text-emerald-600" />
+                    <User className="w-[17px] h-[17px]" style={{ color: '#8f85e7' }} />
                     Info
                   </h3>
-                  <button
-                    onClick={() => {
-                      setIsEditingInfo((prev) => !prev);
-                    }}
-                    className={`p-2 rounded-full transition-colors ${
-                      darkMode ? "text-slate-300 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"
-                    }`}
-                    aria-label={isEditingInfo ? "Stop editing" : "Edit info"}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
+                  {!isEditingInfo && (
+                    <button
+                      onClick={() => {
+                        setIsEditingInfo((prev) => !prev);
+                      }}
+                      className={`p-2 rounded-full ${
+                        darkMode ? "text-slate-300 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"
+                      }`}
+                      style={{ transition: 'none' }}
+                      aria-label="Edit info"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -947,16 +1012,28 @@ const PartDetailPanel = () => {
                   <button
                     type="button"
                     onClick={saveAllInfo}
-                    className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition text-white shadow-sm"
+                    className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold shadow-sm hover:shadow-md"
                     style={{
-                      backgroundColor: "#396bbc",
+                      backgroundImage: darkMode ? undefined : 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))',
+                      backgroundColor: darkMode ? "#396bbc" : undefined,
                       boxShadow: "0 6px 16px rgba(57, 107, 188, 0.28)",
+                      transition: 'none',
+                      color: darkMode ? 'white' : 'black',
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2f5aa3";
+                      if (darkMode) {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2f5aa3";
+                      } else {
+                        // Slightly darker gradient on hover
+                        e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(224, 242, 254), rgb(221, 214, 254), rgb(254, 226, 226))';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#396bbc";
+                      if (darkMode) {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#396bbc";
+                      } else {
+                        e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                      }
                     }}
                   >
                     <Check className="w-4 h-4" />
@@ -967,11 +1044,17 @@ const PartDetailPanel = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditingInfo(false)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold transition border ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold ${
                       darkMode
-                        ? "border-slate-600 text-slate-200 hover:bg-slate-800/60"
-                        : "border-slate-300 text-slate-700 hover:bg-slate-100"
+                        ? "text-slate-200 hover:bg-slate-700/60"
+                        : "text-slate-700 hover:bg-slate-100"
                     }`}
+                    style={{ 
+                      transition: 'none',
+                      ...(darkMode ? {
+                        backgroundColor: 'rgba(51, 65, 85, 0.4)',
+                      } : {}),
+                    }}
                   >
                     Cancel
                   </button>
@@ -1002,12 +1085,12 @@ const PartDetailPanel = () => {
             
             {/* Main Info Grid */}
             <div 
-              className="p-6 space-y-6 transition-all duration-200 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]"
+              className="p-6 space-y-6 rounded-3xl shadow-sm"
               style={{
-                ...sectionCardStyle,
+                ...subCardStyle,
+                ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
                 ...(isEditingInfo ? {
-                  boxShadow: `0 0 0 2px ${toRgba("#3b82f6", 0.3)}, ${darkMode ? "0 16px 40px rgba(8,15,30,0.32)" : "0 18px 45px rgba(15,23,42,0.10)"}`,
-                  backgroundColor: darkMode ? `${theme.surface}66` : `${toRgba("#3b82f6", 0.1)}4d`,
+                  border: '3px solid rgba(57, 107, 188, 0.3)',
                 } : {}),
               }}
             >
@@ -1015,7 +1098,10 @@ const PartDetailPanel = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Image - Left Column */}
                 <div className="lg:col-span-1">
-                  <div className="w-full aspect-square relative shadow-sm overflow-hidden group rounded-2xl border" style={subCardStyle}>
+                  <div className="w-full aspect-square relative shadow-sm overflow-hidden group rounded-2xl border" style={{
+                    ...subCardStyle,
+                    ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+                  }}>
                     {data.image ? (
                       <>
                         <Image
@@ -1077,11 +1163,22 @@ const PartDetailPanel = () => {
                                 setTempName(trimmed);
                               }
                             }}
-                             className={`w-full bg-transparent text-3xl font-semibold tracking-tight pb-1 focus:outline-none ${
+                             className={`w-full shadow-inner font-semibold tracking-tight focus:outline-none ${
                                darkMode
                                  ? "text-slate-50 placeholder:text-slate-500"
-                                 : "text-slate-900 placeholder:text-slate-400"
+                                 : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
                              }`}
+                            style={{
+                              fontSize: '16px',
+                              height: '52px',
+                              padding: '10px',
+                              borderRadius: '12px',
+                              ...(darkMode ? {
+                                backgroundColor: 'rgb(33 37 41)',
+                                WebkitBoxShadow: '0 0 0 1000px rgb(33 37 41) inset',
+                                boxShadow: 'none',
+                              } : {}),
+                            }}
                             placeholder="Name this part"
                             autoFocus
                           />
@@ -1111,31 +1208,40 @@ const PartDetailPanel = () => {
                               const isSelected = currentType === type;
 
                               const pillBase =
-                                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize transition cursor-pointer";
-                              const typeStyles: Record<string, { selected: string; idle: string }> = {
+                                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize cursor-pointer";
+                              const typeStyles: Record<string, { selected: string; idle: string; hover: string }> = {
                                 manager: {
                                   selected: darkMode
                                     ? "bg-sky-500/15 text-sky-100"
                                     : "bg-sky-100 text-sky-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
-                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                    ? "text-slate-400"
+                                    : "bg-slate-100/60 text-slate-400",
+                                  hover: darkMode
+                                    ? "bg-sky-500/15 text-sky-100"
+                                    : "bg-sky-100 text-sky-600",
                                 },
                                 firefighter: {
                                   selected: darkMode
                                     ? "bg-rose-500/15 text-rose-100"
                                     : "bg-rose-100 text-rose-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
-                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                    ? "text-slate-400"
+                                    : "bg-slate-100/60 text-slate-400",
+                                  hover: darkMode
+                                    ? "bg-rose-500/15 text-rose-100"
+                                    : "bg-rose-100 text-rose-600",
                                 },
                                 exile: {
                                   selected: darkMode
                                     ? "bg-purple-500/15 text-purple-100"
                                     : "bg-purple-100 text-purple-600",
                                   idle: darkMode
-                                    ? "bg-slate-800/40 text-slate-400 hover:bg-slate-800/60"
-                                    : "bg-slate-100/60 text-slate-400 hover:bg-slate-200",
+                                    ? "text-slate-400"
+                                    : "bg-slate-100/60 text-slate-400",
+                                  hover: darkMode
+                                    ? "bg-purple-500/15 text-purple-100"
+                                    : "bg-purple-100 text-purple-600",
                                 },
                               };
 
@@ -1146,6 +1252,14 @@ const PartDetailPanel = () => {
                               };
 
                               const styles = typeStyles[type] || typeStyles.manager;
+                              const isHovered = hoveredPartType === type;
+                              
+                              // Determine which style to use: selected pills stay selected, hovered (non-selected) pills show hover
+                              const getPillStyle = () => {
+                                if (isSelected) return styles.selected;
+                                if (isHovered) return styles.hover;
+                                return styles.idle;
+                              };
 
                               return (
                                 <button
@@ -1160,7 +1274,14 @@ const PartDetailPanel = () => {
                                       },
                                     });
                                   }}
-                                  className={`${pillBase} ${isSelected ? styles.selected : styles.idle}`}
+                                  className={`${pillBase} ${getPillStyle()}`}
+                                  style={{
+                                    ...(darkMode && !isSelected && !isHovered ? {
+                                      backgroundColor: 'rgb(33 37 41)',
+                                    } : {}),
+                                  }}
+                                  onMouseEnter={() => setHoveredPartType(type)}
+                                  onMouseLeave={() => setHoveredPartType(null)}
                                 >
                                   {typeIcons[type]}
                                   {type}
@@ -1219,12 +1340,19 @@ const PartDetailPanel = () => {
                                 partTypeMapping[currentType] || {
                                   icon: <User className="w-3.5 h-3.5" />,
                                   className: darkMode
-                                    ? "bg-slate-800/60 text-slate-200"
+                                    ? "text-slate-200"
                                     : "bg-slate-100 text-slate-600",
                                 };
 
                               return (
-                                <span className={`${pillBase} ${pill.className}`}>
+                                <span 
+                                  className={`${pillBase} ${pill.className}`}
+                                  style={{
+                                    ...(darkMode ? {
+                                      backgroundColor: 'rgb(33 37 41)',
+                                    } : {}),
+                                  }}
+                                >
                                   {pill.icon}
                                   {currentType}
                                 </span>
@@ -1233,74 +1361,98 @@ const PartDetailPanel = () => {
                           </div>
                         )}
                       </div>
+                    </div>
+                  </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                            Age
-                          </label>
-                          {isEditingInfo ? (
-                            <input
-                              type="number"
-                              value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
-                              onChange={(e) => setTempAge(e.target.value || "Unknown")}
-                              onBlur={() => {
-                                if (tempAge !== ((data.age as string) || "Unknown")) {
-                                  updateNode(selectedPartId, {
-                                    data: {
-                                      ...partNode.data,
-                                      age: tempAge === "Unknown" ? "" : tempAge,
-                                    },
-                                  });
-                                }
-                              }}
-                               className={`block w-auto max-w-[100px] bg-transparent text-base focus:outline-none ${
-                                 darkMode
-                                   ? "text-slate-100 placeholder:text-slate-500"
-                                   : "text-slate-900 placeholder:text-slate-400"
-                               }`}
-                               placeholder="Unknown"
-                               min="0"
-                             />
-                          ) : (
-                            <div className={`text-base ${tempAge && tempAge !== "Unknown" ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
-                              {tempAge && tempAge !== "Unknown" ? tempAge : "—"}
-                            </div>
-                          )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                        Age
+                      </label>
+                      {isEditingInfo ? (
+                        <input
+                          type="number"
+                          value={tempAge === "" || tempAge === "Unknown" ? "" : tempAge}
+                          onChange={(e) => setTempAge(e.target.value || "Unknown")}
+                          onBlur={() => {
+                            if (tempAge !== ((data.age as string) || "Unknown")) {
+                              updateNode(selectedPartId, {
+                                data: {
+                                  ...partNode.data,
+                                  age: tempAge === "Unknown" ? "" : tempAge,
+                                },
+                              });
+                            }
+                          }}
+                           className={`block w-auto max-w-[100px] shadow-inner focus:outline-none font-medium ${
+                             darkMode
+                               ? "text-slate-100 placeholder:text-slate-500"
+                               : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
+                           }`}
+                           style={{
+                             fontSize: '13px',
+                             height: '40px',
+                             padding: '10px',
+                             fontWeight: '500',
+                             borderRadius: '12px',
+                             ...(darkMode ? {
+                               backgroundColor: 'rgb(33 37 41)',
+                               WebkitBoxShadow: '0 0 0 1000px rgb(33 37 41) inset',
+                               boxShadow: 'none',
+                             } : {}),
+                           }}
+                           placeholder="Unknown"
+                           min="0"
+                         />
+                      ) : (
+                        <div className={`text-base ${tempAge && tempAge !== "Unknown" ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
+                          {tempAge && tempAge !== "Unknown" ? tempAge : "—"}
                         </div>
-                        <div className="space-y-2">
-                          <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                            Gender
-                          </label>
-                          {isEditingInfo ? (
-                            <input
-                              type="text"
-                              value={tempGender}
-                              onChange={(e) => setTempGender(e.target.value)}
-                              onBlur={() => {
-                                if (tempGender !== ((data.gender as string) || "")) {
-                                  updateNode(selectedPartId, {
-                                    data: {
-                                      ...partNode.data,
-                                      gender: tempGender,
-                                    },
-                                  });
-                                }
-                              }}
-                               className={`w-auto max-w-[200px] bg-transparent text-base focus:outline-none ${
-                                 darkMode
-                                   ? "text-slate-100 placeholder:text-slate-500"
-                                   : "text-slate-900 placeholder:text-slate-400"
-                               }`}
-                               placeholder="Gender"
-                             />
-                          ) : (
-                            <div className={`text-base ${tempGender ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
-                              {tempGender || "—"}
-                            </div>
-                          )}
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className={`text-xs font-medium uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                        Gender
+                      </label>
+                      {isEditingInfo ? (
+                        <input
+                          type="text"
+                          value={tempGender}
+                          onChange={(e) => setTempGender(e.target.value)}
+                          onBlur={() => {
+                            if (tempGender !== ((data.gender as string) || "")) {
+                              updateNode(selectedPartId, {
+                                data: {
+                                  ...partNode.data,
+                                  gender: tempGender,
+                                },
+                              });
+                            }
+                          }}
+                           className={`block w-full max-w-[200px] shadow-inner focus:outline-none font-medium ${
+                             darkMode
+                               ? "text-slate-100 placeholder:text-slate-500"
+                               : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
+                           }`}
+                           style={{
+                             fontSize: '13px',
+                             height: '40px',
+                             padding: '10px',
+                             fontWeight: '500',
+                             borderRadius: '12px',
+                             ...(darkMode ? {
+                               backgroundColor: 'rgb(33 37 41)',
+                               WebkitBoxShadow: '0 0 0 1000px rgb(33 37 41) inset',
+                               boxShadow: 'none',
+                             } : {}),
+                           }}
+                           placeholder="Gender"
+                         />
+                      ) : (
+                        <div className={`text-base ${tempGender ? (darkMode ? "text-slate-100" : "text-slate-900") : (darkMode ? "text-slate-500" : "text-slate-400")}`}>
+                          {tempGender || "—"}
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
@@ -1323,11 +1475,21 @@ const PartDetailPanel = () => {
                             });
                           }
                         }}
-                        className={`w-full rounded-2xl px-3.5 py-3 min-h-[140px] resize-none text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-slate-500/60 bg-transparent ${
+                        className={`w-full px-3.5 py-3 min-h-[140px] resize-none leading-relaxed shadow-inner focus:outline-none font-medium ${
                           darkMode
                             ? "text-slate-100 placeholder:text-slate-500"
-                            : "text-slate-800 placeholder:text-slate-400"
+                            : "bg-white focus:bg-white text-slate-800 placeholder:text-slate-400"
                         }`}
+                        style={{
+                          ...(darkMode ? {
+                            backgroundColor: 'rgb(33 37 41)',
+                            WebkitBoxShadow: '0 0 0 1000px rgb(33 37 41) inset',
+                            boxShadow: 'none',
+                          } : {}),
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          borderRadius: '12px',
+                        }}
                         placeholder="Add a description..."
                       />
                     ) : (
@@ -1345,192 +1507,44 @@ const PartDetailPanel = () => {
             </div>
           </div>
 
-          {/* Insights Section */}
-          <div ref={insightsRef} className="relative space-y-4">
-            <h4 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
-              darkMode ? "text-slate-400" : "text-slate-500"
-            }`}>
-              <Brain className="w-3 h-3" style={{ color: NodeBackgroundColors["thought"] }} />
-              Insights
-            </h4>
-            <div className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]" style={sectionCardStyle}>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {/* Needs */}
-                <div className="p-4 shadow-sm rounded-2xl border" style={subCardStyle}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className={`font-semibold capitalize text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
-                      Needs
-                    </h4>
-                    <button
-                      onClick={() => {
-                        setAddingNeedsOrFears('needs');
-                        setNeedsFearsInput("");
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
-                        darkMode
-                          ? "text-slate-200"
-                          : "text-slate-600 bg-white hover:bg-slate-50"
-                      }`}
-                      style={{
-                        border: "none",
-                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                        ...(darkMode ? { 
-                          backgroundColor: "rgb(42, 46, 50)",
-                          boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px"
-                        } : {}),
-                        transition: "none !important",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (darkMode) {
-                          e.currentTarget.style.backgroundColor = theme.buttonHover;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (darkMode) {
-                          e.currentTarget.style.backgroundColor = "rgb(42, 46, 50)";
-                        }
-                      }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {((data.needs as string[]) || []).map((need: string, index: number) => (
-                      <div
-                        key={index}
-                        className="group flex items-center justify-between rounded-lg px-3 py-2 border"
-                        style={{
-                          ...listItemStyle,
-                          backgroundColor: darkMode ? "rgba(16, 185, 129, 0.15)" : "rgba(16, 185, 129, 0.08)",
-                          borderColor: darkMode ? "rgba(16, 185, 129, 0.3)" : "rgba(16, 185, 129, 0.25)",
-                        }}
-                      >
-                        <span className="text-xs font-medium leading-relaxed">{need}</span>
-                        <button
-                          onClick={() => removeListItem("needs", index)}
-                          className="opacity-0 group-hover:opacity-100 p-1"
-                          aria-label="Remove need"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                    {((data.needs as string[]) || []).length === 0 && (
-                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                        No needs added yet
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Fears */}
-                <div className="rounded-2xl border p-4 shadow-sm" style={subCardStyle}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className={`font-semibold capitalize text-sm ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
-                      Fears
-                    </h4>
-                    <button
-                      onClick={() => {
-                        setAddingNeedsOrFears('fears');
-                        setNeedsFearsInput("");
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
-                        darkMode
-                          ? "text-slate-200"
-                          : "text-slate-600 bg-white hover:bg-slate-50"
-                      }`}
-                      style={{
-                        border: "none",
-                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                        ...(darkMode ? { 
-                          backgroundColor: "rgb(42, 46, 50)",
-                          boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px"
-                        } : {}),
-                        transition: "none !important",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (darkMode) {
-                          e.currentTarget.style.backgroundColor = theme.buttonHover;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (darkMode) {
-                          e.currentTarget.style.backgroundColor = "rgb(42, 46, 50)";
-                        }
-                      }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {((data.fears as string[]) || []).map((fear: string, index: number) => (
-                      <div
-                        key={index}
-                        className="group flex items-center justify-between rounded-lg px-3 py-2 border"
-                        style={{
-                          ...listItemStyle,
-                          backgroundColor: darkMode ? "rgba(225, 29, 72, 0.15)" : "rgba(225, 29, 72, 0.08)",
-                          borderColor: darkMode ? "rgba(225, 29, 72, 0.3)" : "rgba(225, 29, 72, 0.25)",
-                        }}
-                      >
-                        <span className="text-xs font-medium leading-relaxed">{fear}</span>
-                        <button
-                          onClick={() => removeListItem("fears", index)}
-                          className="opacity-0 group-hover:opacity-100 p-1"
-                          aria-label="Remove fear"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                    {((data.fears as string[]) || []).length === 0 && (
-                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                        No fears added yet
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Impressions Section */}
-          <div ref={impressionsRef} className="relative space-y-4">
-            <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+          <div ref={impressionsRef} className="relative space-y-4 mb-12">
+            <h3 className={`text-[16px] font-semibold flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
-              <Eye className="w-3 h-3" style={{ color: NodeBackgroundColors["emotion"] }} />
+              <Eye className="w-[17px] h-[17px]" style={{ color: NodeBackgroundColors["emotion"] }} />
               Impressions
             </h3>
 
             {/* Flexible Layout for Impressions */}
             <div 
-              className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]"
-              style={sectionCardStyle}
+              className="space-y-4"
               onDrop={handleDropImpression}
               onDragOver={handleDragOver}
             >
-              <div className="space-y-4">
-                {/* All Impressions: emotion, thought, sensation, behavior, other */}
-                <div className="columns-1 lg:columns-2 gap-4 space-y-4">
+              {/* All Impressions: emotion, thought, sensation, behavior, other */}
+              <div className="columns-1 lg:columns-2 gap-4 space-y-4">
                   {ImpressionList.map((impression) => {
                     const impressions = (data[ImpressionTextType[impression]] as ImpressionNode[]) || [];
 
                     return (
-                      <div key={impression} className="break-inside-avoid rounded-2xl border p-4 shadow-sm mb-4" style={subCardStyle}>
+                      <div key={impression} className="break-inside-avoid rounded-2xl p-4 shadow-sm mb-4" style={{
+                        ...subCardStyle,
+                        ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+                      }}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <h4
                               className="font-semibold capitalize text-sm"
-                              style={{ color: NodeBackgroundColors[impression] }}
+                              style={{ color: darkMode ? (() => { const baseColorsMap = getImpressionBaseColors(darkMode); const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion; return baseColors.font; })() : getImpressionPartDetailsHeaderColor(impression, darkMode) }}
                             >
                               {impression}
                             </h4>
                             <span
                               className="px-2 py-1 rounded-full text-xs font-medium"
                               style={{
-                                backgroundColor: toRgba(NodeBackgroundColors[impression], darkMode ? 0.45 : 0.24),
-                                color: darkMode ? "rgba(255,255,255,0.92)" : (NodeTextColors[impression] || NodeBackgroundColors[impression]),
+                                backgroundColor: (() => { const baseColorsMap = getImpressionBaseColors(darkMode); const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion; return baseColors.background; })(),
+                                color: darkMode ? "rgb(255, 255, 255)" : (() => { const baseColorsMap = getImpressionBaseColors(darkMode); const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion; return baseColors.font; })(),
                               }}
                             >
                               {impressions.length}
@@ -1538,8 +1552,10 @@ const PartDetailPanel = () => {
                           </div>
                           <button
                             onClick={() => {
-                              setAddingImpressionType(impression);
-                              setCurrentImpressionType(impression);
+                              if (selectedPartId) {
+                                setImpressionModalTarget(selectedPartId, impression);
+                                setShowImpressionModal(true);
+                              }
                             }}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
                               darkMode
@@ -1557,12 +1573,12 @@ const PartDetailPanel = () => {
                             onMouseEnter={(e) => {
                               if (darkMode) {
                                 e.currentTarget.style.backgroundColor = theme.buttonHover;
+                              } else {
+                                e.currentTarget.style.backgroundColor = "#f1f5f9";
                               }
                             }}
                             onMouseLeave={(e) => {
-                              if (darkMode) {
-                                e.currentTarget.style.backgroundColor = "rgb(42, 46, 50)";
-                              }
+                              e.currentTarget.style.backgroundColor = darkMode ? "rgb(42, 46, 50)" : "white";
                             }}
                           >
                             Add
@@ -1572,21 +1588,19 @@ const PartDetailPanel = () => {
                         <div className="space-y-2 mb-2">
                           {impressions.length > 0 ? (
                             impressions.map((imp, index) => {
-                              const accent = NodeBackgroundColors[impression];
-                              const accentText = NodeTextColors[impression] || accent;
-                              const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
-                              const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
-                              const iconColor = darkMode ? "rgba(255,255,255,0.75)" : accentText;
+                              const baseColorsMap = getImpressionBaseColors(darkMode);
+                              const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
+                              const pillFontColor = getImpressionPillFontColor(impression, darkMode);
 
                               return (
                                 <div
                                   key={index}
-                                  className="group flex items-center justify-between rounded-xl border px-3 py-2 shadow-sm"
+                                  className="group flex items-center justify-between rounded-xl px-3 py-2 shadow-sm"
                                   style={{
                                     ...listItemStyle,
-                                    backgroundColor: chipBackground,
-                                    borderColor: chipBorder,
-                                    color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+                                    backgroundColor: baseColors.background,
+                                    border: 'none',
+                                    color: pillFontColor,
                                   }}
                                 >
                                   <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
@@ -1595,7 +1609,7 @@ const PartDetailPanel = () => {
                                       onClick={() => handleReturnToSidebar(impression, imp.id)}
                                       className="p-1"
                                       style={{
-                                        color: iconColor,
+                                        color: pillFontColor,
                                       }}
                                       title="Return to sidebar"
                                     >
@@ -1605,7 +1619,7 @@ const PartDetailPanel = () => {
                                       onClick={() => handleRemoveImpression(impression, imp.id)}
                                       className="p-1"
                                       style={{
-                                        color: iconColor,
+                                        color: pillFontColor,
                                       }}
                                       title="Delete"
                                     >
@@ -1633,33 +1647,227 @@ const PartDetailPanel = () => {
                     );
                   })}
                 </div>
-              </div>
             </div>
           </div>
 
-          {/* Journal History Section */}
-          <div ref={journalRef} className="relative space-y-4">
-            <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+          {/* Insights Section */}
+          <div ref={insightsRef} className="relative space-y-4">
+            <h4 className={`text-[16px] font-semibold flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
-              <BookOpen className="w-3 h-3 text-amber-600" />
+              <Brain className="w-[17px] h-[17px]" style={{ color: NodeBackgroundColors["thought"] }} />
+              Insights
+            </h4>
+            <div className="mb-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Needs */}
+              <div className="p-4 shadow-sm rounded-2xl" style={{
+                ...subCardStyle,
+                ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+              }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className={`font-semibold capitalize text-sm flex items-center gap-2 ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
+                      <Heart className="w-4 h-4" style={{ color: '#7b42e2' }} />
+                      Needs
+                    </h4>
+                    <button
+                      onClick={() => {
+                        setAddingNeedsOrFears('needs');
+                        setNeedsFearsInput("");
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
+                        darkMode
+                          ? "text-slate-200"
+                          : "text-slate-600 bg-white hover:bg-slate-50"
+                      }`}
+                      style={{
+                        border: "none",
+                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                        ...(darkMode ? { 
+                          backgroundColor: "rgb(42, 46, 50)",
+                          boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px"
+                        } : {}),
+                        transition: "none !important",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (darkMode) {
+                          e.currentTarget.style.backgroundColor = theme.buttonHover;
+                        } else {
+                          e.currentTarget.style.backgroundColor = "#f1f5f9";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = darkMode ? "rgb(42, 46, 50)" : "white";
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {((data.needs as string[]) || []).map((need: string, index: number) => (
+                      <div
+                        key={index}
+                        className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
+                        style={{
+                          ...listItemStyle,
+                          backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : 'white',
+                          border: 'none',
+                          color: '#7b42e2',
+                        }}
+                      >
+                        <span className="text-xs font-medium leading-relaxed" style={{ color: '#7b42e2' }}>{need}</span>
+                        <button
+                          onClick={() => removeListItem("needs", index)}
+                          className="opacity-0 group-hover:opacity-100 p-1"
+                          aria-label="Remove need"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    {((data.needs as string[]) || []).length === 0 && (
+                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                        No needs added yet
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              {/* Fears */}
+              <div className="rounded-2xl p-4 shadow-sm" style={{
+                ...subCardStyle,
+                ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+              }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className={`font-semibold capitalize text-sm flex items-center gap-2 ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
+                      <Shield className="w-4 h-4" style={{ color: '#f78585' }} />
+                      Fears
+                    </h4>
+                    <button
+                      onClick={() => {
+                        setAddingNeedsOrFears('fears');
+                        setNeedsFearsInput("");
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
+                        darkMode
+                          ? "text-slate-200"
+                          : "text-slate-600 bg-white hover:bg-slate-50"
+                      }`}
+                      style={{
+                        border: "none",
+                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                        ...(darkMode ? { 
+                          backgroundColor: "rgb(42, 46, 50)",
+                          boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px"
+                        } : {}),
+                        transition: "none !important",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (darkMode) {
+                          e.currentTarget.style.backgroundColor = theme.buttonHover;
+                        } else {
+                          e.currentTarget.style.backgroundColor = "#f1f5f9";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = darkMode ? "rgb(42, 46, 50)" : "white";
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {((data.fears as string[]) || []).map((fear: string, index: number) => (
+                      <div
+                        key={index}
+                        className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
+                        style={{
+                          ...listItemStyle,
+                          backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : 'white',
+                          border: 'none',
+                          color: '#f78585',
+                        }}
+                      >
+                        <span className="text-xs font-medium leading-relaxed" style={{ color: '#f78585' }}>{fear}</span>
+                        <button
+                          onClick={() => removeListItem("fears", index)}
+                          className="opacity-0 group-hover:opacity-100 p-1"
+                          aria-label="Remove fear"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    {((data.fears as string[]) || []).length === 0 && (
+                      <div className={`text-center py-4 text-xs italic ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                        No fears added yet
+                      </div>
+                    )}
+                  </div>
+              </div>
+            </div>
+            </div>
+
+          {/* Journal History Section */}
+          <div ref={journalRef} className="relative space-y-4 mb-12">
+            <h3 className={`text-[16px] font-semibold flex items-center gap-2 ${
+              darkMode ? "text-slate-400" : "text-slate-500"
+            }`}>
+              <BookOpen className="w-[17px] h-[17px] text-amber-600" />
               Journal
             </h3>
 
-            <div className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]" style={sectionCardStyle}>
+            <div className="shadow-sm rounded-2xl" style={{
+              ...subCardStyle,
+              ...(darkMode ? { backgroundColor: 'rgba(42, 46, 50, 0.75)' } : {}),
+              padding: '20px',
+            }}>
               {isLoadingJournal ? (
                 <div className="rounded-2xl border flex flex-col items-center justify-center gap-3 py-8" style={subCardStyle}>
                   <LoadingSpinner variant="sparkles" size="md" message="Loading journal entries..." />
                 </div>
               ) : journalEntries.length === 0 ? (
-                <div className="rounded-2xl border text-center py-8 px-4" style={subCardStyle}> 
-                  <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
-                  <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
-                    No journal entries yet
-                  </h3>
-                  <p className={darkMode ? "text-slate-400" : "text-slate-500"}>
-                    Start writing about this part to see entries here.
-                  </p>
+                <div className="rounded-2xl py-8 px-4" style={subCardStyle}>
+                  <div className="text-center mb-4">
+                    <BookOpen className={`w-12 h-12 mx-auto mb-4 ${darkMode ? "text-slate-500" : "text-slate-400"}`} />
+                    <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-slate-100" : "text-slate-700"}`}>
+                      No journal entries yet
+                    </h3>
+                    <p className={darkMode ? "text-slate-400" : "text-slate-500"}>
+                      Start writing about this part to see entries here.
+                    </p>
+                  </div>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => {
+                        if (selectedPartId && partNode) {
+                          setJournalTarget({
+                            type: "node",
+                            nodeId: selectedPartId,
+                            nodeType: "part",
+                            title: partNode.data?.label || "Part",
+                          });
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
+                      style={{
+                        border: "none",
+                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
+                        color: darkMode ? theme.textPrimary : "#475569",
+                        backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = darkMode ? "rgb(59, 63, 67)" : "#ffffff";
+                      }}
+                      title="Start a new journal entry"
+                    >
+                      <Plus size={14} />
+                      New Entry
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1685,7 +1893,6 @@ const PartDetailPanel = () => {
                           ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                           color: darkMode ? theme.textPrimary : "#475569",
                           backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
-                          ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
@@ -1706,7 +1913,6 @@ const PartDetailPanel = () => {
                           ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                           color: darkMode ? theme.textPrimary : "#475569",
                           backgroundColor: darkMode ? "rgb(59, 63, 67)" : "#ffffff",
-                          ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                           transition: "none !important",
                           WebkitTransition: "none !important",
                           MozTransition: "none !important",
@@ -1799,7 +2005,10 @@ const PartDetailPanel = () => {
                     const charCount = entry.content?.length || 0;
 
                     return (
-                      <div key={entry.id} className="rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow" style={subCardStyle}>
+                      <div key={entry.id} className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow" style={{
+                        ...subCardStyle,
+                        backgroundColor: darkMode ? 'rgb(33, 37, 41)' : 'white',
+                      }}>
                         {/* Header with dates and actions */}
                         <div className="flex items-start justify-between mb-3 gap-4">
                           <div className="flex-1 space-y-1.5">
@@ -1823,11 +2032,11 @@ const PartDetailPanel = () => {
                               <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
                                 isTextThread
                                   ? darkMode
-                                    ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
-                                    : "bg-purple-50 text-purple-700 border border-purple-200"
+                                    ? "bg-purple-900/40 text-purple-200"
+                                    : "bg-purple-50 text-purple-700"
                                   : darkMode
-                                    ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
-                                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                                    ? "bg-blue-900/40 text-blue-200"
+                                    : "bg-blue-50 text-blue-700"
                               }`}>
                                 {isTextThread ? (
                                   <>
@@ -1909,7 +2118,6 @@ const PartDetailPanel = () => {
                           MozTransition: "none !important",
                           OTransition: "none !important",
                           msTransition: "none !important",
-                                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
@@ -1950,9 +2158,17 @@ const PartDetailPanel = () => {
                         </div>
                         
                         {/* Content Preview */}
-                        <div className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
-                          darkMode ? "text-slate-300" : "text-slate-700"
-                        }`}>
+                        <div 
+                          className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
+                            darkMode ? "text-slate-300" : "text-slate-700"
+                          }`}
+                          style={{
+                            border: 'none',
+                            padding: '10px',
+                            borderRadius: '10px',
+                            ...(darkMode ? { background: '#272b2f' } : { background: '#f8fafc' }),
+                          }}
+                        >
                           {contentPreview}
                         </div>
                       </div>
@@ -1965,17 +2181,16 @@ const PartDetailPanel = () => {
           </div>
 
           {/* Relationships Section */}
-          <div ref={relationshipsRef} className="relative space-y-4">
-            <h3 className={`text-[11px] font-semibold uppercase tracking-[0.32em] flex items-center gap-2 ${
+          <div ref={relationshipsRef} className="relative space-y-4 mb-12">
+            <h3 className={`text-[16px] font-semibold flex items-center gap-2 ${
               darkMode ? "text-slate-400" : "text-slate-500"
             }`}>
-              <Users className="w-3 h-3 text-rose-600" />
+              <Users className="w-[17px] h-[17px] text-rose-600" />
               Relationships
             </h3>
 
-            <div className="p-6 rounded-3xl border shadow-[0_16px_40px_rgba(8,15,30,0.32)]" style={sectionCardStyle}>
-              {relationships.length > 0 ? (
-                <div className="space-y-4">
+            {relationships.length > 0 ? (
+              <div className="space-y-4">
                   {relationships.map((rel) => {
                     const isTension = rel.relationshipType === "tension";
                     const isInteraction = rel.relationshipType === "interaction";
@@ -1984,29 +2199,19 @@ const PartDetailPanel = () => {
                     return (
                       <div
                         key={rel.id}
-                        className="rounded-2xl border p-4"
+                        className="rounded-2xl p-4 shadow-sm"
                         style={{
-                          borderColor: isTension
-                            ? darkMode
-                              ? "rgba(168,85,247,0.35)"
-                              : "rgba(196,181,253,0.7)"
-                            : isInteraction
-                              ? darkMode
-                                ? "rgba(59,130,246,0.35)"
-                                : "rgba(125,211,252,0.7)"
-                              : darkMode
-                                ? theme.border
-                                : "#e2e8f0",
+                          border: 'none',
                           backgroundColor: isTension
                             ? darkMode
-                              ? undefined
+                              ? 'rgba(42, 46, 50, 0.75)'
                               : "rgba(247,242,255,0.7)"
                             : isInteraction
                               ? darkMode
-                                ? undefined
+                                ? 'rgba(42, 46, 50, 0.75)'
                                 : "rgba(224,242,254,0.7)"
                               : darkMode
-                                ? theme.card
+                                ? 'rgba(42, 46, 50, 0.75)'
                                 : "#ffffff",
                           background: isTension && darkMode
                             ? "linear-gradient(140deg, rgb(42, 31, 61), rgb(39, 33, 47))"
@@ -2089,10 +2294,9 @@ const PartDetailPanel = () => {
                                 return (
                                   <div
                                     key={index}
-                                    className="rounded-lg border px-3 py-2.5 shadow-sm hover:shadow-md transition"
+                                    className="rounded-lg px-3 py-2.5 shadow-sm hover:shadow-md transition"
                                     style={{
-                                      backgroundColor: theme.surface,
-                                      borderColor: theme.border,
+                                      backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : theme.surface,
                                     }}
                                   >
                                     <div className="flex items-start justify-between gap-2">
@@ -2103,6 +2307,25 @@ const PartDetailPanel = () => {
                                         }}
                                       >
                                         {part?.data?.label || part?.data?.name || "Unknown Part"}
+                                        {part?.id === selectedPartId && (
+                                          <span 
+                                            className="ml-2 inline-block font-medium"
+                                            style={{
+                                              color: isInteraction 
+                                                ? (darkMode ? "#dbeafe" : NodeTextColors.interaction)
+                                                : (darkMode ? "#e9d5ff" : NodeTextColors.tension),
+                                              fontSize: '11px',
+                                              fontWeight: '500',
+                                              background: isInteraction 
+                                                ? (darkMode ? "rgba(59,130,246,0.2)" : '#dbeafe')
+                                                : (darkMode ? "rgba(168,85,247,0.2)" : '#e8dff7'),
+                                              borderRadius: '10px',
+                                              padding: '1px 5px',
+                                            }}
+                                          >
+                                            current
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                     {statement && (
@@ -2135,192 +2358,11 @@ const PartDetailPanel = () => {
                   </p>
                 </div>
               )}
-            </div>
           </div>
+
         </div>
       </div>
         
-        {/* Impression Input Modal */}
-        {addingImpressionType && (
-          <div
-            className="fixed inset-0 z-[55] flex items-center justify-center px-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setAddingImpressionType(null);
-              }
-            }}
-          >
-            <div
-              className="absolute inset-0 pointer-events-none backdrop-blur-sm"
-              style={{
-                backgroundColor: darkMode ? `${theme.modal}f2` : `${theme.modal}99`,
-              }}
-            />
-            <div
-              className="relative w-full max-w-3xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div
-                className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
-                style={{
-                  backgroundColor: theme.elevated,
-                  borderColor: theme.border,
-                }}
-              >
-                <div className="relative px-8 pt-8 pb-6 space-y-7">
-                  <div className="flex items-start justify-between gap-6">
-                    <div className="space-y-3">
-                      <span
-                        className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
-                        style={{
-                          backgroundColor: accentSoftBg,
-                          color: accentTextHex,
-                        }}
-                      >
-                        <Sparkles size={14} />
-                        {impressionTypeLabel}
-                      </span>
-                      <div>
-                        <h3
-                          className={`text-2xl font-semibold ${
-                            darkMode ? "text-white" : "text-slate-900"
-                          }`}
-                        >
-                          Add a new {impressionTypeLabel.toLowerCase()} to {(data.name as string) || (data.label as string) || "this part"}
-                        </h3>
-                        <p
-                          className={`mt-2 text-sm leading-relaxed ${
-                            darkMode ? "text-slate-300" : "text-slate-600"
-                          }`}
-                        >
-                          Give {(data.name as string) || (data.label as string) || "this part"} a voice by noting what you're sensing right now.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setAddingImpressionType(null)}
-                      className={`h-10 w-10 flex items-center justify-center rounded-full border ${
-                        darkMode
-                          ? "border-slate-700 hover:bg-slate-800/70"
-                          : "border-slate-200 hover:bg-slate-100"
-                      }`}
-                      style={darkMode ? {
-                        color: "#cbd5e1",
-                      } : {
-                        color: "#000000",
-                      }}
-                      aria-label="Close"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-
-                  <div
-                    className="rounded-2xl border px-6 py-6 shadow-inner"
-                    style={{
-                      backgroundColor: theme.surface,
-                      borderColor: theme.border,
-                    }}
-                  >
-                    <ImpressionInput
-                      onAddImpression={(impressionData) => {
-                        // Add impression directly to the part using the actual selected type
-                        const impressionTypeKey =
-                          ImpressionTextType[
-                            impressionData.type as keyof typeof ImpressionTextType
-                          ];
-                        const currentImpressions =
-                          (data[impressionTypeKey] as ImpressionNode[]) || [];
-                        const newImpression: ImpressionNode = {
-                          id: impressionData.id,
-                          type: impressionData.type,
-                          data: {
-                            label: impressionData.label,
-                            addedAt: Date.now(),
-                          },
-                          position: { x: 0, y: 0 },
-                        };
-
-                        updateNode(selectedPartId!, {
-                          data: {
-                            ...data,
-                            [impressionTypeKey]: [...currentImpressions, newImpression],
-                          },
-                        });
-
-                        // Don't close the modal, just clear the input
-                        // setAddingImpressionType(null);
-                      }}
-                      onTypeChange={(type) => setCurrentImpressionType(type)}
-                      defaultType={addingImpressionType as ImpressionType}
-                      onInputChange={(value, isValid) => setCanAddImpression(isValid)}
-                      addButtonRef={impressionAddRef}
-                    />
-                  </div>
-
-                  <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center gap-1.5">
-                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
-                          {isMac() ? '⇧ Tab' : 'Shift+Tab'}
-                        </kbd>
-                        <span className="text-xs">Previous Type</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
-                          Tab
-                        </kbd>
-                        <span className="text-xs">Next Type</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <kbd className="px-2 py-1 rounded text-[10px] font-semibold bg-white border border-slate-200 text-slate-700">
-                          {isMac() ? '⏎' : 'Enter'}
-                        </kbd>
-                        <span className="text-xs">Submit</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (impressionAddRef.current) {
-                          impressionAddRef.current.add();
-                        }
-                      }}
-                      disabled={!canAddImpression}
-                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                      style={{
-                        backgroundColor: canAddImpression 
-                          ? NodeBackgroundColors[currentImpressionType as keyof typeof NodeBackgroundColors]
-                          : darkMode 
-                            ? "rgb(42, 46, 50)"
-                            : "#e2e8f0",
-                        color: canAddImpression 
-                          ? "#ffffff"
-                          : darkMode
-                            ? theme.textMuted
-                            : "#94a3b8",
-                        border: "none",
-                        ...(darkMode ? { borderTop: canAddImpression ? undefined : "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: canAddImpression ? undefined : "1px solid #00000012" }),
-                        ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
-                      }}
-                      onMouseEnter={(e) => {
-                        if (canAddImpression) {
-                          e.currentTarget.style.opacity = "0.9";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (canAddImpression) {
-                          e.currentTarget.style.opacity = "1";
-                        }
-                      }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Needs/Fears Input Modal */}
         {addingNeedsOrFears && (
@@ -2356,15 +2398,18 @@ const PartDetailPanel = () => {
                   <div className="flex items-start justify-between gap-6">
                     <div className="space-y-3">
                       <span
-                        className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] ${
-                          addingNeedsOrFears === 'needs'
-                            ? darkMode
-                              ? "bg-emerald-900/40 text-emerald-200 border border-emerald-700/50"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : darkMode
-                              ? "bg-rose-900/40 text-rose-200 border border-rose-700/50"
-                              : "bg-rose-50 text-rose-700 border border-rose-200"
-                        }`}
+                        className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
+                        style={{
+                          ...(addingNeedsOrFears === 'needs' ? {
+                            backgroundColor: darkMode ? 'rgba(123, 66, 226, 0.2)' : 'rgba(123, 66, 226, 0.1)',
+                            color: darkMode ? '#a78bfa' : '#7b42e2',
+                            border: darkMode ? '1px solid rgba(123, 66, 226, 0.3)' : '1px solid rgba(123, 66, 226, 0.2)'
+                          } : {
+                            backgroundColor: darkMode ? 'rgba(247, 133, 133, 0.2)' : 'rgba(247, 133, 133, 0.1)',
+                            color: darkMode ? '#fca5a5' : '#f78585',
+                            border: darkMode ? '1px solid rgba(247, 133, 133, 0.3)' : '1px solid rgba(247, 133, 133, 0.2)'
+                          })
+                        }}
                       >
                         {addingNeedsOrFears === 'needs' ? <Heart size={14} /> : <Shield size={14} />}
                         {addingNeedsOrFears === 'needs' ? 'Need' : 'Fear'}
@@ -2444,7 +2489,7 @@ const PartDetailPanel = () => {
                       }
                     }}
                     placeholder={`Describe ${addingNeedsOrFears === 'needs' ? 'what this part needs' : 'what this part fears'}...`}
-                    className="w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none"
+                    className="w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none shadow-inner"
                     style={darkMode ? {
                       backgroundColor: theme.surface,
                       borderColor: 'transparent',
@@ -2455,15 +2500,6 @@ const PartDetailPanel = () => {
                       borderColor: 'transparent',
                       borderWidth: 0,
                       color: "#0f172a",
-                    }}
-                    onFocus={(e) => {
-                      const color = addingNeedsOrFears === 'needs' 
-                        ? 'rgba(16, 185, 129, 0.4)' 
-                        : 'rgba(225, 29, 72, 0.4)';
-                      e.currentTarget.style.boxShadow = `0 0 0 3px ${color}`;
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.boxShadow = 'none';
                     }}
                     rows={4}
                   />
@@ -2482,11 +2518,11 @@ const PartDetailPanel = () => {
                         backgroundColor: needsFearsInput.trim()
                           ? (addingNeedsOrFears === 'needs'
                               ? darkMode
-                                ? "#059669"
-                                : "#10b981"
+                                ? "#6d28d9"
+                                : "#7b42e2"
                               : darkMode
                                 ? "#dc2626"
-                                : "#ef4444")
+                                : "#f78585")
                           : darkMode
                             ? "rgb(42, 46, 50)"
                             : "#e2e8f0",
@@ -2519,17 +2555,23 @@ const PartDetailPanel = () => {
                     style={{ color: darkMode ? theme.textMuted : "#64748b" }}
                   >
                     <div className="flex items-center gap-1.5">
-                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                      }`}>
-                        Enter
+                      <kbd 
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
+                        style={{
+                          backgroundColor: 'white',
+                        }}
+                      >
+                        {isMac() ? '⏎' : 'Enter'}
                       </kbd>
                       <span className="text-xs">Submit</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <kbd className={`px-2 py-1 rounded text-[10px] font-semibold ${
-                        darkMode ? "bg-slate-800 border border-slate-700 text-slate-300" : "bg-slate-100 border border-slate-200 text-slate-700"
-                      }`}>
+                      <kbd 
+                        className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
+                        style={{
+                          backgroundColor: 'white',
+                        }}
+                      >
                         Esc
                       </kbd>
                       <span className="text-xs">Cancel</span>
@@ -2540,6 +2582,7 @@ const PartDetailPanel = () => {
             </div>
           </div>
         )}
+          </div>
 
         {/* Journal History Modal */}
         {showJournalHistoryModal && (
@@ -2558,7 +2601,7 @@ const PartDetailPanel = () => {
               style={modalContainerStyle}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="px-6 py-5 flex items-center justify-between">
+              <div className="px-6 py-5 flex items-center justify-between" style={{ backgroundColor: darkMode ? 'rgba(42, 46, 50, 0.75)' : theme.surface }}>
                 <div>
                   <h3 className={`text-xl font-semibold ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                     Journal History
@@ -2657,7 +2700,10 @@ const PartDetailPanel = () => {
                     const charCount = entry.content?.length || 0;
 
                     return (
-                      <div key={entry.id} className="rounded-2xl border p-5 shadow-sm hover:shadow-md transition-shadow" style={subCardStyle}>
+                      <div key={entry.id} className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow" style={{
+                        ...subCardStyle,
+                        backgroundColor: darkMode ? 'rgb(33, 37, 41)' : 'white',
+                      }}>
                         {/* Header with dates and actions */}
                         <div className="flex items-start justify-between mb-3 gap-4">
                           <div className="flex-1 space-y-1.5">
@@ -2681,11 +2727,11 @@ const PartDetailPanel = () => {
                               <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
                                 isTextThread
                                   ? darkMode
-                                    ? "bg-purple-900/40 text-purple-200 border border-purple-700/50"
-                                    : "bg-purple-50 text-purple-700 border border-purple-200"
+                                    ? "bg-purple-900/40 text-purple-200"
+                                    : "bg-purple-50 text-purple-700"
                                   : darkMode
-                                    ? "bg-blue-900/40 text-blue-200 border border-blue-700/50"
-                                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                                    ? "bg-blue-900/40 text-blue-200"
+                                    : "bg-blue-50 text-blue-700"
                               }`}>
                                 {isTextThread ? (
                                   <>
@@ -2769,7 +2815,6 @@ const PartDetailPanel = () => {
                           MozTransition: "none !important",
                           OTransition: "none !important",
                           msTransition: "none !important",
-                                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = darkMode ? theme.buttonHover : "#f1f5f9";
@@ -2810,9 +2855,17 @@ const PartDetailPanel = () => {
                         </div>
                         
                         {/* Content Preview */}
-                        <div className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
-                          darkMode ? "text-slate-300" : "text-slate-700"
-                        }`}>
+                        <div 
+                          className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
+                            darkMode ? "text-slate-300" : "text-slate-700"
+                          }`}
+                          style={{
+                            border: 'none',
+                            padding: '10px',
+                            borderRadius: '10px',
+                            ...(darkMode ? { background: '#272b2f' } : { background: '#f8fafc' }),
+                          }}
+                        >
                           {contentPreview}
                         </div>
                       </div>
@@ -2824,8 +2877,8 @@ const PartDetailPanel = () => {
           </div>
         )}
 
-      
-        </div>
+            </div>
+          </div>
       </div>
     </div>
   );

@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Calendar, Trash2, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Loader2, MailPlus, HelpCircle, Sparkles, Target, ArrowRight } from "lucide-react";
+import { Map, Calendar, Trash2, Play, Clock, ChevronDown, User, Settings, Moon, Sun, LogOut, MailPlus, HelpCircle, Sparkles, Target, ArrowRight } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
-import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
@@ -13,17 +12,10 @@ import { useTheme } from "@/features/workspace/hooks/useTheme";
 import Modal from "@/components/Modal";
 import FeedbackForm from "@/components/FeedbackForm";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
+import StudioAssistant from "@/components/StudioAssistant";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
 import PartsStudioLogo from "@/components/PartsStudioLogo";
-
-interface PartNode {
-  id: string;
-  data: {
-    label: string;
-    image?: string;
-  };
-}
 
 interface WorkspaceData {
   id: string;
@@ -33,15 +25,15 @@ interface WorkspaceData {
   lastModified: Date;
   partCount: number;
   thumbnail?: string;
-  nodes: any[];
+  nodes: Array<{
+    id: string;
+    type: string;
+    data?: {
+      label?: string;
+      image?: string;
+    };
+  }>;
 }
-
-interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
-
 
 type SortOption = 'edited' | 'created' | 'name';
 
@@ -53,29 +45,17 @@ export default function WorkspacesPage() {
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
-  const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('edited');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: "assistant-initial",
-      role: "assistant",
-      content: "Hi! I'm here to help you navigate Parts Studio. Ask me anything."
-    }
-  ]);
-  const [isChatSending, setIsChatSending] = useState(false);
   const [navigatingToWorkspace, setNavigatingToWorkspace] = useState<string | null>(null);
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
-  const expandedInputRef = useRef<HTMLTextAreaElement>(null);
-  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const savedScrollY = useRef<number>(0);
 
   // Load workspaces from API
@@ -89,18 +69,25 @@ export default function WorkspacesPage() {
         const apiWorkspaces = await response.json();
         
         // Convert API workspaces to WorkspaceData format
-        const formattedWorkspaces: WorkspaceData[] = apiWorkspaces.map((workspace: any) => {
+        const formattedWorkspaces: WorkspaceData[] = apiWorkspaces.map((workspace: {
+          id: string;
+          title: string;
+          description?: string;
+          createdAt: string;
+          lastModified: string;
+          nodes?: Array<{ type: string; id: string; data?: { label?: string; image?: string } }>;
+        }) => {
           // Filter to get only part nodes
-          const partNodes = (workspace.nodes || []).filter((node: any) => node.type === 'part');
+          const partNodes = (workspace.nodes || []).filter((node) => node.type === 'part');
           
           return {
             id: workspace.id,
             name: workspace.title,
             description: workspace.description || undefined,
             createdAt: new Date(workspace.createdAt),
-            lastModified: new Date(workspace.updatedAt),
+            lastModified: new Date(workspace.lastModified),
             partCount: partNodes.length,
-            thumbnail: workspace.thumbnail || undefined,
+            thumbnail: undefined,
             nodes: partNodes
           };
         });
@@ -150,131 +137,26 @@ export default function WorkspacesPage() {
       return;
     }
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
-        setIsSearchExpanded(false);
-      }
-    };
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsSearchExpanded(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isSearchExpanded]);
 
-  useEffect(() => {
-    if (!isSearchExpanded) {
-      return;
-    }
 
-    requestAnimationFrame(() => {
-      chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    });
-  }, [chatMessages, isSearchExpanded]);
-
-  const handleSendChat = async () => {
-    const trimmedMessage = searchInput.trim();
-    if (!trimmedMessage || isChatSending) {
-      return;
-    }
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: trimmedMessage
-    };
-
-    const assistantMessageId = `assistant-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    setChatMessages(prev => [
-      ...prev,
-      userMessage,
-      {
-        id: assistantMessageId,
-        role: "assistant",
-        content: ""
-      }
-    ]);
-
-    setSearchInput("");
-    setIsChatSending(true);
-
-    try {
-      const response = await fetch("/api/ai/ifs-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userMessage: trimmedMessage
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to reach assistant");
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error("No response body");
-      }
-
-      const decoder = new TextDecoder();
-      let fullContent = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-
-        fullContent += decoder.decode(value, { stream: true });
-
-        const content = fullContent;
-        setChatMessages(prev =>
-          prev.map(message =>
-            message.id === assistantMessageId ? { ...message, content } : message
-          )
-        );
-      }
-
-      setChatMessages(prev =>
-        prev.map(message =>
-          message.id === assistantMessageId ? { ...message, content: fullContent } : message
-        )
-      );
-    } catch (error) {
-      console.error("Chat error:", error);
-      setChatMessages(prev =>
-        prev.map(message =>
-          message.id === assistantMessageId
-            ? {
-                ...message,
-                content:
-                  "I'm sorry, I'm having trouble responding right now. Please try again in a moment."
-              }
-            : message
-        )
-      );
-    } finally {
-      setIsChatSending(false);
-    }
-  };
 
   const handleStartSession = async () => {
     // Allow starting with or without a name
 
     try {
-      const title = newWorkspaceName.trim() || `Session ${new Date().toLocaleDateString()}`;
+      const title = `Session ${new Date().toLocaleDateString()}`;
       
       const response = await fetch("/api/maps", {
         method: "POST",
@@ -362,7 +244,7 @@ export default function WorkspacesPage() {
         setDropdownOpen(false);
       }
       if (profileDropdownOpen && profileDropdownRef.current) {
-        const dropdownMenu = (profileDropdownRef.current as any).dropdownMenu;
+        const dropdownMenu = (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu;
         const clickedInsideButton = profileDropdownRef.current.contains(event.target as Node);
         const clickedInsideMenu = dropdownMenu && dropdownMenu.contains(event.target as Node);
         if (!clickedInsideButton && !clickedInsideMenu) {
@@ -437,22 +319,33 @@ export default function WorkspacesPage() {
             }
           : {
               backgroundImage:
-                "linear-gradient(to bottom, #e6f8ff 0%, #dbeafe 400px, #e0e7ff calc(400px + 500px), #fef1f2 calc(400px + 1000px), #fff1f2 100%)",
+                "linear-gradient(to bottom, #e6f8ff 0%, #dbeafe 400px, #e0e7ff calc(400px + 500px), #fef1f2 calc(400px + 1000px), #f3e8ff 100%)",
               color: theme.textPrimary,
             }
       }
     >
       <div
-        className={`fixed inset-0 pointer-events-none ${
-          isSearchExpanded ? 'opacity-100' : 'opacity-0'
+        className={`fixed inset-0 ${
+          isSearchExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         style={{
           backgroundColor: isSearchExpanded ? 'rgba(0,0,0,0.35)' : 'transparent',
           backdropFilter: isSearchExpanded ? 'blur(2px)' : 'none',
           WebkitBackdropFilter: isSearchExpanded ? 'blur(2px)' : 'none',
-          zIndex: 40
+          zIndex: isSearchExpanded ? 70 : 40
         }}
-      />
+        onClick={() => setIsSearchExpanded(false)}
+      >
+        {isSearchExpanded && (
+          <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6" style={{ top: '20px' }} ref={searchBoxRef} onClick={(e) => e.stopPropagation()}>
+            <StudioAssistant
+              isOpen={isSearchExpanded}
+              onClose={() => setIsSearchExpanded(false)}
+              containerRef={searchBoxRef}
+            />
+          </div>
+        )}
+      </div>
       {/* Header */}
       <header
         className={`sticky top-0 z-[65] ${headerBackgroundClass}`}
@@ -497,111 +390,9 @@ export default function WorkspacesPage() {
           >
             <div
               ref={searchBoxRef}
-              className={`relative pointer-events-auto ${
-                isSearchExpanded
-                  ? "h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden border flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)]"
-                  : ""
-              }`}
-              style={
-                isSearchExpanded
-                  ? {
-                      background: darkMode 
-                        ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
-                        : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
-                      borderColor: theme.border,
-                    }
-                  : undefined
-              }
+              className="relative pointer-events-auto"
             >
-              {isSearchExpanded ? (
-                <>
-                  <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
-                    <div>
-                      <p
-                        style={{ fontWeight: 600, fontSize: '15px' }}
-                      >
-                        <span
-                          style={{
-                            background: 'linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)',
-                            WebkitBackgroundClip: 'text',
-                            backgroundClip: 'text',
-                            color: 'transparent',
-                          }}
-                        >
-                          Studio Assistant
-                        </span>
-                      </p>
-                      <p
-                        className="mt-3 text-sm leading-relaxed"
-                        style={{ color: theme.textSecondary }}
-                      >
-                        Ask for guidance, shortcuts, or reflections tailored to
-                        your Parts Studio flow.
-                      </p>
-                    </div>
-
-                    <div className="mt-5 space-y-3 flex-1 overflow-y-auto overflow-x-hidden pr-1 min-h-0">
-                      {chatMessages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div
-                            className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words border"
-                            style={
-                              message.role === "user"
-                                ? {
-                                    background:
-                                      "linear-gradient(135deg, #a855f7, #6366f1)",
-                                    color: "#ffffff",
-                                    borderColor: "rgba(129, 140, 248, 0.6)",
-                                  }
-                                : {
-                                    background: darkMode
-                                      ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
-                                      : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
-                                    color: theme.textPrimary,
-                                    borderColor: theme.border,
-                                  }
-                            }
-                          >
-                            {message.content.trim().length > 0 ? message.content : '...'}
-                          </div>
-                        </div>
-                      ))}
-                      <div ref={chatMessagesEndRef} />
-                    </div>
-                  </div>
-                  <div className="px-6 pb-6 border-0">
-                    <div className="relative">
-                      <textarea
-                        ref={expandedInputRef}
-                        autoFocus
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") {
-                            e.preventDefault();
-                            setIsSearchExpanded(false);
-                          } else if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendChat();
-                          }
-                        }}
-                        placeholder="Ask me anything..."
-                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent break-words"
-                        style={{
-                          background: darkMode
-                            ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
-                            : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
-                          borderColor: theme.border,
-                          color: theme.textPrimary,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
+              {!isSearchExpanded && (
                 <StudioSparkleInput
                   onClick={() => {
                     setIsSearchExpanded(true);
@@ -666,7 +457,7 @@ export default function WorkspacesPage() {
                 <div
                   ref={(el) => {
                     if (el && profileDropdownRef.current) {
-                      (profileDropdownRef.current as any).dropdownMenu = el;
+                      (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu = el;
                     }
                   }}
                   className="fixed rounded-lg shadow-lg z-[100]"
@@ -938,27 +729,41 @@ export default function WorkspacesPage() {
                         style={darkMode ? {
                           borderColor: theme.border,
                           backgroundColor: theme.surface,
-                        } : undefined}
-                        className={`rounded-2xl border px-4 py-3 ${
-                          darkMode ? '' : 'border-sky-100 bg-gradient-to-br from-sky-50 via-white to-white/90'
+                        } : {
+                          border: 'none',
+                          borderBottom: 'solid 1px #dcdcdc1c',
+                          boxShadow: '0px 1px 2px 1px #dcdcdc82 inset',
+                          background: '#f7ebf352',
+                        }}
+                        className={`rounded-2xl px-4 py-3 ${
+                          darkMode ? 'border' : ''
                         }`}
                       >
-                        <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-sky-600'}`}>Sessions</p>
-                        <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{workspaces.length}</p>
-                        <p style={darkMode ? { color: theme.textMuted } : undefined} className={`text-xs ${darkMode ? '' : 'text-slate-500'}`}>Saved journeys</p>
+                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 500 } : { fontWeight: 500 }} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-sky-600'}`}>Sessions</p>
+                        <div className="flex items-baseline gap-1.5">
+                          <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{workspaces.length}</p>
+                          <p style={darkMode ? { color: theme.textPrimary, fontWeight: 400 } : { color: '#000000', fontWeight: 400 }} className="text-xs uppercase tracking-wider">saved</p>
+                        </div>
                       </div>
                       <div 
                         style={darkMode ? {
                           borderColor: theme.border,
                           backgroundColor: theme.surface,
-                        } : undefined}
-                        className={`rounded-2xl border px-4 py-3 ${
-                          darkMode ? '' : 'border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-white/90'
+                        } : {
+                          border: 'none',
+                          borderBottom: 'solid 1px #dcdcdc1c',
+                          boxShadow: '0px 1px 2px 1px #dcdcdc82 inset',
+                          background: '#8e7ff812',
+                        }}
+                        className={`rounded-2xl px-4 py-3 ${
+                          darkMode ? 'border' : ''
                         }`}
                       >
-                        <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-indigo-600'}`}>Parts</p>
-                        <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{totalParts}</p>
-                        <p style={darkMode ? { color: theme.textMuted } : undefined} className={`text-xs ${darkMode ? '' : 'text-slate-500'}`}>Mapped across sessions</p>
+                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 500 } : { fontWeight: 500 }} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-indigo-600'}`}>Parts</p>
+                        <div className="flex items-baseline gap-1.5">
+                          <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{totalParts}</p>
+                          <p style={darkMode ? { color: theme.textPrimary, fontWeight: 400 } : { color: '#000000', fontWeight: 400 }} className="text-xs uppercase tracking-wider">mapped</p>
+                        </div>
                       </div>
                     </div>
                     <div 
@@ -1020,7 +825,7 @@ export default function WorkspacesPage() {
               </div>
               <h3 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Your canvas is ready</h3>
               <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} max-w-md`}>
-                Kick off your first session to start mapping parts, impressions, and relationships. We'll keep everything saved as you go.
+                Kick off your first session to start mapping parts, impressions, and relationships. We&apos;ll keep everything saved as you go.
               </p>
               <button
                 onClick={handleStartSession}
@@ -1262,7 +1067,7 @@ export default function WorkspacesPage() {
                       >
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
-                            {workspace.nodes.slice(0, 6).map((node: any) => (
+                            {workspace.nodes.slice(0, 6).map((node) => (
                               <div
                                 key={node.id}
                                 style={darkMode ? {
@@ -1273,9 +1078,11 @@ export default function WorkspacesPage() {
                                 }`}
                               >
                                 {node.data?.image ? (
-                                  <img
+                                  <Image
                                     src={node.data.image}
-                                    alt={node.data.label || 'Part'}
+                                    alt={node.data?.label || "Part"}
+                                    width={50}
+                                    height={50}
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (

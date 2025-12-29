@@ -36,7 +36,7 @@
     "lexical": "^0.38.2",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.485.0",
-    "next": "15.2.3",
+    "next": "15.2.8",
     "next-auth": "^4.24.11",
     "openai": "^5.23.1",
     "payload-lexical-typography": "^0.5.2",

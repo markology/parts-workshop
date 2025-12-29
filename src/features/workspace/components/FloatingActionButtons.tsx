@@ -2,6 +2,7 @@
 
 import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map, Sparkles, Paintbrush } from "lucide-react";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
+import StudioAssistant from "@/components/StudioAssistant";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
@@ -12,6 +13,7 @@ import ImpressionDisplay from "./SideBar/Impressions/ImpressionDisplay";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { NodeBackgroundColors } from "../constants/Nodes";
+import { getImpressionBaseColors, getImpressionSidebarHeaderBg, getImpressionPillFontColor, getImpressionHeaderBorderColor } from "../constants/ImpressionColors";
 import { useSidebarStore } from "../state/stores/Sidebar";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
@@ -36,24 +38,13 @@ const FloatingActionButtons = () => {
     other: true,
   });
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
   const [isCollapsing, setIsCollapsing] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: "user" | "assistant"; content: string }>>([
-    {
-      id: "assistant-initial",
-      role: "assistant",
-      content: "Hi! I'm here to help you navigate Parts Studio. Ask me anything."
-    }
-  ]);
-  const [isChatSending, setIsChatSending] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchInputContainerRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
-  const expandedInputRef = useRef<HTMLTextAreaElement>(null);
-  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const menuWidthRef = useRef<number>(0);
   const [menuWidthMeasured, setMenuWidthMeasured] = useState(false);
-  const [chatboxPosition, setChatboxPosition] = useState<{ top: number; left: number } | null>(null);
+  const [chatboxPosition, setChatboxPosition] = useState<{ top: number; right: number } | null>(null);
   // Use actions-only hook to prevent re-renders when nodes/edges change
   const { createNode } = useFlowNodesActions();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -151,15 +142,6 @@ const FloatingActionButtons = () => {
   }, [isSearchExpanded]);
 
   // Scroll to bottom of chat messages
-  useEffect(() => {
-    if (!isSearchExpanded) {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    });
-  }, [chatMessages, isSearchExpanded]);
 
   // Track window width for responsive behavior
   useEffect(() => {
@@ -180,7 +162,7 @@ const FloatingActionButtons = () => {
         const rect = searchInputContainerRef.current.getBoundingClientRect();
         setChatboxPosition({
           top: rect.top,
-          left: rect.left
+          right: window.innerWidth - rect.right
         });
       } else {
         setChatboxPosition(null);
@@ -199,14 +181,6 @@ const FloatingActionButtons = () => {
     }
   }, [isSearchExpanded]);
 
-  // Focus input when expanded
-  useEffect(() => {
-    if (isSearchExpanded && expandedInputRef.current && !isCollapsing) {
-      setTimeout(() => {
-        expandedInputRef.current?.focus();
-      }, 50);
-    }
-  }, [isSearchExpanded, isCollapsing]);
 
   // Measure menu width when it opens - use useLayoutEffect for synchronous measurement
   useLayoutEffect(() => {
@@ -249,101 +223,12 @@ const FloatingActionButtons = () => {
     setIsCollapsing(true);
     setIsSearchExpanded(false);
     
-    // Clear the input and reset state after the animation completes (300ms)
+    // Clear the collapsing state after the animation completes (300ms)
     setTimeout(() => {
       setIsCollapsing(false);
-      setSearchInput("");
     }, 300);
   };
 
-  const handleSendChat = async () => {
-    const trimmedMessage = searchInput.trim();
-    if (!trimmedMessage || isChatSending) {
-      return;
-    }
-
-    const userMessage = {
-      id: `user-${Date.now()}`,
-      role: "user" as const,
-      content: trimmedMessage
-    };
-
-    const assistantMessageId = `assistant-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    setChatMessages(prev => [
-      ...prev,
-      userMessage,
-      {
-        id: assistantMessageId,
-        role: "assistant" as const,
-        content: ""
-      }
-    ]);
-
-    setSearchInput("");
-    setIsChatSending(true);
-
-    try {
-      const response = await fetch("/api/ai/ifs-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userMessage: trimmedMessage
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to reach assistant");
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error("No response body");
-      }
-
-      const decoder = new TextDecoder();
-      let fullContent = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-
-        fullContent += decoder.decode(value, { stream: true });
-
-        const content = fullContent;
-        setChatMessages(prev =>
-          prev.map(message =>
-            message.id === assistantMessageId ? { ...message, content } : message
-          )
-        );
-      }
-
-      setChatMessages(prev =>
-        prev.map(message =>
-          message.id === assistantMessageId ? { ...message, content: fullContent } : message
-        )
-      );
-    } catch (error) {
-      console.error("Chat error:", error);
-      setChatMessages(prev =>
-        prev.map(message =>
-          message.id === assistantMessageId
-            ? {
-                ...message,
-                content:
-                  "I'm sorry, I'm having trouble responding right now. Please try again in a moment."
-              }
-            : message
-        )
-      );
-    } finally {
-      setIsChatSending(false);
-    }
-  };
   
   const handleSaveAndCleanup = async () => {
     setLocalIsSaving(true);
@@ -589,17 +474,25 @@ const FloatingActionButtons = () => {
     return (
       <div className="mb-3">
         <button
-          className="capitalize flex items-center justify-between w-full p-2 text-left font-semibold rounded transition-colors"
+          className={`capitalize flex items-center justify-between w-full p-2 text-left font-semibold rounded transition-colors ${
+            isImpressionsEmpty ? "" : "hover:opacity-80"
+          }`}
           disabled={isImpressionsEmpty}
           onClick={toggleOpen}
           style={{
-            color: NodeBackgroundColors[type],
+            color: getImpressionSidebarHeaderBg(type, darkMode),
             opacity: emptyOpacityStyle,
+            backgroundColor: isImpressionsEmpty && !darkMode ? "rgb(255, 255, 255)" : getImpressionSidebarHeaderBg(type, darkMode),
+            borderColor: isImpressionsEmpty 
+              ? (darkMode ? "transparent" : getImpressionHeaderBorderColor(type, darkMode))
+              : getImpressionHeaderBorderColor(type, darkMode),
+            borderWidth: "2px",
+            borderStyle: "solid",
           }}
         >
           <p
             style={{
-              color: NodeBackgroundColors[type],
+              color: getImpressionSidebarHeaderBg(type, darkMode),
             }}
           >
             {type}
@@ -626,15 +519,18 @@ const FloatingActionButtons = () => {
         <div className="flex flex-col gap-2">
           {open &&
             filteredImpressions &&
-            Object.values(filteredImpressions).map((item) => (
+            Object.values(filteredImpressions).map((item, index) => (
               <div
                 key={item.id}
-                className="sidebar-impression text-white rounded-lg px-3 py-2 cursor-grab flex justify-between items-center shadow-sm transition-transform hover:scale-[1.02] active:cursor-grabbing"
+                className="sidebar-impression text-white rounded-lg px-3 py-2 cursor-grab flex justify-between items-center shadow-sm transition-transform hover:-translate-y-[1px] active:cursor-grabbing relative"
                 onDragStart={(event) => onDragStart(event, item.id, item.type)}
                 draggable
                 style={{
-                  background: NodeBackgroundColors[item.type],
+                  background: (getImpressionBaseColors(darkMode) as any)[item.type]?.background || NodeBackgroundColors[item.type],
+                  color: getImpressionPillFontColor(item.type as ImpressionType, darkMode),
                   userSelect: 'none',
+                  zIndex: index === 0 ? 10 : 1,
+                  marginTop: index === 0 ? '4px' : '0',
                 }}
               >
                 <span>{item.label}</span>
@@ -708,36 +604,46 @@ const FloatingActionButtons = () => {
             ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
           }}
           onMouseEnter={(e) => {
-            // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
-            let r: number, g: number, b: number;
-            
-            if (theme.button.startsWith('#')) {
-              // Hex format
-              const hex = theme.button.replace('#', '');
-              r = parseInt(hex.substr(0, 2), 16);
-              g = parseInt(hex.substr(2, 2), 16);
-              b = parseInt(hex.substr(4, 2), 16);
-            } else if (theme.button.startsWith('rgb')) {
-              // RGB format
-              const matches = theme.button.match(/\d+/g);
-              if (matches && matches.length >= 3) {
-                r = parseInt(matches[0]);
-                g = parseInt(matches[1]);
-                b = parseInt(matches[2]);
+            if (darkMode) {
+              // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
+              let r: number, g: number, b: number;
+              
+              if (theme.button.startsWith('#')) {
+                // Hex format
+                const hex = theme.button.replace('#', '');
+                r = parseInt(hex.substr(0, 2), 16);
+                g = parseInt(hex.substr(2, 2), 16);
+                b = parseInt(hex.substr(4, 2), 16);
+              } else if (theme.button.startsWith('rgb')) {
+                // RGB format
+                const matches = theme.button.match(/\d+/g);
+                if (matches && matches.length >= 3) {
+                  r = parseInt(matches[0]);
+                  g = parseInt(matches[1]);
+                  b = parseInt(matches[2]);
+                } else {
+                  return; // Can't parse, don't change color
+                }
               } else {
-                return; // Can't parse, don't change color
+                return; // Unknown format, don't change color
               }
+              
+              const darkerR = Math.max(0, r - 20);
+              const darkerG = Math.max(0, g - 20);
+              const darkerB = Math.max(0, b - 20);
+              e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
             } else {
-              return; // Unknown format, don't change color
+              // Apply gradient background on hover
+              e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
             }
-            
-            const darkerR = Math.max(0, r - 20);
-            const darkerG = Math.max(0, g - 20);
-            const darkerB = Math.max(0, b - 20);
-            e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = theme.button;
+            if (darkMode) {
+              e.currentTarget.style.backgroundColor = theme.button;
+            } else {
+              e.currentTarget.style.backgroundImage = 'none';
+              e.currentTarget.style.backgroundColor = theme.button;
+            }
           }}
           title={label}
         >
@@ -823,7 +729,7 @@ const FloatingActionButtons = () => {
             </button>
             <button
               onClick={() => {
-                router.push('/workspaces');
+                router.push('/dashboard');
                 setProfileDropdownOpen(false);
               }}
               className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
@@ -836,7 +742,7 @@ const FloatingActionButtons = () => {
               }}
             >
               <Map className="w-4 h-4" />
-              Workspaces
+              Dashboard
             </button>
             
             
@@ -923,14 +829,23 @@ const FloatingActionButtons = () => {
                   onClick={closeOptionsModal}
                   className="absolute top-4 right-4 rounded-full p-2 transition shadow-md"
                   style={{ 
-                    backgroundColor: theme.button, 
+                    backgroundColor: darkMode ? theme.button : 'white', 
                     color: theme.buttonText 
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = theme.buttonHover;
+                    } else {
+                      e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.button;
+                    if (darkMode) {
+                      e.currentTarget.style.backgroundColor = theme.button;
+                    } else {
+                      e.currentTarget.style.backgroundImage = 'none';
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
                   }}
                   aria-label="Close options"
                 >
@@ -992,106 +907,11 @@ const FloatingActionButtons = () => {
       )}
 
       {isSearchExpanded && chatboxPosition && (
-        <div
-          ref={searchBoxRef}
-          className="fixed w-[320px] pointer-events-auto z-[80]"
-          style={{
-            top: `${chatboxPosition.top}px`,
-            left: `${chatboxPosition.left}px`
-          }}
-        >
-          <div className={`relative w-full h-[60vh]  h-auto max-h-[600px] rounded-3xl overflow-hidden border flex flex-col ${darkMode ? "" : "shadow-[0_18px_35px_rgba(105,99,255,0.18)]"}`}
-            style={{ 
-              backgroundColor: theme.modal, 
-              borderColor: theme.border 
-            }}>
-            <button
-              onClick={handleSearchClose}
-              className="absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10"
-              style={{ color: theme.textSecondary }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.buttonHover;
-                e.currentTarget.style.color = theme.textPrimary;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = theme.textSecondary;
-              }}
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
-              <div>
-                <p 
-                  className={`text-[11px] tracking-[0.32em] uppercase font-semibold ${darkMode ? "text-purple-400/60" : "text-purple-500/70"}`}
-                >
-                  Studio Assistant
-                </p>
-                <p className="mt-3 text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
-                  Ask for guidance, shortcuts, or reflections tailored to your Parts Studio flow.
-                </p>
-              </div>
-
-              <div className="mt-5 space-y-3 flex-1 overflow-y-auto pr-1 min-h-0">
-                {chatMessages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
-                        message.role === "user"
-                          ? "bg-purple-500 text-white"
-                          : ""
-                      }`}
-                      style={
-                        message.role === "user"
-                          ? undefined
-                          : {
-                              backgroundColor: darkMode ? theme.surface : theme.elevated,
-                              color: theme.textPrimary,
-                              borderColor: theme.border,
-                            }
-                      }
-                    >
-                      {message.content.trim().length > 0 ? message.content : "..."}
-                    </div>
-                  </div>
-                ))}
-                <div ref={chatMessagesEndRef} />
-              </div>
-            </div>
-
-            <div className="px-6 pb-6 border-0">
-                    <div className="relative">
-                      <textarea
-                        ref={expandedInputRef}
-                        autoFocus
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            e.preventDefault();
-                            setIsSearchExpanded(false);
-                          } else if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendChat();
-                          }
-                        }}
-                        placeholder="Ask me anything..."
-                        className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-purple-400/60 focus:border-transparent border text-sm"
-                      style={{
-                        backgroundColor: theme.surface,
-                        borderColor: theme.border,
-                        color: theme.textPrimary,
-                      }}
-                      placeholder="Ask me anything..."
-                      />
-                    </div>
-                  </div>
-          </div>
-        </div>
+        <StudioAssistant
+          isOpen={isSearchExpanded}
+          onClose={handleSearchClose}
+          position={chatboxPosition}
+        />
       )}
  
       {/* Plus button and 9 dots on the left */}
@@ -1135,10 +955,11 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col border"
+            className={`absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col backdrop-blur-xl ${darkMode ? 'bg-aside' : ''}`}
             style={{ 
-              backgroundColor: theme.sidebar,
-              borderColor: theme.border,
+              backgroundColor: darkMode ? theme.sidebar : 'rgba(255, 255, 255, 0.92)',
+              border: 'none',
+              borderTop: darkMode ? '1px solid rgb(27 27 27 / 25%)' : 'solid 1px #d3d3d340',
               zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
               width: '313px',
               transform: 'scaleX(0)',
@@ -1164,10 +985,10 @@ const FloatingActionButtons = () => {
             overflow: 'visible'
           }}
         >
-          <div 
+          <div
             className="rounded-full shadow-xl flex items-center overflow-hidden"
-            style={{ backgroundColor: theme.card }}
             style={{
+              backgroundColor: theme.card,
               width: 'max-content',
               transform: 'scaleX(0)',
               transformOrigin: 'left center',
@@ -1176,8 +997,74 @@ const FloatingActionButtons = () => {
           >
             {/* Part option */}
             <button
-              onMouseEnter={() => setHoveredOption('part')}
-              onMouseLeave={() => setHoveredOption(null)}
+              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
+              style={{ 
+                backgroundColor: theme.button,
+                color: theme.buttonText 
+              }}
+              onMouseEnter={(e) => {
+                setHoveredOption('part');
+                if (darkMode) {
+                  // Darken the button on hover by reducing RGB values
+                  let r: number, g: number, b: number;
+                  
+                  if (theme.button.startsWith('#')) {
+                    // Hex format
+                    const hex = theme.button.replace('#', '');
+                    r = parseInt(hex.substr(0, 2), 16);
+                    g = parseInt(hex.substr(2, 2), 16);
+                    b = parseInt(hex.substr(4, 2), 16);
+                  } else if (theme.button.startsWith('rgb')) {
+                    // RGB format
+                    const matches = theme.button.match(/\d+/g);
+                    if (matches && matches.length >= 3) {
+                      r = parseInt(matches[0]);
+                      g = parseInt(matches[1]);
+                      b = parseInt(matches[2]);
+                    } else {
+                      return; // Can't parse, don't change color
+                    }
+                  } else {
+                    return; // Unknown format, don't change color
+                  }
+                  
+                  const darkerR = Math.max(0, r - 20);
+                  const darkerG = Math.max(0, g - 20);
+                  const darkerB = Math.max(0, b - 20);
+                  e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+                  
+                  // Set Add pill to impression sidebar background color on hover
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundColor = theme.sidebar;
+                  }
+                } else {
+                  // Apply gradient to span on button hover
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                  }
+                }
+              }}
+              onMouseLeave={(e) => {
+                setHoveredOption(null);
+                if (darkMode) {
+                  e.currentTarget.style.backgroundColor = theme.button;
+                  
+                  // Reset the Add pill color
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundColor = theme.buttonActive;
+                  }
+                } else {
+                  // Reset span gradient
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundImage = 'none';
+                    pill.style.backgroundColor = 'white';
+                  }
+                }
+              }}
               onClick={() => {
                 const newNode = createNode("part", "");
                 if (newNode && newNode.id) {
@@ -1191,83 +1078,15 @@ const FloatingActionButtons = () => {
                 // Keep action button active so impressions sidebar stays open
                 // Keep options menu open
               }}
-              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
-              style={{ 
-                backgroundColor: theme.button,
-                color: theme.buttonText 
-              }}
-              onMouseEnter={(e) => {
-                // Darken the button on hover by reducing RGB values
-                let r: number, g: number, b: number;
-                
-                if (theme.button.startsWith('#')) {
-                  // Hex format
-                  const hex = theme.button.replace('#', '');
-                  r = parseInt(hex.substr(0, 2), 16);
-                  g = parseInt(hex.substr(2, 2), 16);
-                  b = parseInt(hex.substr(4, 2), 16);
-                } else if (theme.button.startsWith('rgb')) {
-                  // RGB format
-                  const matches = theme.button.match(/\d+/g);
-                  if (matches && matches.length >= 3) {
-                    r = parseInt(matches[0]);
-                    g = parseInt(matches[1]);
-                    b = parseInt(matches[2]);
-                  } else {
-                    return; // Can't parse, don't change color
-                  }
-                } else {
-                  return; // Unknown format, don't change color
-                }
-                
-                const darkerR = Math.max(0, r - 20);
-                const darkerG = Math.max(0, g - 20);
-                const darkerB = Math.max(0, b - 20);
-                e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-                
-                // Darken the Add pill when button is hovered
-                const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                if (pill) {
-                  let pillR: number, pillG: number, pillB: number;
-                  if (theme.buttonActive.startsWith('#')) {
-                    const pillHex = theme.buttonActive.replace('#', '');
-                    pillR = parseInt(pillHex.substr(0, 2), 16);
-                    pillG = parseInt(pillHex.substr(2, 2), 16);
-                    pillB = parseInt(pillHex.substr(4, 2), 16);
-                  } else if (theme.buttonActive.startsWith('rgb')) {
-                    const matches = theme.buttonActive.match(/\d+/g);
-                    if (matches && matches.length >= 3) {
-                      pillR = parseInt(matches[0]);
-                      pillG = parseInt(matches[1]);
-                      pillB = parseInt(matches[2]);
-                    } else {
-                      return;
-                    }
-                  } else {
-                    return;
-                  }
-                  const darkerPillR = Math.max(0, pillR - 10);
-                  const darkerPillG = Math.max(0, pillG - 10);
-                  const darkerPillB = Math.max(0, pillB - 10);
-                  pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = theme.button;
-                
-                // Reset the Add pill color
-                const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                if (pill) {
-                  pill.style.backgroundColor = theme.buttonActive;
-                }
-              }}
             >
               Part
-              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
+              <span 
+                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{ 
-                  backgroundColor: theme.buttonActive, 
+                  backgroundColor: darkMode ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
-                }}>
+                }}
+              >
                 Add
               </span>
             </button>
@@ -1276,90 +1095,88 @@ const FloatingActionButtons = () => {
             
             {/* Relationship option */}
             <button
-              onMouseEnter={() => setHoveredOption('relationship')}
-              onMouseLeave={() => setHoveredOption(null)}
-              onClick={() => {
-                createNode("relationship", "Choose Relationship Type");
-                // Keep action button active so impressions sidebar stays open
-                // Keep options menu open
-              }}
               className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
               style={{ 
                 backgroundColor: theme.button,
                 color: theme.buttonText 
               }}
               onMouseEnter={(e) => {
-                // Darken the button on hover by reducing RGB values
-                let r: number, g: number, b: number;
-                
-                if (theme.button.startsWith('#')) {
-                  // Hex format
-                  const hex = theme.button.replace('#', '');
-                  r = parseInt(hex.substr(0, 2), 16);
-                  g = parseInt(hex.substr(2, 2), 16);
-                  b = parseInt(hex.substr(4, 2), 16);
-                } else if (theme.button.startsWith('rgb')) {
-                  // RGB format
-                  const matches = theme.button.match(/\d+/g);
-                  if (matches && matches.length >= 3) {
-                    r = parseInt(matches[0]);
-                    g = parseInt(matches[1]);
-                    b = parseInt(matches[2]);
-                  } else {
-                    return; // Can't parse, don't change color
-                  }
-                } else {
-                  return; // Unknown format, don't change color
-                }
-                
-                const darkerR = Math.max(0, r - 20);
-                const darkerG = Math.max(0, g - 20);
-                const darkerB = Math.max(0, b - 20);
-                e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-                
-                // Darken the Add pill when button is hovered
-                const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                if (pill) {
-                  let pillR: number, pillG: number, pillB: number;
-                  if (theme.buttonActive.startsWith('#')) {
-                    const pillHex = theme.buttonActive.replace('#', '');
-                    pillR = parseInt(pillHex.substr(0, 2), 16);
-                    pillG = parseInt(pillHex.substr(2, 2), 16);
-                    pillB = parseInt(pillHex.substr(4, 2), 16);
-                  } else if (theme.buttonActive.startsWith('rgb')) {
-                    const matches = theme.buttonActive.match(/\d+/g);
+                setHoveredOption('relationship');
+                if (darkMode) {
+                  // Darken the button on hover by reducing RGB values
+                  let r: number, g: number, b: number;
+                  
+                  if (theme.button.startsWith('#')) {
+                    // Hex format
+                    const hex = theme.button.replace('#', '');
+                    r = parseInt(hex.substr(0, 2), 16);
+                    g = parseInt(hex.substr(2, 2), 16);
+                    b = parseInt(hex.substr(4, 2), 16);
+                  } else if (theme.button.startsWith('rgb')) {
+                    // RGB format
+                    const matches = theme.button.match(/\d+/g);
                     if (matches && matches.length >= 3) {
-                      pillR = parseInt(matches[0]);
-                      pillG = parseInt(matches[1]);
-                      pillB = parseInt(matches[2]);
+                      r = parseInt(matches[0]);
+                      g = parseInt(matches[1]);
+                      b = parseInt(matches[2]);
                     } else {
-                      return;
+                      return; // Can't parse, don't change color
                     }
                   } else {
-                    return;
+                    return; // Unknown format, don't change color
                   }
-                  const darkerPillR = Math.max(0, pillR - 10);
-                  const darkerPillG = Math.max(0, pillG - 10);
-                  const darkerPillB = Math.max(0, pillB - 10);
-                  pill.style.backgroundColor = `rgb(${darkerPillR}, ${darkerPillG}, ${darkerPillB})`;
+                  
+                  const darkerR = Math.max(0, r - 20);
+                  const darkerG = Math.max(0, g - 20);
+                  const darkerB = Math.max(0, b - 20);
+                  e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+                  
+                  // Set Add pill to impression sidebar background color on hover
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundColor = theme.sidebar;
+                  }
+                } else {
+                  // Apply gradient to span on button hover
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+                  }
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = theme.button;
-                
-                // Reset the Add pill color
-                const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                if (pill) {
-                  pill.style.backgroundColor = theme.buttonActive;
+                setHoveredOption(null);
+                if (darkMode) {
+                  e.currentTarget.style.backgroundColor = theme.button;
+                  
+                  // Reset the Add pill color
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundColor = theme.buttonActive;
+                  }
+                } else {
+                  // Reset span gradient
+                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
+                  if (pill) {
+                    pill.style.backgroundImage = 'none';
+                    pill.style.backgroundColor = 'white';
+                  }
                 }
+              }}
+              onClick={() => {
+                createNode("relationship", "Choose Relationship Type");
+                // Keep action button active so impressions sidebar stays open
+                // Keep options menu open
               }}
             >
               Relationship
-              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
+              <span 
+                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{ 
-                  backgroundColor: theme.buttonActive, 
+                  backgroundColor: darkMode ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
-                }}>
+                }}
+              >
                 Add
               </span>
             </button>
@@ -1372,12 +1189,12 @@ const FloatingActionButtons = () => {
         className="absolute top-4 right-4 flex flex-row gap-3 items-start z-50"
       >
         {/* Assistant input (hidden when chat open) */}
-        <div ref={searchInputContainerRef} className="relative w-[320px] pointer-events-auto">
+        <div 
+          ref={searchInputContainerRef} 
+          className="relative w-[320px] pointer-events-auto"
+          style={{ height: '49px', alignContent: 'center' }}
+        >
           <StudioSparkleInput
-            inputRef={searchInputRef}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onFocus={() => setIsSearchExpanded(true)}
             onClick={() => setIsSearchExpanded(true)}
             placeholder="Ask the Studio Assistant"
             className={`${

@@ -99,13 +99,12 @@ const TensionNode = ({
   const accent = NodeBackgroundColors["tension"];
   const accentText = NodeTextColors["tension"];
   const shellClasses = darkMode
-    ? "border border-transparent text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
-    : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white border border-purple-200/70 text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
+    ? "text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
+    : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
 
   const shellStyle = darkMode
     ? {
         background: `linear-gradient(140deg, #2a1f3d, #27212f)`,
-        borderColor: "rgba(168,85,247,0.35)",
       }
     : undefined;
 
@@ -147,21 +146,15 @@ const TensionNode = ({
               }
               className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm"
               style={{
-                backgroundColor: darkMode ? "#924949" : "white",
-                color: darkMode ? "#e7b8b8" : "#475569",
                 border: "none",
                 ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                 ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
               }}
               onMouseEnter={(e) => {
-                if (darkMode) {
-                  e.currentTarget.style.backgroundColor = "#7a3a3a";
-                } else {
-                  e.currentTarget.style.backgroundColor = "#f1f5f9";
-                }
+                e.currentTarget.style.backgroundImage = 'none';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = darkMode ? "#924949" : "white";
+                e.currentTarget.style.backgroundImage = 'none';
               }}
               title="Open journal"
             >
@@ -174,14 +167,13 @@ const TensionNode = ({
               connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
-                  className={`rounded-2xl border px-4 py-3 shadow-sm ${
-                    darkMode ? "border-transparent text-slate-100" : "bg-white border-purple-200"
+                  className={`rounded-2xl px-4 py-3 shadow-sm ${
+                    darkMode ? "text-slate-100" : "bg-white"
                   }`}
                   style={
                     darkMode
                       ? {
                           background: palette.surface,
-                          borderColor: "rgba(168,85,247,0.15)",
                           boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
                         }
                       : undefined

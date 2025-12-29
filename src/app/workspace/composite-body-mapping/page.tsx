@@ -183,7 +183,7 @@ export default function CompositeBodyMappingPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => router.push("/workspaces")}
+              onClick={() => router.push("/dashboard")}
               className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />

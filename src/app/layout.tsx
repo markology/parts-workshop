@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 };
 
 // Server-side function to get initial theme from cookies
-function getServerTheme(): { themeName: string; isDark: boolean } {
+async function getServerTheme(): Promise<{ themeName: string; isDark: boolean }> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const themeName = cookieStore.get("themeName")?.value;
     const themeGlobal = cookieStore.get("themeGlobal")?.value;
     
@@ -30,7 +30,7 @@ function getServerTheme(): { themeName: string; isDark: boolean } {
     // Otherwise, we'll let the client-side script handle browser preference
     // Return default that will be overridden by client script
     return { themeName: "light", isDark: false };
-  } catch (error) {
+  } catch {
     // If cookies() fails (e.g., in middleware or static generation), return default
     return { themeName: "light", isDark: false };
   }
@@ -42,7 +42,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Get theme from cookies on server
-  const serverTheme = getServerTheme();
+  const serverTheme = await getServerTheme();
   
   return (
     <html lang="en" className={serverTheme.isDark ? "dark" : "light"} suppressHydrationWarning>

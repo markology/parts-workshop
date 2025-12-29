@@ -1,21 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
 import { ChevronDown, ChevronUp, GripVertical, X } from "lucide-react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 import { useThemeContext } from "@/state/context/ThemeContext";
-
-const toRgba = (hex: string, opacity: number) => {
-  const sanitized = hex.replace("#", "");
-  const bigint = parseInt(sanitized, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-};
+import { getImpressionBaseColors, getImpressionSidebarHeaderBg, getImpressionPillFontColor, getImpressionHeaderBorderColor } from "@/features/workspace/constants/ImpressionColors";
 
 const ImpressionDropdown = ({
   type,
@@ -34,18 +25,9 @@ const ImpressionDropdown = ({
   const isImpressionsEmpty = !filteredImpressions || !Object.keys(filteredImpressions).length;
   const count = Object.keys(filteredImpressions || {}).length;
   const { darkMode } = useThemeContext();
-  const accent = NodeBackgroundColors[type];
-  const accentText = NodeTextColors[type] || accent;
-  const cardBorder = toRgba(accent, darkMode ? 0.55 : 0.34);
-  const cardBackground = isImpressionsEmpty
-    ? darkMode
-      ? "rgba(18,28,40,0.3)"
-      : "rgba(248,250,252,0.7)"
-    : toRgba(accent, darkMode ? 0.3 : 0.18);
-  const disabledBackground = darkMode ? "rgba(18,28,40,0.24)" : "rgba(248,250,252,0.65)";
-  const chipBackground = toRgba(accent, darkMode ? 0.45 : 0.24);
-  const chipBorder = toRgba(accent, darkMode ? 0.65 : 0.32);
-  const removeHover = toRgba(accent, 0.35);
+  const baseColorsMap = getImpressionBaseColors(darkMode);
+  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
+  const sidebarHeaderBg = getImpressionSidebarHeaderBg(type, darkMode);
 
   return (
     <div className="mb-3">
@@ -54,12 +36,16 @@ const ImpressionDropdown = ({
         onClick={() => !isImpressionsEmpty && toggleOpen(!open)}
         disabled={isImpressionsEmpty}
         className={`w-full rounded-lg border px-3 py-1.5 text-left text-sm transition-all duration-200 ${
-          open && !isImpressionsEmpty ? "shadow-[0_14px_28px_rgba(15,23,42,0.08)]" : "hover:-translate-y-[1px]"
+          open && !isImpressionsEmpty ? "shadow-[0_14px_28px_rgba(15,23,42,0.08)]" : !isImpressionsEmpty ? "hover:-translate-y-[1px]" : ""
         } ${isImpressionsEmpty ? "cursor-not-allowed" : "cursor-pointer"}`}
         style={{
-          borderColor: cardBorder,
-          backgroundColor: isImpressionsEmpty ? disabledBackground : cardBackground,
-          color: darkMode ? "#f8fafc" : accentText,
+          borderColor: isImpressionsEmpty 
+            ? (darkMode ? "transparent" : getImpressionHeaderBorderColor(type, darkMode))
+            : getImpressionHeaderBorderColor(type, darkMode),
+          borderWidth: "2px",
+          borderStyle: "solid",
+          backgroundColor: isImpressionsEmpty && !darkMode ? "rgb(255, 255, 255)" : sidebarHeaderBg,
+          color: darkMode ? "rgb(255, 255, 255)" : baseColors.font,
           opacity: isImpressionsEmpty ? 0.55 : 1,
         }}
       >
@@ -67,7 +53,7 @@ const ImpressionDropdown = ({
           <div className="flex items-center gap-2">
             <p
               className="text-[11px] font-semibold uppercase tracking-[0.28em]"
-              style={{ color: darkMode ? "#f8fafc" : accentText }}
+              style={{ color: darkMode ? "rgb(255, 255, 255)" : baseColors.font }}
             >
               {type}
             </p>
@@ -87,16 +73,18 @@ const ImpressionDropdown = ({
 
       {open && filteredImpressions && Object.values(filteredImpressions).length > 0 && (
         <div className="mt-2 space-y-2">
-          {Object.values(filteredImpressions).map((item) => (
+          {Object.values(filteredImpressions).map((item, index) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-sm font-medium shadow-sm transition-all duration-150 hover:-translate-y-[1px] cursor-grab"
+              className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm transition-all duration-150 hover:-translate-y-[1px] cursor-grab relative"
               onDragStart={(event) => onDragStart(event, item.id, item.type)}
               draggable
               style={{
-                backgroundColor: chipBackground,
-                borderColor: chipBorder,
-                color: darkMode ? "rgba(255,255,255,0.92)" : accentText,
+                backgroundColor: baseColors.background,
+                border: 'none',
+                color: getImpressionPillFontColor(item.type, darkMode),
+                zIndex: index === 0 ? 10 : 1,
+                marginTop: index === 0 ? '4px' : '0',
               }}
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -114,7 +102,7 @@ const ImpressionDropdown = ({
                     .removeImpression({ type: item.type, id: item.id });
                 }}
                 style={{
-                  color: darkMode ? "rgba(255,255,255,0.75)" : accentText,
+                  color: getImpressionPillFontColor(item.type, darkMode),
                 }}
               >
                 <X className="h-3.5 w-3.5" />

@@ -280,3 +280,54 @@ export const setColorGroup = (
   return newTheme;
 };
 
+// Custom theme type
+export type CustomTheme = {
+  id: string;
+  name: string;
+  colors: ColorGroup;
+  createdAt?: number;
+};
+
+// Storage key for custom themes
+const CUSTOM_THEMES_STORAGE_KEY = "customThemes";
+
+// Get all custom themes from localStorage
+export const getCustomThemes = (): CustomTheme[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem(CUSTOM_THEMES_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+// Save a custom theme to localStorage
+export const saveCustomTheme = (theme: CustomTheme): void => {
+  if (typeof window === "undefined") return;
+  try {
+    const themes = getCustomThemes();
+    const existingIndex = themes.findIndex((t) => t.id === theme.id);
+    if (existingIndex >= 0) {
+      themes[existingIndex] = theme;
+    } else {
+      themes.push(theme);
+    }
+    localStorage.setItem(CUSTOM_THEMES_STORAGE_KEY, JSON.stringify(themes));
+  } catch (error) {
+    console.error("Failed to save custom theme:", error);
+  }
+};
+
+// Delete a custom theme from localStorage
+export const deleteCustomTheme = (themeId: string): void => {
+  if (typeof window === "undefined") return;
+  try {
+    const themes = getCustomThemes();
+    const filtered = themes.filter((t) => t.id !== themeId);
+    localStorage.setItem(CUSTOM_THEMES_STORAGE_KEY, JSON.stringify(filtered));
+  } catch (error) {
+    console.error("Failed to delete custom theme:", error);
+  }
+};
+
