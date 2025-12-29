@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Calendar, Trash2, Play, Clock, ChevronDown, User, Settings, Moon, Sun, LogOut, MailPlus, HelpCircle, Sparkles, Target, ArrowRight } from "lucide-react";
+import { Map, Calendar, Trash2, Play, Clock, ChevronDown, User, Settings, Moon, Sun, LogOut, MailPlus, HelpCircle, Sparkles, Target, ArrowRight, Heart } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
@@ -274,23 +274,23 @@ export default function WorkspacesPage() {
   const heroHighlights = [
     {
       icon: Map,
-      label: "Visual canvases",
-      description: "Plot parts and relationships on an infinite canvas.",
+      label: "Interactive Parts Mapping",
+      description: "Plot parts and relationships on an infinite customizable canvas",
     },
     {
-      icon: Calendar,
-      label: "Reflection ready",
-      description: "Log entries and export them to your journal in seconds.",
+      icon: Target,
+      label: "Trailhead Discovery",
+      description: "Develop your Self awareness with powerful noting meditation",
     },
     {
-      icon: Clock,
-      label: "Auto-saving progress",
-      description: "Sessions update as you drag, drop, and edit.",
+      icon: Heart,
+      label: "Unblending Support",
+      description: "Relieve your parts carrying the weight of your inner to-do list",
     },
     {
-      icon: HelpCircle,
-      label: "Assistant guidance",
-      description: "Ask the Studio Assistant for prompts anytime.",
+      icon: Sparkles,
+      label: "Sitewide Companion",
+      description: "Ask the Studio Assistant to help you on your journey",
     },
   ];
 
@@ -319,7 +319,7 @@ export default function WorkspacesPage() {
             }
           : {
               backgroundImage:
-                "linear-gradient(to bottom, #e6f8ff 0%, #dbeafe 400px, #e0e7ff calc(400px + 500px), #fef1f2 calc(400px + 1000px), #f3e8ff 100%)",
+                "linear-gradient(rgb(230, 248, 255) 0%, rgb(219, 234, 254) 400px, rgb(224, 231, 255) calc(900px), rgb(254, 241, 242) calc(1400px), rgb(252, 237, 238) 100%)",
               color: theme.textPrimary,
             }
       }
