@@ -148,7 +148,7 @@ const RelationshipNode = ({
                 border: "none",
                 ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                 ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
-                ...(!darkMode ? { color: accentText } : {}),
+                ...(!darkMode ? { color: accentText } : { backgroundColor: "rgba(59,130,246,0.2)" }),
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundImage = 'none';
