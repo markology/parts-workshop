@@ -42,8 +42,8 @@ jobs:
 
       - name: Build
         run: pnpm run build
-        env:
-          # Add any required build-time environment variables here
-          # DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          # NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          # NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+        # Add any required build-time environment variables here if needed:
+        # env:
+        #   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        #   NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+        #   NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
