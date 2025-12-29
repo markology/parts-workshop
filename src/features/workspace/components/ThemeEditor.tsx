@@ -173,7 +173,7 @@ export default function ThemeEditor({ onClose, onThemeSelect, onThemePreview }: 
           <p className="text-xs" style={{ color: theme.textSecondary }}>
             Your themes:
           </p>
-          {customThemes.map((customTheme) => (
+          {customThemes.map((customTheme: CustomTheme) => (
             <div
               key={customTheme.id}
               className="flex items-center gap-2 p-2 rounded-lg border"

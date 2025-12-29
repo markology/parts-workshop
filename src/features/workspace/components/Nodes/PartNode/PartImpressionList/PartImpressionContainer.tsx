@@ -14,7 +14,8 @@ const PartImpressionContainer = ({
   children: ReactElement[];
 }) => {
   const { darkMode } = useThemeContext();
-  const baseColors = getImpressionBaseColors(darkMode)[type];
+  const baseColorsMap = getImpressionBaseColors(darkMode);
+  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
 
   const containerStyle = {
     backgroundColor: baseColors.background,

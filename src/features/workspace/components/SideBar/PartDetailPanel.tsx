@@ -1536,15 +1536,15 @@ const PartDetailPanel = () => {
                           <div className="flex items-center gap-2">
                             <h4
                               className="font-semibold capitalize text-sm"
-                              style={{ color: darkMode ? getImpressionBaseColors(darkMode)[impression].font : getImpressionPartDetailsHeaderColor(impression, darkMode) }}
+                              style={{ color: darkMode ? (() => { const baseColorsMap = getImpressionBaseColors(darkMode); const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion; return baseColors.font; })() : getImpressionPartDetailsHeaderColor(impression, darkMode) }}
                             >
                               {impression}
                             </h4>
                             <span
                               className="px-2 py-1 rounded-full text-xs font-medium"
                               style={{
-                                backgroundColor: getImpressionBaseColors(darkMode)[impression].background,
-                                color: darkMode ? "rgb(255, 255, 255)" : getImpressionBaseColors(darkMode)[impression].font,
+                                backgroundColor: (() => { const baseColorsMap = getImpressionBaseColors(darkMode); const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion; return baseColors.background; })(),
+                                color: darkMode ? "rgb(255, 255, 255)" : (() => { const baseColorsMap = getImpressionBaseColors(darkMode); const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion; return baseColors.font; })(),
                               }}
                             >
                               {impressions.length}
@@ -1588,7 +1588,8 @@ const PartDetailPanel = () => {
                         <div className="space-y-2 mb-2">
                           {impressions.length > 0 ? (
                             impressions.map((imp, index) => {
-                              const baseColors = getImpressionBaseColors(darkMode)[impression];
+                              const baseColorsMap = getImpressionBaseColors(darkMode);
+                              const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
                               const pillFontColor = getImpressionPillFontColor(impression, darkMode);
 
                               return (

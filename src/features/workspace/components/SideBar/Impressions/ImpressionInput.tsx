@@ -181,7 +181,8 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
 
   const { darkMode } = useThemeContext();
   const theme = useTheme();
-  const selectedModalColors = getImpressionInputModalColors(darkMode)[selectedType];
+  const selectedModalColorsMap = getImpressionInputModalColors(darkMode);
+  const selectedModalColors = (selectedType in selectedModalColorsMap ? selectedModalColorsMap[selectedType as keyof typeof selectedModalColorsMap] : null) || selectedModalColorsMap.emotion;
   const inputPillFontColor = darkMode 
     ? selectedModalColors.inputPillFont 
     : getImpressionPartDetailsHeaderColor(selectedType, darkMode);
@@ -191,7 +192,8 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
           {ImpressionList.map((type) => {
-            const typeModalColors = getImpressionInputModalColors(darkMode)[type];
+            const typeModalColorsMap = getImpressionInputModalColors(darkMode);
+            const typeModalColors = (type in typeModalColorsMap ? typeModalColorsMap[type as keyof typeof typeModalColorsMap] : null) || typeModalColorsMap.emotion;
             return (
               <button
                 key={type}

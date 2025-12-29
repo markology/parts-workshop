@@ -211,10 +211,14 @@ export const getImpressionSidebarHeaderBg = (
   type: ImpressionType,
   darkMode: boolean
 ): string => {
-  const baseColors = getImpressionBaseColors(darkMode)[type];
+  const baseColorsMap = getImpressionBaseColors(darkMode);
+  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null);
+  if (!baseColors) {
+    return darkMode ? "rgb(71, 92, 76)" : "rgb(234, 246, 234)";
+  }
   return darkMode 
-    ? (baseColors as typeof ImpressionBaseColorsDark[ImpressionType]).sidebarHeaderBg
-    : (baseColors as typeof ImpressionBaseColorsLight[ImpressionType]).sidebarHeaderBg;
+    ? (baseColors as typeof ImpressionBaseColorsDark[keyof typeof ImpressionBaseColorsDark]).sidebarHeaderBg
+    : (baseColors as typeof ImpressionBaseColorsLight[keyof typeof ImpressionBaseColorsLight]).sidebarHeaderBg;
 };
 
 /**
@@ -226,10 +230,16 @@ export const getImpressionHeaderBorderColor = (
   darkMode: boolean
 ): string => {
   if (darkMode) {
-    return (ImpressionBaseColorsDark[type] as typeof ImpressionBaseColorsDark[ImpressionType]).borderColor;
+    if (type in ImpressionBaseColorsDark) {
+      return (ImpressionBaseColorsDark[type as keyof typeof ImpressionBaseColorsDark] as typeof ImpressionBaseColorsDark[keyof typeof ImpressionBaseColorsDark]).borderColor;
+    }
+    return "rgb(107, 149, 133)";
   }
   // Light mode uses base background color as border
-  return ImpressionBaseColorsLight[type].background;
+  if (type in ImpressionBaseColorsLight) {
+    return ImpressionBaseColorsLight[type as keyof typeof ImpressionBaseColorsLight].background;
+  }
+  return "rgb(227, 243, 227)";
 };
 
 /**
@@ -244,7 +254,10 @@ export const getImpressionPartDetailsHeaderColor = (
   if (darkMode) {
     return "rgb(255, 255, 255)"; // Always white in dark mode
   }
-  return ImpressionPartDetailsHeaderColorsLight[type];
+  if (type in ImpressionPartDetailsHeaderColorsLight) {
+    return ImpressionPartDetailsHeaderColorsLight[type as keyof typeof ImpressionPartDetailsHeaderColorsLight];
+  }
+  return "rgb(139, 203, 139)";
 };
 
 /**
@@ -256,9 +269,15 @@ export const getPartNodeImpressionTypeFont = (
   darkMode: boolean
 ): string => {
   if (darkMode) {
-    return ImpressionBaseColorsDark[type].partNodeTypeFont;
+    if (type in ImpressionBaseColorsDark) {
+      return ImpressionBaseColorsDark[type as keyof typeof ImpressionBaseColorsDark].partNodeTypeFont;
+    }
+    return "rgb(55, 81, 55)";
   }
-  return ImpressionBaseColorsLight[type].font;
+  if (type in ImpressionBaseColorsLight) {
+    return ImpressionBaseColorsLight[type as keyof typeof ImpressionBaseColorsLight].font;
+  }
+  return "rgb(63, 113, 66)";
 };
 
 /**
@@ -282,5 +301,8 @@ export const getImpressionPillFontColor = (
   if (darkMode) {
     return "rgb(255, 255, 255)";
   }
-  return ImpressionBaseColorsLight[type].font;
+  if (type in ImpressionBaseColorsLight) {
+    return ImpressionBaseColorsLight[type as keyof typeof ImpressionBaseColorsLight].font;
+  }
+  return "rgb(63, 113, 66)";
 };

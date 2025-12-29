@@ -105,7 +105,8 @@ const ImpressionInputModalContent = ({
     setCanAddImpression(false);
   }, [impressionModalTargetPartId, impressionModalType, setCanAddImpression]);
   
-  const impressionModalColors = getImpressionInputModalColors(darkMode)[currentType];
+  const impressionModalColorsMap = getImpressionInputModalColors(darkMode);
+  const impressionModalColors = (currentType in impressionModalColorsMap ? impressionModalColorsMap[currentType as keyof typeof impressionModalColorsMap] : null) || impressionModalColorsMap.emotion;
   const impressionTypeLabel =
     ImpressionTextType[currentType] ?? "Impression";
 
@@ -204,7 +205,7 @@ const ImpressionInputModalContent = ({
                                 borderRadius: '10px',
                               }}
                             >
-                              {partName}
+                              {String(partName)}
                             </span>{' '}
                             part
                           </>

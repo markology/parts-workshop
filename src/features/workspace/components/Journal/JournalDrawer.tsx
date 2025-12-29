@@ -953,9 +953,10 @@ export default function JournalDrawer() {
               <div className="flex flex-wrap gap-2">
                 {allImpressions.map((item) => {
                   const impressionType = item.impressionType as ImpressionType;
-                  const baseColors = getImpressionBaseColors(darkMode)[impressionType] || {
-                    background: NodeBackgroundColors[impressionType] || "#9CA3AF",
-                    font: NodeTextColors[impressionType] || "#374151",
+                  const impressionBaseColors = getImpressionBaseColors(darkMode);
+                  const baseColors = (impressionType in impressionBaseColors ? impressionBaseColors[impressionType as keyof typeof impressionBaseColors] : null) || {
+                    background: (impressionType in NodeBackgroundColors ? NodeBackgroundColors[impressionType as keyof typeof NodeBackgroundColors] : null) || "#9CA3AF",
+                    font: (impressionType in NodeTextColors ? NodeTextColors[impressionType as keyof typeof NodeTextColors] : null) || "#374151",
                   };
                   const pillFontColor = getImpressionPillFontColor(impressionType, darkMode);
 

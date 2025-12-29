@@ -267,7 +267,8 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
               <div className="relative min-h-[90px] p-3 flex flex-wrap gap-2 items-start content-start overflow-hidden">
                 {observationPreview.length > 0 ? (
                   observationPreview.map((obs, index) => {
-                    const baseColors = getImpressionBaseColors(darkMode)[obs.impressionType] || {
+                    const baseColorsMap = getImpressionBaseColors(darkMode);
+                    const baseColors = (obs.impressionType in baseColorsMap ? baseColorsMap[obs.impressionType as keyof typeof baseColorsMap] : null) || {
                       background: NodeBackgroundColors[obs.impressionType] || "#9CA3AF",
                       font: NodeTextColors[obs.impressionType] || "#374151",
                     };

@@ -16,7 +16,7 @@ interface StudioAssistantProps {
   onClose?: () => void;
   position?: { top: number; right: number } | null;
   className?: string;
-  containerRef?: React.RefObject<HTMLDivElement>;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function StudioAssistant({

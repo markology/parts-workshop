@@ -29,6 +29,7 @@ import {
   TextNode,
   $isTextNode,
   LexicalNode,
+  ElementNode,
 } from "lexical";
 import {
   $patchStyleText,
@@ -464,9 +465,9 @@ function SpeakerLineEnterPlugin({
                     targetOffset = targetNode.getTextContent().length;
                   } else {
                     // It's an element node - find its last text node
-                    if ('getChildren' in targetNode && typeof (targetNode as any).getChildren === 'function') {
+                    if (targetNode instanceof ElementNode) {
                       const originalElementNode = targetNode;
-                      const children = (targetNode as any).getChildren();
+                      const children = targetNode.getChildren();
                       if (children.length > 0) {
                         // Walk backwards to find last text node
                         for (let j = children.length - 1; j >= 0; j--) {
@@ -735,9 +736,9 @@ function SpeakerLineEnterPlugin({
                     targetOffset = targetNode.getTextContent().length;
                   } else {
                     // It's an element node - find its last text node
-                    if ('getChildren' in targetNode && typeof (targetNode as any).getChildren === 'function') {
+                    if (targetNode instanceof ElementNode) {
                       const originalElementNode = targetNode;
-                      const children = (targetNode as any).getChildren();
+                      const children = targetNode.getChildren();
                       if (children.length > 0) {
                         // Walk backwards to find last text node
                         for (let j = children.length - 1; j >= 0; j--) {
@@ -1327,8 +1328,8 @@ function Toolbar({
           // If caret is at an element boundary, the anchor node might not be the node that visually
           // "owns" the caret. As a fallback, check nearest text neighbors.
           if (!effectiveColor) {
-            const tryNeighbor = (node: unknown) => {
-              if ($isTextNode(node as any)) {
+            const tryNeighbor = (node: LexicalNode | null | undefined) => {
+              if ($isTextNode(node)) {
                 return readColorFromStyleString((node as TextNode).getStyle());
               }
               return null;
@@ -1366,8 +1367,8 @@ function Toolbar({
           | "none" = "selection";
 
         if (selection.isCollapsed()) {
-          const readFormatsFromNode = (node: unknown) => {
-            if (!$isTextNode(node as any)) return null;
+          const readFormatsFromNode = (node: LexicalNode | null | undefined) => {
+            if (!$isTextNode(node)) return null;
             const t = node as TextNode;
             return {
               bold: t.hasFormat("bold"),
@@ -1383,8 +1384,8 @@ function Toolbar({
             effectiveUnderline = fromAnchor.underline;
             effectiveFormatSource = "textNode";
         } else {
-            const prev = (anchorNode as any)?.getPreviousSibling?.();
-            const next = (anchorNode as any)?.getNextSibling?.();
+            const prev = anchorNode.getPreviousSibling();
+            const next = anchorNode.getNextSibling();
             const fromPrev = readFormatsFromNode(prev);
             const fromNext = readFormatsFromNode(next);
             if (fromPrev) {
@@ -1408,14 +1409,14 @@ function Toolbar({
           anchorKey: selection.anchor.key,
           anchorOffset: selection.anchor.offset,
           anchorType: selection.anchor.type,
-          anchorNodeType: (anchorNode as any)?.getType?.(),
-          anchorNodeKey: (anchorNode as any)?.getKey?.(),
+          anchorNodeType: anchorNode.getType(),
+          anchorNodeKey: anchorNode.getKey(),
           anchorNodeStyle: $isTextNode(anchorNode) ? anchorNode.getStyle() : null,
           focusKey: selection.focus.key,
           focusOffset: selection.focus.offset,
           focusType: selection.focus.type,
-          focusNodeType: (focusNode as any)?.getType?.(),
-          focusNodeKey: (focusNode as any)?.getKey?.(),
+          focusNodeType: focusNode.getType(),
+          focusNodeKey: focusNode.getKey(),
           focusNodeStyle: $isTextNode(focusNode) ? focusNode.getStyle() : null,
           formats: {
             bold: effectiveBold,

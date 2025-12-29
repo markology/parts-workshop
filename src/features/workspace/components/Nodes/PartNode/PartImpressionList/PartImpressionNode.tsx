@@ -22,7 +22,8 @@ const PartImpressionNode = ({
   const { detachImpressionFromPart } = useFlowNodesContext();
   const { setJournalTarget } = useJournalStore();
   const { darkMode } = useThemeContext();
-  const baseColors = getImpressionBaseColors(darkMode)[type];
+  const baseColorsMap = getImpressionBaseColors(darkMode);
+  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
   const pillFontColor = getImpressionPillFontColor(type, darkMode);
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =

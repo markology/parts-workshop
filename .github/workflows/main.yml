@@ -5,27 +5,45 @@ on:
     branches: ["**"]
   pull_request:
     branches: ["**"]
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'pnpm'
 
-      - name: Install deps
-        run: npm install
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # - name: Generate Prisma Client
+      #   run: pnpm prisma generate
+      #   env:
+      #     # Use a dummy DATABASE_URL for Prisma generate (schema validation only)
+      #     DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:password@localhost:5432/db' }}
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
+        env:
+          # Add any required build-time environment variables here
+          # DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          # NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}

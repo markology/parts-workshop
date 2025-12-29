@@ -59,7 +59,8 @@ const ImpressionNode = ({
     [deleteNode, label]
   );
 
-  const baseColors = getImpressionBaseColors(darkMode)[type];
+  const baseColorsMap = getImpressionBaseColors(darkMode);
+  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
   const typeLabelFont = getPartNodeImpressionTypeFont(type, darkMode);
   const pillFontColor = getImpressionPillFontColor(type, darkMode);
 

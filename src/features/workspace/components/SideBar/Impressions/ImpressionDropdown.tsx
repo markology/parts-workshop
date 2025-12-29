@@ -25,7 +25,8 @@ const ImpressionDropdown = ({
   const isImpressionsEmpty = !filteredImpressions || !Object.keys(filteredImpressions).length;
   const count = Object.keys(filteredImpressions || {}).length;
   const { darkMode } = useThemeContext();
-  const baseColors = getImpressionBaseColors(darkMode)[type];
+  const baseColorsMap = getImpressionBaseColors(darkMode);
+  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
   const sidebarHeaderBg = getImpressionSidebarHeaderBg(type, darkMode);
 
   return (
