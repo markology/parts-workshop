@@ -47,6 +47,12 @@ const Landing = () => {
               How it works
             </a>
             <a
+              href="/mission"
+              className="hidden sm:inline-flex text-sm text-slate-300 hover:text-white transition-colors"
+            >
+              Mission
+            </a>
+            <a
               href="#cta"
               className="hidden sm:inline-flex text-sm text-slate-300 hover:text-white transition-colors"
             >
