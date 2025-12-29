@@ -83,7 +83,7 @@ export default function WorkspaceNavigation() {
     }
   ];
 
-  const renderPathCard = (path: { icon: React.ComponentType<{ className?: string }>; label: string; description: string; route: string }) => {
+  const renderPathCard = (path: { id: string; title: string; description: string; icon: React.ComponentType<{ className?: string }>; color: string; route: string; urgent?: boolean }) => {
     const IconComponent = path.icon;
     return (
       <div

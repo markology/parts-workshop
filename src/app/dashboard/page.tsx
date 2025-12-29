@@ -85,9 +85,9 @@ export default function WorkspacesPage() {
             name: workspace.title,
             description: workspace.description || undefined,
             createdAt: new Date(workspace.createdAt),
-            lastModified: new Date(workspace.updatedAt),
+            lastModified: new Date(workspace.lastModified),
             partCount: partNodes.length,
-            thumbnail: workspace.thumbnail || undefined,
+            thumbnail: undefined,
             nodes: partNodes
           };
         });
@@ -156,7 +156,7 @@ export default function WorkspacesPage() {
     // Allow starting with or without a name
 
     try {
-      const title = newWorkspaceName.trim() || `Session ${new Date().toLocaleDateString()}`;
+      const title = `Session ${new Date().toLocaleDateString()}`;
       
       const response = await fetch("/api/maps", {
         method: "POST",
