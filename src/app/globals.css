@@ -355,13 +355,13 @@ button {
 }
 
 .journal-icon-button {
-  background-color: #f28b8b;
-  color: white;
+  background-color: white;
+  color: white; /* Will be overridden by inline styles */
 }
 
 .journal-icon-button:hover {
-  background-color: #e07575;
-  color: white;
+  background-color: white;
+  color: white; /* Will be overridden by inline styles */
   background-image: none;
 }
 

@@ -106,6 +106,7 @@ const ImpressionNode = ({
             className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors flex-shrink-0"
             style={{
               boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+              ...(!darkMode ? { color: pillFontColor } : {}),
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundImage = 'none';
