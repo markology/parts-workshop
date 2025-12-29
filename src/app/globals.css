@@ -356,12 +356,12 @@ button {
 
 .journal-icon-button {
   background-color: white;
-  color: white; /* Will be overridden by inline styles */
+  /* Color set per node type via inline styles in light theme */
 }
 
 .journal-icon-button:hover {
   background-color: white;
-  color: white; /* Will be overridden by inline styles */
+  /* Color set per node type via inline styles in light theme */
   background-image: none;
 }
 
