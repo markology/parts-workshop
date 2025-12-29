@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle, Heart, Map, BookOpen, Palette, ArrowLeft, Box, Brain, Zap, Eye, Send } from "lucide-react";
+import { MessageCircle, Heart, Map, BookOpen, Palette, Box, Zap, Eye, Send } from "lucide-react";
 
 export default function WorkspaceNavigation() {
   const router = useRouter();
@@ -83,7 +83,7 @@ export default function WorkspaceNavigation() {
     }
   ];
 
-  const renderPathCard = (path: any) => {
+  const renderPathCard = (path: { icon: React.ComponentType<{ className?: string }>; label: string; description: string; route: string }) => {
     const IconComponent = path.icon;
     return (
       <div
@@ -136,7 +136,7 @@ export default function WorkspaceNavigation() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            What's On Your Mind?
+            What&apos;s On Your Mind?
           </h1>
           
           {/* Chat Input */}

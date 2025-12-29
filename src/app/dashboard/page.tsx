@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Calendar, Trash2, Play, Clock, ArrowUpDown, ChevronDown, User, Settings, Moon, Sun, LogOut, Loader2, MailPlus, HelpCircle, Sparkles, Target, ArrowRight } from "lucide-react";
+import { Map, Calendar, Trash2, Play, Clock, ChevronDown, User, Settings, Moon, Sun, LogOut, MailPlus, HelpCircle, Sparkles, Target, ArrowRight } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
-import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
@@ -18,14 +17,6 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
 import PartsStudioLogo from "@/components/PartsStudioLogo";
 
-interface PartNode {
-  id: string;
-  data: {
-    label: string;
-    image?: string;
-  };
-}
-
 interface WorkspaceData {
   id: string;
   name: string;
@@ -34,7 +25,14 @@ interface WorkspaceData {
   lastModified: Date;
   partCount: number;
   thumbnail?: string;
-  nodes: any[];
+  nodes: Array<{
+    id: string;
+    type: string;
+    data?: {
+      label?: string;
+      image?: string;
+    };
+  }>;
 }
 
 type SortOption = 'edited' | 'created' | 'name';
@@ -47,7 +45,6 @@ export default function WorkspacesPage() {
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
-  const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('edited');
@@ -72,9 +69,16 @@ export default function WorkspacesPage() {
         const apiWorkspaces = await response.json();
         
         // Convert API workspaces to WorkspaceData format
-        const formattedWorkspaces: WorkspaceData[] = apiWorkspaces.map((workspace: any) => {
+        const formattedWorkspaces: WorkspaceData[] = apiWorkspaces.map((workspace: {
+          id: string;
+          title: string;
+          description?: string;
+          createdAt: string;
+          lastModified: string;
+          nodes?: Array<{ type: string; id: string; data?: { label?: string; image?: string } }>;
+        }) => {
           // Filter to get only part nodes
-          const partNodes = (workspace.nodes || []).filter((node: any) => node.type === 'part');
+          const partNodes = (workspace.nodes || []).filter((node) => node.type === 'part');
           
           return {
             id: workspace.id,
@@ -240,7 +244,7 @@ export default function WorkspacesPage() {
         setDropdownOpen(false);
       }
       if (profileDropdownOpen && profileDropdownRef.current) {
-        const dropdownMenu = (profileDropdownRef.current as any).dropdownMenu;
+        const dropdownMenu = (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu;
         const clickedInsideButton = profileDropdownRef.current.contains(event.target as Node);
         const clickedInsideMenu = dropdownMenu && dropdownMenu.contains(event.target as Node);
         if (!clickedInsideButton && !clickedInsideMenu) {
@@ -453,7 +457,7 @@ export default function WorkspacesPage() {
                 <div
                   ref={(el) => {
                     if (el && profileDropdownRef.current) {
-                      (profileDropdownRef.current as any).dropdownMenu = el;
+                      (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu = el;
                     }
                   }}
                   className="fixed rounded-lg shadow-lg z-[100]"
@@ -821,7 +825,7 @@ export default function WorkspacesPage() {
               </div>
               <h3 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Your canvas is ready</h3>
               <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} max-w-md`}>
-                Kick off your first session to start mapping parts, impressions, and relationships. We'll keep everything saved as you go.
+                Kick off your first session to start mapping parts, impressions, and relationships. We&apos;ll keep everything saved as you go.
               </p>
               <button
                 onClick={handleStartSession}
@@ -1063,7 +1067,7 @@ export default function WorkspacesPage() {
                       >
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
-                            {workspace.nodes.slice(0, 6).map((node: any) => (
+                            {workspace.nodes.slice(0, 6).map((node) => (
                               <div
                                 key={node.id}
                                 style={darkMode ? {
@@ -1074,9 +1078,11 @@ export default function WorkspacesPage() {
                                 }`}
                               >
                                 {node.data?.image ? (
-                                  <img
+                                  <Image
                                     src={node.data.image}
-                                    alt={node.data.label || 'Part'}
+                                    alt={node.data?.label || "Part"}
+                                    width={50}
+                                    height={50}
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (

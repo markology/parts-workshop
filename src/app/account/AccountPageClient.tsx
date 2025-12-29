@@ -90,7 +90,7 @@ const AccountPageClient = () => {
     if (status === "unauthenticated") {
       router.push("/login");
     }
-  }, [status]);
+  }, [status, router]);
 
   const handleProfileSave = async () => {
     if (!email) {
@@ -129,9 +129,9 @@ const AccountPageClient = () => {
       });
 
       toast.success("Profile updated");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Unable to update profile");
+      toast.error(error instanceof Error ? error.message : "Unable to update profile");
     } finally {
       setProfileSaving(false);
     }
@@ -166,9 +166,9 @@ const AccountPageClient = () => {
       setConfirmPassword("");
       setHasPassword(true);
       toast.success("Password updated");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Unable to update password");
+      toast.error(error instanceof Error ? error.message : "Unable to update password");
     } finally {
       setPasswordSaving(false);
     }
@@ -189,9 +189,9 @@ const AccountPageClient = () => {
       }
       toast.success("Account deleted");
       await signOut({ callbackUrl: "/login" });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Failed to delete account");
+      toast.error(error instanceof Error ? error.message : "Failed to delete account");
     } finally {
       setDeleteLoading(false);
     }
@@ -559,7 +559,7 @@ const AccountPageClient = () => {
                 className="mt-4 flex items-center gap-3 rounded-lg border border-dashed px-3 py-2 text-sm"
               >
                 <WalletCards className="h-4 w-4 text-indigo-500" />
-                <span>We'll add cards, receipts, and billing contacts here.</span>
+                <span>We&apos;ll add cards, receipts, and billing contacts here.</span>
               </div>
               <button
                 disabled

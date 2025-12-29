@@ -30,7 +30,7 @@ async function getServerTheme(): Promise<{ themeName: string; isDark: boolean }>
     // Otherwise, we'll let the client-side script handle browser preference
     // Return default that will be overridden by client script
     return { themeName: "light", isDark: false };
-  } catch (error) {
+  } catch {
     // If cookies() fails (e.g., in middleware or static generation), return default
     return { themeName: "light", isDark: false };
   }
