@@ -52,16 +52,23 @@ export default function MissionPage() {
   }, [profileDropdownOpen]);
 
   return (
-    <div className={`relative min-h-screen overflow-hidden ${
-      darkMode 
-        ? "bg-slate-950 text-slate-50" 
-        : "bg-slate-50 text-slate-900"
-    }`}>
+    <div 
+      className="relative min-h-screen overflow-hidden"
+      style={{
+        backgroundColor: darkMode ? theme.workspace : "#f8fafc",
+        color: darkMode ? theme.textPrimary : "#1e293b",
+      }}
+    >
       {/* Background gradient and glow accents */}
       <div className="absolute inset-0">
         {darkMode ? (
           <>
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-black" />
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(135deg, ${theme.card}, ${theme.workspace}, ${theme.sidebar})`,
+              }}
+            />
             <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-purple-500/30 blur-3xl" />
             <div className="absolute -left-10 bottom-10 h-72 w-72 rounded-full bg-sky-500/25 blur-3xl" />
           </>
@@ -81,16 +88,15 @@ export default function MissionPage() {
 
       {/* Header */}
       <header
-        className={`sticky top-0 z-[65] border-b ${
-          darkMode ? "bg-slate-950/80 backdrop-blur-sm" : "bg-slate-50/80 backdrop-blur-sm"
-        }`}
+        className="sticky top-0 z-[65] border-b backdrop-blur-sm"
         style={
           darkMode
             ? {
-                backgroundColor: theme.elevated,
+                backgroundColor: `${theme.elevated}cc`,
                 borderColor: theme.border,
               }
             : {
+                backgroundColor: `${theme.elevated}cc`,
                 borderColor: theme.border,
               }
         }
@@ -258,11 +264,18 @@ export default function MissionPage() {
 
         {/* Page Headline */}
         <section className="text-center mb-20 space-y-4">
-          <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold ${
-            darkMode 
-              ? "bg-white/5 border border-white/10 text-slate-100" 
-              : "bg-slate-100 border border-slate-200 text-slate-700"
-          }`}>
+          <div 
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold border"
+            style={darkMode ? {
+              backgroundColor: `${theme.surface}80`,
+              borderColor: theme.border,
+              color: theme.textSecondary,
+            } : {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              color: theme.textSecondary,
+            }}
+          >
             ✦ Mission & Vision
           </div>
           <h1 
@@ -276,9 +289,12 @@ export default function MissionPage() {
           >
             Our mission to heal inner teams
           </h1>
-          <p className={`text-lg max-w-2xl mx-auto ${
-            darkMode ? "text-slate-300" : "text-slate-600"
-          }`}>
+          <p 
+            className="text-lg max-w-2xl mx-auto"
+            style={{
+              color: darkMode ? theme.textSecondary : theme.textSecondary,
+            }}
+          >
             Learn about the story behind Parts Studio and the roadmap ahead 
             as we build tools to support your parts work journey.
           </p>
@@ -299,11 +315,7 @@ export default function MissionPage() {
                     element.scrollIntoView({ behavior: "smooth", block: "start" });
                   }
                 }}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all cursor-pointer ${
-                  darkMode
-                    ? "bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40 hover:scale-105 shadow-lg hover:shadow-xl"
-                    : "bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 hover:border-slate-600 hover:scale-105 shadow-md hover:shadow-lg"
-                }`}
+                className="px-4 py-2 text-sm font-medium rounded-full transition-all cursor-pointer hover:scale-105 shadow-lg hover:shadow-xl border bg-slate-800 dark:bg-[#272b2f] text-white dark:text-white border-slate-700 dark:border-white/10 hover:bg-slate-700 dark:hover:bg-[#2a2e32]"
               >
                 {item.label}
               </button>
@@ -313,24 +325,28 @@ export default function MissionPage() {
 
         {/* Mission Section */}
         <section className="space-y-12 mb-20">
-          <div className={`flex items-center gap-2 ${
-            darkMode ? "text-slate-300" : "text-slate-700"
-          }`}>
-            <Heart className={`w-4 h-4 ${
-              darkMode ? "text-purple-400" : "text-purple-500"
-            }`} />
-            <p className={`text-sm uppercase tracking-[0.3em] ${
-              darkMode ? "text-slate-400" : "text-slate-500"
-            }`}>
+          <div 
+            className="flex items-center gap-2"
+            style={{ color: darkMode ? theme.textSecondary : theme.textSecondary }}
+          >
+            <Heart 
+              className="w-4 h-4"
+              style={{ color: darkMode ? "#a855f7" : "#9333ea" }}
+            />
+            <p 
+              className="text-sm uppercase tracking-[0.3em]"
+              style={{ color: darkMode ? theme.textMuted : theme.textMuted }}
+            >
               Mission
             </p>
           </div>
 
           {/* About Me */}
           <div id="about-me" className="space-y-6 scroll-mt-24">
-            <h2 className={`text-3xl font-semibold ${
-              darkMode ? "text-white" : "text-slate-900"
-            }`}>
+            <h2 
+              className="text-3xl font-semibold"
+              style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+            >
               About Me
             </h2>
             
@@ -369,11 +385,10 @@ export default function MissionPage() {
                 </div>
               </div>
               
-              <div className={`prose max-w-none space-y-4 leading-relaxed ${
-                darkMode 
-                  ? "prose-invert text-slate-300" 
-                  : "text-slate-700"
-              }`}>
+              <div 
+                className={`prose max-w-none space-y-4 leading-relaxed ${darkMode ? "prose-invert" : ""}`}
+                style={{ color: darkMode ? theme.textSecondary : theme.textPrimary }}
+              >
                 <p>
                   I live the vanlife. I'm a Software Engineer who got into Internal Family Systems at a time in my life when I didn't know how to find compassion for myself and didn't realize that I was full of Self like parts. I dedicated over 100 hours in IFS therapy in the past 2 years, have 100s of hours of journal entries and have integrated parts work deeply into my Buddhist and ceremonial practices. I am involved with IFS communities and practitioners and have explored creative IFS expressions and experimentation. I am proud to say that I am almost never without Self available anymore where it was a constant struggle to taste Self's presence.
                 </p>
@@ -387,17 +402,17 @@ export default function MissionPage() {
 
           {/* The Vision */}
           <div id="vision" className="space-y-6 clear-both scroll-mt-24">
-            <h2 className={`text-3xl font-semibold ${
-              darkMode ? "text-white" : "text-slate-900"
-            }`}>
+            <h2 
+              className="text-3xl font-semibold"
+              style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+            >
               The Vision
             </h2>
             
-            <div className={`prose max-w-none space-y-4 leading-relaxed ${
-              darkMode 
-                ? "prose-invert text-slate-300" 
-                : "text-slate-700"
-            }`}>
+            <div 
+              className={`prose max-w-none space-y-4 leading-relaxed ${darkMode ? "prose-invert" : ""}`}
+              style={{ color: darkMode ? theme.textSecondary : theme.textPrimary }}
+            >
               <p>
                 One day I sat in meditation and thought, what would it look like if I had a virtual world around me to do what im doing in my practice. I sat and watched as I noticed thoughts, sensations, behaviors and emotions arise and fall. I noted them. I watched my mind place those in a pile. Then I watched as I categorized and noticed their differences. This emotion seems to pair with this behavior and these thoughts, but these feelings within me seem to pair with these others. And so, I developed parts out of what I saw and spoke to these custom projections within me that contained these things I had noticed within my meditation.
               </p>
@@ -410,17 +425,17 @@ export default function MissionPage() {
 
           {/* Where It's Headed */}
           <div id="where-its-headed" className="space-y-6 scroll-mt-24">
-            <h2 className={`text-3xl font-semibold ${
-              darkMode ? "text-white" : "text-slate-900"
-            }`}>
+            <h2 
+              className="text-3xl font-semibold"
+              style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+            >
               Where It's Headed
             </h2>
             
-            <div className={`prose max-w-none space-y-4 leading-relaxed ${
-              darkMode 
-                ? "prose-invert text-slate-300" 
-                : "text-slate-700"
-            }`}>
+            <div 
+              className={`prose max-w-none space-y-4 leading-relaxed ${darkMode ? "prose-invert" : ""}`}
+              style={{ color: darkMode ? theme.textSecondary : theme.textPrimary }}
+            >
               <p>
                 So, Parts Studio. I hope that life allows me the time and finances to spend all of my time creating this into the grander vision I have with AI, more tools and therapist involvement. Lets heal our inner teams, together.
               </p>
@@ -444,28 +459,33 @@ export default function MissionPage() {
 
         {/* Roadmap Section */}
         <section id="roadmap" className="space-y-8 mb-20 scroll-mt-24">
-          <div className={`flex items-center gap-2 ${
-            darkMode ? "text-slate-300" : "text-slate-700"
-          }`}>
-            <Route className={`w-4 h-4 ${
-              darkMode ? "text-sky-400" : "text-sky-500"
-            }`} />
-            <p className={`text-sm uppercase tracking-[0.3em] ${
-              darkMode ? "text-slate-400" : "text-slate-500"
-            }`}>
+          <div 
+            className="flex items-center gap-2"
+            style={{ color: darkMode ? theme.textSecondary : theme.textSecondary }}
+          >
+            <Route 
+              className="w-4 h-4"
+              style={{ color: darkMode ? "#38bdf8" : "#0ea5e9" }}
+            />
+            <p 
+              className="text-sm uppercase tracking-[0.3em]"
+              style={{ color: darkMode ? theme.textMuted : theme.textMuted }}
+            >
               Roadmap
             </p>
           </div>
           
-          <h2 className={`text-3xl sm:text-4xl font-semibold ${
-            darkMode ? "text-white" : "text-slate-900"
-          }`}>
+          <h2 
+            className="text-3xl sm:text-4xl font-semibold"
+            style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+          >
             The journey ahead
           </h2>
           
-          <p className={`text-lg max-w-3xl ${
-            darkMode ? "text-slate-300" : "text-slate-600"
-          }`}>
+          <p 
+            className="text-lg max-w-3xl"
+            style={{ color: darkMode ? theme.textSecondary : theme.textSecondary }}
+          >
             Here's a glimpse into the phases of features we're planning to roll out. 
             Each phase builds on the last, creating a more comprehensive and supportive 
             experience for your parts work.
@@ -484,86 +504,123 @@ export default function MissionPage() {
                   1
                 </div>
                 <div>
-                  <h3 className={`text-2xl font-semibold ${
-                    darkMode ? "text-white" : "text-slate-900"
-                  }`}>AI-Powered Guidance</h3>
-                  <p className={`text-sm ${
-                    darkMode ? "text-slate-400" : "text-slate-500"
-                  }`}>Intelligent support for your parts work</p>
+                  <h3 
+                    className="text-2xl font-semibold"
+                    style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+                  >AI-Powered Guidance</h3>
+                  <p 
+                    className="text-sm"
+                    style={{ color: darkMode ? theme.textMuted : theme.textMuted }}
+                  >Intelligent support for your parts work</p>
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                <div className={`rounded-2xl p-5 ${
-                  darkMode 
-                    ? "border border-white/5 bg-white/[0.02]" 
-                    : "border border-slate-200 bg-white/40"
-                }`}>
-                  <p className={`font-semibold mb-2 ${
-                    darkMode ? "text-white" : "text-slate-900"
-                  }`}>Resolve Tensions</p>
-                  <p className={`text-sm leading-relaxed ${
-                    darkMode ? "text-slate-300" : "text-slate-600"
-                  }`}>
+                <div 
+                  className="rounded-2xl p-5 border"
+                  style={darkMode ? {
+                    borderColor: theme.borderSubtle,
+                    backgroundColor: `${theme.surface}40`,
+                  } : {
+                    borderColor: theme.border,
+                    backgroundColor: `${theme.surface}66`,
+                  }}
+                >
+                  <p 
+                    className="font-semibold mb-2"
+                    style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+                  >Resolve Tensions</p>
+                  <p 
+                    className="text-sm leading-relaxed"
+                    style={{ color: darkMode ? theme.textSecondary : theme.textSecondary }}
+                  >
                     AI will help identify and work through tensions between parts, 
                     offering insights and suggestions for resolution.
                   </p>
                 </div>
-                <div className={`rounded-2xl p-5 ${
-                  darkMode 
-                    ? "border border-white/5 bg-white/[0.02]" 
-                    : "border border-slate-200 bg-white/40"
-                }`}>
-                  <p className={`font-semibold mb-2 ${
-                    darkMode ? "text-white" : "text-slate-900"
-                  }`}>Deepen Relationships</p>
-                  <p className={`text-sm leading-relaxed ${
-                    darkMode ? "text-slate-300" : "text-slate-600"
-                  }`}>
+                <div 
+                  className="rounded-2xl p-5 border"
+                  style={darkMode ? {
+                    borderColor: theme.borderSubtle,
+                    backgroundColor: `${theme.surface}40`,
+                  } : {
+                    borderColor: theme.border,
+                    backgroundColor: `${theme.surface}66`,
+                  }}
+                >
+                  <p 
+                    className="font-semibold mb-2"
+                    style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+                  >Deepen Relationships</p>
+                  <p 
+                    className="text-sm leading-relaxed"
+                    style={{ color: darkMode ? theme.textSecondary : theme.textSecondary }}
+                  >
                     Build stronger connections with each part through AI-guided 
                     conversations and relationship mapping.
                   </p>
                 </div>
-                <div className={`rounded-2xl p-5 ${
-                  darkMode 
-                    ? "border border-white/5 bg-white/[0.02]" 
-                    : "border border-slate-200 bg-white/40"
-                }`}>
-                  <p className={`font-semibold mb-2 ${
-                    darkMode ? "text-white" : "text-slate-900"
-                  }`}>Session Guidance</p>
-                  <p className={`text-sm leading-relaxed ${
-                    darkMode ? "text-slate-300" : "text-slate-600"
-                  }`}>
+                <div 
+                  className="rounded-2xl p-5 border"
+                  style={darkMode ? {
+                    borderColor: theme.borderSubtle,
+                    backgroundColor: `${theme.surface}40`,
+                  } : {
+                    borderColor: theme.border,
+                    backgroundColor: `${theme.surface}66`,
+                  }}
+                >
+                  <p 
+                    className="font-semibold mb-2"
+                    style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+                  >Session Guidance</p>
+                  <p 
+                    className="text-sm leading-relaxed"
+                    style={{ color: darkMode ? theme.textSecondary : theme.textSecondary }}
+                  >
                     Get real-time support and guidance as you work through your 
                     parts during sessions.
                   </p>
                 </div>
-                <div className={`rounded-2xl p-5 ${
-                  darkMode 
-                    ? "border border-white/5 bg-white/[0.02]" 
-                    : "border border-slate-200 bg-white/40"
-                }`}>
-                  <p className={`font-semibold mb-2 ${
-                    darkMode ? "text-white" : "text-slate-900"
-                  }`}>Journal Analysis</p>
-                  <p className={`text-sm leading-relaxed ${
-                    darkMode ? "text-slate-300" : "text-slate-600"
-                  }`}>
+                <div 
+                  className="rounded-2xl p-5 border"
+                  style={darkMode ? {
+                    borderColor: theme.borderSubtle,
+                    backgroundColor: `${theme.surface}40`,
+                  } : {
+                    borderColor: theme.border,
+                    backgroundColor: `${theme.surface}66`,
+                  }}
+                >
+                  <p 
+                    className="font-semibold mb-2"
+                    style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+                  >Journal Analysis</p>
+                  <p 
+                    className="text-sm leading-relaxed"
+                    style={{ color: darkMode ? theme.textSecondary : theme.textSecondary }}
+                  >
                     AI will extract impressions and insights from your journal entries, 
                     helping you discover patterns and connections.
                   </p>
                 </div>
-                <div className={`rounded-2xl p-5 md:col-span-2 ${
-                  darkMode 
-                    ? "border border-white/5 bg-white/[0.02]" 
-                    : "border border-slate-200 bg-white/40"
-                }`}>
-                  <p className={`font-semibold mb-2 ${
-                    darkMode ? "text-white" : "text-slate-900"
-                  }`}>Map Understanding & Generation</p>
-                  <p className={`text-sm leading-relaxed ${
-                    darkMode ? "text-slate-300" : "text-slate-600"
-                  }`}>
+                <div 
+                  className="rounded-2xl p-5 md:col-span-2 border"
+                  style={darkMode ? {
+                    borderColor: theme.borderSubtle,
+                    backgroundColor: `${theme.surface}40`,
+                  } : {
+                    borderColor: theme.border,
+                    backgroundColor: `${theme.surface}66`,
+                  }}
+                >
+                  <p 
+                    className="font-semibold mb-2"
+                    style={{ color: darkMode ? theme.textPrimary : theme.textPrimary }}
+                  >Map Understanding & Generation</p>
+                  <p 
+                    className="text-sm leading-relaxed"
+                    style={{ color: darkMode ? theme.textSecondary : theme.textSecondary }}
+                  >
                     AI will understand your existing map structure and help generate 
                     new maps, suggest connections, and identify relationships you might 
                     not have noticed.
