@@ -790,7 +790,7 @@ export default function WorkspacesPage() {
                         </p>
                         <div className="pt-2">
                           <button
-                            onClick={() => window.open('/mission', '_blank')}
+                            onClick={() => router.push('/mission')}
                             className="arrow-pulse inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
                             style={{ color: 'orange' }}
                           >
