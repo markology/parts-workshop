@@ -131,10 +131,7 @@ export default function PageLoader({
 
   return (
     <div
-      className={`${containerHeight} flex items-center justify-center px-6 py-12 ${className}`.trim()}
-      style={withBackground ? {
-        backgroundColor: theme.workspace,
-      } : undefined}
+      className={`${containerHeight} flex items-center justify-center px-6 py-12 ${withBackground ? 'bg-[#f8fafc] dark:bg-[#3D434B]' : ''} ${className}`.trim()}
     >
       <div className="relative overflow-visible">
         <div 
@@ -160,28 +157,23 @@ export default function PageLoader({
           }} 
         />
         <div className="relative flex flex-col items-center text-center" style={{ gap: '10px' }}>
-          <div className="relative" style={{ height: '100px', width: '115px' }}>
+          <div className="relative h-[100px] w-[115px]">
             <Image
               src="/official_logo_complete.svg"
               alt="Parts Studio Logo"
               width={115}
               height={115}
-              className="object-contain"
-              style={{
-                filter: darkMode ? 'brightness(0) invert(1)' : 'none',
-                height: '115px',
-                width: '115px',
-              }}
+              className="object-contain h-[115px] w-[115px] dark:brightness-0 dark:invert"
               priority
             />
           </div>
           {title && (
-            <h2 className="text-xl font-semibold" style={{ color: darkMode ? '#ffffff' : '#000000' }}>
+            <h2 className="text-xl font-semibold text-black dark:text-white">
               {title}
             </h2>
           )}
           {message && (
-            <p className="text-sm" style={{ color: darkMode ? '#ffffff' : '#000000' }}>
+            <p className="text-sm text-black dark:text-white">
               {message}
             </p>
           )}

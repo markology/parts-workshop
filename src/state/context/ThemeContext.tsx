@@ -149,6 +149,7 @@ export const ThemeContextProvider = ({
       root.style.setProperty("--theme-elevated", currentTheme.elevated);
       root.style.setProperty("--theme-surface", currentTheme.surface);
       root.style.setProperty("--theme-button", currentTheme.button);
+      root.style.setProperty("--theme-button2", currentTheme.button2);
       root.style.setProperty("--theme-button-hover", currentTheme.buttonHover);
       root.style.setProperty("--theme-button-active", currentTheme.buttonActive);
       root.style.setProperty("--theme-button-text", currentTheme.buttonText);
@@ -186,13 +187,6 @@ export const ThemeContextProvider = ({
 
   // Set active theme (workspace-specific)
   const setActiveTheme = (theme: ActiveTheme, persistGlobal: boolean = false) => {
-    console.log(`[ThemeContext] setActiveTheme called:`, { 
-      theme, 
-      persistGlobal, 
-      currentActiveTheme: activeTheme,
-      currentThemePref: themePref,
-      currentIsDark: isDark 
-    });
     setActiveThemeState(theme);
     
     if (typeof window === "undefined") return;

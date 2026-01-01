@@ -40,7 +40,7 @@ type SortOption = 'edited' | 'created' | 'name';
 export default function WorkspacesPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { darkMode, themePref, setThemePref } = useThemeContext();
+  const { isDark, themePref, setThemePref } = useThemeContext();
   const theme = useTheme();
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
@@ -220,9 +220,7 @@ export default function WorkspacesPage() {
 
   const headerBackgroundClass = isSearchExpanded
     ? "bg-transparent supports-[backdrop-filter]:backdrop-blur-xl border-b border-transparent"
-    : darkMode
-      ? "bg-slate-950/80 border-b border-slate-800/60 supports-[backdrop-filter]:backdrop-blur-xl"
-      : "bg-white/75 border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)]";
+    : "bg-white/75 border-b border-slate-200/70 dark:border-slate-800/60 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)]";
 
   // Update dropdown position when it opens
   useEffect(() => {
@@ -308,21 +306,12 @@ export default function WorkspacesPage() {
 
   return (
     <div
-      className={`min-h-screen ${darkMode ? "" : "text-gray-900"}`}
-      style={
-        darkMode
-          ? {
-              // Match workspace dark theme palette
-              backgroundImage:
-                "linear-gradient(135deg, #454b54, #3d434b, #353b43)",
-              color: theme.textPrimary,
-            }
-          : {
-              backgroundImage:
-                "linear-gradient(rgb(230, 248, 255) 0%, rgb(219, 234, 254) 400px, rgb(224, 231, 255) calc(900px), rgb(254, 241, 242) calc(1400px), rgb(252, 237, 238) 100%)",
-              color: theme.textPrimary,
-            }
-      }
+      className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50"
+      style={{
+        backgroundImage: isDark
+          ? "linear-gradient(135deg, #454b54, #3d434b, #353b43)"
+          : "linear-gradient(rgb(230, 248, 255) 0%, rgb(219, 234, 254) 400px, rgb(224, 231, 255) calc(900px), rgb(254, 241, 242) calc(1400px), rgb(252, 237, 238) 100%)",
+      }}
     >
       <div
         className={`fixed inset-0 ${
@@ -348,34 +337,20 @@ export default function WorkspacesPage() {
       </div>
       {/* Header */}
       <header
-        className={`sticky top-0 z-[65] ${headerBackgroundClass}`}
-        style={
-          darkMode
-            ? {
-                backgroundColor: theme.elevated,
-                borderColor: theme.border,
-              }
-            : undefined
-        }
+        className="sticky top-0 z-[65] bg-white/75 dark:bg-[var(--component)] border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:shadow-none dark:border-[var(--border)]"
       >
         <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="inline-flex items-center" style={{ columnGap: '4px', marginLeft: '6px' }}>
-              <PartsStudioLogo size="lg" showText={false} />
+              <PartsStudioLogo  className="dark:invert" size="lg" showText={false} />
               <div className="flex flex-col gap-0.5">
                 <span
-                  className="text-lg font-semibold leading-tight"
-                  style={{
-                    color: darkMode ? theme.textPrimary : "#0f172a",
-                  }}
+                  className="text-lg font-semibold leading-tight text-slate-900 dark:text-white"
                 >
                   Parts Studio
                 </span>
                 <span
-                  className="text-xs uppercase tracking-[0.28em]"
-                  style={{
-                    color: darkMode ? theme.textSecondary : "#64748b",
-                  }}
+                  className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-[#ffffffb3]"
                 >
                   Dashboard
                 </span>
@@ -390,7 +365,7 @@ export default function WorkspacesPage() {
           >
             <div
               ref={searchBoxRef}
-              className="relative pointer-events-auto"
+              className="relative pointer-events-auto "
             >
               {!isSearchExpanded && (
                 <StudioSparkleInput
@@ -420,11 +395,7 @@ export default function WorkspacesPage() {
             </button>
             <button
               onClick={() => setShowFeedbackModal(true)}
-              className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors"
-              style={{
-                backgroundColor: darkMode ? theme.button : "#ffffff",
-                color: darkMode ? theme.buttonText : "#334155",
-              }}
+              className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors bg-white dark:bg-slate-900/80 text-slate-700 dark:text-white"
               title="Contact"
             >
               <MailPlus className="w-5 h-5" />
@@ -434,11 +405,7 @@ export default function WorkspacesPage() {
             <div className="relative" ref={profileDropdownRef}>
               <button
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className={`flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden ${
-                  darkMode
-                    ? 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
-                    : 'border-slate-200 bg-white hover:border-slate-400'
-                }`}
+                className="flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 hover:border-slate-400 dark:hover:border-slate-500"
               >
                 {session?.user?.image ? (
                   <Image
@@ -449,7 +416,7 @@ export default function WorkspacesPage() {
                     className="rounded-full"
                   />
                 ) : (
-                  <User className={`w-5 h-5 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`} />
+                  <User className="w-5 h-5 text-slate-700 dark:text-slate-300" />
                 )}
               </button>
 
@@ -460,17 +427,11 @@ export default function WorkspacesPage() {
                       (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu = el;
                     }
                   }}
-                  className="fixed rounded-lg shadow-lg z-[100]"
+                  className="fixed rounded-lg shadow-lg z-[100] bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700"
                   style={{
                     minWidth: "160px",
                     top: `${profileDropdownPosition.top}px`,
                     right: `${profileDropdownPosition.right}px`,
-                    background: darkMode
-                      ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
-                      : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
-                    borderColor: theme.border,
-                    borderWidth: 1,
-                    borderStyle: "solid",
                   }}
                 >
                   <button
@@ -478,18 +439,14 @@ export default function WorkspacesPage() {
                       router.push('/account');
                       setProfileDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg ${
-                      darkMode
-                        ? 'hover:bg-gray-700 text-white'
-                        : 'hover:bg-gray-100 text-gray-900'
-                    }`}
+                    className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <Settings className="w-4 h-4" />
                     Account
                   </button>
                   {/* Theme Mode Selection */}
                   <div className="px-4 py-2">
-                    <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: darkMode ? "rgb(156, 163, 175)" : "rgb(107, 114, 128)" }}>
+                    <div className="text-xs font-semibold uppercase tracking-wide mb-2 text-gray-500 dark:text-gray-400">
                       Theme
                     </div>
                     {(["light", "dark", "system"] as const).map((mode) => {
@@ -513,12 +470,8 @@ export default function WorkspacesPage() {
                           }}
                           className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 rounded ${
                             isActive
-                              ? darkMode
-                                ? "bg-gray-700 text-white"
-                                : "bg-gray-100 text-gray-900"
-                              : darkMode
-                                ? "hover:bg-gray-700 text-white"
-                                : "hover:bg-gray-100 text-gray-900"
+                              ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                              : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
                           }`}
                         >
                           {getIcon()}
@@ -532,11 +485,7 @@ export default function WorkspacesPage() {
                       setShowFeedbackModal(true);
                       setProfileDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                      darkMode
-                        ? 'hover:bg-gray-700 text-white'
-                        : 'hover:bg-gray-100 text-gray-900'
-                    }`}
+                    className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <HelpCircle className="w-4 h-4" />
                     Help
@@ -546,11 +495,7 @@ export default function WorkspacesPage() {
                       await signOut({ callbackUrl: '/login' });
                       setProfileDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg ${
-                      darkMode
-                        ? 'hover:bg-gray-700 text-white'
-                        : 'hover:bg-gray-100 text-gray-900'
-                    }`}
+                    className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign Out
@@ -566,14 +511,10 @@ export default function WorkspacesPage() {
         {/* Error State */}
         {error && (
           <div className="text-center py-12">
-            <div className={`mb-4 ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{error}</div>
+            <div className="mb-4 text-red-600 dark:text-red-400">{error}</div>
             <button
               onClick={() => window.location.reload()}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                darkMode 
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-              }`}
+              className="px-4 py-2 rounded-lg transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white"
             >
               Retry
             </button>
@@ -584,89 +525,40 @@ export default function WorkspacesPage() {
         {!loading && !error && (
           <section className="mb-12">
             <div
-              className={`relative overflow-hidden rounded-[28px] border transition-all duration-300 ${
-                darkMode
-                  ? ""
-                  : "bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)]"
-              }`}
-              style={
-                darkMode
-                  ? {
-                      background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
-                      borderColor: theme.border,
-                      boxShadow: "0 40px 80px rgba(15,23,42,0.7)",
-                    }
-                  : undefined
-              }
+              className="relative overflow-hidden rounded-[28px] border transition-all duration-300 bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)] dark:border-slate-700 dark:shadow-[0_40px_80px_rgba(15,23,42,0.7)]"
+              style={isDark ? {
+                background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
+              } : undefined}
             >
               <div
-                className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl"
-                style={
-                  darkMode
-                    ? {
-                        background:
-                          "radial-gradient(circle at center, rgba(148,163,184,0.28), transparent 60%)",
-                      }
-                    : undefined
-                }
+                className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.28),transparent_60%)]"
               />
               <div
-                className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl"
-                style={
-                  darkMode
-                    ? {
-                        background:
-                          "radial-gradient(circle at center, rgba(51,65,85,0.4), transparent 65%)",
-                      }
-                    : undefined
-                }
+                className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(51,65,85,0.4),transparent_65%)]"
               />
               <div className="relative flex flex-col gap-12 p-8 lg:flex-row lg:items-stretch lg:justify-between lg:p-12">
                 <div className="relative flex-1 space-y-6">
-                  <div 
-                    style={darkMode ? {
-                      backgroundColor: theme.elevated,
-                      color: theme.textPrimary,
-                      borderColor: theme.border,
-                    } : undefined}
-                    className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] border ${
-                      darkMode ? '' : 'bg-white/90 text-black border-white/80 shadow-sm'
-                    }`}
-                  >
+                  <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] border bg-white/90 dark:bg-[var(--elevated)] text-black dark:text-white border-white/80 dark:border-[var(--border)] shadow-sm">
                     <span>Self Guided Session</span>
                   </div>
-                  <h2 className={`text-3xl lg:text-4xl font-semibold leading-snug ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  <h2 className="text-3xl lg:text-4xl font-semibold leading-snug text-slate-900 dark:text-white">
                     Begin a fresh exploration of your inner team.
                   </h2>
-                  <p className={`text-sm leading-relaxed max-w-2xl ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  <p className="text-sm leading-relaxed max-w-2xl text-slate-600 dark:text-slate-300">
                     Launch a new Parts Studio map to capture impressions, relationships, and breakthroughs. Your work auto-saves, so you can pause and return any time.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     {heroHighlights.map(({ icon: Icon, label, description }) => (
                       <div
                         key={label}
-                        style={darkMode ? {
-                          borderColor: theme.border,
-                          backgroundColor: theme.card,
-                        } : undefined}
-                        className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${
-                          darkMode ? '' : 'border-slate-200 bg-white/80 shadow-sm'
-                        }`}
+                        className="flex items-start gap-3 rounded-xl border px-4 py-3 border-slate-200 dark:border-none bg-white/80 dark:bg-[var(--component)] shadow-md"
                       >
-                        <div 
-                          style={darkMode ? {
-                            backgroundColor: theme.elevated,
-                            color: theme.textPrimary,
-                          } : undefined}
-                          className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${
-                            darkMode ? '' : 'bg-slate-100 text-slate-600'
-                          }`}
-                        >
+                        <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-[var(--elevated)] text-slate-600 dark:text-white">
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="space-y-1">
-                          <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{label}</p>
-                          <p style={darkMode ? { color: theme.textSecondary } : undefined} className={darkMode ? '' : 'text-slate-600'}>{description}</p>
+                          <p className="font-semibold text-slate-900 dark:text-white">{label}</p>
+                          <p className="text-slate-600 dark:text-slate-300">{description}</p>
                         </div>
                       </div>
                     ))}
@@ -687,16 +579,7 @@ export default function WorkspacesPage() {
                         e.preventDefault();
                         setIsSearchExpanded(true);
                       }}
-                      style={darkMode ? {
-                        color: theme.textPrimary,
-                        backgroundColor: theme.button,
-                        borderColor: theme.border,
-                      } : undefined}
-                      className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
-                        darkMode
-                          ? 'border shadow-[0_14px_32px_rgba(8,15,30,0.45)] hover:opacity-90 hover:-translate-y-px'
-                          : 'text-slate-700 bg-white/85 border border-sky-200/70 shadow-[0_16px_38px_rgba(59,130,246,0.12)] hover:bg-white hover:-translate-y-px'
-                      }`}
+                      className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all text-slate-700 dark:text-white bg-white/85 dark:bg-[var(--component)] border border-sky-200/70 dark:border-[var(--border)] shadow-[0_16px_38px_rgba(59,130,246,0.12)] dark:shadow-[0_14px_32px_rgba(8,15,30,0.45)] hover:bg-white dark:hover:bg-[var(--button)] dark:hover:opacity-90 hover:-translate-y-px"
                     >
                       <Sparkles className="w-4 h-4" />
                       Ask the assistant
@@ -704,96 +587,41 @@ export default function WorkspacesPage() {
                   </div>
                 </div>
                 <aside className="relative lg:w-[360px] xl:w-[380px]">
-                  <div 
-                    style={darkMode ? {
-                      backgroundColor: theme.card,
-                      borderColor: theme.border,
-                    } : undefined}
-                    className={`relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 ${
-                      darkMode
-                        ? 'shadow-[0_48px_120px_rgba(2,6,23,0.6)]'
-                        : 'bg-white/92 border-white/70 shadow-[0_55px_120px_rgba(91,105,255,0.15)] backdrop-blur-xl'
-                    }`}
-                  >
+                  <div className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 bg-white/92 dark:bg-[var(--card)] border-white/70 dark:border-none shadow-[0_55px_120px_rgba(91,105,255,0.15)] backdrop-blur-xl dark:shadow-[0_48px_90px_rgba(2,6,23,0.6)]">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 600 } : { fontWeight: 600 }} className={`text-[11px] uppercase tracking-[0.32em] ${darkMode ? '' : 'text-black'}`}>
+                        <p className="text-[11px] uppercase tracking-[0.32em] font-semibold text-black dark:text-slate-400">
                           Studio snapshot
                         </p>
-                        <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-sm ${darkMode ? '' : 'text-slate-600'}`}>
+                        <p className="text-sm text-slate-600 dark:text-white">
                           A quick glance at your practice
                         </p>
                       </div>
-                      <div 
-                        style={darkMode ? {
-                          backgroundColor: theme.elevated,
-                          color: theme.textPrimary,
-                        } : undefined}
-                        className={`flex h-9 w-9 items-center justify-center rounded-2xl ${
-                          darkMode ? '' : 'bg-sky-100 text-sky-600'
-                        }`}
-                      >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-sky-100 dark:bg-[var(--component)] text-sky-600 dark:text-white">
                         <Sparkles className="w-4 h-4" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div 
-                        style={darkMode ? {
-                          borderColor: theme.border,
-                          backgroundColor: theme.surface,
-                        } : {
-                          border: 'none',
-                          borderBottom: 'solid 1px #dcdcdc1c',
-                          boxShadow: '0px 1px 2px 1px #dcdcdc82 inset',
-                          background: '#f7ebf352',
-                        }}
-                        className={`rounded-2xl px-4 py-3 ${
-                          darkMode ? 'border' : ''
-                        }`}
-                      >
-                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 500 } : { fontWeight: 500 }} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-sky-600'}`}>Sessions</p>
+                      <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] shadow-[0px_1px_2px_1px_#dcdcdc82_inset] dark:shadow-none bg-[#f7ebf352] dark:bg-[var(--card)]">
+                        <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-sky-600 dark:text-slate-400">Sessions</p>
                         <div className="flex items-baseline gap-1.5">
-                          <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{workspaces.length}</p>
-                          <p style={darkMode ? { color: theme.textPrimary, fontWeight: 400 } : { color: '#000000', fontWeight: 400 }} className="text-xs uppercase tracking-wider">saved</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-white">{workspaces.length}</p>
+                          <p className="text-xs uppercase tracking-wider font-normal text-black dark:text-white">saved</p>
                         </div>
                       </div>
-                      <div 
-                        style={darkMode ? {
-                          borderColor: theme.border,
-                          backgroundColor: theme.surface,
-                        } : {
-                          border: 'none',
-                          borderBottom: 'solid 1px #dcdcdc1c',
-                          boxShadow: '0px 1px 2px 1px #dcdcdc82 inset',
-                          background: '#8e7ff812',
-                        }}
-                        className={`rounded-2xl px-4 py-3 ${
-                          darkMode ? 'border' : ''
-                        }`}
-                      >
-                        <p style={darkMode ? { color: theme.textSecondary, fontWeight: 500 } : { fontWeight: 500 }} className={`text-[11px] uppercase tracking-[0.28em] mb-2 ${darkMode ? '' : 'text-indigo-600'}`}>Parts</p>
+                      <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] shadow-[0px_1px_2px_1px_#dcdcdc82_inset] dark:shadow-none bg-[#8e7ff812] dark:bg-[var(--card)]">
+                        <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-indigo-600 dark:text-slate-400">Parts</p>
                         <div className="flex items-baseline gap-1.5">
-                          <p style={darkMode ? { color: theme.textPrimary } : undefined} className={`text-2xl font-semibold ${darkMode ? '' : 'text-slate-900'}`}>{totalParts}</p>
-                          <p style={darkMode ? { color: theme.textPrimary, fontWeight: 400 } : { color: '#000000', fontWeight: 400 }} className="text-xs uppercase tracking-wider">mapped</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-white">{totalParts}</p>
+                          <p className="text-xs uppercase tracking-wider font-normal text-black dark:text-white">mapped</p>
                         </div>
                       </div>
                     </div>
-                    <div 
-                      className={`rounded-2xl border ${
-                        darkMode ? '' : 'border-slate-200/70 bg-white/90 shadow-inner'
-                      }`}
-                      style={darkMode ? {
-                        borderColor: theme.border,
-                        backgroundColor: theme.surface,
-                        padding: '30px',
-                      } : {
-                        padding: '30px',
-                      }}
-                    >
-                      <p style={darkMode ? { color: theme.textSecondary } : undefined} className={`text-[11px] uppercase tracking-[0.32em] mb-2 ${darkMode ? '' : 'text-slate-500'}`}>
+                    <div className="rounded-2xl border border-slate-200/70 dark:border-none bg-white/90 dark:bg-[var(--component)] shadow-md p-[30px]">
+                      <p className="text-[11px] uppercase tracking-[0.32em] mb-2 text-slate-500 dark:text-slate-400">
                         Message from the team
                       </p>
-                      <div style={darkMode ? { color: theme.textPrimary } : undefined} className={`space-y-3 text-sm leading-relaxed ${darkMode ? '' : 'text-slate-600'}`}>
+                      <div className="space-y-3 text-sm leading-relaxed text-slate-600 dark:text-white">
                         <p>
                           Thanks for trying Parts Studio. Every session you create is saved automatically and backed up securely so you can experiment without worry.
                         </p>
@@ -823,20 +651,14 @@ export default function WorkspacesPage() {
 
         {/* Empty State */}
         {!loading && !error && workspaces.length === 0 && (
-          <div className={`relative overflow-hidden rounded-[24px] border px-8 py-16 text-center ${
-            darkMode ? 'border-slate-800/60 bg-slate-950/40' : 'border-slate-200 bg-white/90 shadow-[0_30px_70px_rgba(15,23,42,0.1)]'
-          }`}>
-            <div className={`absolute inset-10 pointer-events-none rounded-[32px] blur-2xl ${
-              darkMode
-                ? "bg-gradient-to-br from-purple-400/5 via-transparent to-purple-400/10"
-                : "bg-gradient-to-br from-purple-400/5 via-transparent to-sky-400/10"
-            }`} />
+          <div className="relative overflow-hidden rounded-[24px] border px-8 py-16 text-center border-slate-200 dark:border-slate-800/60 bg-white/90 dark:bg-slate-950/40 shadow-[0_30px_70px_rgba(15,23,42,0.1)]">
+            <div className="absolute inset-10 pointer-events-none rounded-[32px] blur-2xl bg-gradient-to-br from-purple-400/5 via-transparent to-sky-400/10 dark:to-purple-400/10" />
             <div className="relative flex flex-col items-center gap-4">
-              <div className={`${darkMode ? 'bg-slate-900/60' : 'bg-slate-100'} p-5 rounded-full`}>
-                <Map className={`w-14 h-14 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+              <div className="bg-slate-100 dark:bg-slate-900/60 p-5 rounded-full">
+                <Map className="w-14 h-14 text-slate-500 dark:text-slate-400" />
               </div>
-              <h3 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Your canvas is ready</h3>
-              <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} max-w-md`}>
+              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">Your canvas is ready</h3>
+              <p className="text-slate-600 dark:text-slate-400 max-w-md">
                 Kick off your first session to start mapping parts, impressions, and relationships. We&apos;ll keep everything saved as you go.
               </p>
               <button
@@ -855,14 +677,10 @@ export default function WorkspacesPage() {
           <>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex flex-wrap items-baseline gap-3">
-                <h2 className={`text-2xl font-semibold leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                <h2 className="text-2xl font-semibold leading-none text-slate-900 dark:text-white">
                   My Workspaces
                 </h2>
-                <span className={`inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] ${
-                  darkMode
-                    ? 'bg-white/90 text-slate-900 shadow-sm'
-                    : 'bg-white text-slate-700 shadow-sm shadow-slate-200/50'
-                }`}>
+                <span className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] bg-white dark:bg-white/90 text-slate-700 dark:text-slate-900 shadow-sm shadow-slate-200/50">
                   {workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}
                 </span>
               </div>
@@ -870,13 +688,10 @@ export default function WorkspacesPage() {
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ${
-                      darkMode ? 'text-white hover:text-slate-300' : 'text-slate-700 hover:text-slate-900'
-                    }`}
-                    style={darkMode 
-                      ? { background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))` }
-                      : { backgroundColor: '#ffffff' }
-                    }
+                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-300 bg-white"
+                    style={isDark ? {
+                      background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
+                    } : undefined}
                     >
                     {sortBy === 'edited' && 'Recently Edited'}
                     {sortBy === 'created' && 'Recently Created'}
@@ -885,14 +700,10 @@ export default function WorkspacesPage() {
                   </button>
                   {dropdownOpen && (
                     <div
-                      className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50"
-                      style={darkMode 
-                        ? { 
-                            background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
-                            borderColor: theme.border
-                          }
-                        : { backgroundColor: '#ffffff', borderColor: '#e2e8f0' }
-                      }
+                      className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50 bg-white border-slate-200 dark:border-slate-700"
+                      style={isDark ? {
+                        background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
+                      } : undefined}
                     >
                       {sortBy !== 'edited' && (
                         <button
@@ -900,21 +711,7 @@ export default function WorkspacesPage() {
                             setSortBy('edited');
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl"
-                          style={darkMode 
-                            ? { color: '#ffffff' }
-                            : { color: '#0f172a' }
-                          }
-                          onMouseEnter={(e) => {
-                            if (darkMode) {
-                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                            } else {
-                              e.currentTarget.style.backgroundColor = '#f1f5f9';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
+                          className="w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
                         >
                           Recently Edited
                         </button>
@@ -925,21 +722,7 @@ export default function WorkspacesPage() {
                             setSortBy('created');
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm transition-colors"
-                          style={darkMode 
-                            ? { color: '#ffffff' }
-                            : { color: '#0f172a' }
-                          }
-                          onMouseEnter={(e) => {
-                            if (darkMode) {
-                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                            } else {
-                              e.currentTarget.style.backgroundColor = '#f1f5f9';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
+                          className="w-full text-left px-4 py-2 text-sm transition-colors text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
                         >
                           Recently Created
                         </button>
@@ -950,21 +733,7 @@ export default function WorkspacesPage() {
                             setSortBy('name');
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl"
-                          style={darkMode 
-                            ? { color: '#ffffff' }
-                            : { color: '#0f172a' }
-                          }
-                          onMouseEnter={(e) => {
-                            if (darkMode) {
-                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                            } else {
-                              e.currentTarget.style.backgroundColor = '#f1f5f9';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
+                          className="w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
                         >
                           Name
                         </button>
@@ -986,19 +755,15 @@ export default function WorkspacesPage() {
                   <div
                     key={workspace.id}
                     data-workspace-tile
-                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 ${
-                      darkMode
-                        ? "shadow-sm hover:shadow-sm hover:-translate-y-1"
-                        : "shadow-sm hover:shadow-sm hover:-translate-y-1"
-                    } ${
+                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 shadow-sm hover:shadow-sm hover:-translate-y-1 ${
                       navigatingToWorkspace === workspace.id
                         ? "opacity-60 pointer-events-none"
                         : ""
                     }`}
-                    style={darkMode ? {
-                      background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
+                    style={isDark ? {
+                      background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
                     } : {
-                      background: `linear-gradient(152deg, rgb(237, 242, 255), rgb(230, 235, 250))`,
+                      background: "linear-gradient(152deg, rgb(237, 242, 255), rgb(230, 235, 250))",
                     }}
                     onClick={() => handleOpenWorkspace(workspace.id)}
                     onMouseMove={(e) => {
@@ -1039,55 +804,44 @@ export default function WorkspacesPage() {
                     <div className="relative p-6 pb-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-2">
-                          <span 
-                            style={darkMode ? {
-                              background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
-                              color: theme.textPrimary,
-                              borderColor: theme.border,
+                          <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm bg-white/90 text-slate-600 dark:text-white border-slate-200 dark:border-slate-700 shadow-slate-200/50"
+                            style={isDark ? {
+                              background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
                             } : undefined}
-                            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm ${
-                              darkMode ? '' : 'bg-white/90 text-slate-600 border-slate-200 shadow-slate-200/50'
-                            }`}
                           >
                             Session
                           </span>
-                          <h3 className={`text-xl font-semibold leading-tight line-clamp-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                          <h3 className="text-xl font-semibold leading-tight line-clamp-1 text-slate-900 dark:text-white">
                             {workspace.name}
                           </h3>
                         </div>
-                        <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                           {formatDate(lastEdited)}
                         </span>
                       </div>
-                      {workspace.description && (
-                        <p className={`text-sm leading-relaxed line-clamp-2 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                        {workspace.description && (
+                        <p className="text-sm leading-relaxed line-clamp-2 text-slate-600 dark:text-slate-400">
                           {workspace.description}
                         </p>
                       )}
                     </div>
                     <div className="relative px-6 pb-4">
-                      <div 
-                        style={darkMode ? {
-                          borderColor: theme.border,
-                          background: `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`,
-                        } : { 
-                          background: `linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))`
+                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-slate-700 shadow-inner"
+                        style={isDark ? {
+                          background: "linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))",
+                        } : {
+                          background: "linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))",
                         }}
-                        className={`rounded-2xl border p-3 h-32 sm:h-36 ${
-                          darkMode ? '' : 'border-slate-200 shadow-inner'
-                        }`}
                       >
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
                             {workspace.nodes.slice(0, 6).map((node) => (
                               <div
                                 key={node.id}
-                                style={darkMode ? {
-                                  background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
+                                className="rounded-lg overflow-hidden flex items-center justify-center bg-slate-50"
+                                style={isDark ? {
+                                  background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
                                 } : undefined}
-                                className={`rounded-lg overflow-hidden flex items-center justify-center ${
-                                  darkMode ? '' : 'bg-slate-50'
-                                }`}
                               >
                                 {node.data?.image ? (
                                   <Image
@@ -1098,50 +852,43 @@ export default function WorkspacesPage() {
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <span className={`text-xs p-1 text-center truncate w-full ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                                  <span className="text-xs p-1 text-center truncate w-full text-slate-600 dark:text-slate-300">
                                     {node.data?.label || 'Part'}
                                   </span>
                                 )}
                               </div>
                             ))}
                             {workspace.nodes.length > 6 && (
-                              <div className={`rounded-lg flex items-center justify-center text-xs font-semibold ${
-                                darkMode ? 'bg-slate-800/70 text-slate-200' : 'bg-slate-100 text-slate-600'
-                              }`}>
+                              <div className="rounded-lg flex items-center justify-center text-xs font-semibold bg-slate-100 dark:bg-slate-800/70 text-slate-600 dark:text-slate-200">
                                 +{workspace.nodes.length - 6}
                               </div>
                             )}
                           </div>
                         ) : (
                           <div className="flex h-full flex-col items-center justify-center gap-2">
-                            <div 
-                              style={darkMode ? {
-                                background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))`,
+                            <div className="p-3 rounded-full bg-sky-50"
+                              style={isDark ? {
+                                background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
                               } : undefined}
-                              className={`p-3 rounded-full ${darkMode ? '' : 'bg-sky-50'}`}
                             >
-                              <Map style={darkMode ? { color: theme.textMuted } : undefined} className={`w-7 h-7 ${darkMode ? '' : 'text-sky-500'}`} />
+                              <Map className="w-7 h-7 text-sky-500 dark:text-slate-400" />
                             </div>
-                            <span className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
                               Empty workspace
                             </span>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className={`relative px-6 pb-6 pt-4 mt-auto border-t ${
-                      darkMode ? 'border-slate-800/60' : 'border-slate-200'
-                    }`}
-                    style={darkMode ? {} : { 
-                      background: `linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))`
-                    }}
+                    <div className="relative px-6 pb-6 pt-4 mt-auto border-t border-slate-200 dark:border-slate-800/60"
+                      style={!isDark ? {
+                        background: "linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))",
+                      } : undefined}
                     >
                       <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <span 
-                          className={`inline-flex items-center gap-2 text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}
-                        >
+                        <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
                           <User className="w-4 h-4" />
-                          <span style={darkMode ? {} : { padding: '2px 5px', background: 'rgb(237, 242, 255)', borderRadius: '6px' }}>
+                          <span className="px-[5px] py-[2px] bg-[rgb(237,242,255)] dark:bg-transparent rounded-md">
                             {workspace.partCount}
                           </span>
                         </span>
@@ -1152,11 +899,7 @@ export default function WorkspacesPage() {
                               e.stopPropagation();
                               handleOpenWorkspace(workspace.id);
                             }}
-                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden ${
-                              darkMode 
-                                ? 'text-slate-200 hover:text-white border border-slate-700/60 transition-colors' 
-                                : 'text-slate-700 border border-slate-200'
-                            }`}
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 hover:text-white border border-slate-200 dark:border-slate-700/60 transition-colors"
                             style={{ 
                               textTransform: 'uppercase', 
                               backgroundColor: 'transparent'
@@ -1212,11 +955,7 @@ export default function WorkspacesPage() {
                                 }
                               }
                             }}
-                            className={`inline-flex items-center justify-center rounded-full p-2 transition-colors ${
-                              darkMode
-                                ? "text-slate-400 hover:text-rose-200 hover:bg-rose-500/20"
-                                : "text-slate-500 hover:text-rose-500 hover:bg-rose-50"
-                            }`}
+                            className="inline-flex items-center justify-center rounded-full p-2 transition-colors text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-500/20"
                             title="Delete session"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1226,9 +965,7 @@ export default function WorkspacesPage() {
                     </div>
 
                     {navigatingToWorkspace === workspace.id && (
-                      <div className={`absolute inset-0 flex items-center justify-center rounded-3xl ${
-                        darkMode ? 'bg-slate-950/80' : 'bg-white/80'
-                      }`}>
+                      <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-white/80 dark:bg-slate-950/80">
                         <LoadingSpinner variant="spinner" size="lg" />
                       </div>
                     )}

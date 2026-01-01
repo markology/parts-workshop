@@ -20,6 +20,7 @@ export type ColorGroup = {
   
   // Button colors
   button: string;          // Default button background
+  button2: string;         // Secondary button background (darker variant)
   buttonHover: string;     // Button hover state
   buttonActive: string;    // Button active/pressed state
   buttonText: string;      // Button text color
@@ -62,6 +63,7 @@ export const darkTheme: ColorGroup = {
   
   // Buttons
   button: "rgb(42, 46, 50)",
+  button2: "#202428",
   buttonHover: "#1e2125", // Darker than default
   buttonActive: "#1e2125",
   buttonText: "#ffffff",
@@ -104,6 +106,7 @@ export const lightTheme: ColorGroup = {
   
   // Buttons
   button: "#ffffff",
+  button2: "#f1f5f9", // Lighter gray variant for light theme
   buttonHover: "#f1f5f9",
   buttonActive: "#e2e8f0",
   buttonText: "#1e293b",
@@ -148,6 +151,7 @@ export const redThemeDark: ColorGroup = {
   surface: "#351515",
   // Buttons - white
   button: "#ffffff",
+  button2: "#202428", // Use darker variant for cherry dark theme
   buttonHover: "#f5f5f5",
   buttonActive: "#e8e8e8",
   buttonText: "#1a1a1a",
@@ -174,6 +178,7 @@ export const redThemeLight: ColorGroup = {
   surface: "#fef2f2",
   // Buttons - keep light theme buttons
   button: "#ffffff",
+  button2: "#f1f5f9", // Lighter gray variant for light theme
   buttonHover: "#f1f5f9",
   buttonActive: "#e2e8f0",
   buttonText: "#1e293b",
