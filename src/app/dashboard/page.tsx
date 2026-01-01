@@ -405,7 +405,7 @@ export default function WorkspacesPage() {
             <div className="relative" ref={profileDropdownRef}>
               <button
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 hover:border-slate-400 dark:hover:border-slate-500"
+                className="flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden border-slate-200 dark:border-[var(--border)] bg-white dark:bg-slate-900/80 hover:border-slate-400 dark:hover:border-slate-500"
               >
                 {session?.user?.image ? (
                   <Image
@@ -427,7 +427,7 @@ export default function WorkspacesPage() {
                       (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu = el;
                     }
                   }}
-                  className="fixed rounded-lg shadow-lg z-[100] bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700"
+                  className="fixed rounded-lg shadow-lg z-[100] bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-[var(--border)]"
                   style={{
                     minWidth: "160px",
                     top: `${profileDropdownPosition.top}px`,
@@ -525,7 +525,7 @@ export default function WorkspacesPage() {
         {!loading && !error && (
           <section className="mb-12">
             <div
-              className="relative overflow-hidden rounded-[28px] border transition-all duration-300 bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)] dark:border-slate-700 dark:shadow-[0_40px_80px_rgba(15,23,42,0.7)]"
+              className="relative overflow-hidden rounded-[28px] border transition-all duration-300 bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)] dark:border-none dark:shadow-[0_40px_80px_rgba(15,23,42,0.7)]"
               style={isDark ? {
                 background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
               } : undefined}
@@ -676,11 +676,11 @@ export default function WorkspacesPage() {
         {!loading && !error && workspaces.length > 0 && (
           <>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex flex-wrap items-baseline gap-3">
+              <div className="flex flex-wrap items-baseline gap-3 items-center">
                 <h2 className="text-2xl font-semibold leading-none text-slate-900 dark:text-white">
                   My Workspaces
                 </h2>
-                <span className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] bg-white dark:bg-white/90 text-slate-700 dark:text-slate-900 shadow-sm shadow-slate-200/50">
+                <span className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] bg-white dark:bg-white/90 text-slate-700 dark:text-slate-900 shadow-sm dark:shadow-none">
                   {workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}
                 </span>
               </div>
@@ -700,7 +700,7 @@ export default function WorkspacesPage() {
                   </button>
                   {dropdownOpen && (
                     <div
-                      className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50 bg-white border-slate-200 dark:border-slate-700"
+                      className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50 bg-white border-slate-200 dark:border-[var(--border)]"
                       style={isDark ? {
                         background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
                       } : undefined}
@@ -804,7 +804,7 @@ export default function WorkspacesPage() {
                     <div className="relative p-6 pb-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-2">
-                          <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm bg-white/90 text-slate-600 dark:text-white border-slate-200 dark:border-slate-700 shadow-slate-200/50"
+                          <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm bg-white/90 text-slate-600 dark:text-white border-slate-200 dark:border-[var(--border)] shadow-slate-200/50 dark:shadow-none"
                             style={isDark ? {
                               background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
                             } : undefined}
@@ -826,7 +826,7 @@ export default function WorkspacesPage() {
                       )}
                     </div>
                     <div className="relative px-6 pb-4">
-                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-slate-700 shadow-inner"
+                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner"
                         style={isDark ? {
                           background: "linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))",
                         } : {
@@ -899,7 +899,7 @@ export default function WorkspacesPage() {
                               e.stopPropagation();
                               handleOpenWorkspace(workspace.id);
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 hover:text-white border border-slate-200 dark:border-slate-700/60 transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 hover:text-white border border-slate-200 dark:border-[var(--border)]/60 transition-colors"
                             style={{ 
                               textTransform: 'uppercase', 
                               backgroundColor: 'transparent'
