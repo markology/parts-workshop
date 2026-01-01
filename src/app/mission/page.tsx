@@ -4,52 +4,18 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, User, Settings, Moon, Sun, LogOut, HelpCircle, Map, Heart, Route } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+import { ArrowLeft, Heart, Route } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import PartsStudioLogo from "@/components/PartsStudioLogo";
+import AccountDropdown from "@/components/AccountDropdown";
 
 export default function MissionPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { darkMode, themeName, setThemeName } = useThemeContext();
   const theme = useTheme();
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
-  const profileDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Calculate dropdown position
-  useEffect(() => {
-    if (profileDropdownOpen && profileDropdownRef.current) {
-      const rect = profileDropdownRef.current.getBoundingClientRect();
-      setProfileDropdownPosition({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right
-      });
-    } else {
-      setProfileDropdownPosition(null);
-    }
-  }, [profileDropdownOpen]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileDropdownOpen && profileDropdownRef.current) {
-        const dropdownMenu = (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu;
-        const clickedInsideButton = profileDropdownRef.current.contains(event.target as Node);
-        const clickedInsideMenu = dropdownMenu && dropdownMenu.contains(event.target as Node);
-        if (!clickedInsideButton && !clickedInsideMenu) {
-          setProfileDropdownOpen(false);
-        }
-      }
-    };
-
-    if (profileDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [profileDropdownOpen]);
 
   return (
     <div 
@@ -129,120 +95,10 @@ export default function MissionPage() {
           {/* Account Dropdown or Back Arrow */}
           <div className="flex items-center">
             {session ? (
-              <div className="relative" ref={profileDropdownRef}>
-                <button
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden ${
-                    darkMode
-                      ? 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
-                      : 'border-slate-200 bg-white hover:border-slate-400'
-                  }`}
-                >
-                  {session.user?.image ? (
-                    <Image
-                      src={session.user.image}
-                      alt={session.user.name || 'User'}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <User className={`w-5 h-5 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`} />
-                  )}
-                </button>
-
-                {profileDropdownOpen && profileDropdownPosition && (
-                  <div
-                    ref={(el) => {
-                      if (el && profileDropdownRef.current) {
-                        (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu = el;
-                      }
-                    }}
-                    className="fixed rounded-lg shadow-lg z-[100]"
-                    style={{
-                      minWidth: "160px",
-                      top: `${profileDropdownPosition.top}px`,
-                      right: `${profileDropdownPosition.right}px`,
-                      background: darkMode
-                        ? `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`
-                        : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
-                      borderColor: theme.border,
-                      borderWidth: 1,
-                      borderStyle: "solid",
-                    }}
-                  >
-                    <button
-                      onClick={() => {
-                        router.push('/dashboard');
-                        setProfileDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg ${
-                        darkMode
-                          ? 'hover:bg-gray-700 text-white'
-                          : 'hover:bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <Map className="w-4 h-4" />
-                      Dashboard
-                    </button>
-                    <button
-                      onClick={() => {
-                        router.push('/account');
-                        setProfileDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                        darkMode
-                          ? 'hover:bg-gray-700 text-white'
-                          : 'hover:bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <Settings className="w-4 h-4" />
-                      Account
-                    </button>
-                    <button
-                      onClick={() => {
-                        const nextTheme =
-                          themeName === "dark"
-                            ? "light"
-                            : "dark";
-                        setThemeName(nextTheme, true);
-                        setProfileDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                        darkMode
-                          ? "hover:bg-gray-700 text-white"
-                          : "hover:bg-gray-100 text-gray-900"
-                      }`}
-                    >
-                      {darkMode ? (
-                        <>
-                          <Sun className="w-4 h-4" />
-                          Light Mode
-                        </>
-                      ) : (
-                        <>
-                          <Moon className="w-4 h-4" />
-                          Dark Mode
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={async () => {
-                        await signOut({ callbackUrl: '/login' });
-                        setProfileDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg ${
-                        darkMode
-                          ? 'hover:bg-gray-700 text-white'
-                          : 'hover:bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
+              <AccountDropdown
+                showDashboard={true}
+                themeModeType="toggle"
+              />
             ) : (
               <Link
                 href="/"

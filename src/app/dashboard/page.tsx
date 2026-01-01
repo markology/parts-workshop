@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Calendar, Trash2, Play, Clock, ChevronDown, User, Settings, Moon, Sun, Monitor, LogOut, MailPlus, HelpCircle, Sparkles, Target, ArrowRight, Heart } from "lucide-react";
+import { Map, Calendar, Trash2, Play, Clock, ChevronDown, MailPlus, Sparkles, Target, ArrowRight, Heart, User } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { useThemeContext } from "@/state/context/ThemeContext";
@@ -16,6 +16,7 @@ import StudioAssistant from "@/components/StudioAssistant";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
 import PartsStudioLogo from "@/components/PartsStudioLogo";
+import AccountDropdown from "@/components/AccountDropdown";
 
 interface WorkspaceData {
   id: string;
@@ -49,12 +50,9 @@ export default function WorkspacesPage() {
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('edited');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [navigatingToWorkspace, setNavigatingToWorkspace] = useState<string | null>(null);
-  const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const profileDropdownRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const savedScrollY = useRef<number>(0);
 
@@ -222,40 +220,19 @@ export default function WorkspacesPage() {
     ? "bg-transparent supports-[backdrop-filter]:backdrop-blur-xl border-b border-transparent"
     : "bg-white/75 border-b border-slate-200/70 dark:border-slate-800/60 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)]";
 
-  // Update dropdown position when it opens
-  useEffect(() => {
-    if (profileDropdownOpen && profileDropdownRef.current) {
-      const rect = profileDropdownRef.current.getBoundingClientRect();
-      setProfileDropdownPosition({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right
-      });
-    } else {
-      setProfileDropdownPosition(null);
-    }
-  }, [profileDropdownOpen]);
-
-  // Close dropdowns when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
-      if (profileDropdownOpen && profileDropdownRef.current) {
-        const dropdownMenu = (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu;
-        const clickedInsideButton = profileDropdownRef.current.contains(event.target as Node);
-        const clickedInsideMenu = dropdownMenu && dropdownMenu.contains(event.target as Node);
-        if (!clickedInsideButton && !clickedInsideMenu) {
-          setProfileDropdownOpen(false);
-        }
-      }
     };
 
-    if (profileDropdownOpen || dropdownOpen) {
+    if (dropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [profileDropdownOpen, dropdownOpen]);
+  }, [dropdownOpen]);
 
   // Sort workspaces
   const sortedWorkspaces = [...workspaces].sort((a, b) => {
@@ -391,108 +368,11 @@ export default function WorkspacesPage() {
               <MailPlus className="w-5 h-5" />
             </button>
 
-            {/* Profile Dropdown */}
-            <div className="relative" ref={profileDropdownRef}>
-              <button
-                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden border-slate-200 dark:border-[var(--border)] bg-white dark:bg-slate-900/80 hover:border-slate-400 dark:hover:border-slate-500"
-              >
-                {session?.user?.image ? (
-                  <Image
-                    src={session.user.image}
-                    alt={session.user.name || 'User'}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <User className="w-5 h-5 text-slate-700 dark:text-slate-300" />
-                )}
-              </button>
-
-              {profileDropdownOpen && profileDropdownPosition && (
-                <div
-                  ref={(el) => {
-                    if (el && profileDropdownRef.current) {
-                      (profileDropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu = el;
-                    }
-                  }}
-                  className="fixed rounded-lg shadow-lg z-[100] bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-[var(--border)]"
-                  style={{
-                    minWidth: "160px",
-                    top: `${profileDropdownPosition.top}px`,
-                    right: `${profileDropdownPosition.right}px`,
-                  }}
-                >
-                  <button
-                    onClick={() => {
-                      router.push('/account');
-                      setProfileDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Account
-                  </button>
-                  {/* Theme Mode Selection */}
-                  <div className="px-4 py-2">
-                    <div className="text-xs font-semibold uppercase tracking-wide mb-2 text-gray-500 dark:text-gray-400">
-                      Theme
-                    </div>
-                    {(["light", "dark", "system"] as const).map((mode) => {
-                      const isActive = themePref === mode;
-                      const getIcon = () => {
-                        if (mode === "system") return <Monitor className="w-4 h-4" />;
-                        if (mode === "dark") return <Moon className="w-4 h-4" />;
-                        return <Sun className="w-4 h-4" />;
-                      };
-                      const getLabel = () => {
-                        if (mode === "system") return "System";
-                        if (mode === "dark") return "Dark Mode";
-                        return "Light Mode";
-                      };
-                      return (
-                        <button
-                          key={mode}
-                          onClick={() => {
-                            setThemePref(mode, true);
-                            setProfileDropdownOpen(false);
-                          }}
-                          className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 rounded ${
-                            isActive
-                              ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                              : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                          }`}
-                        >
-                          {getIcon()}
-                          {getLabel()}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowFeedbackModal(true);
-                      setProfileDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <HelpCircle className="w-4 h-4" />
-                    Help
-                  </button>
-                  <button
-                    onClick={async () => {
-                      await signOut({ callbackUrl: '/login' });
-                      setProfileDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Account Dropdown */}
+            <AccountDropdown
+              showHelp={true}
+              themeModeType="system"
+            />
           </div>
         </div>
       </header>

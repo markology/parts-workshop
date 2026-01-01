@@ -1,8 +1,9 @@
 "use client";
 
-import { Plus, Settings, X, Minus, User, Moon, Sun, LogOut, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Map, Sparkles, Paintbrush } from "lucide-react";
+import { Plus, Settings, X, Minus, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Sparkles } from "lucide-react";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
 import StudioAssistant from "@/components/StudioAssistant";
+import AccountDropdown from "@/components/AccountDropdown";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
@@ -50,11 +51,9 @@ const FloatingActionButtons = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const impressionsRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
-  const { data: session } = useSession();
   const { isDark } = useThemeContext();
   const theme = useTheme();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const [workspaceBgColor, setWorkspaceBgColorState] = useState("#f8fafc");
   
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
@@ -304,19 +303,6 @@ const FloatingActionButtons = () => {
   // Don't close the menu when clicking outside - it should only close when clicking the X button
 
 
-  // Update dropdown position when it opens
-  useEffect(() => {
-    if (profileDropdownOpen && profileDropdownRef.current) {
-      const rect = profileDropdownRef.current.getBoundingClientRect();
-      setProfileDropdownPosition({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right
-      });
-    } else {
-      setProfileDropdownPosition(null);
-    }
-  }, [profileDropdownOpen]);
-
   // Close dropdown when canvas pane is clicked
   useEffect(() => {
     const handlePaneClick = () => {
@@ -325,27 +311,6 @@ const FloatingActionButtons = () => {
     window.addEventListener("workspace-pane-click", handlePaneClick);
     return () => window.removeEventListener("workspace-pane-click", handlePaneClick);
   }, []);
-
-  useEffect(() => {}, []);
-
-  // Close profile dropdown when clicking outside
-  useEffect(() => {
-    if (!profileDropdownOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileDropdownRef.current) {
-        const dropdownMenu = (profileDropdownRef.current as any).dropdownMenu;
-        const clickedInsideButton = profileDropdownRef.current.contains(event.target as Node);
-        const clickedInsideMenu = dropdownMenu && dropdownMenu.contains(event.target as Node);
-        if (!clickedInsideButton && !clickedInsideMenu) {
-          setProfileDropdownOpen(false);
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [profileDropdownOpen]);
 
   useEffect(() => {
     if (!activeButton || activeButton !== "options") {
@@ -692,113 +657,18 @@ const FloatingActionButtons = () => {
           ) : null}
         </button>
 
-        {/* Profile Dropdown */}
-        {isSettingsAction && profileDropdownOpen && profileDropdownPosition && (
-          <div 
-            ref={(el) => {
-              if (el && profileDropdownRef.current) {
-                // Store reference to dropdown menu for click-outside detection
-                (profileDropdownRef.current as any).dropdownMenu = el;
-              }
-            }}
-            className="fixed rounded-lg shadow-lg z-[100]"
-            style={{ 
-              backgroundColor: theme.card,
-              minWidth: '150px',
-              top: `${profileDropdownPosition.top}px`,
-              right: `${profileDropdownPosition.right}px`
-            }}
-          >
-            <button
-              onClick={() => {
-                // Navigate to account settings
-                router.push('/account');
-                setProfileDropdownOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 first:rounded-t-lg transition-colors"
-              style={{ color: theme.textPrimary }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.buttonHover;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <Settings className="w-4 h-4" />
-              Account
-            </button>
-            <button
-              onClick={() => {
-                router.push('/dashboard');
-                setProfileDropdownOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
-              style={{ color: theme.textPrimary }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.buttonHover;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <Map className="w-4 h-4" />
-              Dashboard
-            </button>
-            
-            
-            <button
-              onClick={() => {
-                // Dispatch custom event to open color picker
-                window.dispatchEvent(new CustomEvent("open-theme-picker"));
-                setProfileDropdownOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
-              style={{ color: theme.textPrimary }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.buttonHover;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <Paintbrush className="w-4 h-4" />
-              Themes
-            </button>
-            <button
-              onClick={() => {
-                setShowFeedbackModal(true);
-                setProfileDropdownOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
-              style={{ color: theme.textPrimary }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.buttonHover;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <HelpCircle className="w-4 h-4" />
-              Help
-            </button>
-            <button
-              onClick={async () => {
-                await signOut({ callbackUrl: '/login' });
-                setProfileDropdownOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 last:rounded-b-lg transition-colors"
-              style={{ color: theme.textPrimary }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.buttonHover;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
-          </div>
+        {/* Account Dropdown - rendered separately, controlled by button click */}
+        {isSettingsAction && (
+          <AccountDropdown
+            showDashboard={true}
+            showHelp={true}
+            showWorkspaceTheme={true}
+            themeModeType="none"
+            useWorkspaceTheme={true}
+            containerRef={profileDropdownRef}
+            isOpen={profileDropdownOpen}
+            onClose={() => setProfileDropdownOpen(false)}
+          />
         )}
       </div>
     );
