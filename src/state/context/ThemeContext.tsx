@@ -143,6 +143,7 @@ export const ThemeContextProvider = ({
       
       // Set CSS custom properties for theme colors (this is necessary to generate theme css properties - mark)
       root.style.setProperty("--theme-workspace", currentTheme.workspace);
+      root.style.setProperty("--theme-background-gradient", currentTheme.backgroundGradient);
       root.style.setProperty("--theme-card", currentTheme.card);
       root.style.setProperty("--theme-modal", currentTheme.modal);
       root.style.setProperty("--theme-sidebar", currentTheme.sidebar);

@@ -12,6 +12,7 @@
 export type ColorGroup = {
   // Background colors
   workspace: string;        // Main workspace/canvas background
+  backgroundGradient: string; // Background gradient for dark mode/theme
   card: string;            // Card/node backgrounds
   modal: string;           // Modal/overlay backgrounds
   sidebar: string;        // Sidebar backgrounds
@@ -55,6 +56,7 @@ export type ColorGroup = {
 export const darkTheme: ColorGroup = {
   // Backgrounds
   workspace: "#3D434B",
+  backgroundGradient: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
   card: "#212529",
   modal: "#212529",
   sidebar: "#212529",
@@ -98,6 +100,7 @@ export const darkTheme: ColorGroup = {
 export const lightTheme: ColorGroup = {
   // Backgrounds
   workspace: "#f8fafc",
+  backgroundGradient: "", // No gradient for light theme
   card: "#ffffff",
   modal: "#ffffff",
   sidebar: "#ffffff",

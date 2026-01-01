@@ -306,12 +306,7 @@ export default function WorkspacesPage() {
 
   return (
     <div
-      className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50"
-      style={{
-        backgroundImage: isDark
-          ? "linear-gradient(135deg, #454b54, #3d434b, #353b43)"
-          : "linear-gradient(rgb(230, 248, 255) 0%, rgb(219, 234, 254) 400px, rgb(224, 231, 255) calc(900px), rgb(254, 241, 242) calc(1400px), rgb(252, 237, 238) 100%)",
-      }}
+      className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50 dark:bg-[image:var(--background-gradient-dashboard)]"
     >
       <div
         className={`fixed inset-0 ${
@@ -382,12 +377,7 @@ export default function WorkspacesPage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setShowFeedbackModal(true)}
-              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
-              style={{
-                background:
-                  "linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)",
-                color: "white",
-              }}
+              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 text-white bg-[image:var(--button-jazz-gradient)]"
               title="Contact"
             >
               <MailPlus className="w-4 h-4" />
@@ -525,10 +515,7 @@ export default function WorkspacesPage() {
         {!loading && !error && (
           <section className="mb-12">
             <div
-              className="relative overflow-hidden rounded-[28px] border transition-all duration-300 bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)] dark:border-none dark:shadow-[0_40px_80px_rgba(15,23,42,0.7)]"
-              style={isDark ? {
-                background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
-              } : undefined}
+              className="relative overflow-hidden rounded-[28px] border transition-all duration-300 bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)] dark:border-none dark:shadow-[0_40px_80px_rgba(15,23,42,0.7)] dark:bg-[image:var(--background-gradient)]"
             >
               <div
                 className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.28),transparent_60%)]"
@@ -566,10 +553,7 @@ export default function WorkspacesPage() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2">
                     <button
                       onClick={handleStartSession}
-                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-[0_22px_48px_rgba(190,84,254,0.28)] hover:shadow-[0_28px_60px_rgba(190,84,254,0.32)] transition-all duration-200 hover:-translate-y-[2px]"
-                      style={{
-                        background: "linear-gradient(to right, #be54fe, #6366f1, #0ea5e9)"
-                      }}
+                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-[0_22px_48px_rgba(190,84,254,0.28)] hover:shadow-[0_28px_60px_rgba(190,84,254,0.32)] transition-all duration-200 hover:-translate-y-[2px] bg-[image:var(--button-jazz-gradient)]"
                     >
                       <Play className="w-4 h-4" />
                       Start a fresh map
@@ -688,10 +672,8 @@ export default function WorkspacesPage() {
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-300 bg-white"
-                    style={isDark ? {
-                      background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
-                    } : undefined}
+                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-300 bg-white dark:bg-[image:var(--background-gradient)]"
+                    
                     >
                     {sortBy === 'edited' && 'Recently Edited'}
                     {sortBy === 'created' && 'Recently Created'}
@@ -700,10 +682,8 @@ export default function WorkspacesPage() {
                   </button>
                   {dropdownOpen && (
                     <div
-                      className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50 bg-white border-slate-200 dark:border-[var(--border)]"
-                      style={isDark ? {
-                        background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
-                      } : undefined}
+                      className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50 bg-white border-slate-200 dark:border-[var(--border)] dark:bg-[image:var(--background-gradient)]"
+                      
                     >
                       {sortBy !== 'edited' && (
                         <button
@@ -759,12 +739,8 @@ export default function WorkspacesPage() {
                       navigatingToWorkspace === workspace.id
                         ? "opacity-60 pointer-events-none"
                         : ""
-                    }`}
-                    style={isDark ? {
-                      background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))",
-                    } : {
-                      background: "linear-gradient(152deg, rgb(237, 242, 255), rgb(230, 235, 250))",
-                    }}
+                    } bg-[image:var(--background-gradient)] dark:bg-[image:var(--background-gradient)]`}
+                    
                     onClick={() => handleOpenWorkspace(workspace.id)}
                     onMouseMove={(e) => {
                       const target = e.target as HTMLElement;
@@ -804,10 +780,7 @@ export default function WorkspacesPage() {
                     <div className="relative p-6 pb-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-2">
-                          <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm bg-white/90 text-slate-600 dark:text-white border-slate-200 dark:border-[var(--border)] shadow-slate-200/50 dark:shadow-none"
-                            style={isDark ? {
-                              background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
-                            } : undefined}
+                          <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm bg-white/90 text-slate-600 dark:text-white border-slate-200 dark:border-none shadow-slate-200/50 dark:shadow-none dark:bg-[var(--card)]"
                           >
                             Session
                           </span>
@@ -826,22 +799,14 @@ export default function WorkspacesPage() {
                       )}
                     </div>
                     <div className="relative px-6 pb-4">
-                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner"
-                        style={isDark ? {
-                          background: "linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))",
-                        } : {
-                          background: "linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))",
-                        }}
+                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner dark:bg-[image:var(--background-gradient-tile)] bg-[image:var(--background-gradient-tile)]"
                       >
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
                             {workspace.nodes.slice(0, 6).map((node) => (
                               <div
                                 key={node.id}
-                                className="rounded-lg overflow-hidden flex items-center justify-center bg-slate-50"
-                                style={isDark ? {
-                                  background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
-                                } : undefined}
+                                className="rounded-lg overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-[var(--button)]"
                               >
                                 {node.data?.image ? (
                                   <Image
@@ -867,9 +832,9 @@ export default function WorkspacesPage() {
                         ) : (
                           <div className="flex h-full flex-col items-center justify-center gap-2">
                             <div className="p-3 rounded-full bg-sky-50"
-                              style={isDark ? {
-                                background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
-                              } : undefined}
+                              // style={isDark ? {
+                              //   background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
+                              // } : undefined}
                             >
                               <Map className="w-7 h-7 text-sky-500 dark:text-slate-400" />
                             </div>
@@ -880,11 +845,7 @@ export default function WorkspacesPage() {
                         )}
                       </div>
                     </div>
-                    <div className="relative px-6 pb-6 pt-4 mt-auto border-t border-slate-200 dark:border-slate-800/60"
-                      style={!isDark ? {
-                        background: "linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255))",
-                      } : undefined}
-                    >
+                    <div className="relative px-6 pb-6 pt-4 mt-auto border-t border-slate-200 dark:border-slate-800/60 bg-[image:var(--background-gradient-tile)] dark:bg-none">
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
                           <User className="w-4 h-4" />
