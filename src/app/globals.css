@@ -17,19 +17,6 @@
   }
 }
 
-@keyframes scrollUp {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(calc(-100% - 128px));
-  }
-}
-
-.animate-scroll {
-  animation: scrollUp 15s linear infinite;
-}
-
 .radix-tooltip-content {
   animation: fadeIn 150ms ease-out;
 }
@@ -49,23 +36,16 @@
   --background: #e6f8ff;
   --aside-background: linear-gradient(135deg, #fff, #e2ebff);
   --text-color: black;
-  --text-against-part-node: #4e6176;
-  --text-color-alt: white;
   --box-shadow: #00000082 0px 9px 13px -4px;
   --font-inter: "Inter", sans-serif;
-  --font-lato: "Lato", sans-serif;
   --tooltip-background: white;
   --tooltip-text: black;
   --overlay-background: #000000c9;
   --tension-handle-bg: #5a4784;
   --interaction-handle-bg: #386183;
   --part-handle-bg: #88b7fd;
-  --create-tension-bg: #5a4784;
-  --toggle-utilities: white;
-  --aside-shadow: #171717;
-  --part-button-shadow: #00000082;
-  --impression-button-shadow: black;
-  --tension-button-shadow: black;
+  --part-button-shadow: rgba(0, 0, 0, 0.1);
+  --impression-button-shadow: rgba(0, 0, 0, 0.1);
 
   /* Theme colors - defaults (will be overridden by ThemeContext via inline styles) */
   --theme-workspace: #f8fafc;
@@ -92,21 +72,15 @@
   --background: #2a3545;
   --aside-background: linear-gradient(145deg, #2a2e32, #272b2f);
   --text-color: white;
-  --text-color-alt: black;
-  --text-against-part-node: var(--text-color);
   --box-shadow: #000000a8 0px 7px 16px -4px;
+  --part-button-shadow: rgba(0, 0, 0, 0.2);
+  --impression-button-shadow: rgba(0, 0, 0, 0.2);
   --tooltip-background: #161616;
   --tooltip-text: white;
   --overlay-background: #000000b0;
   --tension-handle-bg: #5a4784;
   --interaction-handle-bg: #386183;
   --part-handle-bg: #baceec;
-  --create-tension-bg: #5a4784;
-  --toggle-utilities: white;
-  --aside-shadow: #171717;
-  --part-button-shadow: #00000082;
-  --impression-button-shadow: black;
-  --tension-button-shadow: black;
 }
 
 @layer base {
@@ -130,42 +104,6 @@
   }
   .text-theme {
     color: var(--text-color);
-  }
-  .text-alt {
-    color: var(--text-color-alt);
-  }
-  .text-node {
-    color: var(--text-against-part-node);
-  }
-  .shadow-theme {
-    box-shadow: var(--box-shadow);
-  }
-  .bg-tooltip {
-    background: var(--tooltip-background);
-  }
-  .text-tooltip {
-    color: var(--tooltip-text);
-  }
-  .bg-overlay {
-    background: var(--overlay-background);
-  }
-  .bg-tension-handle {
-    background-color: var(--tension-handle-bg);
-  }
-  .bg-part-handle {
-    background-color: var(--part-handle-bg);
-  }
-  .text-toggle-utilities {
-    color: var(--toggle-utilities);
-  }
-  .shadow-aside {
-    box-shadow: var(--aside-shadow) 0px 0px 10px 0px;
-  }
-  .shadow-part-button {
-    box-shadow: 0 4px 9px -4px var(--part-button-shadow);
-  }
-  .shadow-impression-button {
-    box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
   }
   .modal-overlay {
     background: var(--overlay-background);
@@ -239,19 +177,6 @@ body {
   background: transparent !important;
 }
 
-.img-cropper {
-  width: 100%;
-  height: 400px;
-  overflow: hidden;
-}
-
-.img-cropper img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  object-position: center top;
-}
-
 button {
   cursor: pointer;
 }
@@ -301,10 +226,6 @@ button {
 
 #create-impression-button {
   box-shadow: 1px 2px 4px 0px var(--impression-button-shadow);
-}
-
-.animate-scroll {
-  animation: scroll 12s linear infinite;
 }
 
 @keyframes rotateOrbit {
