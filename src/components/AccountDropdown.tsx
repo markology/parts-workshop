@@ -60,9 +60,17 @@ export default function AccountDropdown({
     }
   };
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const [showThemePanel, setShowThemePanel] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const internalTriggerRef = useRef<HTMLDivElement>(null);
   const actualTriggerRef = triggerRef || internalTriggerRef;
+
+  // Reset theme panel when dropdown closes
+  useEffect(() => {
+    if (!dropdownOpen) {
+      setShowThemePanel(false);
+    }
+  }, [dropdownOpen]);
 
   // Handle external trigger clicks - listen for clicks on the trigger element
   // Note: This is handled by the parent component's onClick handler when using external trigger
@@ -177,7 +185,7 @@ export default function AccountDropdown({
               (dropdownRef.current as { dropdownMenu?: HTMLElement }).dropdownMenu = el;
             }
           }}
-          className={menuClassName || defaultMenuClassName}
+          className={`${menuClassName || defaultMenuClassName} overflow-hidden`}
           style={useWorkspaceTheme ? {
             minWidth: '150px',
             top: `${dropdownPosition.top}px`,
@@ -188,6 +196,93 @@ export default function AccountDropdown({
             right: `${dropdownPosition.right}px`,
           }}
         >
+          {/* Theme Panel - slides out from the right */}
+          <div
+            className={`absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-[var(--border)] dark:bg-[image:var(--background-gradient)] rounded-lg transition-transform duration-300 ease-in-out z-10 ${
+              showThemePanel ? 'translate-x-0' : 'translate-x-full'
+            }`}
+            style={{
+              minWidth: useWorkspaceTheme ? '150px' : "160px",
+            }}
+          >
+            <div className="px-4 py-0 border-b border-slate-200 dark:border-[var(--border)] flex items-center gap-2">
+              <button
+                onClick={() => setShowThemePanel(false)}
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Appearance
+              </div>
+            </div>
+            <div className="py-2">
+              {themeModeType === 'system' ? (
+                (["light", "dark", "system"] as const).map((mode) => {
+                  const isActive = themePref === mode;
+                  const getIcon = () => {
+                    if (mode === "system") return <Monitor className="w-4 h-4" />;
+                    if (mode === "dark") return <Moon className="w-4 h-4" />;
+                    return <Sun className="w-4 h-4" />;
+                  };
+                  const getLabel = () => {
+                    if (mode === "system") return "System";
+                    if (mode === "dark") return "Dark Mode";
+                    return "Light Mode";
+                  };
+                  return (
+                    <button
+                      key={mode}
+                      onClick={() => {
+                        setThemePref(mode, true);
+                        setShowThemePanel(false);
+                        setDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                        isActive
+                          ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                      }`}
+                    >
+                      {getIcon()}
+                      {getLabel()}
+                    </button>
+                  );
+                })
+              ) : (
+                <button
+                  onClick={() => {
+                    const nextTheme = isDark ? "light" : "dark";
+                    setThemePref(nextTheme, true);
+                    setShowThemePanel(false);
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  {isDark ? (
+                    <>
+                      <Sun className="w-4 h-4" />
+                      Light Mode
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-4 h-4" />
+                      Dark Mode
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Main Menu - slides out to the left when theme panel is open */}
+          <div
+            className={`transition-transform duration-300 ease-in-out ${
+              showThemePanel ? '-translate-x-full' : 'translate-x-0'
+            }`}
+          >
           {showDashboard && (
             <button
               onClick={handleDashboardClick}
@@ -220,51 +315,9 @@ export default function AccountDropdown({
             Account
           </button>
 
-          {themeModeType === 'system' && (
-            <div className="px-4 py-2">
-              <div className="text-xs font-semibold uppercase tracking-wide mb-2 text-gray-500 dark:text-gray-400">
-                Theme
-              </div>
-              {(["light", "dark", "system"] as const).map((mode) => {
-                const isActive = themePref === mode;
-                const getIcon = () => {
-                  if (mode === "system") return <Monitor className="w-4 h-4" />;
-                  if (mode === "dark") return <Moon className="w-4 h-4" />;
-                  return <Sun className="w-4 h-4" />;
-                };
-                const getLabel = () => {
-                  if (mode === "system") return "System";
-                  if (mode === "dark") return "Dark Mode";
-                  return "Light Mode";
-                };
-                return (
-                  <button
-                    key={mode}
-                    onClick={() => {
-                      setThemePref(mode, true);
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 rounded ${
-                      isActive
-                        ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                    }`}
-                  >
-                    {getIcon()}
-                    {getLabel()}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {themeModeType === 'toggle' && (
+          {(themeModeType === 'system' || themeModeType === 'toggle') && (
             <button
-              onClick={() => {
-                const nextTheme = isDark ? "light" : "dark";
-                setThemePref(nextTheme, true);
-                setDropdownOpen(false);
-              }}
+              onClick={() => setShowThemePanel(true)}
               className={menuItemClassName}
               style={useWorkspaceTheme ? {} : undefined}
               onMouseEnter={useWorkspaceTheme ? (e) => {
@@ -274,15 +327,15 @@ export default function AccountDropdown({
                 e.currentTarget.style.backgroundColor = 'transparent';
               } : undefined}
             >
-              {isDark ? (
+              {themeModeType === 'system' ? (
                 <>
-                  <Sun className="w-4 h-4" />
-                  Light Mode
+                  <Monitor className="w-4 h-4" />
+                  Appearance
                 </>
               ) : (
                 <>
-                  <Moon className="w-4 h-4" />
-                  Dark Mode
+                  {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  Appearance
                 </>
               )}
             </button>
@@ -336,6 +389,7 @@ export default function AccountDropdown({
             <LogOut className="w-4 h-4" />
             Sign Out
           </button>
+          </div>
         </div>
       )}
     </>
