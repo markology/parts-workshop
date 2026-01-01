@@ -11,5 +11,9 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(function ({ addVariant }) {
+      addVariant("cherry", ".cherry &");
+    }),
+  ],
 };

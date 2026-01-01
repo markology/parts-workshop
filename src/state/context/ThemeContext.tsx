@@ -38,36 +38,44 @@ const ThemeContext = createContext<ContextValue>({
 // Helper function to get initial theme (runs synchronously on client)
 function getInitialTheme(): { themeName: ThemeName; darkMode: boolean } {
   // Default fallback
-  let themeName: ThemeName = "light";
+  let themeName: ThemeName = "system";
   let darkMode = false;
 
   if (typeof window === "undefined") {
-    return { themeName, darkMode };
+    return { themeName: "system", darkMode: false };
   }
 
   try {
     // Check if user has manually set a global theme preference
     const savedThemeName = localStorage.getItem("themeName") as ThemeName | null;
-    const themeGlobal = localStorage.getItem("themeGlobal");
 
-    // If user has explicitly chosen a global theme, use it (overrides browser)
-    if (themeGlobal === "1" && savedThemeName && themes[savedThemeName]) {
+    // If user has saved a preference (including "system"), use it
+    if (savedThemeName && (savedThemeName === "system" || themes[savedThemeName])) {
       themeName = savedThemeName;
-      darkMode = savedThemeName === "dark";
-      console.log(`[Theme] Initialized from saved global preference: ${themeName}`);
+      
+      if (savedThemeName === "system") {
+        // System mode: follow browser preference
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        darkMode = prefersDark;
+        console.log(`[Theme] Initialized from system preference: ${prefersDark ? "dark" : "light"} (following browser)`);
+      } else {
+        // Specific theme selected
+        darkMode = savedThemeName === "dark";
+        console.log(`[Theme] Initialized from saved preference: ${themeName}`);
+      }
       return { themeName, darkMode };
     }
 
-    // Otherwise, use browser/device preference (first load or no manual preference)
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    themeName = prefersDark ? "dark" : "light";
+    // No saved preference: default to system mode
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    themeName = "system";
     darkMode = prefersDark;
-    console.log(`[Theme] Initialized from browser preference: ${themeName} (prefersDark: ${prefersDark})`);
+    console.log(`[Theme] Initialized with system mode (no saved preference): ${prefersDark ? "dark" : "light"}`);
   } catch (error) {
     console.error("Error reading theme preference:", error);
-    // Fallback to light theme on error
+    // Fallback to system mode on error
+    themeName = "system";
+    darkMode = false;
   }
 
   return { themeName, darkMode };
@@ -99,19 +107,28 @@ export const ThemeContextProvider = ({
   const setThemeName = (newThemeName: ThemeName, persistGlobal: boolean = false) => {
     console.log(`[Theme] Setting theme to: ${newThemeName}, persistGlobal: ${persistGlobal}`);
     setThemeNameState(newThemeName);
-    setDarkMode(newThemeName === "dark");
+    
+    // Calculate darkMode based on theme
+    if (newThemeName === "system") {
+      // System mode: follow browser preference
+      const prefersDark = typeof window !== "undefined" 
+        ? window.matchMedia("(prefers-color-scheme: dark)").matches
+        : false;
+      setDarkMode(prefersDark);
+    } else {
+      setDarkMode(newThemeName === "dark");
+    }
+    
     if (typeof window === "undefined") return;
 
     if (persistGlobal) {
-      // User manually set a global theme - save it and forever override browser preference
+      // User manually set a global theme preference - save it
       try {
         // Save to localStorage
         localStorage.setItem("themeName", newThemeName);
-        localStorage.setItem("themeGlobal", "1");
         
         // Also save to cookie for server-side rendering
         document.cookie = `themeName=${newThemeName}; path=/; max-age=31536000; SameSite=Lax`;
-        document.cookie = `themeGlobal=1; path=/; max-age=31536000; SameSite=Lax`;
         
         console.log(`[Theme] Saved global theme: ${newThemeName} (localStorage + cookie)`);
       } catch (error) {
@@ -157,15 +174,16 @@ export const ThemeContextProvider = ({
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
     const handleChange = (e: MediaQueryListEvent) => {
-      // Only react to system changes if the user has NOT manually set a global preference.
-      // Once they set a theme manually, it forever overrides the browser preference.
-      const themeGlobal = localStorage.getItem("themeGlobal");
-      if (themeGlobal !== "1") {
-        // No manual preference set, so follow browser preference
-        // Don't persist this - it's just following the browser, not a user choice
-        const defaultTheme: ThemeName = e.matches ? "dark" : "light";
-        setThemeNameState(defaultTheme);
+      // Only react to system changes if theme is set to "system"
+      const savedThemeName = localStorage.getItem("themeName") as ThemeName | null;
+      if (savedThemeName === "system" || !savedThemeName) {
+        // Theme is set to system mode (or no preference), so follow browser preference
+        if (savedThemeName !== "system") {
+          // No preference saved yet, set it to system mode
+          setThemeNameState("system");
+        }
         setDarkMode(e.matches);
+        console.log(`[Theme] System preference changed: ${e.matches ? "dark" : "light"}`);
       }
     };
 

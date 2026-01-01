@@ -33,6 +33,10 @@ const themeDescriptions: Record<
     label: "Dark",
     description: "Graphite canvas with teal accents",
   },
+  system: {
+    label: "System",
+    description: "Follows your device preference",
+  },
   red: {
     label: "Cherry",
     description: "Coming soon — red gradients + white text",
@@ -294,7 +298,7 @@ const Workspace = () => {
             
             {/* Theme Selection */}
             <div className="space-y-2 mb-4">
-              {(["light", "dark", "red"] as ThemeName[]).map((option) => {
+              {(["light", "dark", "system", "red"] as ThemeName[]).map((option) => {
                 const isActive = themeName === option;
                 const isComingSoon = option === "red";
                 const optionTheme = getThemeByName(option);
@@ -312,6 +316,7 @@ const Workspace = () => {
                       if (isComingSoon) return;
                       // Workspace-specific theme: do NOT persist as global site preference
                       setThemeName(option, false);
+                      // For system mode, use the resolved theme's workspace color
                       setWorkspaceBgColor(optionTheme.workspace);
                       
                       // Save workspace theme to map immediately
@@ -325,7 +330,7 @@ const Workspace = () => {
                               ? (sidebarImpressions as any)._metadata
                               : {}),
                             workspaceBgColor: optionTheme.workspace,
-                            themeName: option,
+                            themeName: option, // Save "system" if selected, or specific theme
                           },
                         };
                         

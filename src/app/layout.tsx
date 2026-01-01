@@ -20,19 +20,23 @@ async function getServerTheme(): Promise<{ themeName: string; isDark: boolean }>
   try {
     const cookieStore = await cookies();
     const themeName = cookieStore.get("themeName")?.value;
-    const themeGlobal = cookieStore.get("themeGlobal")?.value;
     
-    // If user has manually set a global theme, use it
-    if (themeGlobal === "1" && themeName && ["light", "dark", "red"].includes(themeName)) {
+    // If user has a saved theme preference, use it
+    if (themeName && ["light", "dark", "cherry", "system"].includes(themeName)) {
+      // For "system", we can't detect browser preference server-side, so default to light
+      // Client script will handle the actual system preference
+      if (themeName === "system") {
+        return { themeName: "system", isDark: false }; // Will be overridden by client
+      }
       return { themeName, isDark: themeName === "dark" };
     }
     
     // Otherwise, we'll let the client-side script handle browser preference
     // Return default that will be overridden by client script
-    return { themeName: "light", isDark: false };
+    return { themeName: "system", isDark: false };
   } catch {
     // If cookies() fails (e.g., in middleware or static generation), return default
-    return { themeName: "light", isDark: false };
+    return { themeName: "system", isDark: false };
   }
 }
 
@@ -45,7 +49,7 @@ export default async function RootLayout({
   const serverTheme = await getServerTheme();
   
   return (
-    <html lang="en" className={serverTheme.isDark ? "dark" : "light"} suppressHydrationWarning>
+    <html lang="en" className={[serverTheme.isDark ? "dark" : "light", serverTheme.themeName ? serverTheme.themeName : ""].join(" ")} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -64,7 +68,6 @@ export default async function RootLayout({
                     // Sync to localStorage if not already set
                     if (!localStorage.getItem("themeName")) {
                       localStorage.setItem("themeName", serverTheme);
-                      localStorage.setItem("themeGlobal", "1");
                     }
                     
                     // Set CSS custom property
@@ -79,17 +82,21 @@ export default async function RootLayout({
                   // Server didn't set theme (no cookie), check localStorage and browser
                   document.documentElement.classList.remove("light", "dark");
                   
-                  // Check if user has manually set a global theme preference
+                  // Check if user has a saved theme preference
                   const savedThemeName = localStorage.getItem("themeName");
-                  const themeGlobal = localStorage.getItem("themeGlobal");
                   
                   let isDark = false;
                   
-                  // If user has explicitly chosen a global theme, use it
-                  if (themeGlobal === "1" && savedThemeName) {
-                    isDark = savedThemeName === "dark";
+                  // If user has a saved theme preference, use it
+                  if (savedThemeName) {
+                    if (savedThemeName === "system") {
+                      // System mode: follow browser preference
+                      isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    } else {
+                      isDark = savedThemeName === "dark";
+                    }
                   } else {
-                    // Otherwise, use browser/device preference
+                    // No preference saved: default to system mode (follow browser)
                     isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                   }
                   
@@ -101,7 +108,7 @@ export default async function RootLayout({
                   const lightBg = "#f8fafc";
                   document.documentElement.style.setProperty("--initial-bg", isDark ? darkBg : lightBg);
                   
-                  console.log('[Theme Script] Applied client theme:', isDark ? 'dark' : 'light', 'savedTheme:', savedThemeName, 'themeGlobal:', themeGlobal);
+                  console.log('[Theme Script] Applied client theme:', isDark ? 'dark' : 'light', 'savedTheme:', savedThemeName || 'system (default)');
                 } catch (e) {
                   console.error('[Theme Script] Error:', e);
                   // Fallback to light theme on error

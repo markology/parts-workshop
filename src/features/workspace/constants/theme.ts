@@ -145,7 +145,7 @@ export const redTheme: ColorGroup = {
 };
 
 // Theme registry
-export type ThemeName = "light" | "dark" | "red";
+export type ThemeName = "light" | "dark" | "red" | "system";
 
 export const themes: Record<ThemeName, ColorGroup> = {
   light: lightTheme,
@@ -157,6 +157,14 @@ export const themes: Record<ThemeName, ColorGroup> = {
  * Get a theme by name
  */
 export const getThemeByName = (themeName: ThemeName): ColorGroup => {
+  // Handle "system" by checking browser preference
+  if (themeName === "system") {
+    if (typeof window !== "undefined") {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      return themes[prefersDark ? "dark" : "light"];
+    }
+    return lightTheme; // SSR fallback
+  }
   return themes[themeName] || lightTheme;
 };
 

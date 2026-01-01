@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Calendar, Trash2, Play, Clock, ChevronDown, User, Settings, Moon, Sun, LogOut, MailPlus, HelpCircle, Sparkles, Target, ArrowRight, Heart } from "lucide-react";
+import { Map, Calendar, Trash2, Play, Clock, ChevronDown, User, Settings, Moon, Sun, Monitor, LogOut, MailPlus, HelpCircle, Sparkles, Target, ArrowRight, Heart } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
@@ -487,34 +487,46 @@ export default function WorkspacesPage() {
                     <Settings className="w-4 h-4" />
                     Account
                   </button>
-                  <button
-                    onClick={() => {
-                      const nextTheme =
-                        themeName === "dark"
-                          ? "light"
-                          : "dark";
-                      // Persist as a global site preference
-                      setThemeName(nextTheme, true);
-                      setProfileDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                      darkMode
-                        ? "hover:bg-gray-700 text-white"
-                        : "hover:bg-gray-100 text-gray-900"
-                    }`}
-                  >
-                    {darkMode ? (
-                      <>
-                        <Sun className="w-4 h-4" />
-                        Light Mode
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="w-4 h-4" />
-                        Dark Mode
-                      </>
-                    )}
-                  </button>
+                  {/* Theme Mode Selection */}
+                  <div className="px-4 py-2">
+                    <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: darkMode ? "rgb(156, 163, 175)" : "rgb(107, 114, 128)" }}>
+                      Theme
+                    </div>
+                    {(["light", "dark", "system"] as ThemeName[]).map((mode) => {
+                      const isActive = themeName === mode;
+                      const getIcon = () => {
+                        if (mode === "system") return <Monitor className="w-4 h-4" />;
+                        if (mode === "dark") return <Moon className="w-4 h-4" />;
+                        return <Sun className="w-4 h-4" />;
+                      };
+                      const getLabel = () => {
+                        if (mode === "system") return "System";
+                        if (mode === "dark") return "Dark Mode";
+                        return "Light Mode";
+                      };
+                      return (
+                        <button
+                          key={mode}
+                          onClick={() => {
+                            setThemeName(mode, true);
+                            setProfileDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 rounded ${
+                            isActive
+                              ? darkMode
+                                ? "bg-gray-700 text-white"
+                                : "bg-gray-100 text-gray-900"
+                              : darkMode
+                                ? "hover:bg-gray-700 text-white"
+                                : "hover:bg-gray-100 text-gray-900"
+                          }`}
+                        >
+                          {getIcon()}
+                          {getLabel()}
+                        </button>
+                      );
+                    })}
+                  </div>
                   <button
                     onClick={() => {
                       setShowFeedbackModal(true);
