@@ -43,6 +43,11 @@ export type ColorGroup = {
   warning: string;
   error: string;
   info: string;
+  
+  // Journal icon button colors
+  journalIconButtonBg: string;        // Background color (used in light theme)
+  journalIconButtonColor: string;     // Text color (used in dark/cherry themes)
+  journalIconButtonHoverColor: string; // Hover text color (used in dark/cherry themes)
 };
 
 // Dark theme definition
@@ -80,6 +85,11 @@ export const darkTheme: ColorGroup = {
   warning: "#f59e0b",
   error: "#ef4444",
   info: "#3b82f6",
+  
+  // Journal icon button
+  journalIconButtonBg: "white",
+  journalIconButtonColor: "#e7b8b8",
+  journalIconButtonHoverColor: "#ffffff",
 };
 
 // Light theme definition
@@ -118,6 +128,11 @@ export const lightTheme: ColorGroup = {
   warning: "#f59e0b",
   error: "#ef4444",
   info: "#3b82f6",
+  
+  // Journal icon button
+  journalIconButtonBg: "white",
+  journalIconButtonColor: "#e7b8b8",
+  journalIconButtonHoverColor: "#ffffff",
 };
 
 // Red theme variant - dark mode version

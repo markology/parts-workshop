@@ -141,7 +141,7 @@ export const ThemeContextProvider = ({
       root.classList.add(newThemeClass);
       themeClassRef.current = newThemeClass;
       
-      // Set CSS custom properties for theme colors
+      // Set CSS custom properties for theme colors (this is necessary to generate theme css properties - mark)
       root.style.setProperty("--theme-workspace", currentTheme.workspace);
       root.style.setProperty("--theme-card", currentTheme.card);
       root.style.setProperty("--theme-modal", currentTheme.modal);
@@ -160,14 +160,15 @@ export const ThemeContextProvider = ({
       root.style.setProperty("--theme-accent", currentTheme.accent);
       root.style.setProperty("--theme-accent-hover", currentTheme.accentHover);
       root.style.setProperty("--theme-accent-active", currentTheme.accentActive);
+      root.style.setProperty("--theme-journal-icon-button-bg", currentTheme.journalIconButtonBg);
+      root.style.setProperty("--theme-journal-icon-button-color", currentTheme.journalIconButtonColor);
+      root.style.setProperty("--theme-journal-icon-button-hover-color", currentTheme.journalIconButtonHoverColor);
       
-      console.log(`[ThemeContext] Added theme class: ${newThemeClass}, final classes: ${root.className}`);
     }
   }, [activeTheme]);
 
   // Set theme preference
   const setThemePref = (pref: ThemePref, persistGlobal: boolean = true) => {
-    console.log(`[Theme] Setting themePref to: ${pref}, persistGlobal: ${persistGlobal}`);
     setThemePrefState(pref);
     
     if (typeof window === "undefined") return;
@@ -177,7 +178,6 @@ export const ThemeContextProvider = ({
         localStorage.setItem("themePref", pref);
         // Also save to cookie for SSR
         document.cookie = `themePref=${pref}; path=/; max-age=31536000; SameSite=Lax`;
-        console.log(`[Theme] Saved themePref: ${pref} (localStorage + cookie)`);
       } catch (error) {
         console.error("[Theme] Error saving themePref:", error);
       }
@@ -201,7 +201,6 @@ export const ThemeContextProvider = ({
       try {
         localStorage.setItem("activeTheme", theme);
         document.cookie = `activeTheme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
-        console.log(`[Theme] Saved activeTheme: ${theme} (localStorage + cookie)`);
       } catch (error) {
         console.error("[Theme] Error saving activeTheme:", error);
       }
@@ -216,7 +215,6 @@ export const ThemeContextProvider = ({
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     
     const handleChange = (e: MediaQueryListEvent) => {
-      console.log(`[Theme] System preference changed: ${e.matches ? "dark" : "light"}`);
       // isDark is derived from themePref, so we need to trigger a re-render
       // by updating themePref state (even though it's still "system")
       // Actually, since isDark is computed from themePref, we just need to

@@ -51,7 +51,7 @@ const FloatingActionButtons = () => {
   const impressionsRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
-  const { darkMode, toggleDarkMode } = useThemeContext();
+  const { isDark } = useThemeContext();
   const theme = useTheme();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
@@ -480,19 +480,19 @@ const FloatingActionButtons = () => {
           disabled={isImpressionsEmpty}
           onClick={toggleOpen}
           style={{
-            color: getImpressionSidebarHeaderBg(type, darkMode),
+            color: getImpressionSidebarHeaderBg(type, isDark),
             opacity: emptyOpacityStyle,
-            backgroundColor: isImpressionsEmpty && !darkMode ? "rgb(255, 255, 255)" : getImpressionSidebarHeaderBg(type, darkMode),
+            backgroundColor: isImpressionsEmpty && !isDark ? "rgb(255, 255, 255)" : getImpressionSidebarHeaderBg(type, isDark),
             borderColor: isImpressionsEmpty 
-              ? (darkMode ? "transparent" : getImpressionHeaderBorderColor(type, darkMode))
-              : getImpressionHeaderBorderColor(type, darkMode),
+              ? (isDark ? "transparent" : getImpressionHeaderBorderColor(type, isDark))
+              : getImpressionHeaderBorderColor(type, isDark),
             borderWidth: "2px",
             borderStyle: "solid",
           }}
         >
           <p
             style={{
-              color: getImpressionSidebarHeaderBg(type, darkMode),
+              color: getImpressionSidebarHeaderBg(type, isDark),
             }}
           >
             {type}
@@ -515,7 +515,7 @@ const FloatingActionButtons = () => {
             />
           )}
         </button>
-        <hr className={`pb-2 ${darkMode ? "border-white/10" : "border-gray-300"}`} />
+        <hr className={`pb-2 ${isDark ? "border-white/10" : "border-gray-300"}`} />
         <div className="flex flex-col gap-2">
           {open &&
             filteredImpressions &&
@@ -526,8 +526,8 @@ const FloatingActionButtons = () => {
                 onDragStart={(event) => onDragStart(event, item.id, item.type)}
                 draggable
                 style={{
-                  background: (getImpressionBaseColors(darkMode) as any)[item.type]?.background || NodeBackgroundColors[item.type],
-                  color: getImpressionPillFontColor(item.type as ImpressionType, darkMode),
+                  background: (getImpressionBaseColors(isDark) as any)[item.type]?.background || NodeBackgroundColors[item.type],
+                  color: getImpressionPillFontColor(item.type as ImpressionType, isDark),
                   userSelect: 'none',
                   zIndex: index === 0 ? 10 : 1,
                   marginTop: index === 0 ? '4px' : '0',
@@ -601,10 +601,10 @@ const FloatingActionButtons = () => {
           style={{
             backgroundColor: theme.button,
             color: theme.buttonText,
-            ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+            ...(isDark ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
           }}
           onMouseEnter={(e) => {
-            if (darkMode) {
+            if (isDark) {
               // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
               let r: number, g: number, b: number;
               
@@ -638,7 +638,7 @@ const FloatingActionButtons = () => {
             }
           }}
           onMouseLeave={(e) => {
-            if (darkMode) {
+            if (isDark) {
               e.currentTarget.style.backgroundColor = theme.button;
             } else {
               e.currentTarget.style.backgroundImage = 'none';
@@ -829,18 +829,18 @@ const FloatingActionButtons = () => {
                   onClick={closeOptionsModal}
                   className="absolute top-4 right-4 rounded-full p-2 transition shadow-md"
                   style={{ 
-                    backgroundColor: darkMode ? theme.button : 'white', 
+                    backgroundColor: isDark ? theme.button : 'white', 
                     color: theme.buttonText 
                   }}
                   onMouseEnter={(e) => {
-                    if (darkMode) {
+                    if (isDark) {
                       e.currentTarget.style.backgroundColor = theme.buttonHover;
                     } else {
                       e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (darkMode) {
+                    if (isDark) {
                       e.currentTarget.style.backgroundColor = theme.button;
                     } else {
                       e.currentTarget.style.backgroundImage = 'none';
@@ -955,11 +955,11 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className={`absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col backdrop-blur-xl ${darkMode ? 'bg-aside' : ''}`}
+            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col backdrop-blur-xl"
             style={{ 
-              backgroundColor: darkMode ? theme.sidebar : 'rgba(255, 255, 255, 0.92)',
+              backgroundColor: isDark ? theme.sidebar : 'rgba(255, 255, 255, 0.92)',
               border: 'none',
-              borderTop: darkMode ? '1px solid rgb(27 27 27 / 25%)' : 'solid 1px #d3d3d340',
+              borderTop: isDark ? '1px solid rgb(27 27 27 / 25%)' : 'solid 1px #d3d3d340',
               zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
               width: '313px',
               transform: 'scaleX(0)',
@@ -1004,7 +1004,7 @@ const FloatingActionButtons = () => {
               }}
               onMouseEnter={(e) => {
                 setHoveredOption('part');
-                if (darkMode) {
+                if (isDark) {
                   // Darken the button on hover by reducing RGB values
                   let r: number, g: number, b: number;
                   
@@ -1048,7 +1048,7 @@ const FloatingActionButtons = () => {
               }}
               onMouseLeave={(e) => {
                 setHoveredOption(null);
-                if (darkMode) {
+                if (isDark) {
                   e.currentTarget.style.backgroundColor = theme.button;
                   
                   // Reset the Add pill color
@@ -1083,7 +1083,7 @@ const FloatingActionButtons = () => {
               <span 
                 className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{ 
-                  backgroundColor: darkMode ? theme.buttonActive : 'white', 
+                  backgroundColor: isDark ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
                 }}
               >
@@ -1102,7 +1102,7 @@ const FloatingActionButtons = () => {
               }}
               onMouseEnter={(e) => {
                 setHoveredOption('relationship');
-                if (darkMode) {
+                if (isDark) {
                   // Darken the button on hover by reducing RGB values
                   let r: number, g: number, b: number;
                   
@@ -1146,7 +1146,7 @@ const FloatingActionButtons = () => {
               }}
               onMouseLeave={(e) => {
                 setHoveredOption(null);
-                if (darkMode) {
+                if (isDark) {
                   e.currentTarget.style.backgroundColor = theme.button;
                   
                   // Reset the Add pill color
@@ -1173,7 +1173,7 @@ const FloatingActionButtons = () => {
               <span 
                 className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
                 style={{ 
-                  backgroundColor: darkMode ? theme.buttonActive : 'white', 
+                  backgroundColor: isDark ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
                 }}
               >
