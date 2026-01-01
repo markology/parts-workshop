@@ -38,6 +38,13 @@
   --background: #e6f8ff;
   --background-gradient: linear-gradient(152deg, rgb(237, 242, 255), rgb(230, 235, 250));
   --background-gradient-tile: linear-gradient(152deg, rgb(255, 255, 255), rgb(250, 252, 255));
+  --background-gradient-dashboard: linear-gradient(
+    rgb(230, 248, 255) 0%,
+    rgb(219, 234, 254) 400px,
+    rgb(224, 231, 255) calc(900px),
+    rgb(254, 241, 242) calc(1400px),
+    rgb(255, 241, 242) 100%
+  );
   --aside-background: linear-gradient(135deg, #fff, #e2ebff);
   --button-jazz-gradient: linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9);
   --text-color: black;

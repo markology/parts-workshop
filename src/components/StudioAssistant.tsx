@@ -26,7 +26,7 @@ export default function StudioAssistant({
   className = "",
   containerRef,
 }: StudioAssistantProps) {
-  const { darkMode } = useThemeContext();
+  const { isDark } = useThemeContext();
   const theme = useTheme();
   const [searchInput, setSearchInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
@@ -168,7 +168,7 @@ export default function StudioAssistant({
       className={`relative w-full h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)] ${className}`}
       style={{
         ...containerStyle,
-        background: darkMode 
+        background: isDark 
           ? `linear-gradient(152deg, rgb(29, 29, 30), rgb(28, 31, 35))`
           : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
       }}
@@ -223,7 +223,7 @@ export default function StudioAssistant({
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words"
+                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words dark:text-white"
                 style={
                   message.role === "user"
                     ? {
@@ -232,10 +232,10 @@ export default function StudioAssistant({
                         color: "#ffffff",
                       }
                     : {
-                        background: darkMode
+                        background: isDark
                           ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
                           : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
-                        color: theme.textPrimary,
+                        // color: theme.textPrimary,
                       }
                 }
               >
@@ -263,13 +263,12 @@ export default function StudioAssistant({
               }
             }}
             placeholder="Ask me anything..."
-            className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none break-words shadow-inner"
+            className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none break-words shadow-inner dark:text-white"
             style={{
-              background: darkMode
+              background: isDark
                 ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
                 : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
               borderColor: theme.border,
-              color: theme.textPrimary,
             }}
           />
         </div>

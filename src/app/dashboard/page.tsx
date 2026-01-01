@@ -283,7 +283,7 @@ export default function WorkspacesPage() {
 
   return (
     <div
-      className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50 dark:bg-[image:var(--background-gradient-dashboard)]"
+      className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50 bg-[image:var(--background-gradient-dashboard)] dark:bg-[image:var(--background-gradient-dashboard)]"
     >
       <div
         className={`fixed inset-0 ${
