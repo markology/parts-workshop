@@ -12,44 +12,23 @@ import {
 } from "@xyflow/react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAutoSave } from "../state/hooks/useAutoSave";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { Paintbrush } from "lucide-react";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { useThemeContext } from "@/state/context/ThemeContext";
-import { ThemeName, getThemeByName } from "@/features/workspace/constants/theme";
+import { ActiveTheme, getTheme } from "@/features/workspace/constants/theme";
 import { useSaveMap } from "../state/hooks/useSaveMap";
 import { useUIStore } from "../state/stores/UI";
-
-const themeDescriptions: Record<
-  ThemeName,
-  { label: string; description: string }
-> = {
-  light: {
-    label: "Light",
-    description: "White canvas, foggy blues, charcoal text",
-  },
-  dark: {
-    label: "Dark",
-    description: "Graphite canvas with teal accents",
-  },
-  system: {
-    label: "System",
-    description: "Follows your device preference",
-  },
-  red: {
-    label: "Cherry",
-    description: "Coming soon — red gradients + white text",
-  },
-};
 
 const Workspace = () => {
   const isMobile = useIsMobile();
   const hasFitViewRun = useRef(false);
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const theme = useTheme();
-  const { themeName, setThemeName } = useThemeContext();
-  const defaultBg = theme.workspace;
+  const { activeTheme, setActiveTheme, isDark } = useThemeContext();
+  // Memoize defaultBg to prevent unnecessary effect triggers when only mode changes
+  const defaultBg = useMemo(() => theme.workspace, [theme.workspace]);
   const mapId = useWorkingStore((s) => s.mapId);
   const savedBgColor = useWorkingStore((s) => (s as any).workspaceBgColor);
   const [workspaceBgColor, setWorkspaceBgColor] = useState(savedBgColor || defaultBg);
@@ -87,22 +66,47 @@ const Workspace = () => {
     }
   }, [mapId, savedBgColor]);
 
-  // Reset to theme default when theme changes
+  // Reset to theme default when activeTheme changes
+  const prevActiveThemeRef = useRef(activeTheme);
+  
   useEffect(() => {
-    setWorkspaceBgColor(defaultBg);
-    // Clear saved background color when theme changes
-    useWorkingStore.setState({ workspaceBgColor: undefined } as any);
-  }, [themeName, defaultBg]);
+    const themeChanged = prevActiveThemeRef.current !== activeTheme;
+    
+    // Only reset if theme actually changed
+    if (themeChanged) {
+      setWorkspaceBgColor(defaultBg);
+      // Clear saved background color when theme changes
+      useWorkingStore.setState({ workspaceBgColor: undefined } as any);
+      prevActiveThemeRef.current = activeTheme;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTheme]); // Don't include defaultBg to prevent loops
 
   // Save background color to store when it changes (only if it's a custom color)
+  // Use ref to track what we last saved to prevent loops
+  const prevSavedToStoreRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (workspaceBgColor && workspaceBgColor !== defaultBg) {
-      useWorkingStore.setState({ workspaceBgColor } as any);
-    } else if (workspaceBgColor === defaultBg) {
-      // Clear saved color if it matches the default
-      useWorkingStore.setState({ workspaceBgColor: undefined } as any);
+    const currentSaved = useWorkingStore.getState().workspaceBgColor;
+    
+    // Only update if workspaceBgColor changed AND it's different from what we last saved
+    if (workspaceBgColor !== prevSavedToStoreRef.current) {
+      if (workspaceBgColor && workspaceBgColor !== defaultBg) {
+        // Only update if it's different from what's already saved
+        if (currentSaved !== workspaceBgColor) {
+          useWorkingStore.setState({ workspaceBgColor } as any);
+          prevSavedToStoreRef.current = workspaceBgColor;
+        }
+      } else if (workspaceBgColor === defaultBg && currentSaved !== undefined) {
+        // Clear saved color if it matches the default (and something was saved)
+        useWorkingStore.setState({ workspaceBgColor: undefined } as any);
+        prevSavedToStoreRef.current = undefined;
+      } else if (workspaceBgColor === defaultBg && currentSaved === undefined) {
+        // Already cleared, just update ref
+        prevSavedToStoreRef.current = defaultBg;
+      }
     }
-  }, [workspaceBgColor, defaultBg]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspaceBgColor]); // Don't include defaultBg to prevent loops
 
   // Helper function to adjust brightness of a hex color
   const adjustBrightness = (hex: string, percent: number) => {
@@ -119,16 +123,13 @@ const Workspace = () => {
     if (workspaceBgColor && workspaceBgColor !== defaultBg && workspaceBgColor !== theme.workspace) {
       return workspaceBgColor;
     }
-    // Otherwise, use vignette effect for light theme, subtle gradient for other themes
+    // Otherwise, use vignette effect for light mode, subtle gradient for dark mode
     if (workspaceBgColor === defaultBg) {
-      if (themeName === "light") {
+      if (!isDark) {
         // Radial gradient: white center fading to light peach at edges
         return "radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)";
-      } else if (themeName === "dark") {
-        // Subtle gradient for dark theme: slightly lighter to slightly darker
-        return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 3)}, ${adjustBrightness(theme.workspace, -3)})`;
-      } else if (themeName === "red") {
-        // Subtle gradient for red theme: slightly lighter to slightly darker
+      } else {
+        // Subtle gradient for dark mode: slightly lighter to slightly darker
         return `linear-gradient(152deg, ${adjustBrightness(theme.workspace, 3)}, ${adjustBrightness(theme.workspace, -3)})`;
       }
     }
@@ -210,40 +211,6 @@ const Workspace = () => {
     return null;
   };
 
-  // Calculate button background color - darken when picker is open in dark mode
-  const getColorButtonBackground = () => {
-    if (showColorPicker && themeName === 'dark') {
-      // Apply same darkening effect as floating action buttons (reduce RGB by 20)
-      const hex = theme.elevated.replace('#', '');
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      const darkerR = Math.max(0, r - 20);
-      const darkerG = Math.max(0, g - 20);
-      const darkerB = Math.max(0, b - 20);
-      return `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-    }
-    return theme.elevated;
-  };
-
-  const { darkMode } = useThemeContext();
-  
-  const colorButtonStyle = {
-    backgroundColor: darkMode ? getColorButtonBackground() : (showColorPicker ? 'transparent' : 'white'),
-    backgroundImage: (!darkMode && showColorPicker) ? 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))' : 'none',
-    borderColor: theme.border,
-    color: theme.textPrimary,
-    boxShadow: darkMode ? '0 12px 28px rgba(0,0,0,0.45)' : '0 2px 4px rgba(0,0,0,0.1)',
-  };
-
-  const colorPickerStyle = {
-    backgroundColor: theme.surface,
-    borderColor: theme.border,
-    color: theme.textPrimary,
-    boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
-    width: 320,
-    maxWidth: 320,
-  };
 
   return (
     <div id="canvas" className="h-full flex-grow relative">
@@ -264,18 +231,17 @@ const Workspace = () => {
               }
               setShowColorPicker(true);
             }}
-            className="w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center"
-            style={colorButtonStyle}
-            onMouseEnter={(e) => {
-              if (!darkMode && !showColorPicker) {
-                e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!darkMode && !showColorPicker) {
-                e.currentTarget.style.backgroundImage = 'none';
-                e.currentTarget.style.backgroundColor = 'white';
-              }
+            className={`
+              w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center
+              ${showColorPicker ? 'bg-transparent' : 'bg-white'}
+              theme-dark:bg-[#2a2e32]
+              ${showColorPicker ? 'theme-dark:bg-[rgb(26,30,34)]' : ''}
+              ${!showColorPicker ? 'hover:bg-gradient-to-r hover:from-[rgb(240,249,255)] hover:via-[rgb(238,242,255)] hover:to-[rgb(255,241,242)]' : ''}
+              shadow-sm theme-dark:shadow-[0_12px_28px_rgba(0,0,0,0.45)]
+            `.trim().replace(/\s+/g, ' ')}
+            style={{
+              borderColor: theme.border,
+              color: theme.textPrimary,
             }}
             aria-label="Pick workspace background color"
           >
@@ -284,44 +250,63 @@ const Workspace = () => {
           {showColorPicker && (
             <div
               ref={colorPickerRef}
-              className="absolute bottom-[56px] left-0 z-[80] rounded-xl shadow-2xl p-2 border"
-              style={colorPickerStyle}
+              className="absolute bottom-[56px] left-0 z-[80] rounded-xl shadow-2xl p-2 border w-80 max-w-80 shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
+              style={{
+                backgroundColor: theme.surface,
+                borderColor: theme.border,
+                color: theme.textPrimary,
+              }}
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             >
             <div className="flex items-center justify-between pb-2 px-1 mb-3">
-              <div className={`flex items-center gap-2 text-sm`} style={{ color: theme.textSecondary }}>
+              <div className="flex items-center gap-2 text-sm" style={{ color: theme.textSecondary }}>
                 <Paintbrush className="w-4 h-4" />
                 <span>Theme</span>
               </div>
             </div>
             
-            {/* Theme Selection */}
+            {/* Theme Selection: Light, Dark, Cherry */}
             <div className="space-y-2 mb-4">
-              {(["light", "dark", "system", "red"] as ThemeName[]).map((option) => {
-                const isActive = themeName === option;
-                const isComingSoon = option === "red";
-                const optionTheme = getThemeByName(option);
+              {[
+                { name: "light", label: "Light", theme: "light" as ActiveTheme, comingSoon: false },
+                { name: "dark", label: "Dark", theme: "dark" as ActiveTheme, comingSoon: false },
+                { name: "cherry", label: "Cherry", theme: "cherry" as ActiveTheme, comingSoon: true },
+              ].map((themeOption) => {
+                // Check if this theme option is currently active
+                const isActive = activeTheme === themeOption.theme;
+                const previewTheme = getTheme(themeOption.theme);
+                
                 const previewSwatches = [
-                  optionTheme.workspace,
-                  optionTheme.card,
-                  optionTheme.accent,
+                  previewTheme.workspace,
+                  previewTheme.card,
+                  previewTheme.accent,
                 ];
+                
                 return (
                   <button
-                    key={option}
-                    disabled={isComingSoon}
-                    aria-disabled={isComingSoon}
+                    key={themeOption.name}
+                    disabled={themeOption.comingSoon}
+                    aria-disabled={themeOption.comingSoon}
                     onClick={async () => {
-                      if (isComingSoon) return;
-                      // Workspace-specific theme: do NOT persist as global site preference
-                      setThemeName(option, false);
-                      // For system mode, use the resolved theme's workspace color
-                      setWorkspaceBgColor(optionTheme.workspace);
+                      if (themeOption.comingSoon) return;
+                      
+                      console.log(`[Canvas] Theme option clicked:`, {
+                        themeOption: themeOption.theme,
+                        label: themeOption.label,
+                        mapId,
+                        currentActiveTheme: activeTheme,
+                        previewThemeWorkspace: previewTheme.workspace
+                      });
+                      
+                      // Set workspace-specific theme (do NOT persist as global)
+                      setActiveTheme(themeOption.theme, false);
+                      setWorkspaceBgColor(previewTheme.workspace);
                       
                       // Save workspace theme to map immediately
                       if (mapId) {
                         const { nodes, edges, sidebarImpressions } = useWorkingStore.getState();
+                        
                         const sidebarImpressionsData = {
                           ...sidebarImpressions,
                           _metadata: {
@@ -329,26 +314,38 @@ const Workspace = () => {
                             "_metadata" in sidebarImpressions
                               ? (sidebarImpressions as any)._metadata
                               : {}),
-                            workspaceBgColor: optionTheme.workspace,
-                            themeName: option, // Save "system" if selected, or specific theme
+                            workspaceBgColor: previewTheme.workspace,
+                            activeTheme: themeOption.theme,
                           },
                         };
                         
+                        const savePayload = {
+                          nodes,
+                          edges,
+                          sidebarImpressions: sidebarImpressionsData,
+                          workspaceBgColor: previewTheme.workspace,
+                          activeTheme: themeOption.theme,
+                        };
+                        
+                        console.log(`[Canvas] Saving workspace theme to API:`, {
+                          mapId,
+                          activeTheme: themeOption.theme,
+                          payload: savePayload
+                        });
+                        
                         try {
-                          await fetch(`/api/maps/${mapId}`, {
+                          const response = await fetch(`/api/maps/${mapId}`, {
                             method: "PUT",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              nodes,
-                              edges,
-                              sidebarImpressions: sidebarImpressionsData,
-                              workspaceBgColor: optionTheme.workspace,
-                              themeName: option,
-                            }),
+                            body: JSON.stringify(savePayload),
                           });
-                          console.log(`[Workspace] Saved workspace theme: ${option}`);
+                          const result = await response.json();
+                          console.log(`[Canvas] Workspace theme saved successfully:`, {
+                            theme: themeOption.label,
+                            response: result
+                          });
                         } catch (error) {
-                          console.error("Failed to save workspace theme:", error);
+                          console.error("[Canvas] Failed to save workspace theme:", error);
                         }
                       }
                     }}
@@ -358,16 +355,16 @@ const Workspace = () => {
                       borderColor: theme.border,
                       color: theme.textPrimary,
                       boxShadow: "none",
-                      opacity: isComingSoon ? 0.55 : 1,
-                      cursor: isComingSoon ? "not-allowed" : "pointer",
+                      opacity: themeOption.comingSoon ? 0.55 : 1,
+                      cursor: themeOption.comingSoon ? "not-allowed" : "pointer",
                     }}
                     onMouseEnter={(e) => {
-                      if (!isActive && !isComingSoon) {
+                      if (!isActive && !themeOption.comingSoon) {
                         e.currentTarget.style.backgroundColor = theme.buttonHover;
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (!isActive && !isComingSoon) {
+                      if (!isActive && !themeOption.comingSoon) {
                         e.currentTarget.style.backgroundColor = theme.surface;
                       }
                     }}
@@ -375,27 +372,21 @@ const Workspace = () => {
                     <div className="flex gap-1.5">
                       {previewSwatches.map((color, idx) => (
                         <span
-                          key={`${option}-${idx}`}
+                          key={`${themeOption.name}-${idx}`}
                           className="h-7 w-4 rounded-full border"
                           style={{
-                            backgroundColor: color,
                             borderColor: theme.border,
+                            backgroundColor: color,
                           }}
                         />
                       ))}
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
-                      <span className="font-semibold capitalize">
-                        {themeDescriptions[option].label}
-                      </span>
-                      <span
-                        className="text-xs truncate"
-                        style={{ color: theme.textSecondary }}
-                      >
-                        {themeDescriptions[option].description}
+                      <span className="font-semibold">
+                        {themeOption.label}
                       </span>
                     </div>
-                    {isComingSoon ? (
+                    {themeOption.comingSoon ? (
                       <span
                         className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
                         style={{
@@ -406,21 +397,18 @@ const Workspace = () => {
                       >
                         Coming soon
                       </span>
-                    ) : (
-                      isActive && (
-                        <span
-                          className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide flex-shrink-0"
-                          style={{
-                            backgroundImage: 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))',
-                            backgroundColor: 'transparent',
-                            color: '#475569',
-                            border: '1px solid rgb(151 151 151 / 35%)',
-                          }}
-                        >
-                          Active
-                        </span>
-                      )
-                    )}
+                    ) : isActive ? (
+                      <span
+                        className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
+                        style={{
+                          backgroundColor: theme.accent,
+                          color: theme.buttonText,
+                          borderColor: theme.border,
+                        }}
+                      >
+                        Current
+                      </span>
+                    ) : null}
                   </button>
                 );
               })}
@@ -507,16 +495,22 @@ const Workspace = () => {
           width: 36px;
           height: 36px;
           border-radius: 10px;
-          border: ${themeName === 'light' ? `1px solid ${theme.border}` : 'none'} !important;
-          background: ${getColorButtonBackground()};
-          color: ${theme.textPrimary};
-          box-shadow: ${themeName === 'light' ? '0 12px 28px rgba(0,0,0,0.45)' : 'none'} !important;
+          border: 1px solid ${theme.border} !important;
+          background: ${theme.button} !important;
+          color: ${theme.textPrimary} !important;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
           transition: transform 150ms ease, background 150ms ease, color 150ms ease;
         }
+        ${isDark ? `
+        .react-flow__controls button {
+          border: none !important;
+          box-shadow: 0 12px 28px rgba(0,0,0,0.45) !important;
+        }
+        ` : ''}
         .react-flow__controls button:hover {
           transform: scale(1.05);
-          background: ${theme.buttonHover};
-          color: ${theme.textPrimary};
+          background: ${theme.buttonHover} !important;
+          color: ${theme.textPrimary} !important;
         }
       `}</style>
     </div>

@@ -27,7 +27,7 @@ import { Sparkles, X } from "lucide-react";
 import { useFlowNodesContext } from "../state/FlowNodesContext";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
-import type { ThemeName } from "@/features/workspace/constants/theme";
+import type { ActiveTheme } from "@/features/workspace/constants/theme";
 import { usePathname } from "next/navigation";
 // import TourOverlay from "./TourOverlay";
 
@@ -74,7 +74,7 @@ const ImpressionInputModalContent = ({
   impressionModalTargetPartId?: string;
   impressionModalType?: string;
 }) => {
-  const { darkMode } = useThemeContext();
+  const { isDark } = useThemeContext();
   const theme = useTheme();
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const { updateNode } = useFlowNodesContext();
@@ -105,7 +105,7 @@ const ImpressionInputModalContent = ({
     setCanAddImpression(false);
   }, [impressionModalTargetPartId, impressionModalType, setCanAddImpression]);
   
-  const impressionModalColorsMap = getImpressionInputModalColors(darkMode);
+  const impressionModalColorsMap = getImpressionInputModalColors(isDark);
   const impressionModalColors = (currentType in impressionModalColorsMap ? impressionModalColorsMap[currentType as keyof typeof impressionModalColorsMap] : null) || impressionModalColorsMap.emotion;
   const impressionTypeLabel =
     ImpressionTextType[currentType] ?? "Impression";
@@ -160,7 +160,7 @@ const ImpressionInputModalContent = ({
       <div
         className="absolute inset-0 pointer-events-none backdrop-blur-sm"
         style={{
-          background: darkMode 
+          background: isDark 
             ? `${theme.modal}f2` 
             : 'radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)',
         }}
@@ -226,7 +226,7 @@ const ImpressionInputModalContent = ({
                 onClick={() => setShowImpressionModal(false)}
                 className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
                 style={{
-                  backgroundColor: darkMode ? impressionModalColors.inputPillBg : impressionModalColors.topLeftPillBg,
+                  backgroundColor: isDark ? impressionModalColors.inputPillBg : impressionModalColors.topLeftPillBg,
                   color: impressionModalColors.pillFont,
                 }}
                 aria-label="Close"
@@ -251,15 +251,15 @@ const ImpressionInputModalContent = ({
               />
             </div>
 
-            <div className={`flex items-center justify-between gap-3 flex-wrap ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+            <div className={`flex items-center justify-between gap-3 flex-wrap ${isDark ? "text-slate-400" : "text-slate-500"}`}>
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5">
                   <kbd 
                     className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
-                      darkMode ? 'text-slate-200' : 'text-slate-700'
+                      isDark ? 'text-slate-200' : 'text-slate-700'
                     }`}
                     style={{
-                      backgroundColor: darkMode ? 'rgb(59 63 67)' : 'white',
+                      backgroundColor: isDark ? 'rgb(59 63 67)' : 'white',
                     }}
                   >
                     {isMac() ? '⇧ Tab' : 'Shift+Tab'}
@@ -269,10 +269,10 @@ const ImpressionInputModalContent = ({
                 <div className="flex items-center gap-1.5">
                   <kbd 
                     className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
-                      darkMode ? 'text-slate-200' : 'text-slate-700'
+                      isDark ? 'text-slate-200' : 'text-slate-700'
                     }`}
                     style={{
-                      backgroundColor: darkMode ? 'rgb(59 63 67)' : 'white',
+                      backgroundColor: isDark ? 'rgb(59 63 67)' : 'white',
                     }}
                   >
                     Tab
@@ -282,10 +282,10 @@ const ImpressionInputModalContent = ({
                 <div className="flex items-center gap-1.5">
                   <kbd 
                     className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
-                      darkMode ? 'text-slate-200' : 'text-slate-700'
+                      isDark ? 'text-slate-200' : 'text-slate-700'
                     }`}
                     style={{
-                      backgroundColor: darkMode ? 'rgb(59 63 67)' : 'white',
+                      backgroundColor: isDark ? 'rgb(59 63 67)' : 'white',
                     }}
                   >
                     {isMac() ? '⏎' : 'Enter'}
@@ -304,13 +304,13 @@ const ImpressionInputModalContent = ({
                 style={{
                   backgroundColor: canAddImpression
                     ? impressionModalColors.addButtonBg
-                    : darkMode ? "rgb(59, 63, 67)" : "#e2e8f0",
+                    : isDark ? "rgb(59, 63, 67)" : "#e2e8f0",
                   color: canAddImpression
-                    ? (darkMode ? "rgb(255, 255, 255)" : "#ffffff")
-                    : darkMode ? "#94a3b8" : "#94a3b8",
+                    ? (isDark ? "rgb(255, 255, 255)" : "#ffffff")
+                    : isDark ? "#94a3b8" : "#94a3b8",
                   border: "none",
                   transitionDuration: "75ms",
-                  ...(darkMode && !canAddImpression ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                  ...(isDark && !canAddImpression ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                 }}
                 onMouseEnter={(e) => {
                   if (canAddImpression) {
@@ -357,23 +357,24 @@ export default function CanvasClient({
   const impressionModalType = useUIStore((s) => s.impressionModalType);
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
-  const { darkMode, themeName, setThemeName } = useThemeContext();
+  const { activeTheme, setActiveTheme, isDark } = useThemeContext();
   const theme = useTheme();
   const pathname = usePathname();
   const [sidebarImpressionType, setSidebarImpressionType] = useState<ImpressionType>("emotion");
   const [canAddImpression, setCanAddImpression] = useState(false);
   const impressionAddRef = useRef<{ add: () => void; isValid: boolean } | null>(null);
-  const previousThemeRef = useRef<ThemeName | null>(null);
+  const previousActiveThemeRef = useRef<ActiveTheme | null>(null);
   const workspaceThemeAppliedRef = useRef(false);
+  const lastAppliedMapIdRef = useRef<string | null>(null);
   const isInWorkspaceRef = useRef(true);
   const prevPathnameRef = useRef<string | null>(null);
   const isRestoringThemeRef = useRef(false);
-  const setThemeNameRef = useRef(setThemeName);
+  const setActiveThemeRef = useRef(setActiveTheme);
   
-  // Keep ref updated with latest setThemeName
+  // Keep refs updated
   useEffect(() => {
-    setThemeNameRef.current = setThemeName;
-  }, [setThemeName]);
+    setActiveThemeRef.current = setActiveTheme;
+  }, [setActiveTheme]);
 
   useEffect(() => {
     if (showImpressionModal) {
@@ -393,11 +394,11 @@ export default function CanvasClient({
 
   const accentHex =
     NodeBackgroundColors[sidebarImpressionType as keyof typeof NodeBackgroundColors] ?? "#6366f1";
-  const accentTextHex = darkMode
+  const accentTextHex = isDark
     ? NodeBackgroundColors[sidebarImpressionType as keyof typeof NodeBackgroundColors] ?? "#6366f1"
     : NodeTextColors[sidebarImpressionType as keyof typeof NodeTextColors] ?? "#312e81";
-  const accentSoftBg = toRgba(accentHex, darkMode ? 0.26 : 0.14);
-  const accentBorder = toRgba(accentHex, darkMode ? 0.55 : 0.28);
+  const accentSoftBg = toRgba(accentHex, isDark ? 0.26 : 0.14);
+  const accentBorder = toRgba(accentHex, isDark ? 0.55 : 0.28);
   const impressionTypeLabel =
     ImpressionTextType[sidebarImpressionType] ?? "Impression";
 
@@ -448,7 +449,8 @@ export default function CanvasClient({
           ? (sidebarImpressionsData as any)._metadata
           : {};
       const workspaceBgColor = metadata?.workspaceBgColor;
-      const mapThemeName = metadata?.themeName as ThemeName | undefined;
+      // Get workspace activeTheme from metadata
+      const mapActiveTheme = metadata?.activeTheme as ActiveTheme | undefined;
 
       // Then set the new map data
       useWorkingStore.getState().setState({
@@ -461,40 +463,47 @@ export default function CanvasClient({
         hydrated: true,
       });
 
-      // Store the current global theme before applying workspace theme (only once per workspace load)
-      // This is the theme that was active BEFORE entering the workspace
-      if (!previousThemeRef.current) {
-        // Get the actual global theme (not workspace theme) from localStorage
-        const globalThemeName = localStorage.getItem("themeName") as ThemeName | null;
-        const themeGlobal = localStorage.getItem("themeGlobal");
-        
-        if (themeGlobal === "1" && globalThemeName && ["light", "dark", "red"].includes(globalThemeName)) {
-          // User has a saved global theme
-          previousThemeRef.current = globalThemeName;
-        } else {
-          // No global preference, use browser preference
-          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          previousThemeRef.current = prefersDark ? "dark" : "light";
-        }
-        console.log(`[Workspace] Stored global theme for restore: ${previousThemeRef.current}`);
-      }
+      // Only apply workspace theme on initial load (when mapId changes)
+      const isNewMap = lastAppliedMapIdRef.current !== data.id;
+      
+      console.log(`[CanvasClient] Map data loaded:`, {
+        mapId: data.id,
+        isNewMap,
+        lastAppliedMapId: lastAppliedMapIdRef.current,
+        mapActiveTheme,
+        currentActiveTheme: activeTheme,
+        isDark,
+        metadata
+      });
+      
+      if (isNewMap) {
+        // Store the current global activeTheme before applying workspace theme (reset for each new map)
+        // Get the actual global activeTheme from localStorage
+        const globalActiveTheme = localStorage.getItem("activeTheme") as ActiveTheme | null;
+        previousActiveThemeRef.current = globalActiveTheme || (isDark ? "dark" : "light");
+        console.log(`[CanvasClient] Stored global activeTheme for restore:`, {
+          globalActiveTheme,
+          stored: previousActiveThemeRef.current,
+          isDark
+        });
 
-      // If the map has a saved theme, prefer that over system/default
-      // Workspace themes ALWAYS override global themes
-      if (mapThemeName && ["light", "dark", "red"].includes(mapThemeName)) {
-        // Map-specific theme: do NOT persist as global preference
-        console.log(`[Workspace] Applying workspace theme: ${mapThemeName} (overrides global)`);
-        setThemeName(mapThemeName, false);
-        workspaceThemeAppliedRef.current = true;
-      } else {
-        // No workspace theme saved - on first load, set it to dark or light based on current mode
-        if (!workspaceThemeAppliedRef.current) {
-          const defaultWorkspaceTheme: ThemeName = darkMode ? "dark" : "light";
-          console.log(`[Workspace] No workspace theme found, setting to ${defaultWorkspaceTheme} based on mode`);
-          setThemeName(defaultWorkspaceTheme, false);
-          workspaceThemeAppliedRef.current = true;
+        // Reset the applied flag for new map
+        workspaceThemeAppliedRef.current = false;
+        lastAppliedMapIdRef.current = data.id;
+
+        // Determine workspace activeTheme to use
+        let workspaceThemeToUse: ActiveTheme;
+        
+        if (mapActiveTheme && ["light", "dark", "cherry"].includes(mapActiveTheme)) {
+          // Use saved workspace theme
+          workspaceThemeToUse = mapActiveTheme;
+          console.log(`[CanvasClient] Using saved workspace theme: ${workspaceThemeToUse}`);
+        } else {
+          // New workspace: default to current mode (light or dark)
+          workspaceThemeToUse = isDark ? "dark" : "light";
+          console.log(`[CanvasClient] No saved workspace theme, defaulting to: ${workspaceThemeToUse} (isDark: ${isDark})`);
           
-          // Save this default theme to the map
+          // Save this default to the map
           const sidebarImpressionsData = {
             ...normalizedSidebarImpressions,
             _metadata: {
@@ -503,39 +512,51 @@ export default function CanvasClient({
                 ? (normalizedSidebarImpressions as any)._metadata
                 : {}),
               workspaceBgColor: workspaceBgColor || undefined,
-              themeName: defaultWorkspaceTheme,
+              activeTheme: workspaceThemeToUse,
             },
           };
           
           // Save asynchronously (don't block rendering)
           setTimeout(async () => {
             try {
-              await fetch(`/api/maps/${data.id}`, {
+              const savePayload = {
+                nodes: data.nodes || [],
+                edges: data.edges || [],
+                sidebarImpressions: sidebarImpressionsData,
+                workspaceBgColor: workspaceBgColor || undefined,
+                activeTheme: workspaceThemeToUse,
+              };
+              console.log(`[CanvasClient] Saving default workspace theme:`, savePayload);
+              const response = await fetch(`/api/maps/${data.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  nodes: data.nodes || [],
-                  edges: data.edges || [],
-                  sidebarImpressions: sidebarImpressionsData,
-                  workspaceBgColor: workspaceBgColor || undefined,
-                  themeName: defaultWorkspaceTheme,
-                }),
+                body: JSON.stringify(savePayload),
               });
-              console.log(`[Workspace] Saved default workspace theme: ${defaultWorkspaceTheme}`);
+              const result = await response.json();
+              console.log(`[CanvasClient] Default workspace theme saved:`, { workspaceThemeToUse, result });
             } catch (error) {
-              console.error("Failed to save default workspace theme:", error);
+              console.error("[CanvasClient] Failed to save default workspace theme:", error);
             }
           }, 100);
-        } else {
-          console.log(`[Workspace] No workspace theme found, using global theme`);
         }
+
+        // Apply workspace activeTheme (do NOT persist as global)
+        console.log(`[CanvasClient] Applying workspace theme:`, {
+          workspaceThemeToUse,
+          mapId: data.id,
+          currentActiveTheme: activeTheme
+        });
+        setActiveTheme(workspaceThemeToUse, false);
+        workspaceThemeAppliedRef.current = true;
+      } else {
+        console.log(`[CanvasClient] Skipping theme apply (not a new map)`);
       }
 
       setHydrated(true); // ✅ only now render FlowNodesProvider
     }
   }, [data, mapId]); // Added mapId dependency to ensure re-hydration on map change
 
-  // Restore global theme when leaving workspace (on route change)
+  // Restore global variant when leaving workspace (on route change)
   useEffect(() => {
     // Check if we're navigating away from workspace
     const isWorkspaceRoute = pathname?.startsWith("/workspace/");
@@ -543,23 +564,18 @@ export default function CanvasClient({
     
     // If we were in a workspace and now we're not, restore the global theme
     // Use a guard to prevent multiple restorations
-    if (wasWorkspaceRoute && !isWorkspaceRoute && workspaceThemeAppliedRef.current && previousThemeRef.current && !isRestoringThemeRef.current) {
+    if (wasWorkspaceRoute && !isWorkspaceRoute && workspaceThemeAppliedRef.current && previousActiveThemeRef.current && !isRestoringThemeRef.current) {
       isRestoringThemeRef.current = true;
-      console.log(`[Workspace] Route changed away from workspace, restoring global theme: ${previousThemeRef.current}`);
-      const themeToRestore = previousThemeRef.current;
-      const isDark = themeToRestore === "dark";
-      
-      // Update HTML class IMMEDIATELY so PageLoader reads the correct mode
-      document.documentElement.classList.remove("light", "dark");
-      document.documentElement.classList.add(isDark ? "dark" : "light");
-      console.log(`[Workspace] Updated HTML class immediately to: ${isDark ? "dark" : "light"}`);
+      const themeToRestore = previousActiveThemeRef.current || (isDark ? "dark" : "light");
+      console.log(`[Workspace] Route changed away from workspace, restoring global activeTheme: ${themeToRestore}`);
       
       // Reset refs first to prevent re-triggering
-      previousThemeRef.current = null;
+      previousActiveThemeRef.current = null;
       workspaceThemeAppliedRef.current = false;
-      // Then restore theme (use setTimeout to avoid state update during render)
+      lastAppliedMapIdRef.current = null;
+      // Then restore activeTheme (use setTimeout to avoid state update during render)
       setTimeout(() => {
-        setThemeNameRef.current(themeToRestore, false);
+        setActiveThemeRef.current(themeToRestore, false);
         isRestoringThemeRef.current = false;
       }, 0);
     }
@@ -578,18 +594,22 @@ export default function CanvasClient({
     
     return () => {
       isInWorkspaceRef.current = false;
-      // On unmount, restore the previous global theme if we applied a workspace theme
-      if (workspaceThemeAppliedRef.current && previousThemeRef.current) {
-        console.log(`[Workspace] Unmounting, restoring global theme: ${previousThemeRef.current}`);
-        const themeToRestore = previousThemeRef.current;
+      // On unmount, restore the previous global activeTheme if we applied a workspace theme
+      // Only restore if we're actually leaving (check pathname)
+      const isStillInWorkspace = typeof window !== "undefined" && window.location.pathname?.startsWith("/workspace/");
+      if (!isStillInWorkspace && workspaceThemeAppliedRef.current && previousActiveThemeRef.current) {
+        const themeToRestore = previousActiveThemeRef.current;
+        console.log(`[CanvasClient] Unmounting, restoring global activeTheme: ${themeToRestore}`);
         // Reset refs first to prevent re-triggering
-        previousThemeRef.current = null;
+        previousActiveThemeRef.current = null;
         workspaceThemeAppliedRef.current = false;
-        // Then restore theme
-        setThemeName(themeToRestore, false);
+        lastAppliedMapIdRef.current = null;
+        // Then restore activeTheme
+        setActiveThemeRef.current(themeToRestore, false);
       }
     };
-  }, [mapId]); // Only run cleanup when mapId changes (entering new workspace)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run cleanup on actual component unmount
 
   // Cleanup effect to clear store when component unmounts or mapId changes
   useEffect(() => {
