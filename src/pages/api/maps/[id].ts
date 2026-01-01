@@ -104,7 +104,7 @@ export default async function handler(
         },
       });
 
-      // Store workspaceBgColor in sidebarImpressions as metadata for now
+      // Store workspaceBgColor and activeTheme in sidebarImpressions as metadata for now
       // TODO: Add dedicated workspaceBgColor field to schema
       const sidebarImpressionsWithBg = body.sidebarImpressions || {};
       const sidebarImpressionsData = {
@@ -115,7 +115,7 @@ export default async function handler(
             ? (sidebarImpressionsWithBg as any)._metadata
             : {}),
           workspaceBgColor: body.workspaceBgColor,
-          themeName: body.themeName,
+          activeTheme: body.activeTheme || "light",
         },
       };
 

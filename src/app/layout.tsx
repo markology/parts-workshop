@@ -15,28 +15,29 @@ export const metadata: Metadata = {
   description: "Ceremonial Mapping for Parts Work",
 };
 
-// Server-side function to get initial theme from cookies
-async function getServerTheme(): Promise<{ themeName: string; isDark: boolean }> {
+/**
+ * Server-side function to get initial theme from cookies
+ * Reads themePref (mode) and activeTheme (workspace theme)
+ */
+async function getServerTheme(): Promise<{ themePref: string; activeTheme: string; isDark: boolean }> {
   try {
     const cookieStore = await cookies();
-    const themeName = cookieStore.get("themeName")?.value;
+    const themePref = cookieStore.get("themePref")?.value;
+    const activeTheme = cookieStore.get("activeTheme")?.value;
     
-    // If user has a saved theme preference, use it
-    if (themeName && ["light", "dark", "cherry", "system"].includes(themeName)) {
-      // For "system", we can't detect browser preference server-side, so default to light
-      // Client script will handle the actual system preference
-      if (themeName === "system") {
-        return { themeName: "system", isDark: false }; // Will be overridden by client
-      }
-      return { themeName, isDark: themeName === "dark" };
-    }
+    // Use new format
+    const pref = themePref || "system";
+    const theme = activeTheme || "light"; // Default to light if not set
     
-    // Otherwise, we'll let the client-side script handle browser preference
-    // Return default that will be overridden by client script
-    return { themeName: "system", isDark: false };
+    // Determine isDark for SSR
+    // If themePref is "system", we can't know server-side, so default to light
+    // Client script will fix it immediately
+    const isDark = pref === "dark";
+    
+    return { themePref: pref, activeTheme: theme, isDark };
   } catch {
-    // If cookies() fails (e.g., in middleware or static generation), return default
-    return { themeName: "system", isDark: false };
+    // If cookies() fails (e.g., in middleware or static generation), return defaults
+    return { themePref: "system", activeTheme: "light", isDark: false };
   }
 }
 
@@ -48,72 +49,82 @@ export default async function RootLayout({
   // Get theme from cookies on server
   const serverTheme = await getServerTheme();
   
+  // Build HTML classes: mode class (dark/light) + theme class (theme-{activeTheme})
+  const htmlClasses = [
+    serverTheme.isDark ? "dark" : "light",
+    `theme-${serverTheme.activeTheme}`,
+  ].filter(Boolean).join(" ");
+  
   return (
-    <html lang="en" className={[serverTheme.isDark ? "dark" : "light", serverTheme.themeName ? serverTheme.themeName : ""].join(" ")} suppressHydrationWarning>
+    <html lang="en" className={htmlClasses} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
-                  // Check if server already set the theme class (from cookies)
-                  const hasServerTheme = document.documentElement.classList.contains("dark") || 
-                                        document.documentElement.classList.contains("light");
+                  // Single source of truth: read themePref (mode) and activeTheme (workspace theme)
+                  // This script runs before React mounts to prevent flicker
                   
-                  if (hasServerTheme) {
-                    // Server already set it from cookies, just sync localStorage
-                    const serverTheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
-                    const isDark = serverTheme === "dark";
-                    
-                    // Sync to localStorage if not already set
-                    if (!localStorage.getItem("themeName")) {
-                      localStorage.setItem("themeName", serverTheme);
+                  // Check localStorage first, then cookie (for SSR fallback)
+                  let themePref = localStorage.getItem("themePref");
+                  let activeTheme = localStorage.getItem("activeTheme");
+                  
+                  // If still no themePref, check cookie (from SSR)
+                  if (!themePref || !activeTheme) {
+                    const cookies = document.cookie.split(';');
+                    for (let cookie of cookies) {
+                      const [key, value] = cookie.trim().split('=');
+                      if (key === 'themePref') themePref = value;
+                      if (key === 'activeTheme') activeTheme = value;
                     }
-                    
-                    // Set CSS custom property
-                    const darkBg = "#3D434B";
-                    const lightBg = "#f8fafc";
-                    document.documentElement.style.setProperty("--initial-bg", isDark ? darkBg : lightBg);
-                    
-                    console.log('[Theme Script] Using server theme:', serverTheme);
-                    return;
+                    // Sync to localStorage if found in cookie
+                    if (themePref) localStorage.setItem("themePref", themePref);
+                    if (activeTheme) localStorage.setItem("activeTheme", activeTheme);
                   }
                   
-                  // Server didn't set theme (no cookie), check localStorage and browser
-                  document.documentElement.classList.remove("light", "dark");
+                  // Defaults
+                  themePref = themePref || "system";
                   
-                  // Check if user has a saved theme preference
-                  const savedThemeName = localStorage.getItem("themeName");
-                  
+                  // Determine isDark based on themePref
                   let isDark = false;
-                  
-                  // If user has a saved theme preference, use it
-                  if (savedThemeName) {
-                    if (savedThemeName === "system") {
-                      // System mode: follow browser preference
-                      isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                    } else {
-                      isDark = savedThemeName === "dark";
-                    }
+                  if (themePref === "dark") {
+                    isDark = true;
+                  } else if (themePref === "light") {
+                    isDark = false;
                   } else {
-                    // No preference saved: default to system mode (follow browser)
+                    // themePref === "system" or missing - follow browser preference
                     isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                   }
                   
-                  // Apply theme class immediately
+                  // Default activeTheme based on mode if not set
+                  if (!activeTheme || !["light", "dark", "cherry"].includes(activeTheme)) {
+                    activeTheme = isDark ? "dark" : "light";
+                  }
+                  
+                  // Apply mode class to <html> (for Tailwind dark:)
+                  document.documentElement.classList.remove("light", "dark");
                   document.documentElement.classList.add(isDark ? "dark" : "light");
+                  
+                  // Apply theme class to <html> (theme-light, theme-dark, theme-cherry)
+                  document.documentElement.classList.remove("theme-light", "theme-dark", "theme-cherry");
+                  document.documentElement.classList.add("theme-" + activeTheme);
                   
                   // Set CSS custom property for background color (for loading screen)
                   const darkBg = "#3D434B";
                   const lightBg = "#f8fafc";
                   document.documentElement.style.setProperty("--initial-bg", isDark ? darkBg : lightBg);
                   
-                  console.log('[Theme Script] Applied client theme:', isDark ? 'dark' : 'light', 'savedTheme:', savedThemeName || 'system (default)');
+                  console.log('[Theme Script] Applied theme:', { 
+                    themePref: themePref, 
+                    activeTheme: activeTheme,
+                    isDark: isDark 
+                  });
                 } catch (e) {
                   console.error('[Theme Script] Error:', e);
                   // Fallback to light theme on error
-                  document.documentElement.classList.remove("light", "dark");
-                  document.documentElement.classList.add("light");
+                  document.documentElement.classList.remove("light", "dark", "theme-light", "theme-dark", "theme-cherry");
+                  document.documentElement.classList.add("light", "theme-light");
                   document.documentElement.style.setProperty("--initial-bg", "#f8fafc");
                 }
               })();

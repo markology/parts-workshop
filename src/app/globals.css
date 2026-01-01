@@ -2,6 +2,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+@custom-variant theme-dark (&:where(.theme-dark, .theme-dark *));
+@custom-variant theme-light (&:where(.theme-light, .theme-light *));
+@custom-variant theme-cherry (&:where(.theme-cherry, .theme-cherry *));
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -62,6 +66,26 @@
   --part-button-shadow: #00000082;
   --impression-button-shadow: black;
   --tension-button-shadow: black;
+
+  /* Theme colors - defaults (will be overridden by ThemeContext via inline styles) */
+  --theme-workspace: #f8fafc;
+  --theme-card: #ffffff;
+  --theme-modal: #ffffff;
+  --theme-sidebar: #ffffff;
+  --theme-elevated: #f1f5f9;
+  --theme-surface: #f8fafc;
+  --theme-button: #ffffff;
+  --theme-button-hover: #f1f5f9;
+  --theme-button-active: #e2e8f0;
+  --theme-button-text: #1e293b;
+  --theme-text-primary: #1e293b;
+  --theme-text-secondary: #64748b;
+  --theme-text-muted: #94a3b8;
+  --theme-border: rgba(0, 0, 0, 0.1);
+  --theme-border-subtle: rgba(0, 0, 0, 0.05);
+  --theme-accent: #3b82f6;
+  --theme-accent-hover: #60a5fa;
+  --theme-accent-active: #2563eb;
 }
 
 .dark {
@@ -84,6 +108,7 @@
   --impression-button-shadow: black;
   --tension-button-shadow: black;
 }
+
 
 @layer base {
   body,

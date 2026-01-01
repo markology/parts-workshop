@@ -5,7 +5,7 @@ import Image from "next/image";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
-import { getThemeByName, ThemeName } from "@/features/workspace/constants/theme";
+import { getThemeWithMode } from "@/features/workspace/constants/theme";
 
 interface PageLoaderProps {
   title?: string;
@@ -19,11 +19,11 @@ interface PageLoaderProps {
 }
 
 // Helper to get MODE (dark/light) immediately from DOM/localStorage (before React hydrates)
-// IMPORTANT: PageLoader should ALWAYS use MODE (dark/light), never workspace themes (like "red"/"cherry")
-// It determines mode from: 1) Global saved preference, 2) Browser preference, 3) HTML class
-function getInitialThemeSync(): { themeName: ThemeName; darkMode: boolean; theme: ReturnType<typeof getThemeByName> } {
+// IMPORTANT: PageLoader should ALWAYS use MODE (dark/light), never workspace variants (like "red")
+// It determines mode from: 1) Global saved themePref, 2) Browser preference, 3) HTML class
+function getInitialThemeSync(): { darkMode: boolean; theme: ReturnType<typeof getThemeWithMode> } {
   if (typeof window === "undefined") {
-    return { themeName: "light", darkMode: false, theme: getThemeByName("light") };
+    return { darkMode: false, theme: getThemeWithMode("default", false) };
   }
 
   try {
@@ -31,51 +31,46 @@ function getInitialThemeSync(): { themeName: ThemeName; darkMode: boolean; theme
     const htmlHasDark = document.documentElement.classList.contains("dark");
     const htmlHasLight = document.documentElement.classList.contains("light");
     
-    // Check localStorage for saved GLOBAL preference (not workspace theme)
-    const savedThemeName = localStorage.getItem("themeName") as ThemeName | null;
-    const themeGlobal = localStorage.getItem("themeGlobal");
+    // Check localStorage for saved GLOBAL preference
+    const savedThemePref = localStorage.getItem("themePref") as ThemePref | null;
+    const themePref: ThemePref = savedThemePref || "system";
     
     console.log('[PageLoader] Mode detection:', {
       htmlHasDark,
       htmlHasLight,
-      savedThemeName,
-      themeGlobal,
+      themePref,
       htmlClasses: document.documentElement.className
     });
     
     let darkMode = false;
-    let themeName: ThemeName = "light";
     
-    // Determine MODE (dark/light) - ignore workspace themes completely
-    if (themeGlobal === "1" && savedThemeName && ["light", "dark"].includes(savedThemeName)) {
-      // User has manually set a global theme (only light/dark are global)
-      darkMode = savedThemeName === "dark";
-      themeName = savedThemeName;
-      console.log('[PageLoader] Using saved global MODE:', darkMode ? 'dark' : 'light');
-    } else if (htmlHasDark) {
-      // HTML class was set by blocking script based on browser preference
+    // Determine MODE (dark/light) from themePref
+    if (themePref === "dark") {
       darkMode = true;
-      themeName = "dark";
-      console.log('[PageLoader] Using HTML dark class (MODE: dark)');
-    } else if (htmlHasLight) {
-      // HTML class was set to light
+      console.log('[PageLoader] Using saved themePref: dark');
+    } else if (themePref === "light") {
       darkMode = false;
-      themeName = "light";
-      console.log('[PageLoader] Using HTML light class (MODE: light)');
+      console.log('[PageLoader] Using saved themePref: light');
+    } else if (htmlHasDark) {
+      // HTML class was set by blocking script
+      darkMode = true;
+      console.log('[PageLoader] Using HTML dark class');
+    } else if (htmlHasLight) {
+      darkMode = false;
+      console.log('[PageLoader] Using HTML light class');
     } else {
-      // Fallback to browser preference
+      // Fallback to browser preference (system mode)
       darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      themeName = darkMode ? "dark" : "light";
-      console.log('[PageLoader] Using browser preference (MODE):', darkMode ? 'dark' : 'light');
+      console.log('[PageLoader] Using browser preference:', darkMode ? 'dark' : 'light');
     }
     
-    // Always use light or dark theme, never red/cherry
-    const finalThemeName: ThemeName = darkMode ? "dark" : "light";
-    console.log('[PageLoader] Final MODE (always light/dark):', { themeName: finalThemeName, darkMode });
-    return { themeName: finalThemeName, darkMode, theme: getThemeByName(finalThemeName) };
+    // Get theme colors (always use default variant for PageLoader)
+    const theme = getThemeWithMode("default", darkMode);
+    console.log('[PageLoader] Final mode:', { darkMode, variant: "default" });
+    return { darkMode, theme };
   } catch (error) {
     console.error('[PageLoader] Error detecting mode:', error);
-    return { themeName: "light", darkMode: false, theme: getThemeByName("light") };
+    return { darkMode: false, theme: getThemeWithMode("default", false) };
   }
 }
 
@@ -94,15 +89,13 @@ export default function PageLoader({
   
   // Once React context is ready, use it (for updates)
   const contextTheme = useThemeContext();
-  const contextThemeColors = useTheme();
   
   // Use initial sync values first, then update when context is ready
   const [darkMode, setDarkMode] = useState(initialTheme.darkMode);
   const [theme, setTheme] = useState(initialTheme.theme);
   
   // Update when context is ready OR when HTML class changes (for immediate updates)
-  // IMPORTANT: PageLoader should ALWAYS use MODE (dark/light), never workspace themes
-  // Extract darkMode from context or HTML class, but always use light or dark theme, never red/cherry
+  // IMPORTANT: PageLoader should ALWAYS use MODE (dark/light), never workspace variants
   useEffect(() => {
     // Re-check HTML class in case it was updated (e.g., when leaving workspace)
     const htmlHasDark = document.documentElement.classList.contains("dark");
@@ -110,47 +103,29 @@ export default function PageLoader({
     const htmlDarkMode = htmlHasDark || (!htmlHasLight && window.matchMedia("(prefers-color-scheme: dark)").matches);
     
     // Check localStorage for global preference
-    const savedThemeName = localStorage.getItem("themeName") as ThemeName | null;
-    const themeGlobal = localStorage.getItem("themeGlobal");
+    const savedThemePref = localStorage.getItem("themePref") as ThemePref | null;
+    const themePref: ThemePref = savedThemePref || "system";
     
     // Determine the correct mode
     let correctDarkMode = false;
-    if (themeGlobal === "1" && savedThemeName && ["light", "dark"].includes(savedThemeName)) {
-      correctDarkMode = savedThemeName === "dark";
+    if (themePref === "dark") {
+      correctDarkMode = true;
+    } else if (themePref === "light") {
+      correctDarkMode = false;
     } else {
       correctDarkMode = htmlDarkMode;
     }
     
-    // Also check context if it's ready
-    let contextDarkMode = correctDarkMode;
-    let contextThemeName: ThemeName = correctDarkMode ? "dark" : "light";
+    // Use context if available, otherwise use computed value
+    const finalDarkMode = contextTheme.isDark !== undefined ? contextTheme.isDark : correctDarkMode;
     
-    if (contextTheme.darkMode !== undefined) {
-      const ctxDarkMode = contextTheme.darkMode;
-      const ctxThemeName = contextTheme.themeName;
-      
-      // If context has a workspace-only theme (red/cherry), extract the darkMode but use light/dark theme
-      if (ctxThemeName === "red") {
-        contextDarkMode = ctxDarkMode;
-        contextThemeName = ctxDarkMode ? "dark" : "light";
-        console.log('[PageLoader] Context has workspace theme "red", using MODE only:', contextDarkMode ? 'dark' : 'light');
-      } else if (["light", "dark"].includes(ctxThemeName)) {
-        contextDarkMode = ctxDarkMode;
-        contextThemeName = ctxThemeName;
-      }
-    }
-    
-    // Use the most authoritative source: context if available and valid, otherwise HTML/localStorage
-    const finalDarkMode = contextTheme.darkMode !== undefined ? contextDarkMode : correctDarkMode;
-    const finalThemeName: ThemeName = finalDarkMode ? "dark" : "light";
-    
-    // If the mode has changed, update immediately
+    // If the mode has changed, update immediately (always use default variant for PageLoader)
     if (finalDarkMode !== darkMode) {
       console.log('[PageLoader] Mode changed, updating to:', finalDarkMode ? 'dark' : 'light');
       setDarkMode(finalDarkMode);
-      setTheme(getThemeByName(finalThemeName));
+      setTheme(getThemeWithMode("default", finalDarkMode));
     }
-  }, [contextTheme.darkMode, contextTheme.themeName, darkMode]);
+  }, [contextTheme.isDark, darkMode]);
 
   const containerHeight = fullHeight ? "min-h-screen w-full" : "h-full w-full";
 

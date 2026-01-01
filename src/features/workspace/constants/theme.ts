@@ -1,8 +1,11 @@
 /**
  * Comprehensive theme system with semantic color groupings
  * 
- * This allows easy theme customization by swapping entire color groups.
- * For example, change all "backgrounds" to red, or all "buttons" to blue.
+ * THEME ARCHITECTURE:
+ * - themePref: Controls dark/light/system mode (affects Tailwind `dark:` class)
+ * - themeVariant: Controls color palette/colors (red, cherry, etc.)
+ * 
+ * These are separate concerns: variants are independent of dark/light mode.
  */
 
 // Base color definitions - these are the raw colors
@@ -117,13 +120,12 @@ export const lightTheme: ColorGroup = {
   info: "#3b82f6",
 };
 
-// Red theme - red component backgrounds with white buttons and white text
-export const redTheme: ColorGroup = {
-  ...lightTheme,
-  // Canvas/page background - lighter red tone
+// Red theme variant - dark mode version
+export const redThemeDark: ColorGroup = {
+  ...darkTheme, // Base off dark theme
+  // Canvas/page background - darker red tone
   workspace: "#5a2f2f",
   // Component backgrounds - red tones (nodes, sidebar, modals, etc.)
-  // Part node backgrounds should match sidebar
   card: "#2d1212",
   modal: "#2d1212",
   sidebar: "#2d1212",
@@ -144,35 +146,87 @@ export const redTheme: ColorGroup = {
   accentActive: "#ef4444",
 };
 
-// Theme registry
-export type ThemeName = "light" | "dark" | "red" | "system";
-
-export const themes: Record<ThemeName, ColorGroup> = {
-  light: lightTheme,
-  dark: darkTheme,
-  red: redTheme,
+// Red theme variant - light mode version
+export const redThemeLight: ColorGroup = {
+  ...lightTheme, // Base off light theme
+  // Canvas/page background - lighter red tone
+  workspace: "#fef2f2", // Light red background
+  // Component backgrounds - light red tones
+  card: "#fee2e2",
+  modal: "#fee2e2",
+  sidebar: "#fee2e2",
+  elevated: "#fecaca",
+  surface: "#fef2f2",
+  // Buttons - keep light theme buttons
+  button: "#ffffff",
+  buttonHover: "#f1f5f9",
+  buttonActive: "#e2e8f0",
+  buttonText: "#1e293b",
+  // Text - dark (like light mode)
+  textPrimary: "#1e293b",
+  textSecondary: "#64748b",
+  textMuted: "#94a3b8",
+  // Accents - cherry reds
+  accent: "#ef4444",
+  accentHover: "#f97373",
+  accentActive: "#dc2626",
 };
 
+// Legacy: red theme (dark version, for backward compatibility)
+export const redTheme = redThemeDark;
+
+// Active theme type - workspace-specific theme selection
+export type ActiveTheme = "light" | "dark" | "cherry";
+
 /**
- * Get a theme by name
+ * Get theme colors based on active theme.
+ * 
+ * @param activeTheme - The active theme ("light" | "dark" | "cherry")
+ * @returns ColorGroup for the given theme
  */
-export const getThemeByName = (themeName: ThemeName): ColorGroup => {
-  // Handle "system" by checking browser preference
-  if (themeName === "system") {
-    if (typeof window !== "undefined") {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      return themes[prefersDark ? "dark" : "light"];
-    }
-    return lightTheme; // SSR fallback
+export const getTheme = (activeTheme: ActiveTheme): ColorGroup => {
+  if (activeTheme === "cherry") {
+    return redThemeDark; // Cherry uses dark red palette
   }
-  return themes[themeName] || lightTheme;
+  if (activeTheme === "dark") {
+    return darkTheme;
+  }
+  // activeTheme === "light"
+  return lightTheme;
 };
 
 /**
- * Get the current theme based on dark mode (for backward compatibility)
+ * Helper to get theme with isDark boolean (for backward compatibility)
  */
-export const getTheme = (darkMode: boolean): ColorGroup => {
-  return darkMode ? darkTheme : lightTheme;
+export const getThemeWithMode = (variant: "default" | "red", isDark: boolean): ColorGroup => {
+  if (variant === "red") {
+    return isDark ? redThemeDark : redThemeLight;
+  }
+  return isDark ? darkTheme : lightTheme;
+};
+
+/**
+ * Legacy function for backward compatibility during migration
+ * @deprecated Use getTheme(variant, variantMode, themePref) or getThemeWithMode(variant, isDark) instead
+ */
+export const getThemeByName = (themeName: string): ColorGroup => {
+  // Handle legacy themeName values during migration
+  if (themeName === "system" || themeName === "light" || themeName === "dark") {
+    const isDark = themeName === "dark" || (themeName === "system" && typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    return getThemeWithMode("default", isDark);
+  }
+  if (themeName === "red" || themeName === "cherry") {
+    return redThemeDark; // Legacy red was dark
+  }
+  return lightTheme;
+};
+
+/**
+ * Get the current theme based on dark mode (backward compatibility)
+ * @deprecated Use getTheme(variant, variantMode, themePref) or getThemeWithMode(variant, isDark) instead
+ */
+export const getThemeByDarkMode = (darkMode: boolean): ColorGroup => {
+  return getThemeWithMode("default", darkMode);
 };
 
 /**
@@ -338,4 +392,3 @@ export const deleteCustomTheme = (themeId: string): void => {
     console.error("Failed to delete custom theme:", error);
   }
 };
-

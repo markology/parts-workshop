@@ -40,7 +40,7 @@ type SortOption = 'edited' | 'created' | 'name';
 export default function WorkspacesPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { darkMode, themeName, setThemeName } = useThemeContext();
+  const { darkMode, themePref, setThemePref } = useThemeContext();
   const theme = useTheme();
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
@@ -492,8 +492,8 @@ export default function WorkspacesPage() {
                     <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: darkMode ? "rgb(156, 163, 175)" : "rgb(107, 114, 128)" }}>
                       Theme
                     </div>
-                    {(["light", "dark", "system"] as ThemeName[]).map((mode) => {
-                      const isActive = themeName === mode;
+                    {(["light", "dark", "system"] as const).map((mode) => {
+                      const isActive = themePref === mode;
                       const getIcon = () => {
                         if (mode === "system") return <Monitor className="w-4 h-4" />;
                         if (mode === "dark") return <Moon className="w-4 h-4" />;
@@ -508,7 +508,7 @@ export default function WorkspacesPage() {
                         <button
                           key={mode}
                           onClick={() => {
-                            setThemeName(mode, true);
+                            setThemePref(mode, true);
                             setProfileDropdownOpen(false);
                           }}
                           className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 rounded ${

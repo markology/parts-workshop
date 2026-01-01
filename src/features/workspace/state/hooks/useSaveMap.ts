@@ -4,7 +4,7 @@ import { useThemeContext } from "@/state/context/ThemeContext";
 
 export const useSaveMap = () => {
   const queryClient = useQueryClient();
-  const { themeName } = useThemeContext();
+  const { activeTheme } = useThemeContext();
 
   return useMutation({
     mutationFn: async () => {
@@ -19,7 +19,7 @@ export const useSaveMap = () => {
           edges,
           sidebarImpressions,
           workspaceBgColor,
-          themeName,
+          activeTheme, // Save active theme (light/dark/cherry)
         }),
       });
 

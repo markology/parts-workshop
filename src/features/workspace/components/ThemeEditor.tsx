@@ -16,7 +16,7 @@ interface ThemeEditorProps {
 
 export default function ThemeEditor({ onClose, onThemeSelect, onThemePreview }: ThemeEditorProps) {
   const theme = useTheme();
-  const { themeName } = useThemeContext();
+  // Note: ThemeEditor works with custom themes, not the built-in theme system
   const [customThemes, setCustomThemes] = useState(getCustomThemes());
   const [editingTheme, setEditingTheme] = useState<CustomTheme | null>(null);
   const [themeNameInput, setThemeNameInput] = useState("");
