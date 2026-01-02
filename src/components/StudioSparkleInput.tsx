@@ -1,8 +1,6 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { useTheme } from "@/features/workspace/hooks/useTheme";
-import { useThemeContext } from "@/state/context/ThemeContext";
 
 interface StudioSparkleInputProps {
   placeholder?: string;
@@ -15,8 +13,6 @@ export default function StudioSparkleInput({
   onClick,
   className = "",
 }: StudioSparkleInputProps) {
-  const theme = useTheme();
-  const { darkMode } = useThemeContext();
   
   return (
     <button

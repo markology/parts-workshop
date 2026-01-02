@@ -176,8 +176,7 @@ export default function StudioAssistant({
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10"
-          style={{ color: theme.textSecondary }}
+          className="absolute top-2 right-2 p-1.5 rounded-lg transition-colors z-10 text-[var(--text-secondary)] dark:text-[var(--text-secondary)]"
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = theme.buttonHover;
             e.currentTarget.style.color = theme.textPrimary;
@@ -208,8 +207,7 @@ export default function StudioAssistant({
             </span>
           </p>
           <p
-            className="mt-3 text-sm leading-relaxed"
-            style={{ color: theme.textSecondary }}
+            className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)] dark:text-slate-400"
           >
             Ask for guidance, shortcuts, or reflections tailored to
             your Parts Studio flow.
@@ -235,7 +233,6 @@ export default function StudioAssistant({
                         background: isDark
                           ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
                           : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
-                        // color: theme.textPrimary,
                       }
                 }
               >
@@ -268,7 +265,6 @@ export default function StudioAssistant({
               background: isDark
                 ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
                 : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
-              borderColor: theme.border,
             }}
           />
         </div>
