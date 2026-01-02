@@ -1,8 +1,4 @@
 import RightClickMenu from "@/components/RightClickMenu";
-import {
-  NodeBackgroundColors,
-  NodeTextColors,
-} from "@/features/workspace/constants/Nodes";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
@@ -14,9 +10,6 @@ import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { MessageCircleWarning, Trash2, BookOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
-import { useThemeContext } from "@/state/context/ThemeContext";
-import { useTheme } from "@/features/workspace/hooks/useTheme";
-import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 
 const TensionNode = ({
   connectedNodes,
@@ -51,9 +44,6 @@ const TensionNode = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { darkMode } = useThemeContext();
-  const theme = useTheme();
-  const palette = workspaceDarkPalette;
 
   // Handle Enter key or outside click save
   const handleSave = useCallback(() => {
@@ -96,19 +86,6 @@ const TensionNode = ({
     };
   }, [editingId, editValue, handleSave]);
 
-  // const accent = NodeBackgroundColors["tension"];
-  // const accentText = NodeTextColors["tension"];
-  // const shellClasses = darkMode
-  //   ? "text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
-  //   : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
-
-  // const shellStyle = darkMode
-  //   ? {
-  //       background: `linear-gradient(140deg, #2a1f3d, #27212f)`,
-  //     }
-  //   : undefined;
-
-  const placeholderText = darkMode ? "text-slate-400" : "text-purple-900/55";
 
   return (
     <>
