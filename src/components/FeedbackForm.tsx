@@ -200,34 +200,24 @@ export default function FeedbackPopup() {
   };
 
 
-
-
-
-  const cardStyle = {
-    backgroundColor: theme.surface,
-    borderColor: theme.border,
-  };
-
-  const textareaStyle = {
-    borderColor: isDark ? theme.border : '#e2e8f0',
-    color: theme.textPrimary,
-  };
-
-  const toggleContainerStyle = {
-    backgroundColor: theme.surface,
-    borderColor: theme.border,
-  };
-
-  const footerStyle = {
-    backgroundColor: theme.elevated,
-    borderColor: theme.border,
-  };
-
   return (
     <div
       className="overflow-hidden w-full max-w-[520px] max-h-[90vh] rounded-[28px] border shadow-[0_22px_48px_rgba(15,23,42,0.18)] flex flex-col bg-white dark:bg-[var(--card)] border-[var(--border)] dark:border-[var(--border)] text-[var(--text-primary)] dark:text-[var(--text-primary)]"
     >
-      <div className="px-6 pt-6 pb-5 border-b border-[rgba(0,0,0,0.1)] bg-gradient-to-b from-[#f8fafc] to-[#ffffff]dark:bg-[var(--elevated)] dark:bg-[image:none] dark:border-[var(--border)]">
+      <div className="
+px-6 pt-6 pb-5
+border-b border-[rgba(0,0,0,0.1)]
+
+bg-gradient-to-b
+from-[rgba(254,241,242,0.3)]
+to-white
+
+dark:bg-[var(--component)]
+dark:bg-[image:none]
+dark:border-[var(--border)]
+"
+
+>
         <p className="text-[11px] uppercase tracking-[0.32em] dark:text-[var(--text-color-2)] text-[#0ea5e9]">
           Studio Contact
         </p>
@@ -352,7 +342,7 @@ export default function FeedbackPopup() {
             style={{
               backgroundColor: sendAnonymously 
                 ? (isDark ? "rgba(6, 182, 212, 0.7)" : "#0ea5e9")
-                : (isDark ? theme.elevated : "#e2e8f0"),
+                : (isDark ? theme.card : "#e2e8f0"),
             }}
           >
             <span
@@ -366,11 +356,22 @@ export default function FeedbackPopup() {
       </div>
 
       <div 
-        className="px-6 py-5 border-t flex items-center justify-between gap-4" 
-        style={isDark ? footerStyle : {
-          background: 'linear-gradient(to bottom, #ffffff 0%, rgba(254, 241, 242, 0.3) 100%)',
-          borderColor: theme.border,
-        }}
+       className="
+       px-6 py-5
+       border-t
+       flex items-center justify-between gap-4
+       
+       bg-gradient-to-b
+       from-white
+       to-[rgba(254,241,242,0.3)]
+       
+       border-none
+       
+       dark:bg-[var(--elevated)]
+       dark:bg-[image:none]
+       dark:border-[var(--border)]
+       "
+       
       >
         <p className="text-xs leading-relaxed max-w-[65%] text-[var(--text-muted)] dark:text-[var(--text-color-2)]">
           Your email stays private. We only reach out if you leave us a way to reply.
