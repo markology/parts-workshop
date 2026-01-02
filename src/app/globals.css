@@ -131,6 +131,13 @@
   --theme-tension-node-pill-text: var(--node-text-tension);
   --theme-tension-node-pill-part-bg: #ebe6f5;
   --theme-tension-node-bg-top: 1px solid #00000012;
+
+  /* Impression Node Backgrounds */
+  --theme-impression-emotion-bg: rgb(227, 243, 227);
+  --theme-impression-thought-bg: rgb(221, 235, 246);
+  --theme-impression-sensation-bg: rgb(249, 225, 223);
+  --theme-impression-behavior-bg: rgb(253, 235, 222);
+  --theme-impression-other-bg: rgb(198, 237, 233);
 }
 
 .theme-dark {
@@ -159,6 +166,13 @@
   --theme-tension-node-pill-text: #e9d5ff;
   --theme-tension-node-pill-part-bg: #473561;
   --theme-tension-node-bg-top: 1px solid rgba(0, 0, 0, 0.15);
+
+  /* Impression Node Backgrounds */
+  --theme-impression-emotion-bg: rgb(86, 117, 90);
+  --theme-impression-thought-bg: rgb(76, 104, 126);
+  --theme-impression-sensation-bg: rgb(130, 87, 85);
+  --theme-impression-behavior-bg: rgb(133, 104, 81);
+  --theme-impression-other-bg: rgb(29, 104, 98);
 }
 
 .theme-cherry {

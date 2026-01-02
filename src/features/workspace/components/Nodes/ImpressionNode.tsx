@@ -59,8 +59,6 @@ const ImpressionNode = ({
     [deleteNode, label]
   );
 
-  const baseColorsMap = getImpressionBaseColors(darkMode);
-  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
   const typeLabelFont = getPartNodeImpressionTypeFont(type, darkMode);
   const pillFontColor = getImpressionPillFontColor(type, darkMode);
 
@@ -79,9 +77,9 @@ const ImpressionNode = ({
         onContextMenu={handleContextMenu}
         onDragStart={handleDragStart}
         draggable
-        className="text-left rounded-xl px-3 pt-2 pb-3 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden cursor-grab active:cursor-grabbing"
+        className={`text-left rounded-xl px-3 pt-2 pb-3 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden cursor-grab active:cursor-grabbing`}
         style={{
-          backgroundColor: baseColors.background,
+          backgroundColor: `var(--theme-impression-${type}-bg)`,          
           color: pillFontColor,
         }}
       >
