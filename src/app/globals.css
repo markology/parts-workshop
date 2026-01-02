@@ -187,6 +187,41 @@
   --theme-impression-sensation-sidebar-header-border: rgb(249, 225, 223);
   --theme-impression-behavior-sidebar-header-border: rgb(253, 235, 222);
   --theme-impression-other-sidebar-header-border: rgb(198, 237, 233);
+
+  /* Impression Input Modal Background Colors */
+  --theme-impression-emotion-modal-bg: rgb(239, 248, 239);
+  --theme-impression-thought-modal-bg: rgb(236, 244, 251);
+  --theme-impression-sensation-modal-bg: rgb(253, 239, 237);
+  --theme-impression-behavior-modal-bg: rgb(254, 244, 236);
+  --theme-impression-other-modal-bg: rgb(222, 245, 242);
+
+  /* Impression Input Modal Top Left Pill Background Colors */
+  --theme-impression-emotion-modal-pill-bg: rgb(225, 242, 224);
+  --theme-impression-thought-modal-pill-bg: rgb(220, 233, 246);
+  --theme-impression-sensation-modal-pill-bg: rgb(251, 225, 221);
+  --theme-impression-behavior-modal-pill-bg: rgb(253, 233, 219);
+  --theme-impression-other-modal-pill-bg: rgb(194, 235, 230);
+
+  /* Impression Input Modal Pill Font Colors (for top pill and close button - uses pill-font) */
+  --theme-impression-emotion-modal-pill-font: rgb(63, 113, 66);
+  --theme-impression-thought-modal-pill-font: rgb(62, 110, 145);
+  --theme-impression-sensation-modal-pill-font: rgb(153, 73, 54);
+  --theme-impression-behavior-modal-pill-font: rgb(155, 96, 52);
+  --theme-impression-other-modal-pill-font: rgb(13, 148, 136);
+
+  /* Impression Input Modal Textarea Font Colors (uses input-pill-font) */
+  --theme-impression-emotion-modal-textarea-font: rgb(139, 203, 139);
+  --theme-impression-thought-modal-textarea-font: rgb(122, 179, 224);
+  --theme-impression-sensation-modal-textarea-font: rgb(242, 140, 130);
+  --theme-impression-behavior-modal-textarea-font: rgb(249, 177, 122);
+  --theme-impression-other-modal-textarea-font: rgb(20, 184, 166);
+
+  /* Impression Input Modal Add Button Background Colors */
+  --theme-impression-emotion-modal-add-button-bg: rgb(139, 203, 139);
+  --theme-impression-thought-modal-add-button-bg: rgb(122, 179, 224);
+  --theme-impression-sensation-modal-add-button-bg: rgb(242, 140, 130);
+  --theme-impression-behavior-modal-add-button-bg: rgb(249, 177, 122);
+  --theme-impression-other-modal-add-button-bg: rgb(20, 184, 166);
 }
 
 .theme-dark {
@@ -264,6 +299,41 @@
   --theme-impression-sensation-sidebar-header-border: rgb(151, 119, 128);
   --theme-impression-behavior-sidebar-header-border: rgb(154, 136, 124);
   --theme-impression-other-sidebar-header-border: rgb(50, 136, 141);
+
+  /* Impression Input Modal Background Colors */
+  --theme-impression-emotion-modal-bg: rgb(61, 81, 68);
+  --theme-impression-thought-modal-bg: rgb(57, 74, 90);
+  --theme-impression-sensation-modal-bg: rgb(88, 64, 66);
+  --theme-impression-behavior-modal-bg: rgb(89, 74, 64);
+  --theme-impression-other-modal-bg: rgb(30, 76, 74);
+
+  /* Impression Input Modal Top Left Pill Background Colors */
+  --theme-impression-emotion-modal-pill-bg: rgb(42, 42, 42);
+  --theme-impression-thought-modal-pill-bg: rgb(42, 42, 42);
+  --theme-impression-sensation-modal-pill-bg: rgb(42, 42, 42);
+  --theme-impression-behavior-modal-pill-bg: rgb(42, 42, 42);
+  --theme-impression-other-modal-pill-bg: rgb(42, 42, 42);
+
+  /* Impression Input Modal Pill Font Colors (for top pill and close button - uses pill-font) */
+  --theme-impression-emotion-modal-pill-font: rgb(139, 203, 139);
+  --theme-impression-thought-modal-pill-font: rgb(122, 179, 224);
+  --theme-impression-sensation-modal-pill-font: rgb(249, 177, 122);
+  --theme-impression-behavior-modal-pill-font: rgb(242, 140, 130);
+  --theme-impression-other-modal-pill-font: rgb(20, 184, 166);
+
+  /* Impression Input Modal Textarea Font Colors (uses input-pill-font) */
+  --theme-impression-emotion-modal-textarea-font: rgb(139, 203, 139);
+  --theme-impression-thought-modal-textarea-font: rgb(122, 179, 224);
+  --theme-impression-sensation-modal-textarea-font: rgb(249, 177, 122);
+  --theme-impression-behavior-modal-textarea-font: rgb(242, 140, 130);
+  --theme-impression-other-modal-textarea-font: rgb(20, 184, 166);
+
+  /* Impression Input Modal Add Button Background Colors */
+  --theme-impression-emotion-modal-add-button-bg: rgb(82, 113, 87);
+  --theme-impression-thought-modal-add-button-bg: rgb(75, 101, 125);
+  --theme-impression-sensation-modal-add-button-bg: rgb(129, 84, 83);
+  --theme-impression-behavior-modal-add-button-bg: rgb(130, 101, 80);
+  --theme-impression-other-modal-add-button-bg: rgb(28, 105, 99);
 }
 
 .theme-cherry {

@@ -3,15 +3,14 @@
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
-import { getImpressionInputModalColors, getImpressionPartDetailsHeaderColor } from "@/features/workspace/constants/ImpressionColors";
 import {
   ImpressionTextType,
   ImpressionType,
 } from "@/features/workspace/types/Impressions";
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
+import { useThemeContext } from "@/state/context/ThemeContext";
 
 const isValidImpression = (text: string) => {
   const trimmed = text.trim();
@@ -179,48 +178,14 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
     return () => document.removeEventListener("keydown", handleGlobalKeyDown, true);
   }, [selectedType]);
 
-  const { darkMode } = useThemeContext();
   const theme = useTheme();
-  const selectedModalColorsMap = getImpressionInputModalColors(darkMode);
-  const selectedModalColors = (selectedType in selectedModalColorsMap ? selectedModalColorsMap[selectedType as keyof typeof selectedModalColorsMap] : null) || selectedModalColorsMap.emotion;
-  const inputPillFontColor = darkMode 
-    ? selectedModalColors.inputPillFont 
-    : getImpressionPartDetailsHeaderColor(selectedType, darkMode);
-
-  // Helper to convert CSS variable or rgb() string to rgba() with opacity
-  const rgbToRgba = (colorValue: string, opacity: number): string => {
-    if (typeof window === 'undefined') return colorValue;
-    
-    // If it's a CSS variable, get the computed value
-    if (colorValue.startsWith('var(')) {
-      const match = colorValue.match(/var\((--[^)]+)\)/);
-      if (match) {
-        const cssVarName = match[1];
-        const computedValue = getComputedStyle(document.documentElement)
-          .getPropertyValue(cssVarName)
-          .trim();
-        if (computedValue.startsWith('rgb(')) {
-          return computedValue.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`);
-        }
-        return computedValue;
-      }
-    }
-    
-    // If it's already an rgb() string, convert it
-    if (colorValue.startsWith('rgb(')) {
-      return colorValue.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`);
-    }
-    
-    return colorValue;
-  };
+  const { isDark } = useThemeContext();
 
   return (
     <div ref={containerRef} className="relative">
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
           {ImpressionList.map((type) => {
-            const typeModalColorsMap = getImpressionInputModalColors(darkMode);
-            const typeModalColors = (type in typeModalColorsMap ? typeModalColorsMap[type as keyof typeof typeModalColorsMap] : null) || typeModalColorsMap.emotion;
             return (
               <button
                 key={type}
@@ -245,13 +210,11 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
                 style={{
                   fontSize: '14px',
                   backgroundColor: selectedType === type 
-                    ? (darkMode 
-                        ? rgbToRgba(typeModalColors.modalBg, 0.7)
-                        : typeModalColors.topLeftPillBg)
+                    ? isDark
+                      ? `color-mix(in srgb, var(--theme-impression-${type}-modal-bg) 70%, transparent)`
+                      : `var(--theme-impression-${type}-modal-pill-bg)`
                     : "transparent",
-                  color: darkMode 
-                    ? typeModalColors.pillFont 
-                    : getImpressionPartDetailsHeaderColor(type, darkMode),
+                  color: `var(--theme-impression-${type}-modal-textarea-font)`,
                   border: "1.5px solid transparent",
                 }}
               >
@@ -265,11 +228,13 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
             ref={textAreaRef as React.RefObject<HTMLTextAreaElement>}
             className="min-h-[120px] px-4 pb-4 pt-[30px] rounded-xl border-0 w-full focus:outline-none resize-none"
             style={{
-              color: inputValue ? inputPillFontColor : theme.textPrimary,
+              color: inputValue 
+                ? `var(--theme-impression-${selectedType}-modal-textarea-font)`
+                : theme.textPrimary,
               backgroundColor: "transparent",
               fontSize: '16px',
               lineHeight: '1.6',
-              caretColor: inputPillFontColor,
+              caretColor: `var(--theme-impression-${selectedType}-modal-textarea-font)`,
             }}
             placeholder="Type your impression here..."
             autoFocus
@@ -281,7 +246,7 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
             __html: `
               textarea::placeholder {
                 opacity: 0.7;
-                color: ${inputPillFontColor} !important;
+                color: var(--theme-impression-${selectedType}-modal-textarea-font) !important;
               }
             `
           }} />

@@ -21,7 +21,6 @@ import { User, Settings, Moon, Mail, LogOut, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import { NodeBackgroundColors, NodeTextColors } from "../constants/Nodes";
 import { ImpressionTextType, ImpressionType } from "../types/Impressions";
-import { getImpressionInputModalColors, getImpressionPartDetailsHeaderColor } from "../constants/ImpressionColors";
 import { ImpressionNode } from "../types/Nodes";
 import { Sparkles, X } from "lucide-react";
 import { useFlowNodesContext } from "../state/FlowNodesContext";
@@ -105,8 +104,6 @@ const ImpressionInputModalContent = ({
     setCanAddImpression(false);
   }, [impressionModalTargetPartId, impressionModalType, setCanAddImpression]);
   
-  const impressionModalColorsMap = getImpressionInputModalColors(isDark);
-  const impressionModalColors = (currentType in impressionModalColorsMap ? impressionModalColorsMap[currentType as keyof typeof impressionModalColorsMap] : null) || impressionModalColorsMap.emotion;
   const impressionTypeLabel =
     ImpressionTextType[currentType] ?? "Impression";
 
@@ -172,7 +169,7 @@ const ImpressionInputModalContent = ({
         <div
           className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
           style={{
-            backgroundColor: impressionModalColors.modalBg,
+            backgroundColor: `var(--theme-impression-${currentType}-modal-bg)`,
             borderColor: theme.border,
           }}
         >
@@ -182,8 +179,8 @@ const ImpressionInputModalContent = ({
                 <span
                   className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
                   style={{
-                    backgroundColor: impressionModalColors.topLeftPillBg,
-                    color: impressionModalColors.pillFont,
+                    backgroundColor: `var(--theme-impression-${currentType}-modal-pill-bg)`,
+                    color: `var(--theme-impression-${currentType}-modal-pill-font)`,
                   }}
                 >
                   <Sparkles size={14} />
@@ -226,8 +223,8 @@ const ImpressionInputModalContent = ({
                 onClick={() => setShowImpressionModal(false)}
                 className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
                 style={{
-                  backgroundColor: isDark ? impressionModalColors.inputPillBg : impressionModalColors.topLeftPillBg,
-                  color: impressionModalColors.pillFont,
+                  backgroundColor: `var(--theme-impression-${currentType}-modal-pill-bg)`,
+                  color: `var(--theme-impression-${currentType}-modal-pill-font)`,
                 }}
                 aria-label="Close"
               >
@@ -238,7 +235,7 @@ const ImpressionInputModalContent = ({
             <div
               className="rounded-2xl border px-6 py-6 shadow-inner"
               style={{
-                backgroundColor: impressionModalColors.inputPillBg,
+                backgroundColor: isDark ? `var(--theme-impression-${currentType}-modal-pill-bg)` : "rgba(255, 255, 255, 0.76)",
                 borderColor: theme.border,
               }}
             >
@@ -303,7 +300,7 @@ const ImpressionInputModalContent = ({
                 className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                 style={{
                   backgroundColor: canAddImpression
-                    ? impressionModalColors.addButtonBg
+                    ? `var(--theme-impression-${currentType}-modal-add-button-bg)`
                     : isDark ? "rgb(59, 63, 67)" : "#e2e8f0",
                   color: canAddImpression
                     ? (isDark ? "rgb(255, 255, 255)" : "#ffffff")
