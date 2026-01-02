@@ -1,45 +1,45 @@
 export const NodeColors = {
-  emotion: "#f28c82ad",
-  thought: "#7ab3e0ad",
-  sensation: "#f9b17aad",
-  behavior: "#8bcb8bad",
-  tension: "#b19cd9ad",
-  part: "#f7e68fad",
-  other: "#efa9c8ad",
+  emotion: "var(--node-color-emotion)",
+  thought: "var(--node-color-thought)",
+  sensation: "var(--node-color-sensation)",
+  behavior: "var(--node-color-behavior)",
+  tension: "var(--node-color-tension)",
+  part: "var(--node-color-part)",
+  other: "var(--node-color-other)",
 };
 
 export const NodeBackgroundColors = {
-  emotion: "#8BCB8B", // rgb(139, 203, 139) - Green (was behavior)
-  thought: "#7AB3E0",
-  sensation: "#F28C82", // Coral/salmon red (was emotion)
-  behavior: "#F9B17A", // Orange (was sensation)
-  tension: "#B19CD9",
-  interaction: "#87CEEB", // Light blue for interaction
-  part: "#a1c7dd",
-  other: "#14B8A6", // Teal/cyan - distinct from emotions
-  default: "#9CA3AF", // Gray for default
+  emotion: "var(--node-bg-emotion)", // rgb(139, 203, 139) - Green (was behavior)
+  thought: "var(--node-bg-thought)",
+  sensation: "var(--node-bg-sensation)", // Coral/salmon red (was emotion)
+  behavior: "var(--node-bg-behavior)", // Orange (was sensation)
+  tension: "var(--node-bg-tension)",
+  interaction: "var(--node-bg-interaction)", // Light blue for interaction
+  part: "var(--node-bg-part)",
+  other: "var(--node-bg-other)", // Teal/cyan - distinct from emotions
+  default: "var(--node-bg-default)", // Gray for default
 };
 
 export const NodeTextColors = {
-  emotion: "#3f7142", // Dark green (was behavior)
-  thought: "#3e6e91",
-  sensation: "#994936", // Brown (was emotion)
-  behavior: "#9b6034", // Brown (matching original sensation text)
-  tension: "#5a4784",
-  interaction: "#1e3a8a", // Dark blue text for interaction
-  part: "#998f3a",
-  other: "#0D9488", // Deep teal for contrast
-  default: "#374151", // Dark gray for default
+  emotion: "var(--node-text-emotion)", // Dark green (was behavior)
+  thought: "var(--node-text-thought)",
+  sensation: "var(--node-text-sensation)", // Brown (was emotion)
+  behavior: "var(--node-text-behavior)", // Brown (matching original sensation text)
+  tension: "var(--node-text-tension)",
+  interaction: "var(--node-text-interaction)", // Dark blue text for interaction
+  part: "var(--node-text-part)",
+  other: "var(--node-text-other)", // Deep teal for contrast
+  default: "var(--node-text-default)", // Dark gray for default
 };
 
 export const NodeTextColorsLight = {
-  emotion: "#b5e8c1", // Light mint green (was behavior)
-  thought: "#abdefd", // from you
-  sensation: "#f4b4a3", // Soft light red (was emotion)
-  behavior: "#f8cfa5", // Warm cream (matching original sensation light)
-  tension: "#d5caf1", // lavender
-  part: "#f4edb3", // pale yellow
-  other: "#a7f3d0", // soft light teal
+  emotion: "var(--node-text-light-emotion)", // Light mint green (was behavior)
+  thought: "var(--node-text-light-thought)",
+  sensation: "var(--node-text-light-sensation)", // Soft light red (was emotion)
+  behavior: "var(--node-text-light-behavior)", // Warm cream (matching original sensation light)
+  tension: "var(--node-text-light-tension)", // lavender
+  part: "var(--node-text-light-part)", // pale yellow
+  other: "var(--node-text-light-other)", // soft light teal
 };
 
 // Palette reference:
