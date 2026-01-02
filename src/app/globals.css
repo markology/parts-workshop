@@ -288,6 +288,7 @@
   --theme-journal-tab-button-active-bg: white;
   --theme-journal-tab-button-inactive-bg: transparent;
   --theme-journal-tab-button-hover-bg: transparent;
+  --theme-journal-tab-border-inactive: rgb(226, 232, 240);
   --theme-journal-textthread-container-bg: rgb(241, 245, 249);
 }
 
@@ -482,6 +483,7 @@
   --theme-journal-tab-button-active-bg: #2a2e32;
   --theme-journal-tab-button-inactive-bg: #212529;
   --theme-journal-tab-button-hover-bg: #212529;
+  --theme-journal-tab-border-inactive: rgb(63, 63, 63);
   --theme-journal-textthread-container-bg: #272b2f;
 }
 

@@ -22,7 +22,6 @@ import { Brain, Book, Clock, FilePlus2, Heart, History, Layers, MessagesSquare, 
 import { NodeBackgroundColors, NodeTextColors } from "../../constants/Nodes";
 import { ImpressionList } from "../../constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
-import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 const IMPRESSION_NODE_TYPES: ImpressionType[] = [
@@ -186,7 +185,6 @@ const deriveTitleFromContent = (content: string, fallback: string) => {
 // };
 
 export default function JournalDrawer() {
-  const { darkMode } = useThemeContext();
   const theme = useTheme();
   const queryClient = useQueryClient();
 
@@ -680,17 +678,17 @@ export default function JournalDrawer() {
       // Only show the "context not available" message if we also don't have any nodes
       if (!flowNodesContext && nodes.length === 0) {
         return (
-          <div className="space-y-3 text-sm" style={{ color: theme.textSecondary }}>
-            <p className="font-semibold" style={{ color: theme.textPrimary }}>Node context is not available.</p>
+          <div className="space-y-3 text-sm text-[var(--theme-text-secondary)]">
+            <p className="font-semibold text-[var(--theme-text-primary)]">Node context is not available.</p>
             <p>The workspace may not be fully loaded yet.</p>
-            <p className="text-xs mt-2" style={{ color: theme.textMuted }}>
+            <p className="text-xs mt-2 text-[var(--theme-text-muted)]">
               Make sure you&apos;re viewing a workspace with nodes.
             </p>
             <div className="mt-3 rounded-lg border p-3 text-xs" style={{ backgroundColor: theme.warning + '1a', borderColor: theme.warning + '33' }}>
               <p className="font-semibold mb-1" style={{ color: theme.warning }}>Debug Info:</p>
-              <p style={{ color: theme.textSecondary }}>flowNodesContext: {flowNodesContext ? "available" : "null"}</p>
-              <p style={{ color: theme.textSecondary }}>nodes.length: {nodes.length}</p>
-              <p style={{ color: theme.textSecondary }}>nodeId: {nodeId || "none"}</p>
+              <p className="text-[var(--theme-text-secondary)]">flowNodesContext: {flowNodesContext ? "available" : "null"}</p>
+              <p className="text-[var(--theme-text-secondary)]">nodes.length: {nodes.length}</p>
+              <p className="text-[var(--theme-text-secondary)]">nodeId: {nodeId || "none"}</p>
             </div>
           </div>
         );
@@ -700,20 +698,20 @@ export default function JournalDrawer() {
           <p className="font-semibold" style={{ color: theme.textPrimary }}>We couldn&apos;t find this node in the current workspace.</p>
           <p>It may have been removed or moved to another map.</p>
           {nodeId && (
-            <p className="text-xs mt-2" style={{ color: theme.textMuted }}>
-              Looking for node: <code className="px-1 rounded" style={{ backgroundColor: theme.surface }}>{nodeId}</code>
+            <p className="text-xs mt-2 text-[var(--theme-text-muted)]">
+              Looking for node: <code className="px-1 rounded bg-[var(--theme-surface)]">{nodeId}</code>
             </p>
           )}
           {nodes.length > 0 && (
             <div className="mt-3 rounded-lg border p-3 text-xs" style={{ backgroundColor: theme.info + '1a', borderColor: theme.info + '33' }}>
               <p className="font-semibold mb-2" style={{ color: theme.info }}>Found {nodes.length} node{nodes.length !== 1 ? "s" : ""} in workspace:</p>
-              <ul className="space-y-1" style={{ color: theme.textSecondary }}>
+              <ul className="space-y-1 text-[var(--theme-text-secondary)]">
                 {nodes.slice(0, 5).map((n) => (
                   <li key={n.id}>
-                    <code className="px-1 rounded" style={{ backgroundColor: theme.surface }}>{n.id}</code> ({n.type})
+                    <code className="px-1 rounded bg-[var(--theme-surface)]">{n.id}</code> ({n.type})
                   </li>
                 ))}
-                {nodes.length > 5 && <li style={{ color: theme.textMuted }}>... and {nodes.length - 5} more</li>}
+                {nodes.length > 5 && <li className="text-[var(--theme-text-muted)]">... and {nodes.length - 5} more</li>}
               </ul>
             </div>
           )}
@@ -773,29 +771,21 @@ export default function JournalDrawer() {
                     const mapping: Record<string, { icon: React.ReactNode; className: string }> = {
                       manager: {
                         icon: <Brain className="w-3.5 h-3.5" />,
-                        className: darkMode
-                          ? "bg-sky-500/15 text-sky-100"
-                          : "bg-sky-100 text-sky-600",
+                        className: "theme-light:bg-sky-100 theme-light:text-sky-600 theme-dark:bg-sky-500/15 theme-dark:text-sky-100",
                       },
                       firefighter: {
                         icon: <Shield className="w-3.5 h-3.5" />,
-                        className: darkMode
-                          ? "bg-rose-500/15 text-rose-100"
-                          : "bg-rose-100 text-rose-600",
+                        className: "theme-light:bg-rose-100 theme-light:text-rose-600 theme-dark:bg-rose-500/15 theme-dark:text-rose-100",
                       },
                       exile: {
                         icon: <Heart className="w-3.5 h-3.5" />,
-                        className: darkMode
-                          ? "bg-purple-500/15 text-purple-100"
-                          : "bg-purple-100 text-purple-600",
+                        className: "theme-light:bg-purple-100 theme-light:text-purple-600 theme-dark:bg-purple-500/15 theme-dark:text-purple-100",
                       },
                     };
 
                     const pill = partType && mapping[partType] ? mapping[partType] : {
                       icon: <User className="w-3.5 h-3.5" />,
-                      className: darkMode
-                        ? "bg-slate-800/60 text-slate-200"
-                        : "bg-slate-100 text-slate-600",
+                      className: "theme-light:bg-slate-100 theme-light:text-slate-600 theme-dark:bg-slate-800/60 theme-dark:text-slate-200",
                     };
 
                     return (
@@ -995,29 +985,21 @@ export default function JournalDrawer() {
                 const partTypeMapping: Record<string, { icon: React.ReactNode; className: string }> = {
                   manager: {
                     icon: <Brain className="w-3.5 h-3.5" />,
-                    className: darkMode
-                      ? "bg-sky-500/15 text-sky-100"
-                      : "bg-sky-100 text-sky-600",
+                    className: "theme-light:bg-sky-100 theme-light:text-sky-600 theme-dark:bg-sky-500/15 theme-dark:text-sky-100",
                   },
                   firefighter: {
                     icon: <Shield className="w-3.5 h-3.5" />,
-                    className: darkMode
-                      ? "bg-rose-500/15 text-rose-100"
-                      : "bg-rose-100 text-rose-600",
+                    className: "theme-light:bg-rose-100 theme-light:text-rose-600 theme-dark:bg-rose-500/15 theme-dark:text-rose-100",
                   },
                   exile: {
                     icon: <Heart className="w-3.5 h-3.5" />,
-                    className: darkMode
-                      ? "bg-purple-500/15 text-purple-100"
-                      : "bg-purple-100 text-purple-600",
+                    className: "theme-light:bg-purple-100 theme-light:text-purple-600 theme-dark:bg-purple-500/15 theme-dark:text-purple-100",
                   },
                 };
 
                 const partTypePill = partType && partTypeMapping[partType] ? partTypeMapping[partType] : {
                   icon: <User className="w-3.5 h-3.5" />,
-                  className: darkMode
-                    ? "bg-slate-800/60 text-slate-200"
-                    : "bg-slate-100 text-slate-600",
+                  className: "theme-light:bg-slate-100 theme-light:text-slate-600 theme-dark:bg-slate-800/60 theme-dark:text-slate-200",
                 };
 
                 return (
@@ -1165,9 +1147,7 @@ export default function JournalDrawer() {
                   style={{
                     borderColor: isActive ? 'transparent' : theme.border,
                     ...(isActive ? {
-                      boxShadow: darkMode 
-                        ? 'rgb(148 146 204) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px'
-                        : `0 0 0 2px ${theme.accent}33, 0 10px 15px -3px rgba(0, 0, 0, 0.1)`,
+                      boxShadow: "var(--theme-journal-entry-card-active-shadow)",
                     } : {}),
                   }}
                 >
@@ -1248,7 +1228,7 @@ export default function JournalDrawer() {
       <div
         className="absolute inset-0 transition-opacity duration-300"
         style={{
-          backgroundColor: darkMode ? `${theme.modal}73` : `${theme.modal}73`,
+          backgroundColor: `${theme.modal}73`,
           opacity: isOpen ? 1 : 0,
           pointerEvents: isOpen ? "auto" : "none",
         }}
@@ -1305,12 +1285,11 @@ export default function JournalDrawer() {
                   <button
                     type="button"
                     onClick={() => setDistractionFree(false)}
-                    className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-t-[var(--theme-button-border-top)]"
+                    className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-t-[var(--theme-journal-button-border-top)] theme-dark:shadow-[var(--theme-journal-button-shadow)]"
                     style={{
                       backgroundColor: theme.card,
                       color: theme.textSecondary,
                       border: "none",
-                      ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                       transition: "none !important",
                     }}
                     onMouseEnter={(e) => {
@@ -1360,9 +1339,9 @@ export default function JournalDrawer() {
                     <button
                       type="button"
                       onClick={() => setShowLeftPanel((prev) => !prev)}
-                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm border-t-[var(--theme-journal-button-border-top)] theme-dark:shadow-[var(--theme-journal-button-shadow)]"
                   style={{
-                    backgroundColor: darkMode ? theme.card : theme.card,
+                    backgroundColor: theme.card,
                     color: theme.textPrimary,
                     border: "none",
                     transition: "none !important",
@@ -1512,23 +1491,23 @@ export default function JournalDrawer() {
                         className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                         style={{
                           border: leftPanelTab === "info" ? 'none' : undefined,
-                          borderBottom: leftPanelTab === "info" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
-                          borderRight: leftPanelTab === "info" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
+                          borderBottom: leftPanelTab === "info" ? 'none' : `1px solid var(--theme-journal-tab-border-inactive)`,
+                          borderRight: leftPanelTab === "info" ? 'none' : `1px solid var(--theme-journal-tab-border-inactive)`,
                           backgroundColor: leftPanelTab === "info" 
-                            ? (darkMode ? theme.elevated : theme.card)
-                            : (darkMode ? theme.card : 'transparent'),
+                            ? "var(--theme-journal-tab-button-active-bg)"
+                            : "var(--theme-journal-tab-button-inactive-bg)",
                           transition: "none !important",
                           color: leftPanelTab === "info" ? theme.textPrimary : theme.textSecondary,
                         }}
                         onMouseEnter={(e) => {
                           if (leftPanelTab !== "info") {
-                            e.currentTarget.style.backgroundColor = theme.buttonHover;
+                            e.currentTarget.style.backgroundColor = "var(--theme-journal-tab-button-hover-bg)";
                             e.currentTarget.style.color = theme.textPrimary;
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (leftPanelTab !== "info") {
-                            e.currentTarget.style.backgroundColor = darkMode ? theme.card : 'transparent';
+                            e.currentTarget.style.backgroundColor = "var(--theme-journal-tab-button-inactive-bg)";
                             e.currentTarget.style.color = theme.textSecondary;
                           }
                         }}
@@ -1544,22 +1523,22 @@ export default function JournalDrawer() {
                         className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                         style={{
                           border: leftPanelTab === "history" ? 'none' : undefined,
-                          borderBottom: leftPanelTab === "history" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
-                          borderLeft: leftPanelTab === "history" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
+                          borderBottom: leftPanelTab === "history" ? 'none' : `1px solid var(--theme-journal-tab-border-inactive)`,
+                          borderLeft: leftPanelTab === "history" ? 'none' : `1px solid var(--theme-journal-tab-border-inactive)`,
                           backgroundColor: leftPanelTab === "history" 
-                            ? (darkMode ? theme.elevated : theme.card)
-                            : (darkMode ? theme.card : 'transparent'),
+                            ? "var(--theme-journal-tab-button-active-bg)"
+                            : "var(--theme-journal-tab-button-inactive-bg)",
                           color: leftPanelTab === "history" ? theme.textPrimary : theme.textSecondary,
                         }}
                         onMouseEnter={(e) => {
                           if (leftPanelTab !== "history") {
-                            e.currentTarget.style.backgroundColor = theme.buttonHover;
+                            e.currentTarget.style.backgroundColor = "var(--theme-journal-tab-button-hover-bg)";
                             e.currentTarget.style.color = theme.textPrimary;
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (leftPanelTab !== "history") {
-                            e.currentTarget.style.backgroundColor = darkMode ? theme.card : 'transparent';
+                            e.currentTarget.style.backgroundColor = "var(--theme-journal-tab-button-inactive-bg)";
                             e.currentTarget.style.color = theme.textSecondary;
                           }
                         }}
@@ -1592,22 +1571,22 @@ export default function JournalDrawer() {
                           className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                           style={{
                             border: leftPanelTab === "info" ? 'none' : undefined,
-                            borderBottom: leftPanelTab === "info" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
-                            borderRight: leftPanelTab === "info" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
+                            borderBottom: leftPanelTab === "info" ? 'none' : `1px solid var(--theme-journal-tab-border-inactive)`,
+                            borderRight: leftPanelTab === "info" ? 'none' : `1px solid var(--theme-journal-tab-border-inactive)`,
                             backgroundColor: leftPanelTab === "info" 
-                              ? (darkMode ? theme.elevated : theme.card)
-                              : (darkMode ? theme.card : 'transparent'),
+                              ? "var(--theme-journal-tab-button-active-bg)"
+                              : "var(--theme-journal-tab-button-inactive-bg)",
                             color: leftPanelTab === "info" ? theme.textPrimary : theme.textSecondary,
                           }}
                           onMouseEnter={(e) => {
                             if (leftPanelTab !== "info") {
-                              e.currentTarget.style.backgroundColor = theme.buttonHover;
+                              e.currentTarget.style.backgroundColor = "var(--theme-journal-tab-button-hover-bg)";
                               e.currentTarget.style.color = theme.textPrimary;
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (leftPanelTab !== "info") {
-                              e.currentTarget.style.backgroundColor = darkMode ? theme.card : 'transparent';
+                              e.currentTarget.style.backgroundColor = "var(--theme-journal-tab-button-inactive-bg)";
                               e.currentTarget.style.color = theme.textSecondary;
                             }
                           }}
@@ -1623,22 +1602,22 @@ export default function JournalDrawer() {
                           className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                           style={{
                             border: leftPanelTab === "history" ? 'none' : undefined,
-                            borderBottom: leftPanelTab === "history" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
-                            borderLeft: leftPanelTab === "history" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
+                            borderBottom: leftPanelTab === "history" ? 'none' : `1px solid var(--theme-journal-tab-border-inactive)`,
+                            borderLeft: leftPanelTab === "history" ? 'none' : `1px solid var(--theme-journal-tab-border-inactive)`,
                             backgroundColor: leftPanelTab === "history" 
-                              ? (darkMode ? theme.elevated : theme.card)
-                              : (darkMode ? theme.card : 'transparent'),
+                              ? "var(--theme-journal-tab-button-active-bg)"
+                              : "var(--theme-journal-tab-button-inactive-bg)",
                             color: leftPanelTab === "history" ? theme.textPrimary : theme.textSecondary,
                           }}
                           onMouseEnter={(e) => {
                             if (leftPanelTab !== "history") {
-                              e.currentTarget.style.backgroundColor = theme.buttonHover;
+                              e.currentTarget.style.backgroundColor = "var(--theme-journal-tab-button-hover-bg)";
                               e.currentTarget.style.color = theme.textPrimary;
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (leftPanelTab !== "history") {
-                              e.currentTarget.style.backgroundColor = darkMode ? theme.card : 'transparent';
+                              e.currentTarget.style.backgroundColor = "var(--theme-journal-tab-button-inactive-bg)";
                               e.currentTarget.style.color = theme.textSecondary;
                             }
                           }}

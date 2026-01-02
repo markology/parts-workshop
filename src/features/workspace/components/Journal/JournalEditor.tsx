@@ -1610,11 +1610,7 @@ function Toolbar({
 
   return (
     <div
-      className="sticky top-0 z-10 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 shadow-sm backdrop-blur"
-      style={{
-        borderColor: theme.border,
-        backgroundColor: theme.elevated,
-      }}
+      className="sticky top-0 z-10 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 shadow-sm backdrop-blur border-[var(--theme-border)] bg-[var(--theme-elevated)]"
     >
     <button
       type="button"
@@ -2146,11 +2142,7 @@ export default function JournalEditor({
            />
          )}
         <div
-          className="relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex"
-          style={{
-            borderColor: theme.border,
-            backgroundColor: theme.surface,
-          }}
+          className="relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex border-[var(--theme-border)] bg-[var(--theme-surface)]"
         >
           <div className="flex-1 relative overflow-hidden">
             <style dangerouslySetInnerHTML={{__html: `
@@ -2173,14 +2165,9 @@ export default function JournalEditor({
               <RichTextPlugin
                 contentEditable={
                   <ContentEditable
-                    className="prose prose-slate w-full min-w-full max-w-none py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert"
+                    className="prose prose-slate w-full min-w-full max-w-none py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert text-[var(--theme-text-primary)] whitespace-pre-wrap min-h-full pl-[24px] pr-[24px]"
                     style={{
-                      whiteSpace: "pre-wrap",
                       caretColor: accentColor,
-                      minHeight: "100%",
-                      paddingLeft: "24px",
-                      paddingRight: "24px",
-                      color: theme.textPrimary,
                     }}
                   />
                 }
