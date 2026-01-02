@@ -133,7 +133,7 @@
   --theme-tension-node-bg-top: 1px solid #00000012;
 
   /* Interaction Node */
-  --theme-interaction-node-bg: linear-gradient(to bottom right, #eaf7ff, #e4f4ff, white);
+  --theme-interaction-node-bg: linear-gradient(140deg, #eaf7ff, #e4f4ff, white);
   --theme-interaction-node-shadow: 0 26px 62px rgba(28, 102, 143, 0.16);
   --theme-interaction-node-pill-bg: rgba(135, 206, 235, 0.25);
   --theme-interaction-node-pill-text: var(--node-text-interaction);
@@ -287,7 +287,7 @@
   --theme-tension-node-bg-top: 1px solid rgba(0, 0, 0, 0.15);
 
   /* Interaction Node */
-  --theme-interaction-node-bg: linear-gradient(140deg, #1f2a3d, #21272f);
+  --theme-interaction-node-bg: linear-gradient(140deg, rgb(31, 42, 61), rgb(33, 39, 47));
   --theme-interaction-node-shadow: 0 32px 90px rgba(0, 0, 0, 0.65);
   --theme-interaction-node-pill-bg: rgba(59, 130, 246, 0.2);
   --theme-interaction-node-pill-text: #dbeafe;

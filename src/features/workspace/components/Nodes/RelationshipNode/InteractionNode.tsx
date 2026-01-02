@@ -96,7 +96,7 @@ const InteractionNode = ({
         className="node relationship-node relative w-[320px]"
       >
         <div
-          className="rounded-[26px] overflow-hidden p-5 space-y-5 bg-[var(--theme-interaction-node-bg)] theme-light:text-slate-900 theme-dark:text-white shadow-[var(--theme-interaction-node-shadow)]"
+          className="rounded-[26px] overflow-hidden p-5 space-y-5 bg-[image:var(--theme-interaction-node-bg)] theme-light:text-slate-900 theme-dark:text-white"
         >
           <div className="flex items-center justify-between gap-3">
             <span
