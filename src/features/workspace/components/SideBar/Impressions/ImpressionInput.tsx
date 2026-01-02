@@ -187,6 +187,33 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
     ? selectedModalColors.inputPillFont 
     : getImpressionPartDetailsHeaderColor(selectedType, darkMode);
 
+  // Helper to convert CSS variable or rgb() string to rgba() with opacity
+  const rgbToRgba = (colorValue: string, opacity: number): string => {
+    if (typeof window === 'undefined') return colorValue;
+    
+    // If it's a CSS variable, get the computed value
+    if (colorValue.startsWith('var(')) {
+      const match = colorValue.match(/var\((--[^)]+)\)/);
+      if (match) {
+        const cssVarName = match[1];
+        const computedValue = getComputedStyle(document.documentElement)
+          .getPropertyValue(cssVarName)
+          .trim();
+        if (computedValue.startsWith('rgb(')) {
+          return computedValue.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`);
+        }
+        return computedValue;
+      }
+    }
+    
+    // If it's already an rgb() string, convert it
+    if (colorValue.startsWith('rgb(')) {
+      return colorValue.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`);
+    }
+    
+    return colorValue;
+  };
+
   return (
     <div ref={containerRef} className="relative">
       <div className="space-y-4">
@@ -219,7 +246,7 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
                   fontSize: '14px',
                   backgroundColor: selectedType === type 
                     ? (darkMode 
-                        ? typeModalColors.modalBg.replace('rgb(', 'rgba(').replace(')', ', 0.7)')
+                        ? rgbToRgba(typeModalColors.modalBg, 0.7)
                         : typeModalColors.topLeftPillBg)
                     : "transparent",
                   color: darkMode 

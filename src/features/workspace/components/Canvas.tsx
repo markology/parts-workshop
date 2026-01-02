@@ -212,8 +212,9 @@ const Workspace = () => {
   };
 
 
+  // bg-[image:var(--theme-workspace-bg)]
   return (
-    <div id="canvas" className="h-full flex-grow relative">
+    <div id="canvas" className="h-full flex-grow relative ">
       {!selectedPartId && (
         <div 
           className="fixed" 
@@ -233,16 +234,14 @@ const Workspace = () => {
             }}
             className={`
               w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center
-              ${showColorPicker ? 'bg-transparent' : 'bg-white'}
               theme-dark:bg-[#2a2e32]
-              ${showColorPicker ? 'theme-dark:bg-[rgb(26,30,34)]' : ''}
-              ${!showColorPicker ? 'hover:bg-gradient-to-r hover:from-[rgb(240,249,255)] hover:via-[rgb(238,242,255)] hover:to-[rgb(255,241,242)]' : ''}
-              shadow-sm theme-dark:shadow-[0_12px_28px_rgba(0,0,0,0.45)]
-            `.trim().replace(/\s+/g, ' ')}
-            style={{
-              borderColor: theme.border,
-              color: theme.textPrimary,
-            }}
+              bg-white
+              ${showColorPicker ? 'theme-light:bg-[image:var(--theme-jazz-gradient)] theme-dark:bg-[var(--theme-sub-button-hover)] scale-105' : ''}
+              theme-light:hover:bg-[image:var(--theme-jazz-gradient)]
+            theme-dark:hover:bg-[var(--theme-sub-button-hover)]
+              shadow-sm theme-dark:shadow-[0_12px_28px_rgba(0,0,0,0.45)] hover:bg-[var(--theme-component-hover)]
+              border-none text-[var(--theme-button-text)]
+            `}
             aria-label="Pick workspace background color"
           >
             <Paintbrush className="w-5 h-5" />
@@ -419,8 +418,8 @@ const Workspace = () => {
       )}
       {!isMobile ? (
         <ReactFlow
-          className="h-[4000px] w-[4000px]"
-          style={{ background: getBackgroundStyle() }}
+          className="h-[4000px] w-[4000px] bg-[image:var(--theme-workspace-bg)]"
+          // style={{ background: getBackgroundStyle() }}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange as OnNodesChange<Node>}
@@ -439,7 +438,7 @@ const Workspace = () => {
         >
           <FitViewOnLoad />
           <Background
-            color={theme.border}
+            color={'red'}
             gap={32}
             size={1.2}
           />
@@ -452,8 +451,8 @@ const Workspace = () => {
         </ReactFlow>
       ) : (
         <ReactFlow
-          className="h-[4000px] w-[4000px]"
-          style={{ background: getBackgroundStyle() }}
+          className="h-[4000px] w-[4000px] bg-[image:var(--theme-workspace-bg)]"
+          // style={{ background: getBackgroundStyle() }}
           nodes={nodes}
           edges={edges}
           onNodesChange={() => {}}
@@ -469,7 +468,7 @@ const Workspace = () => {
         >
           <FitViewOnLoad />
           <Background
-            color={theme.border}
+            color={'green'}
             gap={32}
             size={1.2}
           />

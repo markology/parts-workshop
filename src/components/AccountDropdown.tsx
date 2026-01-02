@@ -213,7 +213,7 @@ export default function AccountDropdown({
                 alt={session.user.name || 'User'}
                 width={40}
                 height={40}
-                className="rounded-full"
+                className="rounded-full w-auto h-auto"
               />
             ) : (
               <User className={`w-5 h-5 ${useWorkspaceTheme ? '' : 'text-slate-700 dark:text-slate-300'}`} />

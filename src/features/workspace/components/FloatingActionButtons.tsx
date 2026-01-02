@@ -577,6 +577,9 @@ const FloatingActionButtons = () => {
             bg-[var(--theme-component)]
             hover:bg-[var(--theme-component-hover)]
             shadow-[var(--theme-button-shadow)]
+            theme-light:hover:bg-[image:var(--theme-jazz-gradient)]
+            theme-dark:hover:bg-[var(--theme-sub-button-hover)]
+            text-[var(--theme-button-text)]
           `}
           // onMouseEnter={(e) => {
           //   if (isDark) {
@@ -727,14 +730,14 @@ const FloatingActionButtons = () => {
                         >
                           <div className="relative aspect-[4/3] overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent" />
-                            <Image
+                            {/* <Image
                               src={item.image}
                               alt={item.title}
                               fill
                               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                               className="object-cover transition-transform duration-500 group-hover:scale-105"
                               priority={false}
-                            />
+                            /> */}
                             <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-black/60 backdrop-blur px-3 py-1 text-xs font-semibold text-white uppercase tracking-wide">
                               Coming soon
                             </div>
@@ -850,10 +853,10 @@ const FloatingActionButtons = () => {
           >
             {/* Part option */}
             <button
-              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative bg-[var(--theme-component)] hover:bg-[var(--theme-component-hover)]"
+              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative bg-[var(--theme-component)] hover:bg-[var(--theme-component-hover)] group text-[var(--theme-button-text)]"
               style={{ 
                 // backgroundColor: theme.button,
-                color: theme.buttonText 
+                // color: theme.buttonText 
               }}
               // onMouseEnter={(e) => {
               //   setHoveredOption('part');
@@ -934,7 +937,7 @@ const FloatingActionButtons = () => {
             >
               Part
               <span 
-                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)]"
+                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)] theme-dark:hover:bg-[var(--theme-sub-button-hover)] theme-light:group-hover:bg-[image:var(--theme-jazz-gradient)]"
                 style={{ 
                   // backgroundColor: isDark ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
@@ -948,7 +951,7 @@ const FloatingActionButtons = () => {
             
             {/* Relationship option */}
             <button
-              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative bg-[var(--theme-component)] hover:bg-[var(--theme-component-hover)]"
+              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative bg-[var(--theme-component)] hover:bg-[var(--theme-component-hover)] light-theme:hover:bg-[image:var(--theme-jazz-gradient)] group text-[var(--theme-button-text)]"
               // style={{ 
               //   backgroundColor: theme.button,
               //   color: theme.buttonText 
@@ -1024,7 +1027,7 @@ const FloatingActionButtons = () => {
             >
               Relationship
               <span 
-                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)]"
+                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)] theme-dark:hover:bg-[var(--theme-sub-button-hover)] theme-light:group-hover:bg-[image:var(--theme-jazz-gradient)]"
                 style={{ 
                   // backgroundColor: isDark ? theme.buttonActive : 'white', 
                   color: theme.buttonText 

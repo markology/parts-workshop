@@ -96,17 +96,17 @@ const TensionNode = ({
     };
   }, [editingId, editValue, handleSave]);
 
-  const accent = NodeBackgroundColors["tension"];
+  // const accent = NodeBackgroundColors["tension"];
   const accentText = NodeTextColors["tension"];
-  const shellClasses = darkMode
-    ? "text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
-    : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
+  // const shellClasses = darkMode
+  //   ? "text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
+  //   : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
 
-  const shellStyle = darkMode
-    ? {
-        background: `linear-gradient(140deg, #2a1f3d, #27212f)`,
-      }
-    : undefined;
+  // const shellStyle = darkMode
+  //   ? {
+  //       background: `linear-gradient(140deg, #2a1f3d, #27212f)`,
+  //     }
+  //   : undefined;
 
   const placeholderText = darkMode ? "text-slate-400" : "text-purple-900/55";
 
@@ -118,16 +118,13 @@ const TensionNode = ({
         className="node relationship-node relative w-[340px]"
       >
         <div
-          className={`rounded-[26px] overflow-hidden p-5 space-y-5 ${shellClasses}`}
-          style={shellStyle}
+          className={`rounded-[26px] overflow-hidden p-5 space-y-5 bg-[image:var(--theme-tension-node-bg)] shadow-[var(--theme-tension-node-shadow)] theme-light:text-slate-900 theme-dark:text-white`}
+          // style={shellStyle}
         >
           <div className="flex items-center justify-between gap-3">
             <span
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em]"
-              style={{
-                backgroundColor: darkMode ? "rgba(168,85,247,0.2)" : "rgba(177,156,217,0.22)",
-                color: darkMode ? "#e9d5ff" : accentText,
-              }}
+              className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em] theme-light:text-[${accentText}] theme-dark:text-[var(--theme-tension-node-pill-text)] bg-[var(--theme-tension-node-pill-bg)]`}
+     
             >
               <MessageCircleWarning size={14} />
               Tension

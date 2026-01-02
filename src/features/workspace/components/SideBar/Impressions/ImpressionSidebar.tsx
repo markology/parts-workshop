@@ -160,7 +160,7 @@ const Impressions = () => {
           </div>
           <div
             data-add-button
-            className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm gap-1 bg-[var(--theme-sub-button)] group-hover:bg-[var(--theme-sub-button-hover)]"
+            className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm gap-1 bg-[var(--theme-sub-button)] group-hover:bg-[var(--theme-sub-button-hover)] theme-light:group-hover:bg-[image:var(--theme-jazz-gradient)]"
             style={{ 
               // backgroundColor: darkMode ? theme.buttonActive : 'white', 
               color: theme.buttonText,

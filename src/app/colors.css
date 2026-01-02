@@ -1,0 +1,178 @@
+:root {
+    /* ============================================================================
+   * NODE COLORS
+   * ============================================================================ */
+
+    /* Node border colors (with alpha) */
+    --node-color-emotion: #f28c82ad;
+    --node-color-thought: #7ab3e0ad;
+    --node-color-sensation: #f9b17aad;
+    --node-color-behavior: #8bcb8bad;
+    --node-color-tension: #b19cd9ad;
+    --node-color-part: #f7e68fad;
+    --node-color-other: #efa9c8ad;
+
+    /* Node background colors */
+    --node-bg-emotion: #8bcb8b; /* rgb(139, 203, 139) - Green (was behavior) */
+    --node-bg-thought: #7ab3e0;
+    --node-bg-sensation: #f28c82; /* Coral/salmon red (was emotion) */
+    --node-bg-behavior: #f9b17a; /* Orange (was sensation) */
+    --node-bg-tension: #b19cd9;
+    --node-bg-interaction: #87ceeb; /* Light blue for interaction */
+    --node-bg-part: #a1c7dd;
+    --node-bg-other: #14b8a6; /* Teal/cyan - distinct from emotions */
+    --node-bg-default: #9ca3af; /* Gray for default */
+
+    /* Node text colors (dark theme) */
+    --node-text-emotion: #3f7142; /* Dark green (was behavior) */
+    --node-text-thought: #3e6e91;
+    --node-text-sensation: #994936; /* Brown (was emotion) */
+    --node-text-behavior: #9b6034; /* Brown (matching original sensation text) */
+    --node-text-tension: #5a4784;
+    --node-text-interaction: #1e3a8a; /* Dark blue text for interaction */
+    --node-text-part: #998f3a;
+    --node-text-other: #0d9488; /* Deep teal for contrast */
+    --node-text-default: #374151; /* Dark gray for default */
+
+    /* Node text colors (light theme) */
+    --node-text-light-emotion: #b5e8c1; /* Light mint green (was behavior) */
+    --node-text-light-thought: #abdefd;
+    --node-text-light-sensation: #f4b4a3; /* Soft light red (was emotion) */
+    --node-text-light-behavior: #f8cfa5; /* Warm cream (matching original sensation light) */
+    --node-text-light-tension: #d5caf1; /* lavender */
+    --node-text-light-part: #f4edb3; /* pale yellow */
+    --node-text-light-other: #a7f3d0; /* soft light teal */
+
+    /* ============================================================================
+   * IMPRESSION COLORS - DARK MODE
+   * ============================================================================ */
+
+    /* Emotion - Dark Mode */
+    --impression-dark-emotion-modal-bg: rgb(61, 81, 68);
+    --impression-dark-emotion-top-left-pill-bg: rgb(42, 42, 42);
+    --impression-dark-emotion-input-pill-bg: rgb(42, 42, 42);
+    --impression-dark-emotion-pill-font: rgb(139, 203, 139);
+    --impression-dark-emotion-input-pill-font: rgb(139, 203, 139);
+    --impression-dark-emotion-add-button-bg: rgb(82, 113, 87);
+    --impression-dark-emotion-font: rgb(139, 203, 139);
+    --impression-dark-emotion-background: rgb(86, 117, 90);
+    --impression-dark-emotion-part-node-type-font: rgb(55, 81, 55);
+    --impression-dark-emotion-sidebar-header-bg: rgb(71, 92, 76);
+    --impression-dark-emotion-border-color: rgb(107, 149, 133);
+
+    /* Thought - Dark Mode */
+    --impression-dark-thought-modal-bg: rgb(57, 74, 90);
+    --impression-dark-thought-top-left-pill-bg: rgb(42, 42, 42);
+    --impression-dark-thought-input-pill-bg: rgb(42, 42, 42);
+    --impression-dark-thought-pill-font: rgb(122, 179, 224);
+    --impression-dark-thought-input-pill-font: rgb(122, 179, 224);
+    --impression-dark-thought-add-button-bg: rgb(75, 101, 125);
+    --impression-dark-thought-font: rgb(122, 179, 224);
+    --impression-dark-thought-background: rgb(76, 104, 126);
+    --impression-dark-thought-part-node-type-font: rgb(48, 71, 89);
+    --impression-dark-thought-sidebar-header-bg: rgb(65, 85, 102);
+    --impression-dark-thought-border-color: rgb(97, 136, 169);
+
+    /* Sensation - Dark Mode */
+    --impression-dark-sensation-modal-bg: rgb(88, 64, 66);
+    --impression-dark-sensation-top-left-pill-bg: rgb(42, 42, 42);
+    --impression-dark-sensation-input-pill-bg: rgb(42, 42, 42);
+    --impression-dark-sensation-pill-font: rgb(249, 177, 122);
+    --impression-dark-sensation-input-pill-font: rgb(249, 177, 122);
+    --impression-dark-sensation-add-button-bg: rgb(129, 84, 83);
+    --impression-dark-sensation-font: rgb(249, 177, 122);
+    --impression-dark-sensation-background: rgb(130, 87, 85);
+    --impression-dark-sensation-part-node-type-font: rgb(96, 56, 52);
+    --impression-dark-sensation-sidebar-header-bg: rgb(102, 73, 73);
+    --impression-dark-sensation-border-color: rgb(151, 119, 128);
+
+    /* Behavior - Dark Mode */
+    --impression-dark-behavior-modal-bg: rgb(89, 74, 64);
+    --impression-dark-behavior-top-left-pill-bg: rgb(42, 42, 42);
+    --impression-dark-behavior-input-pill-bg: rgb(42, 42, 42);
+    --impression-dark-behavior-pill-font: rgb(242, 140, 130);
+    --impression-dark-behavior-input-pill-font: rgb(242, 140, 130);
+    --impression-dark-behavior-add-button-bg: rgb(130, 101, 80);
+    --impression-dark-behavior-font: rgb(242, 140, 130);
+    --impression-dark-behavior-background: rgb(133, 104, 81);
+    --impression-dark-behavior-part-node-type-font: rgb(99, 70, 48);
+    --impression-dark-behavior-sidebar-header-bg: rgb(103, 84, 71);
+    --impression-dark-behavior-border-color: rgb(154, 136, 124);
+
+    /* Other - Dark Mode */
+    --impression-dark-other-modal-bg: rgb(30, 76, 74);
+    --impression-dark-other-top-left-pill-bg: rgb(42, 42, 42);
+    --impression-dark-other-input-pill-bg: rgb(42, 42, 42);
+    --impression-dark-other-pill-font: rgb(20, 184, 166);
+    --impression-dark-other-input-pill-font: rgb(20, 184, 166);
+    --impression-dark-other-add-button-bg: rgb(28, 105, 99);
+    --impression-dark-other-font: rgb(20, 184, 166);
+    --impression-dark-other-background: rgb(29, 104, 98);
+    --impression-dark-other-part-node-type-font: rgb(8, 73, 66);
+    --impression-dark-other-sidebar-header-bg: rgb(34, 87, 84);
+    --impression-dark-other-border-color: rgb(50, 136, 141);
+
+    /* ============================================================================
+   * IMPRESSION COLORS - LIGHT MODE
+   * ============================================================================ */
+
+    /* Emotion - Light Mode */
+    --impression-light-emotion-modal-bg: rgb(239, 248, 239);
+    --impression-light-emotion-top-left-pill-bg: rgb(225, 242, 224);
+    --impression-light-emotion-input-pill-bg: rgba(255, 255, 255, 0.76);
+    --impression-light-emotion-pill-font: rgb(63, 113, 66);
+    --impression-light-emotion-input-pill-font: rgb(139, 203, 139);
+    --impression-light-emotion-add-button-bg: rgb(139, 203, 139);
+    --impression-light-emotion-font: rgb(63, 113, 66);
+    --impression-light-emotion-background: rgb(227, 243, 227);
+    --impression-light-emotion-sidebar-header-bg: rgb(234, 246, 234);
+    --impression-light-emotion-part-details-header: rgb(139, 203, 139);
+
+    /* Thought - Light Mode */
+    --impression-light-thought-modal-bg: rgb(236, 244, 251);
+    --impression-light-thought-top-left-pill-bg: rgb(220, 233, 246);
+    --impression-light-thought-input-pill-bg: rgba(255, 255, 255, 0.76);
+    --impression-light-thought-pill-font: rgb(62, 110, 145);
+    --impression-light-thought-input-pill-font: rgb(122, 179, 224);
+    --impression-light-thought-add-button-bg: rgb(122, 179, 224);
+    --impression-light-thought-font: rgb(62, 110, 145);
+    --impression-light-thought-background: rgb(221, 235, 246);
+    --impression-light-thought-sidebar-header-bg: rgb(231, 241, 249);
+    --impression-light-thought-part-details-header: rgb(122, 179, 224);
+
+    /* Sensation - Light Mode */
+    --impression-light-sensation-modal-bg: rgb(253, 239, 237);
+    --impression-light-sensation-top-left-pill-bg: rgb(251, 225, 221);
+    --impression-light-sensation-input-pill-bg: rgba(255, 255, 255, 0.76);
+    --impression-light-sensation-pill-font: rgb(153, 73, 54);
+    --impression-light-sensation-input-pill-font: rgb(242, 140, 130);
+    --impression-light-sensation-add-button-bg: rgb(242, 140, 130);
+    --impression-light-sensation-font: rgb(153, 73, 54);
+    --impression-light-sensation-background: rgb(249, 225, 223);
+    --impression-light-sensation-sidebar-header-bg: rgb(253, 234, 232);
+    --impression-light-sensation-part-details-header: rgb(242, 140, 130);
+
+    /* Behavior - Light Mode */
+    --impression-light-behavior-modal-bg: rgb(254, 244, 236);
+    --impression-light-behavior-top-left-pill-bg: rgb(253, 233, 219);
+    --impression-light-behavior-input-pill-bg: rgba(255, 255, 255, 0.76);
+    --impression-light-behavior-pill-font: rgb(155, 96, 52);
+    --impression-light-behavior-input-pill-font: rgb(249, 177, 122);
+    --impression-light-behavior-add-button-bg: rgb(249, 177, 122);
+    --impression-light-behavior-font: rgb(155, 96, 52);
+    --impression-light-behavior-background: rgb(253, 235, 222);
+    --impression-light-behavior-sidebar-header-bg: rgb(254, 241, 231);
+    --impression-light-behavior-part-details-header: rgb(249, 177, 122);
+
+    /* Other - Light Mode */
+    --impression-light-other-modal-bg: rgb(222, 245, 242);
+    --impression-light-other-top-left-pill-bg: rgb(194, 235, 230);
+    --impression-light-other-input-pill-bg: rgba(255, 255, 255, 0.76);
+    --impression-light-other-pill-font: rgb(13, 148, 136);
+    --impression-light-other-input-pill-font: rgb(20, 184, 166);
+    --impression-light-other-add-button-bg: rgb(20, 184, 166);
+    --impression-light-other-font: rgb(13, 148, 136);
+    --impression-light-other-background: rgb(198, 237, 233);
+    --impression-light-other-sidebar-header-bg: rgb(213, 242, 239);
+    --impression-light-other-part-details-header: rgb(20, 184, 166);
+}

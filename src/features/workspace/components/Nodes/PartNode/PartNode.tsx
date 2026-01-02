@@ -73,25 +73,6 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
       ),
     });
 
-  // Get relationships
-  const relationships = useMemo(() => {
-    const connectedEdges = edges.filter(
-      (edge) => edge.source === partId || edge.target === partId
-    );
-
-    return connectedEdges.map((edge) => {
-      const connectedNodeId = edge.source === partId ? edge.target : edge.source;
-      const connectedNode = nodes.find((node) => node.id === connectedNodeId);
-      
-      return {
-        id: edge.id,
-        nodeId: connectedNodeId,
-        nodeType: connectedNode?.type || "unknown",
-        nodeLabel: connectedNode?.data?.label || "Unknown",
-        relationshipType: edge.data?.relationshipType || "tension",
-      };
-    });
-  }, [edges, nodes, partId]);
 
   // Get all observations for display, sorted by recency
   const allObservations = useMemo(() => {
@@ -164,18 +145,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   };
 
   const observationPreview = allObservations.slice(0, 8);
-
   const isSelected = selectedPartId === partId;
-  const cardBase = darkMode
-    ? "text-slate-100 shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
-    : "bg-white/90 text-slate-900 shadow-[0_26px_60px_rgba(15,23,42,0.14)]";
-  
-  const cardStyle = darkMode
-    ? {
-        background: `linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35))`,
-      }
-    : undefined;
-
 
   return (
     <>
@@ -186,19 +156,18 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
         style={{ width: 420 }}
       >
         <div
-          className={`relative overflow-hidden rounded-[24px] transition-all duration-300 cursor-pointer ${cardBase} ${
+          className={`relative overflow-hidden rounded-[24px] transition-all duration-300 cursor-pointer ${
             isSelected
               ? "ring-2 ring-sky-400"
               : ""
-          }`}
-          style={cardStyle}
+          } bg-[image:var(--theme-part-node-bg)]`}
           onClick={() => setSelectedPartId(partId)}
         >
           <div className="relative p-6 lg:p-7 space-y-6">
             <div className="flex flex-wrap items-start gap-6">
               <div className="flex-1 space-y-4">
                 <div className="space-y-2">
-                  <h2 className="text-2xl lg:text-[28px] font-semibold leading-tight">
+                  <h2 className="text-2xl lg:text-[28px] font-semibold leading-tight text-[var(--theme-button-text)]">
                     {data.name || data.label || "Untitled"}
                   </h2>
                   <div>{getPartTypePill(data.customPartType || (data.partType as string | undefined))}</div>
@@ -206,14 +175,14 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                 <div className="min-h-[48px]">
                   {data.scratchpad ? (
                     <p 
-                      className="text-sm leading-relaxed line-clamp-3"
+                      className="text-sm leading-relaxed line-clamp-3 light-theme:text-slate-900 dark-theme:text-slate-100"
                       style={{ color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)" }}
                     >
                       {data.scratchpad}
                     </p>
                   ) : (
                     <p 
-                      className="text-sm leading-relaxed italic"
+                      className="text-sm leading-relaxed italic light-theme:text-slate-900 dark-theme:text-slate-100"
                       style={{ color: darkMode ? "rgb(100, 116, 139)" : "rgb(148, 163, 184)" }}
                     >
                       No description added yet.
@@ -235,7 +204,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between pl-3 pr-2">
-                <p className={`text-xs uppercase tracking-[0.28em] ${darkMode ? "text-white" : "text-slate-400"}`}>Recent impressions</p>
+                <p className={`text-xs uppercase tracking-[0.28em] theme-light:text-slate-400 theme-dark:text-white`}>Recent impressions</p>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -261,7 +230,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                   }}
                   title="Open journal"
                 >
-                  <BookOpen size={16} />
+                  <BookOpen className="text-[var(--theme-button-text)]" size={16} />
                 </button>
               </div>
 

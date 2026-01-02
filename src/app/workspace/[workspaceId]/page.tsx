@@ -42,19 +42,19 @@ export default function WorkspacePage() {
       <ReactFlowProvider>
         <div 
           className="PW flex flex-row flex-grow h-[100vh] w-[100vw] overflow-hidden"
-          style={
-            darkMode
-              ? {
-                  backgroundImage:
-                    "linear-gradient(135deg, #454b54, #3d434b, #353b43)",
-                  color: theme.textPrimary,
-                }
-              : {
-                  backgroundImage:
-                    "linear-gradient(to bottom, #e6f8ff 0%, #dbeafe 400px, #e0e7ff calc(400px + 500px), #fef1f2 calc(400px + 1000px), #f3e8ff 100%)",
-                  color: theme.textPrimary,
-                }
-          }
+          // style={
+          //   darkMode
+          //     ? {
+          //         backgroundImage:
+          //           "linear-gradient(135deg, #454b54, #3d434b, #353b43)",
+          //         color: theme.textPrimary,
+          //       }
+          //     : {
+          //         backgroundImage:
+          //           "linear-gradient(to bottom, #e6f8ff 0%, #dbeafe 400px, #e0e7ff calc(400px + 500px), #fef1f2 calc(400px + 1000px), #f3e8ff 100%)",
+          //         color: theme.textPrimary,
+          //       }
+          // }
         >
           <JournalDrawer />
           <ViewportSizeSwitch
