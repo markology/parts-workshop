@@ -114,6 +114,7 @@
   --theme-text: black;
   --theme-text-secondary: #64748b;
   --theme-text-primary: #1e293b;
+  --theme-text-muted: #94a3b8;
   --theme-surface-background: #fff;
   --theme-border: var(--border);
   --theme-card: #ffffff;
@@ -300,6 +301,7 @@
   --impression-button-shadow: rgba(0, 0, 0, 0.2);
   --theme-text: #ffffff;
   --theme-text-secondary: #rgba(255, 255, 255, 0.7);
+  --theme-text-muted: rgba(255, 255, 255, 0.5);
   --theme-surface-background: #272b2f;
   --theme-card: #212529;
   --theme-border: rgba(255, 255, 255, 0.1);

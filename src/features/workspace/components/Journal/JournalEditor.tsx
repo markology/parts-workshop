@@ -999,12 +999,7 @@ function ColorPicker({
 
       {isOpen && !disabled && (
         <div
-          className="absolute top-full left-0 mt-2 z-50 rounded-xl border shadow-2xl backdrop-blur-sm p-3 min-w-[190px]"
-          className="theme-light:shadow-[0_14px_42px_rgba(0,0,0,0.18)] theme-dark:shadow-[0_14px_42px_rgba(0,0,0,0.45)]"
-          style={{
-            borderColor: theme.border,
-            backgroundColor: theme.modal,
-          }}
+          className="absolute top-full left-0 mt-2 z-50 rounded-xl border backdrop-blur-sm p-3 min-w-[190px] theme-light:shadow-[0_14px_42px_rgba(0,0,0,0.18)] theme-dark:shadow-[0_14px_42px_rgba(0,0,0,0.45)] border-[var(--theme-border)] bg-[var(--theme-modal)]"
         >
           <div className="space-y-3">
             <div className="grid grid-cols-5 gap-2.5">
@@ -1023,16 +1018,16 @@ function ColorPicker({
                   }`}
                   style={{
                     backgroundColor: color,
-                    borderColor: activeColor === color ? theme.accent : theme.border,
+                    borderColor: activeColor === color ? "var(--theme-accent)" : "var(--theme-border)",
                   }}
                   onMouseEnter={(e) => {
                     if (activeColor !== color) {
-                      e.currentTarget.style.borderColor = theme.accent;
+                      e.currentTarget.style.borderColor = "var(--theme-accent)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (activeColor !== color) {
-                      e.currentTarget.style.borderColor = theme.border;
+                      e.currentTarget.style.borderColor = "var(--theme-border)";
                     }
                   }}
                   title={color}
@@ -1040,19 +1035,16 @@ function ColorPicker({
               ))}
             </div>
 
-            <div className="pt-2 border-t" style={{ borderColor: theme.border }}>
+            <div className="pt-2 border-t border-[var(--theme-border)]">
               <button
                 type="button"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   handleColorSelect(null);
                 }}
-                className="w-full rounded-md px-2.5 py-1.5 text-sm font-medium transition"
-                style={{
-                  color: theme.textPrimary,
-                }}
+                className="w-full rounded-md px-2.5 py-1.5 text-sm font-medium transition text-[var(--theme-text-primary)]"
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = theme.buttonHover;
+                  e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
@@ -1592,7 +1584,7 @@ function Toolbar({
     if (!isActive) {
       return {
         backgroundColor: "transparent",
-        color: theme.textSecondary,
+        color: "var(--theme-text-secondary)",
         boxShadow: "none",
         border: "1px solid transparent",
       } as const;
@@ -1601,8 +1593,8 @@ function Toolbar({
     // Light theme: white active background (instead of accent fill)
     // Dark theme: keep accent fill
     return {
-      backgroundColor: theme.workspace,
-      color: theme.textPrimary,
+      backgroundColor: "var(--theme-workspace)",
+      color: "var(--theme-text-primary)",
       boxShadow: "0 1px 2px rgba(0, 0, 0, 0.08)",
       // border: `1px solid ${theme.border}`,
     } as const;
@@ -1630,14 +1622,14 @@ function Toolbar({
       }}
       onMouseEnter={(e) => {
         if (!activeSpeaker && !formats.bold) {
-          e.currentTarget.style.backgroundColor = theme.buttonHover;
-          e.currentTarget.style.color = theme.textPrimary;
+          e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
+          e.currentTarget.style.color = "var(--theme-text-primary)";
         }
       }}
       onMouseLeave={(e) => {
         if (!activeSpeaker && !formats.bold) {
           e.currentTarget.style.backgroundColor = 'transparent';
-          e.currentTarget.style.color = theme.textSecondary;
+          e.currentTarget.style.color = "var(--theme-text-secondary)";
         }
       }}
         title={activeSpeaker ? "Formatting locked while speaker is active" : "Bold"}
@@ -1663,14 +1655,14 @@ function Toolbar({
         }}
         onMouseEnter={(e) => {
           if (!activeSpeaker && !formats.italic) {
-            e.currentTarget.style.backgroundColor = theme.buttonHover;
-            e.currentTarget.style.color = theme.textPrimary;
+            e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
+            e.currentTarget.style.color = "var(--theme-text-primary)";
           }
         }}
         onMouseLeave={(e) => {
           if (!activeSpeaker && !formats.italic) {
             e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = theme.textSecondary;
+            e.currentTarget.style.color = "var(--theme-text-secondary)";
           }
         }}
         title={activeSpeaker ? "Formatting locked while speaker is active" : "Italic"}
@@ -1696,14 +1688,14 @@ function Toolbar({
         }}
         onMouseEnter={(e) => {
           if (!activeSpeaker && !formats.underline) {
-            e.currentTarget.style.backgroundColor = theme.buttonHover;
-            e.currentTarget.style.color = theme.textPrimary;
+            e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
+            e.currentTarget.style.color = "var(--theme-text-primary)";
           }
         }}
         onMouseLeave={(e) => {
           if (!activeSpeaker && !formats.underline) {
             e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = theme.textSecondary;
+            e.currentTarget.style.color = "var(--theme-text-secondary)";
           }
         }}
         title={activeSpeaker ? "Formatting locked while speaker is active" : "Underline"}
@@ -1729,14 +1721,14 @@ function Toolbar({
         }}
         onMouseEnter={(e) => {
           if (!activeSpeaker && !formats.list) {
-            e.currentTarget.style.backgroundColor = theme.buttonHover;
-            e.currentTarget.style.color = theme.textPrimary;
+            e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
+            e.currentTarget.style.color = "var(--theme-text-primary)";
           }
         }}
         onMouseLeave={(e) => {
           if (!activeSpeaker && !formats.list) {
             e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = theme.textSecondary;
+            e.currentTarget.style.color = "var(--theme-text-secondary)";
           }
         }}
         title={activeSpeaker ? "Formatting locked while speaker is active" : "Bullet List"}
@@ -1744,7 +1736,7 @@ function Toolbar({
             • List
       </button>
 
-          <div className="h-5 w-px" style={{ backgroundColor: theme.border }} />
+          <div className="h-5 w-px bg-[var(--theme-border)]" />
 
       <ColorPicker
         activeColor={activeColor}
@@ -1754,7 +1746,7 @@ function Toolbar({
 
       {allSpeakers.length > 0 && (
         <>
-          <div className="h-5 w-px" style={{ backgroundColor: theme.border }} />
+          <div className="h-5 w-px bg-[var(--theme-border)]" />
           <div className="flex items-center gap-1.5 flex-wrap">
             {allSpeakers.map((speaker) => {
               const isActive = activeSpeaker === speaker.id;
@@ -1903,9 +1895,9 @@ function Toolbar({
                     isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
                   }`}
                   style={{
-                    backgroundColor: isActive ? speakerColor : theme.surface,
-                    color: isActive ? "white" : theme.textSecondary,
-                    borderColor: isActive ? speakerColor : theme.border,
+                    backgroundColor: isActive ? speakerColor : "var(--theme-surface)",
+                    color: isActive ? "white" : "var(--theme-text-secondary)",
+                    borderColor: isActive ? speakerColor : "var(--theme-border)",
                     boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
                     transition: "none !important",
                   }}
@@ -2004,20 +1996,17 @@ function Toolbar({
                 <button
                   type="button"
                   onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
-                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium hover:scale-102"
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium hover:scale-102 border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)]"
                   style={{
-                    borderColor: theme.border,
-                    backgroundColor: theme.surface,
-                    color: theme.textSecondary,
                     transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.buttonHover;
-                    e.currentTarget.style.color = theme.textPrimary;
+                    e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
+                    e.currentTarget.style.color = "var(--theme-text-primary)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.surface;
-                    e.currentTarget.style.color = theme.textSecondary;
+                    e.currentTarget.style.backgroundColor = "var(--theme-surface)";
+                    e.currentTarget.style.color = "var(--theme-text-secondary)";
                   }}
                   title="Add another part"
                 >
@@ -2027,20 +2016,19 @@ function Toolbar({
                 </button>
                 
                 {showAddPartDropdown && (
-                  <div className="absolute top-full left-0 mt-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden" style={{ borderColor: theme.border, backgroundColor: theme.card }}>
+                  <div className="absolute top-full left-0 mt-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden border-[var(--theme-border)] bg-[var(--theme-card)]">
                     <div className="max-h-60 overflow-y-auto">
                       {availablePartsToAdd.map((part) => (
                         <button
                           key={part.id || (part.isUnknown ? "unknown" : "")}
                           type="button"
                           onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
-                          className="w-full text-left px-3 py-2 text-xs font-medium"
+                          className="w-full text-left px-3 py-2 text-xs font-medium text-[var(--theme-text-primary)]"
                           style={{
-                            color: theme.textPrimary,
                             transition: "none !important",
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = theme.buttonHover;
+                            e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
@@ -2172,7 +2160,7 @@ export default function JournalEditor({
                   />
                 }
                 placeholder={
-          <div className="pointer-events-none absolute left-6 top-5 text-sm" style={{ color: theme.textMuted }}>
+          <div className="pointer-events-none absolute left-6 top-5 text-sm text-[var(--theme-text-muted)]">
             {PLACEHOLDER_TEXT}
           </div>
                 }
