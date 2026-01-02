@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { User, SquareUserRound, Plus, ChevronDown, X, ArrowUp } from "lucide-react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
@@ -32,7 +31,6 @@ export default function TextThreadEditor({
   nodeId,
   nodeType,
 }: TextThreadEditorProps) {
-  const { darkMode } = useThemeContext();
   const theme = useTheme();
   const [activeSpeaker, setActiveSpeaker] = useState<string>("self");
   const [previousSpeaker, setPreviousSpeaker] = useState<string | null>(null);
@@ -222,19 +220,20 @@ export default function TextThreadEditor({
       return theme.info; // Use theme info color (blue) for self
     }
     if (speakerId === "unknown") {
-      return darkMode ? "rgb(107, 114, 128)" : "rgb(156, 163, 175)"; // Grey
+      return theme.textMuted; // Use theme muted text color for unknown
     }
     // Generate color for parts - use allPartNodes for consistent color across all parts
     const allParts = allPartNodes || partNodes || [];
     const partIndex = allParts.findIndex((p) => p.id === speakerId);
     if (partIndex >= 0) {
       // Use golden angle for color distribution to ensure different colors
+      // Use 58% lightness as a middle ground that works for both themes
       const hue = (partIndex * 137.508) % 360;
-      return `hsl(${hue}, 65%, ${darkMode ? "55%" : "60%"})`;
+      return `hsl(${hue}, 65%, 58%)`;
     }
-    // Fallback color if part not found
-    return darkMode ? "rgb(239, 68, 68)" : "rgb(220, 38, 38)"; // Red fallback
-  }, [darkMode, partNodes, allPartNodes]);
+    // Fallback color if part not found - use theme error color
+    return theme.error || "rgb(239, 68, 68)";
+  }, [theme, partNodes, allPartNodes]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -414,7 +413,7 @@ export default function TextThreadEditor({
 
       {/* Input and Speaker Selector Container */}
       {!readOnly && (
-        <div className="rounded-[20px] p-5 mb-0.5 shadow-sm" style={{ backgroundColor: darkMode ? theme.card : 'white' }}>
+        <div className="rounded-[20px] p-5 mb-0.5 shadow-sm theme-light:bg-white theme-dark:bg-[var(--theme-card)]" style={{ backgroundColor: theme.card }}>
           {/* Input Area */}
           <div className="relative w-full">
             <textarea
@@ -618,11 +617,11 @@ export default function TextThreadEditor({
                     }}
                     className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                       isActive ? "ring-2 ring-offset-2 scale-105" : "hover:scale-102"
-                    }`}
+                    } ${isActive ? '' : 'theme-light:bg-white/90 theme-dark:bg-slate-800/80 theme-light:text-slate-600 theme-dark:text-slate-300 theme-light:border-slate-300/20 theme-dark:border-slate-400/30'}`}
                     style={{
-                      backgroundColor: isActive ? speakerColor : (darkMode ? "rgba(30, 41, 59, 0.8)" : "rgba(255, 255, 255, 0.9)"),
-                      color: isActive ? "white" : (darkMode ? "rgb(203, 213, 225)" : "rgb(71, 85, 105)"),
-                      borderColor: isActive ? speakerColor : (darkMode ? "rgba(148, 163, 184, 0.3)" : "rgba(148, 163, 184, 0.2)"),
+                      backgroundColor: isActive ? speakerColor : undefined,
+                      color: isActive ? "white" : undefined,
+                      borderColor: isActive ? speakerColor : undefined,
                       boxShadow: isActive ? `0 4px 12px ${speakerColor}40` : "0 1px 3px rgba(0, 0, 0, 0.1)",
                     }}
                     title={`Switch to ${speaker.label}`}

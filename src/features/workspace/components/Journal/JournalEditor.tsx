@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { NodeBackgroundColors } from "../../constants/Nodes";
 import { SquareUserRound, Plus, ChevronDown, X } from "lucide-react";
@@ -903,12 +902,10 @@ const PRESET_COLORS = [
 ];
 
 function ColorPicker({
-  darkMode,
   activeColor,
   onColorChange,
   disabled,
 }: {
-  darkMode: boolean;
   activeColor: string | null;
   onColorChange: (color: string | null) => void;
   disabled?: boolean;
@@ -1003,12 +1000,10 @@ function ColorPicker({
       {isOpen && !disabled && (
         <div
           className="absolute top-full left-0 mt-2 z-50 rounded-xl border shadow-2xl backdrop-blur-sm p-3 min-w-[190px]"
+          className="theme-light:shadow-[0_14px_42px_rgba(0,0,0,0.18)] theme-dark:shadow-[0_14px_42px_rgba(0,0,0,0.45)]"
           style={{
             borderColor: theme.border,
             backgroundColor: theme.modal,
-            boxShadow: darkMode
-              ? "0 14px 42px rgba(0,0,0,0.45)"
-              : "0 14px 42px rgba(0,0,0,0.18)",
           }}
         >
           <div className="space-y-3">
@@ -1074,7 +1069,6 @@ function ColorPicker({
 }
 
 function Toolbar({
-  darkMode,
   activeColor,
   setActiveColor,
   selectedSpeakers,
@@ -1086,7 +1080,6 @@ function Toolbar({
   nodeType,
   getSpeakerColor,
 }: {
-  darkMode: boolean;
   activeColor: string | null;
   setActiveColor: (color: string | null) => void;
   selectedSpeakers?: string[];
@@ -1606,21 +1599,12 @@ function Toolbar({
     }
 
     // Light theme: white active background (instead of accent fill)
-    if (!darkMode) {
-      return {
-        backgroundColor: "white",
-        color: theme.textPrimary,
-        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.08)",
-        border: `1px solid ${theme.border}`,
-      } as const;
-    }
-
     // Dark theme: keep accent fill
     return {
-      backgroundColor: theme.accent,
-      color: theme.buttonText,
-      boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
-      border: "1px solid transparent",
+      backgroundColor: theme.workspace,
+      color: theme.textPrimary,
+      boxShadow: "0 1px 2px rgba(0, 0, 0, 0.08)",
+      // border: `1px solid ${theme.border}`,
     } as const;
   };
 
@@ -1767,7 +1751,6 @@ function Toolbar({
           <div className="h-5 w-px" style={{ backgroundColor: theme.border }} />
 
       <ColorPicker
-        darkMode={darkMode}
         activeColor={activeColor}
         onColorChange={applyColor}
         disabled={!!activeSpeaker}
@@ -2103,7 +2086,6 @@ export default function JournalEditor({
   allPartNodes,
   nodeId,
 }: JournalEditorProps) {
-  const { darkMode } = useThemeContext();
   const theme = useTheme();
   const [activeColor, setActiveColor] = useState<string | null>(null);
 
@@ -2117,22 +2099,23 @@ export default function JournalEditor({
   // Get speaker color - shared between Toolbar and plugins
   const getSpeakerColor = useCallback((speakerId: string): string => {
     if (speakerId === "self") {
-      return darkMode ? "rgb(59, 130, 246)" : "rgb(37, 99, 235)"; // Peaceful blue - always blue
+      return theme.info; // Use theme info color (blue) for self
     }
     if (speakerId === "unknown") {
-      return darkMode ? "rgb(107, 114, 128)" : "rgb(156, 163, 175)"; // Grey
+      return theme.textMuted; // Use theme muted text color for unknown
     }
     // Generate color for parts - use allPartNodes for consistent color across all parts
     const allParts = allPartNodes || partNodes || [];
     const partIndex = allParts.findIndex((p) => p.id === speakerId);
     if (partIndex >= 0) {
       // Use golden angle for color distribution to ensure different colors
+      // Use 58% lightness as a middle ground that works for both themes
       const hue = (partIndex * 137.508) % 360;
-      return `hsl(${hue}, 65%, ${darkMode ? "55%" : "60%"})`;
+      return `hsl(${hue}, 65%, 58%)`;
     }
-    // Fallback color if part not found
-    return darkMode ? "rgb(239, 68, 68)" : "rgb(220, 38, 38)"; // Red fallback
-  }, [darkMode, partNodes, allPartNodes]);
+    // Fallback color if part not found - use theme error color
+    return theme.error || "rgb(239, 68, 68)";
+  }, [theme, partNodes, allPartNodes]);
 
   const initialConfig = {
     namespace: "JournalEditor",
@@ -2150,7 +2133,6 @@ export default function JournalEditor({
       <div className="flex h-full flex-col gap-4">
          {!readOnly && (
            <Toolbar
-             darkMode={darkMode}
              activeColor={activeColor}
              setActiveColor={setActiveColor}
              selectedSpeakers={selectedSpeakers}
@@ -2168,7 +2150,6 @@ export default function JournalEditor({
           style={{
             borderColor: theme.border,
             backgroundColor: theme.surface,
-            boxShadow: darkMode ? 'none' : `0 0 0 1.5px ${accentColor}20`,
           }}
         >
           <div className="flex-1 relative overflow-hidden">
