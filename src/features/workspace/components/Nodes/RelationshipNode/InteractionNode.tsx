@@ -1,8 +1,4 @@
 import RightClickMenu from "@/components/RightClickMenu";
-import {
-  NodeBackgroundColors,
-  NodeTextColors,
-} from "@/features/workspace/constants/Nodes";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
@@ -15,12 +11,8 @@ import { Handle, Position, useReactFlow } from "@xyflow/react";
 import { Users, Trash2, BookOpen } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
-import { useThemeContext } from "@/state/context/ThemeContext";
-import { useTheme } from "@/features/workspace/hooks/useTheme";
-import type { CSSProperties } from "react";
-import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
 
-const RelationshipNode = ({
+const InteractionNode = ({
   connectedNodes,
   id,
 }: {
@@ -95,19 +87,6 @@ const RelationshipNode = ({
     };
   }, [editingId, editValue, handleSave]);
 
-  const { darkMode } = useThemeContext();
-  const theme = useTheme();
-  const palette = workspaceDarkPalette;
-  const accent = NodeBackgroundColors["interaction"];
-  const accentText = NodeTextColors["interaction"];
-  const shellClasses = darkMode
-    ? "text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
-    : "bg-gradient-to-br from-[#eaf7ff] via-[#e4f4ff] to-white text-slate-900 shadow-[0_26px_62px_rgba(28,102,143,0.16)]";
-  const shellStyle = darkMode
-    ? {
-        background: `linear-gradient(140deg, #1f2a3d, #21272f)`,
-      }
-    : undefined;
 
   return (
     <>
@@ -117,16 +96,11 @@ const RelationshipNode = ({
         className="node relationship-node relative w-[320px]"
       >
         <div
-          className={`rounded-[26px] overflow-hidden p-5 space-y-5 ${shellClasses}`}
-          style={shellStyle}
+          className="rounded-[26px] overflow-hidden p-5 space-y-5 bg-[var(--theme-interaction-node-bg)] theme-light:text-slate-900 theme-dark:text-white shadow-[var(--theme-interaction-node-shadow)]"
         >
           <div className="flex items-center justify-between gap-3">
             <span
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em]"
-              style={{
-                backgroundColor: darkMode ? "rgba(59,130,246,0.2)" : "rgba(135,206,235,0.25)",
-                color: darkMode ? "#dbeafe" : accentText,
-              }}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em] bg-[var(--theme-interaction-node-pill-bg)] text-[var(--theme-interaction-node-pill-text)]"
             >
               <Users size={16} />
               Interaction
@@ -143,13 +117,7 @@ const RelationshipNode = ({
                   ""),
                 })
               }
-              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm"
-              style={{
-                border: "none",
-                ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
-                ...(!darkMode ? { color: accentText } : { backgroundColor: "rgba(59,130,246,0.2)" }),
-              }}
+              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors border-none border-t-[var(--theme-interaction-node-journal-icon-border)] theme-light:shadow-sm theme-light:text-[var(--theme-interaction-node-pill-text)] theme-dark:bg-[var(--theme-interaction-node-journal-icon-bg)] theme-dark:shadow-[var(--theme-interaction-node-journal-icon-shadow)]"
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundImage = 'none';
               }}
@@ -167,25 +135,11 @@ const RelationshipNode = ({
               connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
-                  className={`rounded-2xl px-4 py-3 shadow-sm ${
-                    darkMode ? "text-slate-100" : "bg-white"
-                  }`}
-                  style={
-                    darkMode
-                      ? {
-                          background: palette.surface,
-                          boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
-                        }
-                      : undefined
-                  }
+                  className="rounded-2xl px-4 py-3 shadow-sm theme-light:bg-[var(--theme-interaction-node-card-bg)] theme-dark:text-slate-100 theme-dark:bg-[var(--theme-interaction-node-card-bg)] theme-dark:shadow-[var(--theme-interaction-node-card-shadow)]"
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-                      style={{
-                        backgroundColor: darkMode ? "rgba(59,130,246,0.25)" : "rgba(135,206,235,0.18)",
-                        color: darkMode ? "#dbeafe" : accentText,
-                      }}
+                      className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide bg-[var(--theme-interaction-node-card-part-pill-bg)] text-[var(--theme-interaction-node-card-part-pill-text)]"
                     >
                       {part.data.label}
                     </span>
@@ -194,9 +148,7 @@ const RelationshipNode = ({
                         setEditValue(tensionDescription);
                         setEditingId(part.id);
                       }}
-                      className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
-                        darkMode ? "text-blue-300 hover:text-blue-200" : "text-sky-700 hover:text-sky-900"
-                      }`}
+                      className="text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors text-[var(--theme-interaction-node-edit-button-text)] hover:text-[var(--theme-interaction-node-edit-button-hover-text)]"
                     >
                       Edit
                     </button>
@@ -205,11 +157,7 @@ const RelationshipNode = ({
                   <div className="mt-3">
                     {part.id === editingId ? (
                       <input
-                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 ${
-                          darkMode
-                            ? "bg-[#212529] border-blue-500/30 text-slate-100 focus:ring-blue-500/50"
-                            : "bg-white border-sky-300 text-sky-900 focus:ring-sky-300"
-                        }`}
+                        className="w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 bg-[var(--theme-interaction-node-input-bg)] border-[var(--theme-interaction-node-input-border)] text-[var(--theme-interaction-node-input-text)] focus:ring-[var(--theme-interaction-node-input-focus-ring)]"
                         ref={inputRef}
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
@@ -219,14 +167,12 @@ const RelationshipNode = ({
                       />
                     ) : tensionDescription ? (
                       <p
-                        className={`text-xs leading-relaxed text-right ${
-                          darkMode ? "text-slate-200" : "text-sky-900"
-                        }`}
+                        className="text-xs leading-relaxed text-right text-[var(--theme-interaction-node-description-text)]"
                       >
                         {tensionDescription}
                       </p>
                     ) : (
-                      <p className={`text-xs italic text-right ${darkMode ? "text-slate-400" : "text-sky-900/55"}`}>
+                      <p className="text-xs italic text-right text-[var(--theme-interaction-node-placeholder-text)]">
                         Click edit to add notes.
                       </p>
                     )}
@@ -234,7 +180,7 @@ const RelationshipNode = ({
                 </div>
               ))
             ) : (
-              <p className={`text-xs ${darkMode ? "text-slate-400" : "text-sky-900/70"}`}>
+              <p className="text-xs text-[var(--theme-interaction-node-empty-text)]">
                 Connect parts that collaborate closely.
               </p>
             )}
@@ -251,4 +197,5 @@ const RelationshipNode = ({
   );
 };
 
-export default RelationshipNode;
+export default InteractionNode;
+

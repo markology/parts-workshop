@@ -4,7 +4,7 @@ import { TensionNodeData, ImpressionNodeData, NodeType, PartNodeData, Relationsh
 import ImpressionNode from "./ImpressionNode";
 import PartNode from "./PartNode/PartNode";
 import TensionNode from "./RelationshipNode/TensionNode";
-import RelationshipNode from "./RelationshipNode/RelationshipNode";
+import InteractionNode from "./RelationshipNode/InteractionNode";
 import RelationshipSelectionNode from "./RelationshipNode/RelationshipSelectionNode";
 
 const NodeComponent = ({
@@ -23,7 +23,7 @@ const NodeComponent = ({
       // Check if this is an interaction node based on relationshipType
       const isInteraction = data.relationshipType === "interaction";
       return isInteraction ? (
-        <RelationshipNode key={id} id={id} connectedNodes={data.connectedNodes} />
+        <InteractionNode key={id} id={id} connectedNodes={data.connectedNodes} />
       ) : (
         <TensionNode key={id} id={id} connectedNodes={data.connectedNodes} />
       );

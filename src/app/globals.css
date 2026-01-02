@@ -132,6 +132,35 @@
   --theme-tension-node-pill-part-bg: #ebe6f5;
   --theme-tension-node-bg-top: 1px solid #00000012;
 
+  /* Interaction Node */
+  --theme-interaction-node-bg: linear-gradient(to bottom right, #eaf7ff, #e4f4ff, white);
+  --theme-interaction-node-shadow: 0 26px 62px rgba(28, 102, 143, 0.16);
+  --theme-interaction-node-pill-bg: rgba(135, 206, 235, 0.25);
+  --theme-interaction-node-pill-text: var(--node-text-interaction);
+  --theme-interaction-node-journal-icon-border: 1px solid #00000012;
+  --theme-interaction-node-card-bg: white;
+  --theme-interaction-node-card-part-pill-bg: rgba(135, 206, 235, 0.18);
+  --theme-interaction-node-card-part-pill-text: var(--node-text-interaction);
+  --theme-interaction-node-edit-button-text: rgb(30, 64, 175);
+  --theme-interaction-node-edit-button-hover-text: rgb(15, 23, 42);
+  --theme-interaction-node-input-bg: white;
+  --theme-interaction-node-input-border: rgb(125, 211, 252);
+  --theme-interaction-node-input-text: rgb(14, 165, 233);
+  --theme-interaction-node-input-focus-ring: rgb(125, 211, 252);
+  --theme-interaction-node-description-text: rgb(14, 165, 233);
+  --theme-interaction-node-placeholder-text: rgba(14, 165, 233, 0.55);
+  --theme-interaction-node-empty-text: rgba(14, 165, 233, 0.7);
+
+  /* Relationship Selection Node */
+  --theme-relationship-selection-node-bg: linear-gradient(to bottom right, #f8fafc, #ffffff);
+  --theme-relationship-selection-node-shadow: 0 24px 55px rgba(15, 23, 42, 0.12);
+  --theme-relationship-selection-node-border: rgb(226, 232, 240);
+  --theme-relationship-selection-node-overlay: radial-gradient(
+    circle at top,
+    rgba(124, 58, 237, 0.08),
+    transparent 60%
+  );
+
   /* Impression Node Backgrounds */
   --theme-impression-emotion-bg: rgb(227, 243, 227);
   --theme-impression-thought-bg: rgb(221, 235, 246);
@@ -256,6 +285,34 @@
   --theme-tension-node-pill-text: #e9d5ff;
   --theme-tension-node-pill-part-bg: #473561;
   --theme-tension-node-bg-top: 1px solid rgba(0, 0, 0, 0.15);
+
+  /* Interaction Node */
+  --theme-interaction-node-bg: linear-gradient(140deg, #1f2a3d, #21272f);
+  --theme-interaction-node-shadow: 0 32px 90px rgba(0, 0, 0, 0.65);
+  --theme-interaction-node-pill-bg: rgba(59, 130, 246, 0.2);
+  --theme-interaction-node-pill-text: #dbeafe;
+  --theme-interaction-node-journal-icon-bg: rgba(59, 130, 246, 0.2);
+  --theme-interaction-node-journal-icon-border: 1px solid rgba(0, 0, 0, 0.15);
+  --theme-interaction-node-journal-icon-shadow: rgb(0 0 0 / 20%) 0px 2px 4px;
+  --theme-interaction-node-card-bg: #272b2f;
+  --theme-interaction-node-card-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+  --theme-interaction-node-card-part-pill-bg: rgba(59, 130, 246, 0.25);
+  --theme-interaction-node-card-part-pill-text: #dbeafe;
+  --theme-interaction-node-edit-button-text: rgb(147, 197, 253);
+  --theme-interaction-node-edit-button-hover-text: rgb(191, 219, 254);
+  --theme-interaction-node-input-bg: #212529;
+  --theme-interaction-node-input-border: rgba(59, 130, 246, 0.3);
+  --theme-interaction-node-input-text: rgb(241, 245, 249);
+  --theme-interaction-node-input-focus-ring: rgba(59, 130, 246, 0.5);
+  --theme-interaction-node-description-text: rgb(226, 232, 240);
+  --theme-interaction-node-placeholder-text: rgb(148, 163, 184);
+  --theme-interaction-node-empty-text: rgb(148, 163, 184);
+
+  /* Relationship Selection Node */
+  --theme-relationship-selection-node-bg: linear-gradient(145deg, #2a2e32, #272b2f);
+  --theme-relationship-selection-node-shadow: 0 32px 85px rgba(0, 0, 0, 0.6);
+  --theme-relationship-selection-node-border: rgba(255, 255, 255, 0.05);
+  --theme-relationship-selection-node-overlay: radial-gradient(circle at top, rgba(61, 67, 75, 0.5), transparent 65%);
 
   /* Impression Node Backgrounds */
   --theme-impression-emotion-bg: rgb(86, 117, 90);
