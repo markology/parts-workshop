@@ -332,7 +332,7 @@ export default function TextThreadEditor({
   return (
     <div className="flex flex-col h-full">
       {/* Messages Display Area */}
-      <div className="flex-1 overflow-y-auto space-y-2 rounded-[10px] mb-2.5 p-6 shadow-sm bg-[var(--theme-journal-textthread-container-bg)]">
+      <div className="flex-1 overflow-y-auto space-y-2 rounded-[10px] mb-2.5 p-6 shadow-sm bg-[var(--theme-card)]">
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes slideIn {
             from {
@@ -378,29 +378,21 @@ export default function TextThreadEditor({
             return (
               <div
                 key={message.id}
-                className="flex flex-col"
+                className="flex flex-col max-w-[75%]"
                 style={{
                   alignItems: isSelf ? "flex-end" : "flex-start",
-                  maxWidth: "75%",
                   marginLeft: isSelf ? "auto" : "0",
                   marginRight: isSelf ? "0" : "auto",
                 }}
               >
                 <div
-                  className="text-xs font-semibold uppercase tracking-wide mb-1 px-2"
-                  style={{
-                    color: theme.textSecondary,
-                  }}
+                  className="text-xs font-semibold uppercase tracking-wide mb-1 px-2 text-[var(--theme-text-secondary)]"
                 >
                   {speaker?.label || "Unknown"}
                 </div>
                 <div
-                  className="px-4 py-3 rounded-2xl text-white shadow-md"
-                  style={{
-                    backgroundColor: speakerColor,
-                    borderRadius: isSelf ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                    whiteSpace: "pre-wrap",
-                  }}
+                  className="px-4 py-3 rounded-2xl shadow-md theme-light:text-white whitespace-pre-wrap"
+                  style={{ backgroundColor: speakerColor, borderRadius: isSelf ? "18px 18px 4px 18px" : "18px 18px 18px 4px" }}
                 >
                   {message.text}
                 </div>
@@ -413,7 +405,7 @@ export default function TextThreadEditor({
 
       {/* Input and Speaker Selector Container */}
       {!readOnly && (
-        <div className="rounded-[20px] p-5 mb-0.5 shadow-sm theme-light:bg-white theme-dark:bg-[var(--theme-card)]" style={{ backgroundColor: theme.card }}>
+        <div className="rounded-[20px] p-5 mb-0.5 shadow-sm theme-light:bg-white bg-[var(--theme-card)]">
           {/* Input Area */}
           <div className="relative w-full">
             <textarea
@@ -429,15 +421,7 @@ export default function TextThreadEditor({
               }}
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
-              className="w-full resize-none rounded-lg border px-4 py-2 pr-12 text-sm focus:outline-none text-thread-textarea shadow-inner"
-              style={{
-                borderColor: theme.border,
-                backgroundColor: theme.surface,
-                color: theme.textPrimary,
-                minHeight: "36px",
-                maxHeight: "65px",
-                overflowY: "auto",
-              }}
+              className="w-full resize-none rounded-lg border px-4 py-2 pr-12 text-sm focus:outline-none text-thread-textarea shadow-inner border-[var(--theme-border)] min-h-[36px] max-h-[65px] overflow-y-auto bg-[var(--theme-surface)] text-[var(--theme-text-primary)]"
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = theme.border;
                 e.currentTarget.style.removeProperty('box-shadow');
@@ -451,14 +435,9 @@ export default function TextThreadEditor({
               type="button"
               onClick={handleSend}
               disabled={!inputText.trim()}
-              className="absolute rounded-full flex items-center justify-center transition disabled:opacity-50"
+              className="absolute rounded-full flex items-center justify-center transition disabled:opacity-50 w-[26px] h-[26px] right-[16px] bottom-[10px] text-white"
               style={{
-                width: '26px',
-                height: '26px',
-                right: '16px',
-                bottom: '10px',
                 backgroundColor: inputText.trim() ? theme.info : theme.button,
-                color: 'white',
                 cursor: inputText.trim() ? 'pointer' : 'not-allowed',
               }}
               onMouseEnter={(e) => {
@@ -480,7 +459,7 @@ export default function TextThreadEditor({
           <div style={{ paddingTop: '12px', paddingBottom: 0, marginBottom: 0 }}>
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-1">
-                <span className="text-xs font-medium" style={{ color: theme.textSecondary }}>
+                <span className="text-xs font-medium text-[var(--theme-text-secondary)]">
                   Speaking as:
                 </span>
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -540,12 +519,7 @@ export default function TextThreadEditor({
                       <button
                         type="button"
                         onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
-                        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102"
-                        style={{
-                          borderColor: theme.border,
-                          backgroundColor: theme.surface,
-                          color: theme.textSecondary,
-                        }}
+                        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:scale-102 border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)]"
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = theme.buttonHover;
                           e.currentTarget.style.color = theme.textPrimary;
@@ -562,17 +536,14 @@ export default function TextThreadEditor({
                       </button>
                       
                       {showAddPartDropdown && (
-                        <div className="absolute bottom-full left-0 mb-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden" style={{ borderColor: theme.border, backgroundColor: theme.card }}>
+                        <div className="absolute bottom-full left-0 mb-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden border-[var(--theme-border)] bg-[var(--theme-card)]">
                           <div className="max-h-60 overflow-y-auto">
                             {availablePartsToAdd.map((part) => (
                               <button
                                 key={part.id || (part.isUnknown ? "unknown" : "")}
                                 type="button"
                                 onClick={() => handleAddPart(part.isUnknown ? "unknown" : part.id)}
-                                className="w-full text-left px-3 py-2 text-xs font-medium transition"
-                                style={{
-                                  color: theme.textPrimary,
-                                }}
+                                className="w-full text-left px-3 py-2 text-xs font-medium transition text-[var(--theme-text-primary)]"
                                 onMouseEnter={(e) => {
                                   e.currentTarget.style.backgroundColor = theme.buttonHover;
                                 }}

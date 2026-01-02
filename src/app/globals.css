@@ -112,8 +112,13 @@
   --part-button-shadow: rgba(0, 0, 0, 0.1);
   --impression-button-shadow: rgba(0, 0, 0, 0.1);
   --theme-text: black;
+  --theme-text-secondary: #64748b;
+  --theme-text-primary: #1e293b;
   --theme-surface-background: #fff;
   --theme-border: var(--border);
+  --theme-card: #ffffff;
+  --theme-border: rgba(0, 0, 0, 0.1);
+  --theme-surface: #f8fafc;
   /* Theme */
   --theme-test-background: orange;
   --theme-component: white;
@@ -281,7 +286,7 @@
   --theme-journal-tab-button-active-bg: white;
   --theme-journal-tab-button-inactive-bg: transparent;
   --theme-journal-tab-button-hover-bg: transparent;
-  --theme-journal-textthread-container-bg: white;
+  --theme-journal-textthread-container-bg: rgb(241, 245, 249);
 }
 
 .theme-dark {
@@ -291,7 +296,13 @@
   --part-button-shadow: rgba(0, 0, 0, 0.2);
   --impression-button-shadow: rgba(0, 0, 0, 0.2);
   --theme-text: #ffffff;
+  --theme-text-secondary: #rgba(255, 255, 255, 0.7);
   --theme-surface-background: #272b2f;
+  --theme-card: #212529;
+  --theme-border: rgba(255, 255, 255, 0.1);
+  --theme-surface: #272b2f;
+  --theme-text-primary: #ffffff;
+
   /* Theme */
   --theme-test-background: blue;
   --theme-component: #2a2e32;
