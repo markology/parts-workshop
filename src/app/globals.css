@@ -173,6 +173,20 @@
   --theme-impression-sensation-part-details-header: rgb(242, 140, 130);
   --theme-impression-behavior-part-details-header: rgb(249, 177, 122);
   --theme-impression-other-part-details-header: rgb(20, 184, 166);
+
+  /* Impression Sidebar Header Background Colors */
+  --theme-impression-emotion-sidebar-header-bg: rgb(234, 246, 234);
+  --theme-impression-thought-sidebar-header-bg: rgb(231, 241, 249);
+  --theme-impression-sensation-sidebar-header-bg: rgb(253, 234, 232);
+  --theme-impression-behavior-sidebar-header-bg: rgb(254, 241, 231);
+  --theme-impression-other-sidebar-header-bg: rgb(213, 242, 239);
+
+  /* Impression Sidebar Header Border Colors (uses base background in light mode) */
+  --theme-impression-emotion-sidebar-header-border: rgb(227, 243, 227);
+  --theme-impression-thought-sidebar-header-border: rgb(221, 235, 246);
+  --theme-impression-sensation-sidebar-header-border: rgb(249, 225, 223);
+  --theme-impression-behavior-sidebar-header-border: rgb(253, 235, 222);
+  --theme-impression-other-sidebar-header-border: rgb(198, 237, 233);
 }
 
 .theme-dark {
@@ -236,6 +250,20 @@
   --theme-impression-sensation-part-details-header: rgb(255, 255, 255);
   --theme-impression-behavior-part-details-header: rgb(255, 255, 255);
   --theme-impression-other-part-details-header: rgb(255, 255, 255);
+
+  /* Impression Sidebar Header Background Colors */
+  --theme-impression-emotion-sidebar-header-bg: rgb(71, 92, 76);
+  --theme-impression-thought-sidebar-header-bg: rgb(65, 85, 102);
+  --theme-impression-sensation-sidebar-header-bg: rgb(102, 73, 73);
+  --theme-impression-behavior-sidebar-header-bg: rgb(103, 84, 71);
+  --theme-impression-other-sidebar-header-bg: rgb(34, 87, 84);
+
+  /* Impression Sidebar Header Border Colors (uses border-color in dark mode) */
+  --theme-impression-emotion-sidebar-header-border: rgb(107, 149, 133);
+  --theme-impression-thought-sidebar-header-border: rgb(97, 136, 169);
+  --theme-impression-sensation-sidebar-header-border: rgb(151, 119, 128);
+  --theme-impression-behavior-sidebar-header-border: rgb(154, 136, 124);
+  --theme-impression-other-sidebar-header-border: rgb(50, 136, 141);
 }
 
 .theme-cherry {

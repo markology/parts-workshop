@@ -5,8 +5,6 @@ import { ChevronDown, ChevronUp, GripVertical, X } from "lucide-react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
-import { useThemeContext } from "@/state/context/ThemeContext";
-import { getImpressionBaseColors, getImpressionSidebarHeaderBg, getImpressionHeaderBorderColor } from "@/features/workspace/constants/ImpressionColors";
 
 const ImpressionDropdown = ({
   type,
@@ -24,10 +22,6 @@ const ImpressionDropdown = ({
   const [open, toggleOpen] = useState(true);
   const isImpressionsEmpty = !filteredImpressions || !Object.keys(filteredImpressions).length;
   const count = Object.keys(filteredImpressions || {}).length;
-  const { darkMode } = useThemeContext();
-  const baseColorsMap = getImpressionBaseColors(darkMode);
-  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
-  const sidebarHeaderBg = getImpressionSidebarHeaderBg(type, darkMode);
 
   return (
     <div className="mb-3">
@@ -40,12 +34,12 @@ const ImpressionDropdown = ({
         } ${isImpressionsEmpty ? "cursor-not-allowed" : "cursor-pointer"}`}
         style={{
           borderColor: isImpressionsEmpty 
-            ? (darkMode ? "transparent" : getImpressionHeaderBorderColor(type, darkMode))
-            : getImpressionHeaderBorderColor(type, darkMode),
+            ? "transparent"
+            : `var(--theme-impression-${type}-sidebar-header-border)`,
           borderWidth: "2px",
           borderStyle: "solid",
-          backgroundColor: isImpressionsEmpty && !darkMode ? "rgb(255, 255, 255)" : sidebarHeaderBg,
-          color: darkMode ? "rgb(255, 255, 255)" : baseColors.font,
+          backgroundColor: `var(--theme-impression-${type}-sidebar-header-bg)`,
+          color: `var(--theme-impression-${type}-text)`,
           opacity: isImpressionsEmpty ? 0.55 : 1,
         }}
       >
@@ -53,7 +47,7 @@ const ImpressionDropdown = ({
           <div className="flex items-center gap-2">
             <p
               className="text-[11px] font-semibold uppercase tracking-[0.28em]"
-              style={{ color: darkMode ? "rgb(255, 255, 255)" : baseColors.font }}
+              style={{ color: `var(--theme-impression-${type}-text)` }}
             >
               {type}
             </p>

@@ -14,7 +14,7 @@ import ImpressionSidebar from "./SideBar/Impressions/ImpressionSidebar";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { NodeBackgroundColors } from "../constants/Nodes";
-import { getImpressionBaseColors, getImpressionSidebarHeaderBg, getImpressionPillFontColor, getImpressionHeaderBorderColor } from "../constants/ImpressionColors";
+import { getImpressionBaseColors, getImpressionPillFontColor } from "../constants/ImpressionColors";
 import { useSidebarStore } from "../state/stores/Sidebar";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
@@ -443,19 +443,19 @@ const FloatingActionButtons = () => {
           disabled={isImpressionsEmpty}
           onClick={toggleOpen}
           style={{
-            color: getImpressionSidebarHeaderBg(type, isDark),
+            color: `var(--theme-impression-${type}-text)`,
             opacity: emptyOpacityStyle,
-            backgroundColor: isImpressionsEmpty && !isDark ? "rgb(255, 255, 255)" : getImpressionSidebarHeaderBg(type, isDark),
+            backgroundColor: `var(--theme-impression-${type}-sidebar-header-bg)`,
             borderColor: isImpressionsEmpty 
-              ? (isDark ? "transparent" : getImpressionHeaderBorderColor(type, isDark))
-              : getImpressionHeaderBorderColor(type, isDark),
+              ? "transparent"
+              : `var(--theme-impression-${type}-sidebar-header-border)`,
             borderWidth: "2px",
             borderStyle: "solid",
           }}
         >
           <p
             style={{
-              color: getImpressionSidebarHeaderBg(type, isDark),
+              color: `var(--theme-impression-${type}-text)`,
             }}
           >
             {type}
