@@ -8,9 +8,6 @@ import { QueryClient, HydrationBoundary, dehydrate } from "@tanstack/react-query
 import { ReactFlowProvider } from "@xyflow/react";
 import JournalDrawer from "@/features/workspace/components/Journal/JournalDrawer";
 import ViewportSizeSwitch from "@/components/ViewportSizeSwitch";
-import { useThemeContext } from "@/state/context/ThemeContext";
-import { useTheme } from "@/features/workspace/hooks/useTheme";
-
 // Dynamic import of CanvasClient
 const CanvasClient = dynamic(() => import("@/features/workspace/components/CanvasClient"), {
   ssr: false,
@@ -21,8 +18,6 @@ export default function WorkspacePage() {
   const workspaceId = params?.workspaceId as string;
   const { status } = useSession();
   const router = useRouter();
-  const { darkMode } = useThemeContext();
-  const theme = useTheme();
 
   if (status === "loading") return null;
   if (status === "unauthenticated") {

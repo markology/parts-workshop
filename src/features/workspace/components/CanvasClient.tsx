@@ -374,16 +374,6 @@ export default function CanvasClient({
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  const accentHex =
-    NodeBackgroundColors[sidebarImpressionType as keyof typeof NodeBackgroundColors] ?? "#6366f1";
-  const accentTextHex = isDark
-    ? NodeBackgroundColors[sidebarImpressionType as keyof typeof NodeBackgroundColors] ?? "#6366f1"
-    : NodeTextColors[sidebarImpressionType as keyof typeof NodeTextColors] ?? "#312e81";
-  const accentSoftBg = toRgba(accentHex, isDark ? 0.26 : 0.14);
-  const accentBorder = toRgba(accentHex, isDark ? 0.55 : 0.28);
-  const impressionTypeLabel =
-    ImpressionTextType[sidebarImpressionType] ?? "Impression";
-
   // Update dropdown position when it opens
   useEffect(() => {
     if (profileDropdownOpen && profileDropdownRef.current) {

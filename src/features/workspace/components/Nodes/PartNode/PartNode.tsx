@@ -159,7 +159,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
             isSelected
               ? "ring-2 ring-sky-400"
               : ""
-          } bg-[image:var(--theme-part-node-bg)]`}
+          } theme-dark:bg-[image:var(--theme-part-node-bg)] theme-light:bg-white`}
           onClick={() => setSelectedPartId(partId)}
         >
           <div className="relative p-6 lg:p-7 space-y-6">

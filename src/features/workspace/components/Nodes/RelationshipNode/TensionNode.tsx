@@ -95,7 +95,7 @@ const TensionNode = ({
         className="node relationship-node relative w-[340px]"
       >
         <div
-          className={`rounded-[26px] overflow-hidden p-5 space-y-5 bg-[image:var(--theme-tension-node-bg)] shadow-[var(--theme-tension-node-shadow)] theme-light:text-slate-900 theme-dark:text-white`}
+          className={`rounded-[26px] overflow-hidden p-5 space-y-5 bg-[image:var(--theme-tension-node-bg)] theme-light:text-slate-900 theme-dark:text-white`}
           // style={shellStyle}
         >
           <div className="flex items-center justify-between gap-3">

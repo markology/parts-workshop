@@ -438,7 +438,7 @@ const Workspace = () => {
         >
           <FitViewOnLoad />
           <Background
-            color={'red'}
+            color={theme.workspace}
             gap={32}
             size={1.2}
           />
