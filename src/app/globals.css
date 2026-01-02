@@ -53,26 +53,28 @@
   --tooltip-background: white;
   --tooltip-text: black;
   --overlay-background: #000000c9;
+  --text-color-2: #64748b;
   /* Workspace theme variables - defaults (will be overridden by ThemeContext via inline styles) */
   /* These are set dynamically based on activeTheme (light/dark/cherry) */
-  --theme-workspace: #f8fafc;
-  --theme-card: #ffffff;
-  --theme-modal: #ffffff;
-  --theme-sidebar: #ffffff;
-  --theme-elevated: #f1f5f9;
-  --theme-surface: #f8fafc;
-  --theme-button: #ffffff;
-  --theme-button-hover: #f1f5f9;
-  --theme-button-active: #e2e8f0;
-  --theme-button-text: #1e293b;
-  --theme-text-primary: #1e293b;
-  --theme-text-secondary: #64748b;
-  --theme-text-muted: #94a3b8;
-  --theme-border: rgba(0, 0, 0, 0.1);
-  --theme-border-subtle: rgba(0, 0, 0, 0.05);
-  --theme-accent: #3b82f6;
-  --theme-accent-hover: #60a5fa;
-  --theme-accent-active: #2563eb;
+  --workspace: #f8fafc;
+  --card: #ffffff;
+  --modal: #ffffff;
+  --sidebar: #ffffff;
+  --elevated: #f1f5f9;
+  --surface: #f8fafc;
+  --button: #ffffff;
+  --button-hover: #f1f5f9;
+  --border: #e2e8f0;
+  --button-active: #e2e8f0;
+  --button-text: #1e293b;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border-2: rgba(0, 0, 0, 0.1);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-active: #2563eb;
 }
 
 .dark {
@@ -81,8 +83,10 @@
   --background-gradient: linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35));
   --background-gradient-dashboard: linear-gradient(135deg, rgb(69, 75, 84), rgb(61, 67, 75), rgb(53, 59, 67));
   --background-gradient-tile: linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43));
+  --background-surface: #272b2f;
   --aside-background: linear-gradient(145deg, #2a2e32, #272b2f);
   --text-color: white;
+  --text-color-2: #ffffffb3;
   --box-shadow: #000000a8 0px 7px 16px -4px;
   --tooltip-background: #161616;
   --tooltip-text: white;

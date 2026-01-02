@@ -57,7 +57,7 @@ export default function FeedbackPopup() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const { data: session } = useSession();
-  const { darkMode } = useThemeContext();
+  const { isDark } = useThemeContext();
   const theme = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -199,16 +199,9 @@ export default function FeedbackPopup() {
     }
   };
 
-  const containerStyle = {
-    backgroundColor: darkMode ? theme.modal : 'white',
-    borderColor: theme.border,
-    color: theme.textPrimary,
-  };
 
-  const headerStyle = {
-    background: darkMode ? theme.elevated : 'linear-gradient(to bottom, rgba(254, 241, 242, 0.3) 0%, #ffffff 100%)',
-    borderColor: theme.border,
-  };
+
+
 
   const cardStyle = {
     backgroundColor: theme.surface,
@@ -216,8 +209,7 @@ export default function FeedbackPopup() {
   };
 
   const textareaStyle = {
-    backgroundColor: darkMode ? theme.surface : '#f8fafc',
-    borderColor: darkMode ? theme.border : '#e2e8f0',
+    borderColor: isDark ? theme.border : '#e2e8f0',
     color: theme.textPrimary,
   };
 
@@ -233,35 +225,27 @@ export default function FeedbackPopup() {
 
   return (
     <div
-      className="overflow-hidden w-full max-w-[520px] max-h-[90vh] rounded-[28px] border shadow-[0_22px_48px_rgba(15,23,42,0.18)] flex flex-col"
-      style={containerStyle}
+      className="overflow-hidden w-full max-w-[520px] max-h-[90vh] rounded-[28px] border shadow-[0_22px_48px_rgba(15,23,42,0.18)] flex flex-col bg-white dark:bg-[var(--card)] border-[var(--border)] dark:border-[var(--border)] text-[var(--text-primary)] dark:text-[var(--text-primary)]"
     >
-      <div className="px-6 pt-6 pb-5 border-b" style={headerStyle}>
-        <p className="text-[11px] uppercase tracking-[0.32em]" style={{ color: darkMode ? theme.textSecondary : '#0ea5e9' }}>
+      <div className="px-6 pt-6 pb-5 border-b border-[rgba(0,0,0,0.1)] bg-gradient-to-b from-[#f8fafc] to-[#ffffff]dark:bg-[var(--elevated)] dark:bg-[image:none] dark:border-[var(--border)]">
+        <p className="text-[11px] uppercase tracking-[0.32em] dark:text-[var(--text-color-2)] text-[#0ea5e9]">
           Studio Contact
         </p>
-        <h2 className="mt-2 text-2xl font-semibold leading-tight" style={{ color: theme.textPrimary }}>
+        <h2 className="mt-2 text-2xl font-semibold leading-tight">
           We&apos;re listening
         </h2>
-        <p className="mt-3 text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--text-color-2)] dark:text-[var(--text-color-2)]" >
           Share thoughts, ideas, or rough edges. We review every note from the studio and respond when we can.
         </p>
       </div>
 
       <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
         <div 
-          className="rounded-2xl p-4 mb-1.5" 
-          style={{
-            background: darkMode ? 'rgb(33, 37, 41)' : 'white',
-            border: 'none',
-            boxShadow: 'none',
-            marginBottom: '6px',
-          }}
+          className="rounded-2xl p-4 mb-1.5 bg-white dark:bg-[var(--card)] border-none shadow-none" 
         >
           <label
             htmlFor="message"
-            className="block text-xs font-semibold uppercase tracking-[0.28em] mb-2"
-            style={{ color: darkMode ? theme.textSecondary : '#0ea5e9', fontWeight: 500 }}
+            className="block text-xs font-medium uppercase tracking-[0.28em] mb-2 weight-semibold text-[#0ea5e9] dark:text-[var(--text-color-2)]"
           >
             Your note
           </label>
@@ -273,8 +257,7 @@ export default function FeedbackPopup() {
             rows={6}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 resize-none border focus:outline-none transition-shadow shadow-inner"
-            style={textareaStyle}
+            className="w-full rounded-xl px-4 py-3 resize-none border focus:outline-none transition-shadow shadow-inner bg-[#f8fafc] dark:bg-[var(--background-surface)] border-[var(--border)] dark:border-[var(--border)] dark:text-white"
           />
           
           {/* File attachments */}
@@ -296,8 +279,8 @@ export default function FeedbackPopup() {
                   key={attached.id}
                   className="flex items-center gap-3 p-2 rounded-lg border"
                   style={{
-                    backgroundColor: darkMode ? theme.surface : '#f8fafc',
-                    borderColor: darkMode ? theme.border : '#e2e8f0',
+                    backgroundColor: isDark ? theme.surface : '#f8fafc',
+                    borderColor: isDark ? theme.border : '#e2e8f0',
                   }}
                 >
                   {attached.file.type.startsWith('image/') && attached.preview ? (
@@ -336,17 +319,7 @@ export default function FeedbackPopup() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="mt-2 flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors"
-            style={{
-              color: darkMode ? theme.textSecondary : '#64748b',
-              backgroundColor: darkMode ? theme.surface : 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : '#f1f5f9';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = darkMode ? theme.surface : 'transparent';
-            }}
+            className="mt-2 flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors text-[var(--text-color-2)] dark:bg-none dark:hover:bg-[var(--component)] dark:text-[var(--text-color-2)] hover:bg-[var(--elevated)] dark:hover:bg-[var(--elevated)]"
           >
             {attachedFiles.length > 0 ? (
               <>
@@ -363,23 +336,23 @@ export default function FeedbackPopup() {
         </div>
 
         <div 
-          className="flex items-center justify-between rounded-2xl px-4 py-3 shadow-sm" 
-          style={darkMode ? toggleContainerStyle : {
-            background: '#f7ebf352',
-            border: 'none',
-            borderBottom: 'solid 1px #dcdcdc1c',
-          }}
+          className="flex items-center justify-between rounded-2xl px-4 py-3 shadow-sm bg-[#fcf9fb] dark:bg-[var(--component)]" 
+          // style={isDark ? toggleContainerStyle : {
+          //   background: '#f7ebf352',
+          //   border: 'none',
+          //   borderBottom: 'solid 1px #dcdcdc1c',
+          // }}
         >
-          <span className="text-sm font-medium" style={{ color: theme.textPrimary }}>Send anonymously</span>
+          <span className="text-sm font-medium dark:text-white">Send anonymously</span>
           <button
             type="button"
             onClick={() => setSendAnonymously((prev) => !prev)}
             aria-pressed={sendAnonymously}
-            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200"
+            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 \"
             style={{
               backgroundColor: sendAnonymously 
-                ? (darkMode ? "rgba(6, 182, 212, 0.7)" : "#0ea5e9")
-                : (darkMode ? theme.elevated : "#e2e8f0"),
+                ? (isDark ? "rgba(6, 182, 212, 0.7)" : "#0ea5e9")
+                : (isDark ? theme.elevated : "#e2e8f0"),
             }}
           >
             <span
@@ -394,12 +367,12 @@ export default function FeedbackPopup() {
 
       <div 
         className="px-6 py-5 border-t flex items-center justify-between gap-4" 
-        style={darkMode ? footerStyle : {
+        style={isDark ? footerStyle : {
           background: 'linear-gradient(to bottom, #ffffff 0%, rgba(254, 241, 242, 0.3) 100%)',
           borderColor: theme.border,
         }}
       >
-        <p className="text-xs leading-relaxed max-w-[65%]" style={{ color: theme.textMuted }}>
+        <p className="text-xs leading-relaxed max-w-[65%] text-[var(--text-muted)] dark:text-[var(--text-color-2)]">
           Your email stays private. We only reach out if you leave us a way to reply.
         </p>
         <div className="flex items-center justify-end">
@@ -408,10 +381,10 @@ export default function FeedbackPopup() {
             disabled={isSubmitting}
             className="px-6 py-2 rounded-full font-semibold text-sm transition-transform duration-200 shadow-sm flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2"
             style={{
-              background: darkMode 
+              background: isDark 
                 ? "linear-gradient(to right, #06b6d4, #0ea5e9)"
                 : "linear-gradient(to right, #0ea5e9, #06b6d4)",
-              color: darkMode ? "#1e293b" : "#ffffff",
+              color: isDark ? "#1e293b" : "#ffffff",
               opacity: isSubmitting ? 0.75 : 1,
               cursor: isSubmitting ? "not-allowed" : "pointer",
             }}
