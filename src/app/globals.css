@@ -111,6 +111,7 @@
   --part-handle-bg: #88b7fd;
   --part-button-shadow: rgba(0, 0, 0, 0.1);
   --impression-button-shadow: rgba(0, 0, 0, 0.1);
+  --theme-surface-background: #fff;
 
   /* Theme */
   --theme-test-background: orange;
@@ -127,7 +128,9 @@
   --theme-tension-node-shadow: 0 28px 64px rgba(88, 50, 141, 0.18);
   --theme-tension-node-bg: linear-gradient(140deg, #f7f2ff, #f1e9ff, #ffffff);
   --theme-tension-node-pill-bg: rgba(177, 156, 217, 0.22);
-  --theme-tension-node-pill-text: #e9d5ff;
+  --theme-tension-node-pill-text: var(--node-text-tension);
+  --theme-tension-node-pill-part-bg: #ebe6f5;
+  --theme-tension-node-bg-top: 1px solid #00000012;
 }
 
 .theme-dark {
@@ -136,7 +139,7 @@
   --part-handle-bg: #baceec;
   --part-button-shadow: rgba(0, 0, 0, 0.2);
   --impression-button-shadow: rgba(0, 0, 0, 0.2);
-
+  --theme-surface-background: #272b2f;
   /* Theme */
   --theme-test-background: blue;
   --theme-component: #2a2e32;
@@ -154,6 +157,8 @@
   --theme-tension-node-bg: linear-gradient(140deg, #2a1f3d, #27212f);
   --theme-tension-node-pill-bg: rgba(168, 85, 247, 0.2);
   --theme-tension-node-pill-text: #e9d5ff;
+  --theme-tension-node-pill-part-bg: #473561;
+  --theme-tension-node-bg-top: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 .theme-cherry {

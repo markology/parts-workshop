@@ -97,7 +97,7 @@ const TensionNode = ({
   }, [editingId, editValue, handleSave]);
 
   // const accent = NodeBackgroundColors["tension"];
-  const accentText = NodeTextColors["tension"];
+  // const accentText = NodeTextColors["tension"];
   // const shellClasses = darkMode
   //   ? "text-white shadow-[0_32px_90px_rgba(0,0,0,0.65)]"
   //   : "bg-gradient-to-br from-[#f7f2ff] via-[#f1e9ff] to-white text-slate-900 shadow-[0_28px_64px_rgba(88,50,141,0.18)]";
@@ -123,7 +123,7 @@ const TensionNode = ({
         >
           <div className="flex items-center justify-between gap-3">
             <span
-              className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em] theme-light:text-[${accentText}] theme-dark:text-[var(--theme-tension-node-pill-text)] bg-[var(--theme-tension-node-pill-bg)]`}
+              className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.32em] text-[var(--theme-tension-node-pill-text)] bg-[var(--theme-tension-node-pill-bg)]`}
      
             >
               <MessageCircleWarning size={14} />
@@ -141,13 +141,7 @@ const TensionNode = ({
                   ""),
                 })
               }
-              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm"
-              style={{
-                border: "none",
-                ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
-                ...(!darkMode ? { color: accentText } : { backgroundColor: "rgba(168,85,247,0.2)" }),
-              }}
+              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm border-none border-t-[var(--theme-tension-node-bg-top)] theme-dark:shadow-[rgb(0 0 0 / 20%) 0px 2px 4px] theme-light:text-[var(--theme-tension-node-pill-text)] theme-dark:bg-[rgba(168,85,247,0.2)] theme-light:bg-white"
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundImage = 'none';
               }}
@@ -165,25 +159,11 @@ const TensionNode = ({
               connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
-                  className={`rounded-2xl px-4 py-3 shadow-sm ${
-                    darkMode ? "text-slate-100" : "bg-white"
-                  }`}
-                  style={
-                    darkMode
-                      ? {
-                          background: palette.surface,
-                          boxShadow: "0 14px 32px rgba(0,0,0,0.45)",
-                        }
-                      : undefined
-                  }
+                  className={`rounded-2xl px-4 py-3 shadow-sm theme-dark:text-slate-100 bg-[var(--theme-surface-background)] drop-shadow-[0px_14px_32px_rgba(0,0,0,0.45)]`}
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-                      style={{
-                        backgroundColor: darkMode ? "rgba(168,85,247,0.25)" : "rgba(177,156,217,0.25)",
-                        color: darkMode ? "#e9d5ff" : accentText,
-                      }}
+                      className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide bg-[var(--theme-tension-node-pill-part-bg)] text-[var(--theme-tension-node-pill-text)]"
                     >
                       {part.data.label}
                     </span>
@@ -192,9 +172,8 @@ const TensionNode = ({
                         setEditValue(tensionDescription);
                         setEditingId(part.id);
                       }}
-                      className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors ${
-                        darkMode ? "text-purple-300 hover:text-purple-200" : "text-purple-700 hover:text-purple-900"
-                      }`}
+                      className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors
+                        theme-dark:text-purple-300 theme-dark:hover:text-purple-200 theme-light:text-purple-700 theme-light:hover:text-purple-900`}
                     >
                       Edit
                     </button>
@@ -203,11 +182,7 @@ const TensionNode = ({
                   <div className="mt-3">
                     {part.id === editingId ? (
                       <input
-                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 ${
-                          darkMode
-                            ? "bg-[#212529] border-purple-500/30 text-slate-100 focus:ring-purple-500/50"
-                            : "bg-white border-purple-300 text-purple-900 focus:ring-purple-300"
-                        }`}
+                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 theme-dark:bg-[#212529] theme-dark:border-purple-500/30 theme-dark:text-slate-100 theme-dark:focus:ring-purple-500/50 theme-light:bg-white theme-light:border-purple-300 theme-light:text-purple-900 theme-light:focus:ring-purple-300`}
                         ref={inputRef}
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
@@ -217,14 +192,12 @@ const TensionNode = ({
                       />
                     ) : tensionDescription ? (
                       <p
-                        className={`text-xs leading-relaxed text-right ${
-                          darkMode ? "text-slate-200" : "text-purple-900"
-                        }`}
+                        className={`text-xs leading-relaxed text-right theme-dark:text-slate-200 theme-light:text-purple-900`}
                       >
                         {tensionDescription}
                       </p>
                     ) : (
-                      <p className={`text-xs italic text-right ${placeholderText}`}>
+                      <p className={`text-xs italic text-right theme-dark:text-slate-400 theme-light:text-purple-900/55`}>
                         Click edit to add context.
                       </p>
                     )}
@@ -232,7 +205,7 @@ const TensionNode = ({
                 </div>
               ))
             ) : (
-              <p className={`text-xs ${darkMode ? "text-slate-400" : "text-purple-900/70"}`}>
+              <p className={`text-xs theme-dark:text-slate-400 theme-light:text-purple-900/70`}>
                 Connect parts to describe this tension.
               </p>
             )}
