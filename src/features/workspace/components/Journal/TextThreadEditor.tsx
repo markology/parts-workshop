@@ -333,7 +333,7 @@ export default function TextThreadEditor({
   return (
     <div className="flex flex-col h-full">
       {/* Messages Display Area */}
-      <div className="flex-1 overflow-y-auto space-y-2 rounded-[10px] mb-2.5 p-6 shadow-sm" style={{ backgroundColor: darkMode ? theme.card : 'white' }}>
+      <div className="flex-1 overflow-y-auto space-y-2 rounded-[10px] mb-2.5 p-6 shadow-sm bg-[var(--theme-journal-textthread-container-bg)]">
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes slideIn {
             from {

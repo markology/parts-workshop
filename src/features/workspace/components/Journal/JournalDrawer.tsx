@@ -1208,7 +1208,7 @@ export default function JournalDrawer() {
         {/* History List */}
         {allEntriesToShow.length === 0 ? (
           <div className="space-y-3 text-sm py-4" style={{ color: theme.textSecondary }}>
-            <p>No saved journal entries yet.</p>
+            <p className="text-[var(--theme-text)]">No saved journal entries yet.</p>
             <p className="text-xs" style={{ color: theme.textMuted }}>
               Click "New Entry" in the header to start, then save your first entry.
             </p>
@@ -1248,29 +1248,14 @@ export default function JournalDrawer() {
                       handleSelectEntry(entry);
                     }
                   }}
-                  className={`w-full rounded-xl transition text-left p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isActive ? 'border-0' : 'border-2'}`}
+                  className={`w-full rounded-xl transition text-left p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isActive ? 'border-0 bg-[var(--theme-journal-entry-card-active-bg)]' : 'border-2 bg-[var(--theme-journal-entry-card-inactive-bg)] hover:bg-[var(--theme-journal-entry-card-hover-bg)]'}`}
                   style={{
-                    backgroundColor: isActive ? theme.elevated : (darkMode ? theme.surface : theme.card),
                     borderColor: isActive ? 'transparent' : theme.border,
                     ...(isActive ? {
                       boxShadow: darkMode 
                         ? 'rgb(148 146 204) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px'
                         : `0 0 0 2px ${theme.accent}33, 0 10px 15px -3px rgba(0, 0, 0, 0.1)`,
                     } : {}),
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.borderColor = theme.border;
-                      e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-                      e.currentTarget.style.backgroundColor = theme.elevated;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.borderColor = theme.border;
-                      e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
-                      e.currentTarget.style.backgroundColor = darkMode ? theme.surface : theme.card;
-                    }
                   }}
                 >
                   {/* Header with dates and actions */}
@@ -1286,11 +1271,7 @@ export default function JournalDrawer() {
                     
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {isActive && (
-                        <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{
-                          backgroundColor: darkMode ? '#4c4d4d' : 'white',
-                          color: darkMode ? '#eeeeee' : theme.textPrimary,
-                          boxShadow: 'none',
-                        }}>
+                        <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap bg-[var(--theme-journal-entry-card-active-badge-bg)] text-[var(--theme-journal-entry-card-active-badge-color)]">
                           {isDraftEntry ? 'Draft' : 'Current'}
                         </span>
                       )}
@@ -1324,11 +1305,11 @@ export default function JournalDrawer() {
                           e.stopPropagation();
                           void handleDeleteEntry(entry.id);
                         }}
-                        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium"
+                        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors"
                         style={{ color: theme.textMuted }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.color = theme.error;
-                          e.currentTarget.style.backgroundColor = darkMode ? `${theme.error}33` : `${theme.error}1a`;
+                          e.currentTarget.style.backgroundColor = 'var(--theme-journal-entry-delete-hover-bg)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.color = theme.textMuted;
@@ -1471,32 +1452,18 @@ export default function JournalDrawer() {
                       onClick={() => setShowLeftPanel((prev) => !prev)}
                       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
                   style={{
-                    backgroundColor: darkMode 
-                      ? (showLeftPanel ? theme.card : theme.card)
-                      : (showLeftPanel ? theme.buttonActive : theme.card),
+                    backgroundColor: darkMode ? theme.card : theme.card,
                     color: theme.textPrimary,
                     border: "none",
                     ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                     ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                     transition: "none !important",
-                    opacity: darkMode ? (showLeftPanel ? 0.7 : 1) : (showLeftPanel ? 1 : 0.7),
                   }}
                   onMouseEnter={(e) => {
-                    if (darkMode) {
-                      e.currentTarget.style.backgroundColor = theme.buttonHover;
-                    } else {
-                      e.currentTarget.style.backgroundColor = showLeftPanel ? theme.buttonActive : theme.buttonHover;
-                    }
-                    e.currentTarget.style.opacity = "1";
+                    e.currentTarget.style.backgroundColor = theme.buttonHover;
                   }}
                   onMouseLeave={(e) => {
-                    if (darkMode) {
-                      e.currentTarget.style.backgroundColor = theme.card;
-                      e.currentTarget.style.opacity = showLeftPanel ? "0.7" : "1";
-                    } else {
-                      e.currentTarget.style.backgroundColor = showLeftPanel ? theme.buttonActive : theme.card;
-                      e.currentTarget.style.opacity = showLeftPanel ? "1" : "0.7";
-                    }
+                    e.currentTarget.style.backgroundColor = theme.card;
                   }}
                   title={showLeftPanel ? "Info active - Hide sidebar" : "Info inactive - Show sidebar"}
                 >
@@ -1647,13 +1614,15 @@ export default function JournalDrawer() {
                   <>
                     <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-inner transition-all duration-300 ease-in-out" style={{ height: '100%', backgroundColor: theme.card, borderColor: theme.border }}>
                       {/* Tab buttons */}
-                      <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
+                      <div className="flex" style={{ backgroundColor: theme.surface }}>
                       <button
                         type="button"
                         onClick={() => setLeftPanelTab("info")}
                         className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                         style={{
-                          borderBottom: leftPanelTab === "info" ? `2px solid ${theme.accent}` : 'none',
+                          border: leftPanelTab === "info" ? 'none' : undefined,
+                          borderBottom: leftPanelTab === "info" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
+                          borderRight: leftPanelTab === "info" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
                           backgroundColor: leftPanelTab === "info" 
                             ? (darkMode ? theme.elevated : theme.card)
                             : (darkMode ? theme.card : 'transparent'),
@@ -1683,7 +1652,9 @@ export default function JournalDrawer() {
                         onClick={() => setLeftPanelTab("history")}
                         className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                         style={{
-                          borderBottom: leftPanelTab === "history" ? `2px solid ${theme.accent}` : 'none',
+                          border: leftPanelTab === "history" ? 'none' : undefined,
+                          borderBottom: leftPanelTab === "history" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
+                          borderLeft: leftPanelTab === "history" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
                           backgroundColor: leftPanelTab === "history" 
                             ? (darkMode ? theme.elevated : theme.card)
                             : (darkMode ? theme.card : 'transparent'),
@@ -1723,13 +1694,15 @@ export default function JournalDrawer() {
                   <div className="block lg:hidden">
                     <div className="mx-auto max-w-4xl rounded-2xl border shadow-sm" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                       {/* Tab buttons for mobile */}
-                      <div className="flex border-b" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
+                      <div className="flex" style={{ backgroundColor: theme.surface }}>
                         <button
                           type="button"
                           onClick={() => setLeftPanelTab("info")}
                           className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                           style={{
-                            borderBottom: leftPanelTab === "info" ? `2px solid ${theme.accent}` : 'none',
+                            border: leftPanelTab === "info" ? 'none' : undefined,
+                            borderBottom: leftPanelTab === "info" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
+                            borderRight: leftPanelTab === "info" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
                             backgroundColor: leftPanelTab === "info" 
                               ? (darkMode ? theme.elevated : theme.card)
                               : (darkMode ? theme.card : 'transparent'),
@@ -1758,7 +1731,9 @@ export default function JournalDrawer() {
                           onClick={() => setLeftPanelTab("history")}
                           className="flex-1 px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em]"
                           style={{
-                            borderBottom: leftPanelTab === "history" ? `2px solid ${theme.accent}` : 'none',
+                            border: leftPanelTab === "history" ? 'none' : undefined,
+                            borderBottom: leftPanelTab === "history" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
+                            borderLeft: leftPanelTab === "history" ? 'none' : `1px solid ${darkMode ? 'rgb(63, 63, 63)' : theme.border}`,
                             backgroundColor: leftPanelTab === "history" 
                               ? (darkMode ? theme.elevated : theme.card)
                               : (darkMode ? theme.card : 'transparent'),
@@ -1813,7 +1788,7 @@ export default function JournalDrawer() {
                   ...(journalMode === 'textThread' ? {
                     borderRadius: '16px',
                     padding: '24px',
-                    backgroundColor: darkMode ? theme.surface : 'rgb(241, 245, 249)',
+                    backgroundColor: 'var(--theme-journal-textthread-container-bg)',
                   } : {})
                 }}>
                   <div className={`flex-1 overflow-hidden w-full transition-all duration-300 ease-in-out ${distractionFree && journalMode !== 'textThread' ? 'rounded-none flex flex-col' : journalMode === 'textThread' ? '' : 'px-6'}`} style={{ backgroundColor: journalMode === 'textThread' ? 'transparent' : theme.card, ...(distractionFree && journalMode !== 'textThread' ? { padding: 0, minHeight: 0 } : {}) }}>
@@ -1833,51 +1808,17 @@ export default function JournalDrawer() {
                           <button
                             type="button"
                             onClick={() => handleModeSelect("normal")}
-                            className="group relative p-6 rounded-2xl transition-all text-left"
-                            style={{
-                              backgroundColor: darkMode ? theme.elevated : theme.card,
-                              boxShadow: darkMode 
-                                ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-                                : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = darkMode ? "rgba(59, 130, 246, 0.1)" : "rgba(59, 130, 246, 0.05)";
-                              e.currentTarget.style.boxShadow = darkMode 
-                                ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-                                : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)";
-                              const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
-                              if (createPill) {
-                                createPill.style.opacity = "1";
-                                createPill.style.visibility = "visible";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : theme.card;
-                              e.currentTarget.style.boxShadow = darkMode 
-                                ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-                                : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)";
-                              const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
-                              if (createPill) {
-                                createPill.style.opacity = "0";
-                                createPill.style.visibility = "hidden";
-                              }
-                            }}
+                            className="group relative p-6 rounded-2xl transition-all text-left bg-[var(--theme-journal-mode-card-bg)] hover:bg-[var(--theme-journal-mode-card-hover-bg)] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]"
                           >
                             <span 
                               data-create-pill
-                              className="absolute top-3 right-3 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-opacity duration-200" 
-                              style={{
-                                backgroundColor: darkMode ? "rgba(59, 130, 246, 0.3)" : "rgba(59, 130, 246, 0.15)",
-                                color: darkMode ? "#93c5fd" : "#2563eb",
-                                opacity: 0,
-                                visibility: "hidden",
-                              }}
+                              className="absolute top-3 right-3 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-opacity duration-200 bg-[var(--theme-journal-mode-card-journal-pill-bg)] text-[var(--theme-journal-mode-card-journal-pill-color)] opacity-0 invisible group-hover:opacity-100 group-hover:visible"
                             >
                               New
                             </span>
                             <div className="flex items-start gap-4">
-                              <div className={`p-3 rounded-xl transition ${darkMode ? "bg-blue-900/40" : "bg-blue-100"}`}>
-                                <Book className="w-6 h-6" style={{ color: darkMode ? "#93c5fd" : "#2563eb" }} />
+                              <div className="p-3 rounded-xl transition bg-[var(--theme-journal-mode-card-journal-icon-bg)]">
+                                <Book className="w-6 h-6 text-[var(--theme-journal-mode-card-journal-icon-color)]" />
                               </div>
                               <div className="flex-1">
                                 <h4 className="text-lg font-semibold mb-1" style={{ color: theme.textPrimary }}>
@@ -1893,51 +1834,17 @@ export default function JournalDrawer() {
                             <button
                               type="button"
                               onClick={() => handleModeSelect("textThread")}
-                              className="group relative p-6 rounded-2xl transition-all text-left"
-                              style={{
-                                backgroundColor: darkMode ? theme.elevated : theme.card,
-                                boxShadow: darkMode 
-                                  ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-                                  : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = darkMode ? "rgba(168, 85, 247, 0.1)" : "rgba(168, 85, 247, 0.05)";
-                                e.currentTarget.style.boxShadow = darkMode 
-                                  ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-                                  : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)";
-                                const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
-                                if (createPill) {
-                                  createPill.style.opacity = "1";
-                                  createPill.style.visibility = "visible";
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = darkMode ? theme.elevated : theme.card;
-                                e.currentTarget.style.boxShadow = darkMode 
-                                  ? "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-                                  : "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)";
-                                const createPill = e.currentTarget.querySelector('[data-create-pill]') as HTMLElement;
-                                if (createPill) {
-                                  createPill.style.opacity = "0";
-                                  createPill.style.visibility = "hidden";
-                                }
-                              }}
+                              className="group relative p-6 rounded-2xl transition-all text-left bg-[var(--theme-journal-mode-card-bg)] hover:bg-[var(--theme-journal-mode-card-textthread-hover-bg)] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]"
                             >
                               <span 
                                 data-create-pill
-                                className="absolute top-3 right-3 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-opacity duration-200" 
-                                style={{
-                                  backgroundColor: darkMode ? "rgba(168, 85, 247, 0.3)" : "rgba(168, 85, 247, 0.15)",
-                                  color: darkMode ? "#c4b5fd" : "#9333ea",
-                                  opacity: 0,
-                                  visibility: "hidden",
-                                }}
+                                className="absolute top-3 right-3 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-opacity duration-200 bg-[var(--theme-journal-mode-card-textthread-pill-bg)] text-[var(--theme-journal-mode-card-textthread-pill-color)] opacity-0 invisible group-hover:opacity-100 group-hover:visible"
                               >
                                 New
                               </span>
                               <div className="flex items-start gap-4">
-                                <div className={`p-3 rounded-xl transition ${darkMode ? "bg-purple-900/40" : "bg-purple-100"}`}>
-                                  <MessagesSquare className="w-6 h-6" style={{ color: darkMode ? "#c4b5fd" : "#9333ea" }} />
+                                <div className="p-3 rounded-xl transition bg-[var(--theme-journal-mode-card-textthread-icon-bg)]">
+                                  <MessagesSquare className="w-6 h-6 text-[var(--theme-journal-mode-card-textthread-icon-color)]" />
                                 </div>
                                 <div className="flex-1">
                                   <h4 className="text-lg font-semibold mb-1" style={{ color: theme.textPrimary }}>

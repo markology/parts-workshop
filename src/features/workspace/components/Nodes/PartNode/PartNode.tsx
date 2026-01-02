@@ -250,7 +250,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                 )}
                 {allObservations.length > observationPreview.length && (
                   <span 
-                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap theme-dark:bg-[#383838] theme-light:bg-[#e2e8f0] theme-dark:text-white theme-light:text-slate-900"
+                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap theme-dark:bg-[#383838] theme-light:bg-[#e2e8f0] theme-dark:text-slate-400 theme-light:text-slate-500"
                   >
                     +{allObservations.length - observationPreview.length} more
                   </span>

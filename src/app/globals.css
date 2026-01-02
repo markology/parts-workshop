@@ -111,8 +111,9 @@
   --part-handle-bg: #88b7fd;
   --part-button-shadow: rgba(0, 0, 0, 0.1);
   --impression-button-shadow: rgba(0, 0, 0, 0.1);
+  --theme-text: black;
   --theme-surface-background: #fff;
-
+  --theme-border: var(--border);
   /* Theme */
   --theme-test-background: orange;
   --theme-component: white;
@@ -257,6 +258,30 @@
 
   /* Impression Input Modal Keyboard Keys Background */
   --theme-impression-modal-keyboard-bg: white;
+
+  /* Journal Components */
+  --theme-journal-mode-card-bg: white;
+  --theme-journal-mode-card-hover-bg: rgba(59, 130, 246, 0.05);
+  --theme-journal-mode-card-textthread-hover-bg: rgba(168, 85, 247, 0.05);
+  --theme-journal-mode-card-journal-icon-bg: rgb(219, 234, 254);
+  --theme-journal-mode-card-journal-icon-color: rgb(37, 99, 235);
+  --theme-journal-mode-card-journal-pill-bg: rgba(59, 130, 246, 0.15);
+  --theme-journal-mode-card-journal-pill-color: rgb(37, 99, 235);
+  --theme-journal-mode-card-textthread-icon-bg: rgb(243, 232, 255);
+  --theme-journal-mode-card-textthread-icon-color: rgb(147, 51, 234);
+  --theme-journal-mode-card-textthread-pill-bg: rgba(168, 85, 247, 0.15);
+  --theme-journal-mode-card-textthread-pill-color: rgb(147, 51, 234);
+  --theme-journal-entry-card-bg: white;
+  --theme-journal-entry-card-inactive-bg: white;
+  --theme-journal-entry-card-active-bg: #f1f5f9;
+  --theme-journal-entry-card-hover-bg: #f1f5f9;
+  --theme-journal-entry-card-active-badge-bg: white;
+  --theme-journal-entry-card-active-badge-color: rgb(30, 41, 59);
+  --theme-journal-entry-delete-hover-bg: rgba(239, 68, 68, 0.1);
+  --theme-journal-tab-button-active-bg: white;
+  --theme-journal-tab-button-inactive-bg: transparent;
+  --theme-journal-tab-button-hover-bg: transparent;
+  --theme-journal-textthread-container-bg: white;
 }
 
 .theme-dark {
@@ -265,6 +290,7 @@
   --part-handle-bg: #baceec;
   --part-button-shadow: rgba(0, 0, 0, 0.2);
   --impression-button-shadow: rgba(0, 0, 0, 0.2);
+  --theme-text: #ffffff;
   --theme-surface-background: #272b2f;
   /* Theme */
   --theme-test-background: blue;
@@ -419,6 +445,30 @@
 
   /* Impression Input Modal Keyboard Keys Background */
   --theme-impression-modal-keyboard-bg: rgb(59, 63, 67);
+
+  /* Journal Components */
+  --theme-journal-mode-card-bg: #2a2e32;
+  --theme-journal-mode-card-hover-bg: rgba(59, 130, 246, 0.1);
+  --theme-journal-mode-card-textthread-hover-bg: rgba(168, 85, 247, 0.1);
+  --theme-journal-mode-card-journal-icon-bg: rgba(59, 130, 246, 0.4);
+  --theme-journal-mode-card-journal-icon-color: rgb(147, 197, 253);
+  --theme-journal-mode-card-journal-pill-bg: rgba(59, 130, 246, 0.3);
+  --theme-journal-mode-card-journal-pill-color: rgb(147, 197, 253);
+  --theme-journal-mode-card-textthread-icon-bg: rgba(168, 85, 247, 0.4);
+  --theme-journal-mode-card-textthread-icon-color: rgb(196, 181, 253);
+  --theme-journal-mode-card-textthread-pill-bg: rgba(168, 85, 247, 0.3);
+  --theme-journal-mode-card-textthread-pill-color: rgb(196, 181, 253);
+  --theme-journal-entry-card-bg: #272b2f;
+  --theme-journal-entry-card-inactive-bg: #272b2f;
+  --theme-journal-entry-card-active-bg: #2a2e32;
+  --theme-journal-entry-card-hover-bg: #2a2e32;
+  --theme-journal-entry-card-active-badge-bg: rgb(76, 77, 77);
+  --theme-journal-entry-card-active-badge-color: rgb(238, 238, 238);
+  --theme-journal-entry-delete-hover-bg: rgba(239, 68, 68, 0.2);
+  --theme-journal-tab-button-active-bg: #2a2e32;
+  --theme-journal-tab-button-inactive-bg: #212529;
+  --theme-journal-tab-button-hover-bg: #212529;
+  --theme-journal-textthread-container-bg: #272b2f;
 }
 
 .theme-cherry {
