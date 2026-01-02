@@ -119,6 +119,7 @@
   --theme-card: #ffffff;
   --theme-border: rgba(0, 0, 0, 0.1);
   --theme-surface: #f8fafc;
+
   /* Theme */
   --theme-test-background: orange;
   --theme-component: white;
@@ -127,6 +128,7 @@
   --theme-jazz-gradient: linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242));
   --theme-assistant-bg: white;
   --theme-workspace-bg: radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgba(252, 248, 246, 0.82) 100%);
+  --theme-button-border-top: 1px solid rgba(0, 0, 0, 0.07);
 
   /* Nodes */
   --theme-part-node-bg: radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgba(252, 248, 246, 0.82) 100%);
@@ -312,6 +314,7 @@
   --theme-button-shadow: rgb(0 0 0 / 20%) 0px 2px 4px;
   --theme-assistant-bg: #2a2e32;
   --theme-workspace-bg: linear-gradient(152deg, rgb(64, 70, 78), rgb(58, 64, 72));
+  --theme-button-border-top: 1px solid rgba(0, 0, 0, 0.15);
 
   /* Nodes */
   --theme-part-node-bg: linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35));

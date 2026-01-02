@@ -391,7 +391,7 @@ export default function TextThreadEditor({
                   {speaker?.label || "Unknown"}
                 </div>
                 <div
-                  className="px-4 py-3 rounded-2xl shadow-md theme-light:text-white whitespace-pre-wrap"
+                  className="px-4 py-3 rounded-2xl shadow-md text-white whitespace-pre-wrap"
                   style={{ backgroundColor: speakerColor, borderRadius: isSelf ? "18px 18px 4px 18px" : "18px 18px 18px 4px" }}
                 >
                   {message.text}

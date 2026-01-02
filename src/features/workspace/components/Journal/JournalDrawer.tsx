@@ -147,43 +147,43 @@ const deriveTitleFromContent = (content: string, fallback: string) => {
   return firstLine.slice(0, 80);
 };
 
-const formatTimestamp = (iso: string) => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  try {
-    return new Intl.DateTimeFormat(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(date);
-  } catch {
-    return date.toLocaleString();
-  }
-};
+// const formatTimestamp = (iso: string) => {
+//   const date = new Date(iso);
+//   if (Number.isNaN(date.getTime())) return "";
+//   try {
+//     return new Intl.DateTimeFormat(undefined, {
+//       dateStyle: "medium",
+//       timeStyle: "short",
+//     }).format(date);
+//   } catch {
+//     return date.toLocaleString();
+//   }
+// };
 
-const capitalize = (value: string) =>
-  value.charAt(0).toUpperCase() + value.slice(1);
+// const capitalize = (value: string) =>
+//   value.charAt(0).toUpperCase() + value.slice(1);
 
-const toRgba = (hex: string, opacity: number) => {
-  const sanitized = hex.replace("#", "");
-  const bigint = parseInt(sanitized, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-};
+// const toRgba = (hex: string, opacity: number) => {
+//   const sanitized = hex.replace("#", "");
+//   const bigint = parseInt(sanitized, 16);
+//   const r = (bigint >> 16) & 255;
+//   const g = (bigint >> 8) & 255;
+//   const b = bigint & 255;
+//   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+// };
 
-const withAlpha = (hex: string, alpha: number) => {
-  const sanitized = hex.replace("#", "");
-  if (sanitized.length !== 6) {
-    return hex;
-  }
+// const withAlpha = (hex: string, alpha: number) => {
+//   const sanitized = hex.replace("#", "");
+//   if (sanitized.length !== 6) {
+//     return hex;
+//   }
 
-  const r = parseInt(sanitized.slice(0, 2), 16);
-  const g = parseInt(sanitized.slice(2, 4), 16);
-  const b = parseInt(sanitized.slice(4, 6), 16);
+//   const r = parseInt(sanitized.slice(0, 2), 16);
+//   const g = parseInt(sanitized.slice(2, 4), 16);
+//   const b = parseInt(sanitized.slice(4, 6), 16);
 
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+//   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+// };
 
 export default function JournalDrawer() {
   const { darkMode } = useThemeContext();
@@ -246,95 +246,10 @@ export default function JournalDrawer() {
       return null;
     }
 
-    console.log("🔍 JournalDrawer: Searching for node", {
-      searchingForNodeId: nodeId,
-      nodeIdLength: nodeId.length,
-      nodeIdFirstChars: nodeId.substring(0, 20),
-      totalNodesAvailable: nodes.length,
-      hasFlowNodesContext: !!flowNodesContext,
-    });
-
-    console.log("📋 JournalDrawer: All available nodes:", nodes.map((n, idx) => ({
-      index: idx,
-      id: n.id,
-      idLength: n.id.length,
-      idFirstChars: n.id.substring(0, 20),
-      type: n.type,
-      label: (n.data as { label?: string })?.label || "no label",
-      exactMatch: n.id === nodeId,
-    })));
-
     const found = nodes.find((node) => node.id === nodeId) ?? null;
-
-    if (found) {
-      console.log("✅ JournalDrawer: Node FOUND!", {
-        id: found.id,
-        type: found.type,
-        label: (found.data as { label?: string })?.label || "no label",
-        data: found.data,
-      });
-    } else {
-      console.warn("❌ JournalDrawer: Node NOT FOUND", {
-        searchingForNodeId: nodeId,
-        nodesCount: nodes.length,
-        hasFlowNodesContext: !!flowNodesContext,
-        exactMatchCheck: nodes.some((n) => n.id === nodeId),
-        partialMatches: nodes.filter((n) => {
-          const searchStart = nodeId.slice(0, 8);
-          const nodeStart = n.id.slice(0, 8);
-          return n.id.includes(searchStart) || nodeId.includes(nodeStart);
-        }).map((n) => ({
-          id: n.id,
-          type: n.type,
-          similarity: "partial",
-        })),
-        allNodeIds: nodes.map((n) => n.id),
-        nodeIdComparison: {
-          searching: nodeId,
-          available: nodes.map((n) => n.id),
-          matches: nodes.filter((n) => n.id === nodeId).map((n) => n.id),
-        },
-      });
-    }
 
     return found;
   }, [nodeId, nodes, flowNodesContext]);
-
-  // Debug logging
-  useEffect(() => {
-    if (isOpen && journalTarget?.type === "node") {
-      console.log("📖 JournalDrawer: Drawer opened with node target", {
-        isOpen,
-        journalTarget: {
-          type: journalTarget.type,
-          nodeId: journalTarget.nodeId,
-          nodeType: journalTarget.nodeType,
-          title: journalTarget.title,
-        },
-        nodeSources: {
-          hasFlowNodesContext: !!flowNodesContext,
-          contextNodesCount: flowNodesContext?.nodes?.length ?? 0,
-          workingStoreNodesCount: workingStoreNodes.length,
-          finalNodesCount: nodes.length,
-        },
-        uiState: {
-          leftPanelTab,
-          showLeftPanel,
-        },
-        searchResult: {
-          targetNodeFound: !!targetNode,
-          targetNodeId: targetNode?.id,
-          targetNodeType: targetNode?.type,
-          targetNodeLabel: targetNode ? (targetNode.data as { label?: string })?.label : null,
-        },
-        allNodesSummary: nodes.map((n) => ({
-          id: n.id.substring(0, 20) + "...",
-          type: n.type,
-          label: (n.data as { label?: string })?.label || "no label",
-        })),
-      });
-    }
-  }, [isOpen, journalTarget, flowNodesContext, workingStoreNodes.length, nodes.length, leftPanelTab, showLeftPanel, targetNode]);
 
   const relevantEntries = useMemo(() => {
     if (!journalTarget) return [] as JournalEntry[];
@@ -394,10 +309,10 @@ export default function JournalDrawer() {
     return allPartNodes;
   }, [targetNode, allPartNodes]);
 
-  const activeEntry = useMemo(() => {
-    if (!activeEntryId) return null;
-    return relevantEntries.find((entry) => entry.id === activeEntryId) ?? null;
-  }, [activeEntryId, relevantEntries]);
+  // const activeEntry = useMemo(() => {
+  //   if (!activeEntryId) return null;
+  //   return relevantEntries.find((entry) => entry.id === activeEntryId) ?? null;
+  // }, [activeEntryId, relevantEntries]);
 
   const hasUnsavedChanges = journalData !== lastSavedJournalData;
   
@@ -633,7 +548,6 @@ export default function JournalDrawer() {
 
   const handleSelectEntry = useCallback(
     (entry: JournalEntry) => {
-      console.log("📖 Selecting entry:", entry.id, entry.title);
       // Always load the entry, even if it's the same one (allows re-opening)
       setIsStartingNewEntry(false); // Reset flag when selecting an existing entry
       const content = entry.content ?? "";
@@ -646,7 +560,6 @@ export default function JournalDrawer() {
       setJournalMode(detectedMode);
       setShowModeSelection(false); // Hide mode selection when loading an entry
       loadEntry({ entryId: entry.id, content, speakers: Array.isArray(entry.speakers) ? entry.speakers : [] });
-      console.log("📖 Entry loaded, activeEntryId should be:", entry.id);
     },
     [loadEntry, detectModeFromContent, isImpressionJournal]
   );
@@ -1367,12 +1280,10 @@ export default function JournalDrawer() {
                     type="button"
                     onClick={() => void handleSave()}
                     disabled={!canSave || isSaving}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold flex-shrink-0 shadow-sm ${isSaving ? "animate-pulse" : ""}`}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold flex-shrink-0 shadow-sm ${isSaving ? "animate-pulse" : ""} theme-dark:shadow-[var(--theme-button-shadow)] border-t-[var(--theme-button-border-top)]`}
                     style={{
                       backgroundColor: canSave && !isSaving ? theme.info : theme.button,
                       color: canSave && !isSaving ? 'white' : theme.textMuted,
-                      ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                      ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                       transition: "none !important",
                     }}
                     onMouseEnter={(e) => {
@@ -1394,12 +1305,11 @@ export default function JournalDrawer() {
                   <button
                     type="button"
                     onClick={() => setDistractionFree(false)}
-                    className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
+                    className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-t-[var(--theme-button-border-top)]"
                     style={{
                       backgroundColor: theme.card,
                       color: theme.textSecondary,
                       border: "none",
-                      ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
                       ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                       transition: "none !important",
                     }}
@@ -1450,13 +1360,11 @@ export default function JournalDrawer() {
                     <button
                       type="button"
                       onClick={() => setShowLeftPanel((prev) => !prev)}
-                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
                   style={{
                     backgroundColor: darkMode ? theme.card : theme.card,
                     color: theme.textPrimary,
                     border: "none",
-                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                     transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
@@ -1474,13 +1382,8 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void handleStartNewEntry()}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm border-none text-[var(--theme-text-primary)] bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
                   style={{
-                    backgroundColor: theme.card,
-                    color: theme.textPrimary,
-                    border: "none",
-                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                     transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
@@ -1499,12 +1402,10 @@ export default function JournalDrawer() {
                   type="button"
                   onClick={() => void handleSave()}
                   disabled={!canSave || isSaving}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold flex-shrink-0 shadow-sm ${isSaving ? "animate-pulse" : ""}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold flex-shrink-0 shadow-sm border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)] ${isSaving ? "animate-pulse" : ""}`}
                   style={{
                     backgroundColor: canSave && !isSaving ? theme.info : theme.button,
                     color: canSave && !isSaving ? 'white' : theme.textMuted,
-                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                     transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
@@ -1527,13 +1428,8 @@ export default function JournalDrawer() {
                     <button
                       type="button"
                       onClick={() => setDistractionFree(true)}
-                      className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
+                      className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-none text-[var(--theme-text-secondary)] bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
                       style={{
-                        backgroundColor: theme.card,
-                        color: theme.textSecondary,
-                        border: "none",
-                        ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                        ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                         transition: "none !important",
                       }}
                       onMouseEnter={(e) => {
@@ -1552,13 +1448,8 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void attemptClose()}
-                  className="rounded-full p-1.5 flex-shrink-0 shadow-sm"
+                  className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-none text-[var(--theme-text-secondary)] bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
                   style={{
-                    backgroundColor: theme.card,
-                    color: theme.textSecondary,
-                    border: "none",
-                    ...(darkMode ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" } : { borderTop: "1px solid #00000012" }),
-                    ...(darkMode ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
                     transition: "none !important",
                   }}
                   onMouseEnter={(e) => {
@@ -1612,9 +1503,9 @@ export default function JournalDrawer() {
                 {/* Left panel with tabs */}
                 {!distractionFree && showLeftPanel && (
                   <>
-                    <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-inner transition-all duration-300 ease-in-out" style={{ height: '100%', backgroundColor: theme.card, borderColor: theme.border }}>
+                    <aside className="hidden lg:flex w-72 flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-inner transition-all duration-300 ease-in-out h-full border-[var(--theme-border)] bg-[var(--theme-card)]">
                       {/* Tab buttons */}
-                      <div className="flex" style={{ backgroundColor: theme.surface }}>
+                      <div className="flex bg-[var(--theme-surface)]">
                       <button
                         type="button"
                         onClick={() => setLeftPanelTab("info")}
@@ -1692,9 +1583,9 @@ export default function JournalDrawer() {
                   </aside>
 
                   <div className="block lg:hidden">
-                    <div className="mx-auto max-w-4xl rounded-2xl border shadow-sm" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
+                    <div className="mx-auto max-w-4xl rounded-2xl border shadow-sm border-[var(--theme-border)] bg-[var(--theme-card)]">
                       {/* Tab buttons for mobile */}
-                      <div className="flex" style={{ backgroundColor: theme.surface }}>
+                      <div className="flex bg-[var(--theme-surface)]">
                         <button
                           type="button"
                           onClick={() => setLeftPanelTab("info")}
@@ -1795,12 +1686,12 @@ export default function JournalDrawer() {
                   {/* Mode Selection Modal */}
                   {(showModeSelection || (journalMode === null && activeEntryId === null)) ? (
                     <div className="flex items-center justify-center h-full">
-                      <div className="w-full p-8" style={{ width: '700px', maxWidth: '700px' }}>
+                      <div className="w-full p-8 w-[700px] max-w-[700px]">
                         <div className="text-center mb-8">
-                          <h3 className="text-2xl font-bold mb-2" style={{ color: theme.textPrimary }}>
+                          <h3 className="text-2xl font-bold mb-2 text-[var(--theme-text-primary)]">
                             Choose Journal Type
                           </h3>
-                          <p style={{ color: theme.textSecondary }}>
+                          <p className="text-[var(--theme-text-secondary)]">
                             Select how you'd like to record this journal entry
                           </p>
                         </div>
@@ -1821,10 +1712,10 @@ export default function JournalDrawer() {
                                 <Book className="w-6 h-6 text-[var(--theme-journal-mode-card-journal-icon-color)]" />
                               </div>
                               <div className="flex-1">
-                                <h4 className="text-lg font-semibold mb-1" style={{ color: theme.textPrimary }}>
+                                <h4 className="text-lg font-semibold mb-1 text-[var(--theme-text-primary)]">
                                   Journal
                                 </h4>
-                                <p className="text-sm" style={{ color: theme.textSecondary }}>
+                                <p className="text-sm text-[var(--theme-text-secondary)]">
                                   Traditional rich text editor with inline speaker notation. Perfect for structured journaling and notes.
                                 </p>
                               </div>
@@ -1847,10 +1738,10 @@ export default function JournalDrawer() {
                                   <MessagesSquare className="w-6 h-6 text-[var(--theme-journal-mode-card-textthread-icon-color)]" />
                                 </div>
                                 <div className="flex-1">
-                                  <h4 className="text-lg font-semibold mb-1" style={{ color: theme.textPrimary }}>
+                                  <h4 className="text-lg font-semibold mb-1 text-[var(--theme-text-primary)]">
                                     Text Thread
                                   </h4>
-                                  <p className="text-sm" style={{ color: theme.textSecondary }}>
+                                  <p className="text-sm text-[var(--theme-text-secondary)]">
                                     Chat-style conversation interface. Great for IFS parts dialogues and back-and-forth exchanges.
                                   </p>
                                 </div>
