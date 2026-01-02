@@ -10,7 +10,7 @@ import { useUIStore } from "../state/stores/UI";
 import { useFlowNodesActions } from "../state/FlowNodesContext";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import ImpressionDisplay from "./SideBar/Impressions/ImpressionDisplay";
+import ImpressionSidebar from "./SideBar/Impressions/ImpressionSidebar";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { NodeBackgroundColors } from "../constants/Nodes";
@@ -574,54 +574,52 @@ const FloatingActionButtons = () => {
             flex items-center justify-center
             transition-all duration-200
             ${isSaveAction || isContactAction ? 'relative' : ''}
+            bg-[var(--theme-component)]
+            hover:bg-[var(--theme-component-hover)]
+            shadow-[var(--theme-button-shadow)]
           `}
-          style={{
-            backgroundColor: theme.button,
-            color: theme.buttonText,
-            ...(isDark ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
-          }}
-          onMouseEnter={(e) => {
-            if (isDark) {
-              // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
-              let r: number, g: number, b: number;
+          // onMouseEnter={(e) => {
+          //   if (isDark) {
+          //     // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
+          //     let r: number, g: number, b: number;
               
-              if (theme.button.startsWith('#')) {
-                // Hex format
-                const hex = theme.button.replace('#', '');
-                r = parseInt(hex.substr(0, 2), 16);
-                g = parseInt(hex.substr(2, 2), 16);
-                b = parseInt(hex.substr(4, 2), 16);
-              } else if (theme.button.startsWith('rgb')) {
-                // RGB format
-                const matches = theme.button.match(/\d+/g);
-                if (matches && matches.length >= 3) {
-                  r = parseInt(matches[0]);
-                  g = parseInt(matches[1]);
-                  b = parseInt(matches[2]);
-                } else {
-                  return; // Can't parse, don't change color
-                }
-              } else {
-                return; // Unknown format, don't change color
-              }
+          //     if (theme.button.startsWith('#')) {
+          //       // Hex format
+          //       const hex = theme.button.replace('#', '');
+          //       r = parseInt(hex.substr(0, 2), 16);
+          //       g = parseInt(hex.substr(2, 2), 16);
+          //       b = parseInt(hex.substr(4, 2), 16);
+          //     } else if (theme.button.startsWith('rgb')) {
+          //       // RGB format
+          //       const matches = theme.button.match(/\d+/g);
+          //       if (matches && matches.length >= 3) {
+          //         r = parseInt(matches[0]);
+          //         g = parseInt(matches[1]);
+          //         b = parseInt(matches[2]);
+          //       } else {
+          //         return; // Can't parse, don't change color
+          //       }
+          //     } else {
+          //       return; // Unknown format, don't change color
+          //     }
               
-              const darkerR = Math.max(0, r - 20);
-              const darkerG = Math.max(0, g - 20);
-              const darkerB = Math.max(0, b - 20);
-              e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-            } else {
-              // Apply gradient background on hover
-              e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (isDark) {
-              e.currentTarget.style.backgroundColor = theme.button;
-            } else {
-              e.currentTarget.style.backgroundImage = 'none';
-              e.currentTarget.style.backgroundColor = theme.button;
-            }
-          }}
+          //     const darkerR = Math.max(0, r - 20);
+          //     const darkerG = Math.max(0, g - 20);
+          //     const darkerB = Math.max(0, b - 20);
+          //     e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+          //   } else {
+          //     // Apply gradient background on hover
+          //     e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+          //   }
+          // }}
+          // onMouseLeave={(e) => {
+          //   if (isDark) {
+          //     e.currentTarget.style.backgroundColor = theme.button;
+          //   } else {
+          //     e.currentTarget.style.backgroundImage = 'none';
+          //     e.currentTarget.style.backgroundColor = theme.button;
+          //   }
+          // }}
           title={label}
         >
           {showXForAction ? (
@@ -811,9 +809,8 @@ const FloatingActionButtons = () => {
         {activeButton === 'action' && (
           <div 
             ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col backdrop-blur-xl"
+            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col backdrop-blur-xl bg-[var(--theme-component)] theme-light:bg-rgba(255, 255, 255, 0.92)[]"
             style={{ 
-              backgroundColor: isDark ? theme.sidebar : 'rgba(255, 255, 255, 0.92)',
               border: 'none',
               borderTop: isDark ? '1px solid rgb(27 27 27 / 25%)' : 'solid 1px #d3d3d340',
               zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
@@ -825,7 +822,7 @@ const FloatingActionButtons = () => {
             }}
           >
             <div className="pt-[10px] pb-[15px] px-[10px] h-full flex flex-col">
-              <ImpressionDisplay />
+              <ImpressionSidebar />
             </div>
           </div>
         )}
@@ -853,74 +850,74 @@ const FloatingActionButtons = () => {
           >
             {/* Part option */}
             <button
-              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
+              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative bg-[var(--theme-component)] hover:bg-[var(--theme-component-hover)]"
               style={{ 
-                backgroundColor: theme.button,
+                // backgroundColor: theme.button,
                 color: theme.buttonText 
               }}
-              onMouseEnter={(e) => {
-                setHoveredOption('part');
-                if (isDark) {
-                  // Darken the button on hover by reducing RGB values
-                  let r: number, g: number, b: number;
+              // onMouseEnter={(e) => {
+              //   setHoveredOption('part');
+              //   if (isDark) {
+              //     // Darken the button on hover by reducing RGB values
+              //     let r: number, g: number, b: number;
                   
-                  if (theme.button.startsWith('#')) {
-                    // Hex format
-                    const hex = theme.button.replace('#', '');
-                    r = parseInt(hex.substr(0, 2), 16);
-                    g = parseInt(hex.substr(2, 2), 16);
-                    b = parseInt(hex.substr(4, 2), 16);
-                  } else if (theme.button.startsWith('rgb')) {
-                    // RGB format
-                    const matches = theme.button.match(/\d+/g);
-                    if (matches && matches.length >= 3) {
-                      r = parseInt(matches[0]);
-                      g = parseInt(matches[1]);
-                      b = parseInt(matches[2]);
-                    } else {
-                      return; // Can't parse, don't change color
-                    }
-                  } else {
-                    return; // Unknown format, don't change color
-                  }
+              //     if (theme.button.startsWith('#')) {
+              //       // Hex format
+              //       const hex = theme.button.replace('#', '');
+              //       r = parseInt(hex.substr(0, 2), 16);
+              //       g = parseInt(hex.substr(2, 2), 16);
+              //       b = parseInt(hex.substr(4, 2), 16);
+              //     } else if (theme.button.startsWith('rgb')) {
+              //       // RGB format
+              //       const matches = theme.button.match(/\d+/g);
+              //       if (matches && matches.length >= 3) {
+              //         r = parseInt(matches[0]);
+              //         g = parseInt(matches[1]);
+              //         b = parseInt(matches[2]);
+              //       } else {
+              //         return; // Can't parse, don't change color
+              //       }
+              //     } else {
+              //       return; // Unknown format, don't change color
+              //     }
                   
-                  const darkerR = Math.max(0, r - 20);
-                  const darkerG = Math.max(0, g - 20);
-                  const darkerB = Math.max(0, b - 20);
-                  e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+              //     const darkerR = Math.max(0, r - 20);
+              //     const darkerG = Math.max(0, g - 20);
+              //     const darkerB = Math.max(0, b - 20);
+              //     e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
                   
-                  // Set Add pill to impression sidebar background color on hover
-                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                  if (pill) {
-                    pill.style.backgroundColor = theme.sidebar;
-                  }
-                } else {
-                  // Apply gradient to span on button hover
-                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                  if (pill) {
-                    pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
-                  }
-                }
-              }}
-              onMouseLeave={(e) => {
-                setHoveredOption(null);
-                if (isDark) {
-                  e.currentTarget.style.backgroundColor = theme.button;
+              //     // Set Add pill to impression sidebar background color on hover
+              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
+              //     if (pill) {
+              //       pill.style.backgroundColor = theme.sidebar;
+              //     }
+              //   } else {
+              //     // Apply gradient to span on button hover
+              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
+              //     if (pill) {
+              //       pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+              //     }
+              //   }
+              // }}
+              // onMouseLeave={(e) => {
+              //   setHoveredOption(null);
+              //   if (isDark) {
+              //     e.currentTarget.style.backgroundColor = theme.button;
                   
-                  // Reset the Add pill color
-                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                  if (pill) {
-                    pill.style.backgroundColor = theme.buttonActive;
-                  }
-                } else {
-                  // Reset span gradient
-                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                  if (pill) {
-                    pill.style.backgroundImage = 'none';
-                    pill.style.backgroundColor = 'white';
-                  }
-                }
-              }}
+              //     // Reset the Add pill color
+              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
+              //     if (pill) {
+              //       pill.style.backgroundColor = theme.buttonActive;
+              //     }
+              //   } else {
+              //     // Reset span gradient
+              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
+              //     if (pill) {
+              //       pill.style.backgroundImage = 'none';
+              //       pill.style.backgroundColor = 'white';
+              //     }
+              //   }
+              // }}
               onClick={() => {
                 const newNode = createNode("part", "");
                 if (newNode && newNode.id) {
@@ -937,9 +934,9 @@ const FloatingActionButtons = () => {
             >
               Part
               <span 
-                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
+                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)]"
                 style={{ 
-                  backgroundColor: isDark ? theme.buttonActive : 'white', 
+                  // backgroundColor: isDark ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
                 }}
               >
@@ -951,74 +948,74 @@ const FloatingActionButtons = () => {
             
             {/* Relationship option */}
             <button
-              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative"
-              style={{ 
-                backgroundColor: theme.button,
-                color: theme.buttonText 
-              }}
-              onMouseEnter={(e) => {
-                setHoveredOption('relationship');
-                if (isDark) {
-                  // Darken the button on hover by reducing RGB values
-                  let r: number, g: number, b: number;
+              className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative bg-[var(--theme-component)] hover:bg-[var(--theme-component-hover)]"
+              // style={{ 
+              //   backgroundColor: theme.button,
+              //   color: theme.buttonText 
+              // }}
+              // onMouseEnter={(e) => {
+              //   setHoveredOption('relationship');
+              //   if (isDark) {
+              //     // Darken the button on hover by reducing RGB values
+              //     let r: number, g: number, b: number;
                   
-                  if (theme.button.startsWith('#')) {
-                    // Hex format
-                    const hex = theme.button.replace('#', '');
-                    r = parseInt(hex.substr(0, 2), 16);
-                    g = parseInt(hex.substr(2, 2), 16);
-                    b = parseInt(hex.substr(4, 2), 16);
-                  } else if (theme.button.startsWith('rgb')) {
-                    // RGB format
-                    const matches = theme.button.match(/\d+/g);
-                    if (matches && matches.length >= 3) {
-                      r = parseInt(matches[0]);
-                      g = parseInt(matches[1]);
-                      b = parseInt(matches[2]);
-                    } else {
-                      return; // Can't parse, don't change color
-                    }
-                  } else {
-                    return; // Unknown format, don't change color
-                  }
+              //     if (theme.button.startsWith('#')) {
+              //       // Hex format
+              //       const hex = theme.button.replace('#', '');
+              //       r = parseInt(hex.substr(0, 2), 16);
+              //       g = parseInt(hex.substr(2, 2), 16);
+              //       b = parseInt(hex.substr(4, 2), 16);
+              //     } else if (theme.button.startsWith('rgb')) {
+              //       // RGB format
+              //       const matches = theme.button.match(/\d+/g);
+              //       if (matches && matches.length >= 3) {
+              //         r = parseInt(matches[0]);
+              //         g = parseInt(matches[1]);
+              //         b = parseInt(matches[2]);
+              //       } else {
+              //         return; // Can't parse, don't change color
+              //       }
+              //     } else {
+              //       return; // Unknown format, don't change color
+              //     }
                   
-                  const darkerR = Math.max(0, r - 20);
-                  const darkerG = Math.max(0, g - 20);
-                  const darkerB = Math.max(0, b - 20);
-                  e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+              //     const darkerR = Math.max(0, r - 20);
+              //     const darkerG = Math.max(0, g - 20);
+              //     const darkerB = Math.max(0, b - 20);
+              //     e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
                   
-                  // Set Add pill to impression sidebar background color on hover
-                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                  if (pill) {
-                    pill.style.backgroundColor = theme.sidebar;
-                  }
-                } else {
-                  // Apply gradient to span on button hover
-                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                  if (pill) {
-                    pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
-                  }
-                }
-              }}
-              onMouseLeave={(e) => {
-                setHoveredOption(null);
-                if (isDark) {
-                  e.currentTarget.style.backgroundColor = theme.button;
+              //     // Set Add pill to impression sidebar background color on hover
+              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
+              //     if (pill) {
+              //       pill.style.backgroundColor = theme.sidebar;
+              //     }
+              //   } else {
+              //     // Apply gradient to span on button hover
+              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
+              //     if (pill) {
+              //       pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+              //     }
+              //   }
+              // }}
+              // onMouseLeave={(e) => {
+              //   setHoveredOption(null);
+              //   if (isDark) {
+              //     e.currentTarget.style.backgroundColor = theme.button;
                   
-                  // Reset the Add pill color
-                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                  if (pill) {
-                    pill.style.backgroundColor = theme.buttonActive;
-                  }
-                } else {
-                  // Reset span gradient
-                  const pill = e.currentTarget.querySelector('span') as HTMLElement;
-                  if (pill) {
-                    pill.style.backgroundImage = 'none';
-                    pill.style.backgroundColor = 'white';
-                  }
-                }
-              }}
+              //     // Reset the Add pill color
+              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
+              //     if (pill) {
+              //       pill.style.backgroundColor = theme.buttonActive;
+              //     }
+              //   } else {
+              //     // Reset span gradient
+              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
+              //     if (pill) {
+              //       pill.style.backgroundImage = 'none';
+              //       pill.style.backgroundColor = 'white';
+              //     }
+              //   }
+              // }}
               onClick={() => {
                 createNode("relationship", "Choose Relationship Type");
                 // Keep action button active so impressions sidebar stays open
@@ -1027,9 +1024,9 @@ const FloatingActionButtons = () => {
             >
               Relationship
               <span 
-                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm"
+                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)]"
                 style={{ 
-                  backgroundColor: isDark ? theme.buttonActive : 'white', 
+                  // backgroundColor: isDark ? theme.buttonActive : 'white', 
                   color: theme.buttonText 
                 }}
               >

@@ -108,6 +108,10 @@
   --part-handle-bg: #88b7fd;
   --part-button-shadow: rgba(0, 0, 0, 0.1);
   --impression-button-shadow: rgba(0, 0, 0, 0.1);
+  --theme-test-background: orange;
+  --theme-component: white;
+  --theme-sub-button: white;
+  --theme-sub-button-hover: #14171b;
 }
 
 .theme-dark {
@@ -116,6 +120,12 @@
   --part-handle-bg: #baceec;
   --part-button-shadow: rgba(0, 0, 0, 0.2);
   --impression-button-shadow: rgba(0, 0, 0, 0.2);
+  --theme-test-background: blue;
+  --theme-component: #2a2e32;
+  --theme-component-hover: #14171b;
+  --theme-sub-button: #1e2125;
+  --theme-sub-button-hover: #14171b;
+  --theme-button-shadow: rgb(0 0 0 / 20%) 0px 2px 4px;
 }
 
 .theme-cherry {
@@ -125,6 +135,10 @@
   --part-handle-bg: #baceec;
   --part-button-shadow: rgba(0, 0, 0, 0.2);
   --impression-button-shadow: rgba(0, 0, 0, 0.2);
+  --theme-test-background: green;
+  --theme-component: #202428;
+  --theme-sub-button: #1e2125;
+  --theme-sub-button-hover: #14171b;
 }
 
 @layer base {

@@ -12,7 +12,7 @@ import { useUIStore } from "@/features/workspace/state/stores/UI";
 import { Plus, SquareUserRound, Users, Sword } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 
-import ImpressionDisplay from "./Impressions/ImpressionDisplay";
+import ImpressionDisplay from "./Impressions/ImpressionSidebar";
 import PartInput from "./PartInput";
 import PartDetailPanel from "./PartDetailPanel";
 import { NodeBackgroundColors } from "../../constants/Nodes";
