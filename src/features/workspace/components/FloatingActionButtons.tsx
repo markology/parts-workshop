@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Settings, X, Minus, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Sparkles } from "lucide-react";
+import { Plus, Settings, X, Minus, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Sparkles, User } from "lucide-react";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
 import StudioAssistant from "@/components/StudioAssistant";
 import AccountDropdown from "@/components/AccountDropdown";
@@ -28,6 +28,7 @@ import { HelpCircle } from "lucide-react";
 const FloatingActionButtons = () => {
 
   const router = useRouter();
+  const { data: session } = useSession();
   const [activeButton, setActiveButton] = useState<string | null>('action');
   const [windowWidth, setWindowWidth] = useState(0);
   const [hoveredOption, setHoveredOption] = useState<string | null>(null);
@@ -367,11 +368,8 @@ const FloatingActionButtons = () => {
       return;
     }
     
-    if (action === 'settings') {
-      // Toggle profile dropdown - don't change activeButton state or other UI
-      setProfileDropdownOpen(!profileDropdownOpen);
-      return;
-    }
+    // Settings action is now handled by AccountDropdown component directly
+    // No need to handle it here
 
     if (action === 'action') {
       // Toggle action button and its associated menu/sidebar only
@@ -550,8 +548,23 @@ const FloatingActionButtons = () => {
     const showXForAction = isActionButton && showRelationshipTypeModal;
     const showXForOptions = isOptionsButton && isActive;
     
+    // For settings action, render AccountDropdown component directly
+    if (isSettingsAction) {
+      return (
+        <AccountDropdown
+          showDashboard={true}
+          showHelp={true}
+          showWorkspaceTheme={true}
+          themeModeType="none"
+          useWorkspaceTheme={true}
+          buttonClassName="group w-12 h-12 rounded-full shadow-sm flex items-center justify-center transition-all duration-200 overflow-hidden"
+          containerRef={profileDropdownRef}
+        />
+      );
+    }
+
     return (
-      <div className="relative" ref={isSettingsAction ? profileDropdownRef : null}>
+      <div className="relative">
         <button
           onClick={(e) => handleActionClick(action, e)}
           className={`
@@ -560,7 +573,6 @@ const FloatingActionButtons = () => {
             shadow-sm
             flex items-center justify-center
             transition-all duration-200
-            ${isSettingsAction ? 'overflow-hidden' : ''}
             ${isSaveAction || isContactAction ? 'relative' : ''}
           `}
           style={{
@@ -642,34 +654,8 @@ const FloatingActionButtons = () => {
               <MailPlus className="w-6 h-6 opacity-0 group-hover:opacity-100 absolute" />
               <Mail className="w-6 h-6 opacity-100 group-hover:opacity-0" />
             </>
-          ) : isSettingsAction ? (
-            session?.user?.image ? (
-              <Image
-                src={session.user.image}
-                alt={session.user.name || "User"}
-                width={48}
-                height={48}
-                className="rounded-full"
-              />
-            ) : (
-              <User className="w-6 h-6" />
-            )
           ) : null}
         </button>
-
-        {/* Account Dropdown - rendered separately, controlled by button click */}
-        {isSettingsAction && (
-          <AccountDropdown
-            showDashboard={true}
-            showHelp={true}
-            showWorkspaceTheme={true}
-            themeModeType="none"
-            useWorkspaceTheme={true}
-            containerRef={profileDropdownRef}
-            isOpen={profileDropdownOpen}
-            onClose={() => setProfileDropdownOpen(false)}
-          />
-        )}
       </div>
     );
   };

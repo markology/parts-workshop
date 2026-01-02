@@ -7,6 +7,7 @@ import Image from "next/image";
 import { User, Settings, Moon, Sun, Monitor, LogOut, HelpCircle, Map, Paintbrush } from "lucide-react";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
+import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 interface AccountDropdownProps {
   /** Show Dashboard link */
@@ -50,6 +51,7 @@ export default function AccountDropdown({
   const { data: session } = useSession();
   const { themePref, setThemePref, isDark } = useThemeContext();
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
+  const workspaceTheme = useWorkspaceTheme ? useTheme() : null;
   const [internalDropdownOpen, setInternalDropdownOpen] = useState(false);
   const dropdownOpen = externalIsOpen !== undefined ? externalIsOpen : internalDropdownOpen;
   const setDropdownOpen = (value: boolean) => {
@@ -162,6 +164,48 @@ export default function AccountDropdown({
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className={buttonClassName || defaultButtonClassName}
+            style={useWorkspaceTheme && workspaceTheme ? {
+              backgroundColor: workspaceTheme.button,
+              color: workspaceTheme.buttonText,
+              ...(isDark ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+            } : undefined}
+            onMouseEnter={useWorkspaceTheme && workspaceTheme && isDark ? (e) => {
+              // Darken the button on hover by reducing RGB values
+              let r: number, g: number, b: number;
+              
+              if (workspaceTheme.button.startsWith('#')) {
+                const hex = workspaceTheme.button.replace('#', '');
+                r = parseInt(hex.substr(0, 2), 16);
+                g = parseInt(hex.substr(2, 2), 16);
+                b = parseInt(hex.substr(4, 2), 16);
+              } else if (workspaceTheme.button.startsWith('rgb')) {
+                const matches = workspaceTheme.button.match(/\d+/g);
+                if (matches && matches.length >= 3) {
+                  r = parseInt(matches[0]);
+                  g = parseInt(matches[1]);
+                  b = parseInt(matches[2]);
+                } else {
+                  return;
+                }
+              } else {
+                return;
+              }
+              
+              const darkerR = Math.max(0, r - 20);
+              const darkerG = Math.max(0, g - 20);
+              const darkerB = Math.max(0, b - 20);
+              e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
+            } : useWorkspaceTheme && workspaceTheme && !isDark ? (e) => {
+              e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
+            } : undefined}
+            onMouseLeave={useWorkspaceTheme && workspaceTheme ? (e) => {
+              if (isDark) {
+                e.currentTarget.style.backgroundColor = workspaceTheme.button;
+              } else {
+                e.currentTarget.style.backgroundImage = 'none';
+                e.currentTarget.style.backgroundColor = workspaceTheme.button;
+              }
+            } : undefined}
           >
             {session?.user?.image ? (
               <Image
