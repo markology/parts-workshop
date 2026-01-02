@@ -82,9 +82,9 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => convertToRelationship("tension")}
-              className="flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all duration-200 theme-light:border-purple-200 theme-light:bg-purple-50 theme-light:hover:bg-purple-100 theme-dark:border-white/10 theme-dark:bg-[#2a2e32]/80 theme-dark:hover:border-white/20 theme-dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+              className="group flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all duration-200 theme-light:border-purple-200 theme-light:bg-purple-50 theme-light:hover:bg-purple-100 theme-dark:border-none theme-dark:bg-[#2a2e32]/80 theme-dark:hover:border-white/20 theme-dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] theme-dark:hover:bg-[var(--theme-component)]"
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full theme-light:text-purple-600 theme-dark:bg-[#3d434b] theme-dark:text-purple-100">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full theme-light:text-purple-600 theme-dark:bg-[#3d434b] theme-dark:text-purple-100 theme-dark:group-hover:text-[#e9d5ff] transition-colors">
                 <MessageCircleWarning size={20} />
               </span>
               <div className="text-center">
@@ -95,9 +95,9 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
 
             <button
               onClick={() => convertToRelationship("interaction")}
-              className="flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all duration-200 theme-light:border-sky-200 theme-light:bg-sky-50 theme-light:hover:bg-sky-100 theme-dark:border-white/10 theme-dark:bg-[#2a2e32]/80 theme-dark:hover:border-white/20 theme-dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+              className="group flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all duration-200 theme-light:border-sky-200 theme-light:bg-sky-50 theme-light:hover:bg-sky-100 theme-dark:border-none theme-dark:bg-[#2a2e32]/80 theme-dark:hover:border-white/20 theme-dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] theme-dark:hover:bg-[var(--theme-component)]"
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full theme-light:text-sky-600 theme-dark:bg-[#3d434b] theme-dark:text-sky-100">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full theme-light:text-sky-600 theme-dark:bg-[#3d434b] theme-dark:text-sky-100 theme-dark:group-hover:text-[#dbeafe] transition-colors">
                 <Users size={20} />
               </span>
               <div className="text-center">
