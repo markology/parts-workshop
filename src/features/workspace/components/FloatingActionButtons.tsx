@@ -438,7 +438,7 @@ const FloatingActionButtons = () => {
       <div className="mb-3">
         <button
           className={`capitalize flex items-center justify-between w-full p-2 text-left font-semibold rounded transition-colors ${
-            isImpressionsEmpty ? "" : "hover:opacity-80"
+            isImpressionsEmpty ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80"
           }`}
           disabled={isImpressionsEmpty}
           onClick={toggleOpen}
