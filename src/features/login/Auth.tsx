@@ -46,7 +46,7 @@ export default function Auth() {
         await signIn("credentials", {
           email,
           password,
-          callbackUrl: "/workspaces",
+          callbackUrl: "/dashboard",
         });
       } else {
         setError(data.error || "Something went wrong");
@@ -98,7 +98,7 @@ export default function Auth() {
 
         <button
           className="w-full border bg-white dark:text-black border-gray-300 py-2 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-2"
-          onClick={() => signIn("google", { callbackUrl: "/workspaces" })}
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         >
           <Image
             src="/google-logo.svg"

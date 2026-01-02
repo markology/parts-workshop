@@ -12,7 +12,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/workspaces");
+      router.replace("/dashboard");
     }
   }, [status, router]);
 

@@ -10,7 +10,7 @@ export default function ClientRedirect() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/workspaces");
+      router.replace("/dashboard");
     }
   }, [status, router]);
 
