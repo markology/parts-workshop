@@ -177,7 +177,7 @@ const ImpressionInputModalContent = ({
             <div className="flex items-start justify-between gap-6">
               <div className="space-y-3">
                 <span
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] theme-dark:pl-0"
                   style={{
                     backgroundColor: `var(--theme-impression-${currentType}-modal-pill-bg)`,
                     color: `var(--theme-impression-${currentType}-modal-pill-font)`,
@@ -221,7 +221,7 @@ const ImpressionInputModalContent = ({
               </div>
               <button
                 onClick={() => setShowImpressionModal(false)}
-                className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm"
+                className="h-10 w-10 flex items-center justify-center rounded-full shadow-sm theme-dark:shadow-none"
                 style={{
                   backgroundColor: `var(--theme-impression-${currentType}-modal-pill-bg)`,
                   color: `var(--theme-impression-${currentType}-modal-pill-font)`,
@@ -235,7 +235,7 @@ const ImpressionInputModalContent = ({
             <div
               className="rounded-2xl border px-6 py-6 shadow-inner"
               style={{
-                backgroundColor: isDark ? `var(--theme-impression-${currentType}-modal-pill-bg)` : "rgba(255, 255, 255, 0.76)",
+                backgroundColor: `var(--theme-impression-modal-input-container-bg)`,
                 borderColor: theme.border,
               }}
             >
@@ -248,16 +248,11 @@ const ImpressionInputModalContent = ({
               />
             </div>
 
-            <div className={`flex items-center justify-between gap-3 flex-wrap ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+            <div className="flex items-center justify-between gap-3 flex-wrap theme-dark:text-slate-400 theme-light:text-slate-500">
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5">
                   <kbd 
-                    className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
-                      isDark ? 'text-slate-200' : 'text-slate-700'
-                    }`}
-                    style={{
-                      backgroundColor: isDark ? 'rgb(59 63 67)' : 'white',
-                    }}
+                    className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]"
                   >
                     {isMac() ? '⇧ Tab' : 'Shift+Tab'}
                   </kbd>
@@ -265,12 +260,7 @@ const ImpressionInputModalContent = ({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <kbd 
-                    className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
-                      isDark ? 'text-slate-200' : 'text-slate-700'
-                    }`}
-                    style={{
-                      backgroundColor: isDark ? 'rgb(59 63 67)' : 'white',
-                    }}
+                    className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]"
                   >
                     Tab
                   </kbd>
@@ -278,12 +268,7 @@ const ImpressionInputModalContent = ({
                 </div>
                 <div className="flex items-center gap-1.5">
                   <kbd 
-                    className={`px-2 py-1 rounded text-[10px] font-semibold shadow-sm ${
-                      isDark ? 'text-slate-200' : 'text-slate-700'
-                    }`}
-                    style={{
-                      backgroundColor: isDark ? 'rgb(59 63 67)' : 'white',
-                    }}
+                    className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]"
                   >
                     {isMac() ? '⏎' : 'Enter'}
                   </kbd>

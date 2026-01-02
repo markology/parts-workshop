@@ -1,7 +1,6 @@
 "use client";
 
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
-import { NodeBackgroundColors } from "@/features/workspace/constants/Nodes";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 import {
   ImpressionTextType,
@@ -10,7 +9,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
-import { useThemeContext } from "@/state/context/ThemeContext";
 
 const isValidImpression = (text: string) => {
   const trimmed = text.trim();
@@ -179,7 +177,6 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
   }, [selectedType]);
 
   const theme = useTheme();
-  const { isDark } = useThemeContext();
 
   return (
     <div ref={containerRef} className="relative">
@@ -202,20 +199,14 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
                     textAreaRef.current.focus();
                   }
                 }}
-                className={`px-3.5 py-2 rounded-full font-semibold ${
-                  selectedType === type
-                    ? "shadow-sm"
-                    : "opacity-60"
+                className={`px-3.5 py-2 rounded-full font-semibold text-[14px] border-[1.5px] border-transparent ${
+                  selectedType === type ? "shadow-sm" : "opacity-60"
                 }`}
                 style={{
-                  fontSize: '14px',
                   backgroundColor: selectedType === type 
-                    ? isDark
-                      ? `color-mix(in srgb, var(--theme-impression-${type}-modal-bg) 70%, transparent)`
-                      : `var(--theme-impression-${type}-modal-pill-bg)`
+                    ? `var(--theme-impression-${type}-modal-pill-bg)`
                     : "transparent",
                   color: `var(--theme-impression-${type}-modal-textarea-font)`,
-                  border: "1.5px solid transparent",
                 }}
               >
                 {ImpressionTextType[type]}
@@ -226,14 +217,11 @@ const ImpressionInput = ({ onAddImpression, onTypeChange, defaultType = "emotion
         <div className="relative">
           <textarea
             ref={textAreaRef as React.RefObject<HTMLTextAreaElement>}
-            className="min-h-[120px] px-4 pb-4 pt-[30px] rounded-xl border-0 w-full focus:outline-none resize-none"
+            className="min-h-[120px] px-4 pb-4 pt-[30px] rounded-xl border-0 w-full focus:outline-none resize-none bg-transparent leading-[1.6] font-size-[16px]"
             style={{
               color: inputValue 
                 ? `var(--theme-impression-${selectedType}-modal-textarea-font)`
                 : theme.textPrimary,
-              backgroundColor: "transparent",
-              fontSize: '16px',
-              lineHeight: '1.6',
               caretColor: `var(--theme-impression-${selectedType}-modal-textarea-font)`,
             }}
             placeholder="Type your impression here..."

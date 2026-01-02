@@ -222,6 +222,12 @@
   --theme-impression-sensation-modal-add-button-bg: rgb(242, 140, 130);
   --theme-impression-behavior-modal-add-button-bg: rgb(249, 177, 122);
   --theme-impression-other-modal-add-button-bg: rgb(20, 184, 166);
+
+  /* Impression Input Modal Container Background */
+  --theme-impression-modal-input-container-bg: rgba(255, 255, 255, 0.76);
+
+  /* Impression Input Modal Keyboard Keys Background */
+  --theme-impression-modal-keyboard-bg: white;
 }
 
 .theme-dark {
@@ -308,11 +314,27 @@
   --theme-impression-other-modal-bg: rgb(30, 76, 74);
 
   /* Impression Input Modal Top Left Pill Background Colors */
-  --theme-impression-emotion-modal-pill-bg: rgb(42, 42, 42);
-  --theme-impression-thought-modal-pill-bg: rgb(42, 42, 42);
-  --theme-impression-sensation-modal-pill-bg: rgb(42, 42, 42);
-  --theme-impression-behavior-modal-pill-bg: rgb(42, 42, 42);
-  --theme-impression-other-modal-pill-bg: rgb(42, 42, 42);
+  --theme-impression-emotion-modal-pill-bg: color-mix(
+    in srgb,
+    var(--theme-impression-emotion-modal-bg) 70%,
+    transparent
+  );
+  --theme-impression-thought-modal-pill-bg: color-mix(
+    in srgb,
+    var(--theme-impression-thought-modal-bg) 70%,
+    transparent
+  );
+  --theme-impression-sensation-modal-pill-bg: color-mix(
+    in srgb,
+    var(--theme-impression-sensation-modal-bg) 70%,
+    transparent
+  );
+  --theme-impression-behavior-modal-pill-bg: color-mix(
+    in srgb,
+    var(--theme-impression-behavior-modal-bg) 70%,
+    transparent
+  );
+  --theme-impression-other-modal-pill-bg: color-mix(in srgb, var(--theme-impression-other-modal-bg) 70%, transparent);
 
   /* Impression Input Modal Pill Font Colors (for top pill and close button - uses pill-font) */
   --theme-impression-emotion-modal-pill-font: rgb(139, 203, 139);
@@ -334,6 +356,12 @@
   --theme-impression-sensation-modal-add-button-bg: rgb(129, 84, 83);
   --theme-impression-behavior-modal-add-button-bg: rgb(130, 101, 80);
   --theme-impression-other-modal-add-button-bg: rgb(28, 105, 99);
+
+  /* Impression Input Modal Container Background */
+  --theme-impression-modal-input-container-bg: rgba(42, 42, 42);
+
+  /* Impression Input Modal Keyboard Keys Background */
+  --theme-impression-modal-keyboard-bg: rgb(59, 63, 67);
 }
 
 .theme-cherry {
