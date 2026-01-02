@@ -2,9 +2,7 @@ import {
   ImpressionTextType,
   ImpressionType,
 } from "@/features/workspace/types/Impressions";
-import { useThemeContext } from "@/state/context/ThemeContext";
 import { ReactElement } from "react";
-import { getImpressionBaseColors, getImpressionPartDetailsHeaderColor } from "@/features/workspace/constants/ImpressionColors";
 
 const PartImpressionContainer = ({
   type,
@@ -13,27 +11,19 @@ const PartImpressionContainer = ({
   type: ImpressionType;
   children: ReactElement[];
 }) => {
-  const { darkMode } = useThemeContext();
-  const baseColorsMap = getImpressionBaseColors(darkMode);
-  const baseColors = (type in baseColorsMap ? baseColorsMap[type as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
-
-  const containerStyle = {
-    backgroundColor: baseColors.background,
-  };
-
-  const labelColor = getImpressionPartDetailsHeaderColor(type, darkMode);
-
   return (
     <div
       key={`PartImpressionWrapper ${type}`}
-      className={`relative p-4 rounded-xl mb-4 flex-1 justify-items-center max-w-[140px] transition-all duration-300 ${
-        darkMode ? "text-slate-200/90" : ""
-      }`}
-      style={containerStyle}
+      className="relative p-4 rounded-xl mb-4 flex-1 justify-items-center max-w-[140px] transition-all duration-300 theme-dark:text-slate-200/90"
+      style={{
+        backgroundColor: `var(--theme-impression-${type}-bg)`,
+      }}
     >
       <strong
         className="impression-container-title text-sm flex-1 justify-items-center tracking-wide"
-        style={{ color: labelColor }}
+        style={{
+          color: `var(--theme-impression-${type}-part-details-header)`,
+        }}
       >
         {`${ImpressionTextType[type]}:`}
       </strong>

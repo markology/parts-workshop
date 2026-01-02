@@ -24,7 +24,6 @@ import { ImpressionList } from "../../constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
-import { getImpressionBaseColors, getImpressionPillFontColor } from "../../constants/ImpressionColors";
 
 const IMPRESSION_NODE_TYPES: ImpressionType[] = [
   "emotion",
@@ -953,21 +952,15 @@ export default function JournalDrawer() {
               <div className="flex flex-wrap gap-2">
                 {allImpressions.map((item) => {
                   const impressionType = item.impressionType as ImpressionType;
-                  const impressionBaseColors = getImpressionBaseColors(darkMode);
-                  const baseColors = (impressionType in impressionBaseColors ? impressionBaseColors[impressionType as keyof typeof impressionBaseColors] : null) || {
-                    background: (impressionType in NodeBackgroundColors ? NodeBackgroundColors[impressionType as keyof typeof NodeBackgroundColors] : null) || "#9CA3AF",
-                    font: (impressionType in NodeTextColors ? NodeTextColors[impressionType as keyof typeof NodeTextColors] : null) || "#374151",
-                  };
-                  const pillFontColor = getImpressionPillFontColor(impressionType, darkMode);
 
                   return (
                     <div
                       key={item.id}
                       className="flex items-center justify-between rounded-xl border px-3 py-2 shadow-sm"
                       style={{
-                        backgroundColor: baseColors.background,
+                        backgroundColor: `var(--theme-impression-${impressionType}-bg)`,
                         borderColor: "transparent",
-                        color: pillFontColor,
+                        color: `var(--theme-impression-${impressionType}-text)`,
                       }}
                     >
                       <span className="font-medium text-xs break-words">

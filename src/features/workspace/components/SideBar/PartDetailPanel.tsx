@@ -1588,19 +1588,15 @@ const PartDetailPanel = () => {
                         <div className="space-y-2 mb-2">
                           {impressions.length > 0 ? (
                             impressions.map((imp, index) => {
-                              const baseColorsMap = getImpressionBaseColors(darkMode);
-                              const baseColors = (impression in baseColorsMap ? baseColorsMap[impression as keyof typeof baseColorsMap] : null) || baseColorsMap.emotion;
-                              const pillFontColor = getImpressionPillFontColor(impression, darkMode);
-
                               return (
                                 <div
                                   key={index}
                                   className="group flex items-center justify-between rounded-xl px-3 py-2 shadow-sm"
                                   style={{
                                     ...listItemStyle,
-                                    backgroundColor: baseColors.background,
+                                    backgroundColor: `var(--theme-impression-${impression}-bg)`,
                                     border: 'none',
-                                    color: pillFontColor,
+                                    color: `var(--theme-impression-${impression}-text)`,
                                   }}
                                 >
                                   <span className="font-medium text-xs">{imp.data?.label || imp.id}</span>
@@ -1609,7 +1605,7 @@ const PartDetailPanel = () => {
                                       onClick={() => handleReturnToSidebar(impression, imp.id)}
                                       className="p-1"
                                       style={{
-                                        color: pillFontColor,
+                                        color: `var(--theme-impression-${impression}-text)`,
                                       }}
                                       title="Return to sidebar"
                                     >
@@ -1619,7 +1615,7 @@ const PartDetailPanel = () => {
                                       onClick={() => handleRemoveImpression(impression, imp.id)}
                                       className="p-1"
                                       style={{
-                                        color: pillFontColor,
+                                        color: `var(--theme-impression-${impression}-text)`,
                                       }}
                                       title="Delete"
                                     >

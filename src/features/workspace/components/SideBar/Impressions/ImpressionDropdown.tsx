@@ -6,7 +6,7 @@ import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
 import { useThemeContext } from "@/state/context/ThemeContext";
-import { getImpressionBaseColors, getImpressionSidebarHeaderBg, getImpressionPillFontColor, getImpressionHeaderBorderColor } from "@/features/workspace/constants/ImpressionColors";
+import { getImpressionBaseColors, getImpressionSidebarHeaderBg, getImpressionHeaderBorderColor } from "@/features/workspace/constants/ImpressionColors";
 
 const ImpressionDropdown = ({
   type,
@@ -80,9 +80,9 @@ const ImpressionDropdown = ({
               onDragStart={(event) => onDragStart(event, item.id, item.type)}
               draggable
               style={{
-                backgroundColor: baseColors.background,
+                backgroundColor: `var(--theme-impression-${item.type}-bg)`,
                 border: 'none',
-                color: getImpressionPillFontColor(item.type, darkMode),
+                color: `var(--theme-impression-${item.type}-text)`,
                 zIndex: index === 0 ? 10 : 1,
                 marginTop: index === 0 ? '4px' : '0',
               }}
@@ -102,7 +102,7 @@ const ImpressionDropdown = ({
                     .removeImpression({ type: item.type, id: item.id });
                 }}
                 style={{
-                  color: getImpressionPillFontColor(item.type, darkMode),
+                  color: `var(--theme-impression-${item.type}-text)`,
                 }}
               >
                 <X className="h-3.5 w-3.5" />

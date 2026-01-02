@@ -489,8 +489,8 @@ const FloatingActionButtons = () => {
                 onDragStart={(event) => onDragStart(event, item.id, item.type)}
                 draggable
                 style={{
-                  background: (getImpressionBaseColors(isDark) as any)[item.type]?.background || NodeBackgroundColors[item.type],
-                  color: getImpressionPillFontColor(item.type as ImpressionType, isDark),
+                  background: `var(--theme-impression-${item.type}-bg)`,
+                  color: `var(--theme-impression-${item.type}-text)`,
                   userSelect: 'none',
                   zIndex: index === 0 ? 10 : 1,
                   marginTop: index === 0 ? '4px' : '0',
@@ -730,14 +730,14 @@ const FloatingActionButtons = () => {
                         >
                           <div className="relative aspect-[4/3] overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent" />
-                            {/* <Image
+                            <Image
                               src={item.image}
                               alt={item.title}
                               fill
                               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                               className="object-cover transition-transform duration-500 group-hover:scale-105"
                               priority={false}
-                            /> */}
+                            />
                             <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-black/60 backdrop-blur px-3 py-1 text-xs font-semibold text-white uppercase tracking-wide">
                               Coming soon
                             </div>

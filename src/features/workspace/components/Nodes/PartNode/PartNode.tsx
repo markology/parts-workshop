@@ -19,7 +19,6 @@ import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
 import { NodeBackgroundColors, NodeTextColors } from "@/features/workspace/constants/Nodes";
 import { workspaceDarkPalette } from "@/features/workspace/constants/darkPalette";
-import { getImpressionBaseColors, getImpressionPillFontColor } from "@/features/workspace/constants/ImpressionColors";
 import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
@@ -237,19 +236,13 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
               <div className="relative min-h-[90px] p-3 flex flex-wrap gap-2 items-start content-start overflow-hidden">
                 {observationPreview.length > 0 ? (
                   observationPreview.map((obs, index) => {
-                    const baseColorsMap = getImpressionBaseColors(darkMode);
-                    const baseColors = (obs.impressionType in baseColorsMap ? baseColorsMap[obs.impressionType as keyof typeof baseColorsMap] : null) || {
-                      background: NodeBackgroundColors[obs.impressionType] || "#9CA3AF",
-                      font: NodeTextColors[obs.impressionType] || "#374151",
-                    };
-                    const pillFontColor = getImpressionPillFontColor(obs.impressionType, darkMode);
                     return (
                       <span
                         key={`${obs.impressionType}-${index}`}
                         className="inline-flex items-center rounded-xl px-3 py-[6px] text-xs font-medium leading-none whitespace-nowrap shadow-sm"
                         style={{
-                          backgroundColor: baseColors.background,
-                          color: pillFontColor,
+                          backgroundColor: `var(--theme-impression-${obs.impressionType}-bg)`,
+                          color: `var(--theme-impression-${obs.impressionType}-text)`,
                         }}
                       >
                         {obs.data?.label || obs.id}

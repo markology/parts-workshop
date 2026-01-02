@@ -166,6 +166,13 @@
   --theme-impression-sensation-icon-color: rgb(153, 73, 54);
   --theme-impression-behavior-icon-color: rgb(155, 96, 52);
   --theme-impression-other-icon-color: rgb(13, 148, 136);
+
+  /* Impression Part Details Header Colors (for container titles) */
+  --theme-impression-emotion-part-details-header: rgb(139, 203, 139);
+  --theme-impression-thought-part-details-header: rgb(122, 179, 224);
+  --theme-impression-sensation-part-details-header: rgb(242, 140, 130);
+  --theme-impression-behavior-part-details-header: rgb(249, 177, 122);
+  --theme-impression-other-part-details-header: rgb(20, 184, 166);
 }
 
 .theme-dark {
@@ -222,6 +229,13 @@
   --theme-impression-sensation-icon-bg: rgb(96, 56, 52);
   --theme-impression-behavior-icon-bg: rgb(99, 70, 48);
   --theme-impression-other-icon-bg: rgb(8, 73, 66);
+
+  /* Impression Part Details Header Colors (for container titles - white in dark mode) */
+  --theme-impression-emotion-part-details-header: rgb(255, 255, 255);
+  --theme-impression-thought-part-details-header: rgb(255, 255, 255);
+  --theme-impression-sensation-part-details-header: rgb(255, 255, 255);
+  --theme-impression-behavior-part-details-header: rgb(255, 255, 255);
+  --theme-impression-other-part-details-header: rgb(255, 255, 255);
 }
 
 .theme-cherry {
