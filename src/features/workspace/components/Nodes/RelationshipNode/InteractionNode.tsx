@@ -117,7 +117,7 @@ const InteractionNode = ({
                   ""),
                 })
               }
-              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors border-none border-t-[var(--theme-interaction-node-journal-icon-border)] theme-light:shadow-sm theme-light:text-[var(--theme-interaction-node-pill-text)] theme-dark:bg-[var(--theme-interaction-node-journal-icon-bg)] theme-dark:shadow-[var(--theme-interaction-node-journal-icon-shadow)]"
+              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors border-none border-t-[var(--theme-interaction-node-journal-icon-border)] theme-light:shadow-sm theme-light:bg-white theme-light:text-[var(--theme-interaction-node-pill-text)] theme-dark:bg-[var(--theme-interaction-node-journal-icon-bg)] theme-dark:shadow-[var(--theme-interaction-node-journal-icon-shadow)]"
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundImage = 'none';
               }}
