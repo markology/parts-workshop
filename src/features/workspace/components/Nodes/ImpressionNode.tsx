@@ -10,9 +10,6 @@ import useContextMenu from "@/features/workspace/hooks/useContextMenu";
 import detachImpressionFromPart from "../../state/updaters/detachImpressionFromPart";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
 import { useWorkingStore } from "../../state/stores/useWorkingStore";
-import { useThemeContext } from "@/state/context/ThemeContext";
-import { useTheme } from "@/features/workspace/hooks/useTheme";
-import { getImpressionBaseColors, getPartNodeImpressionTypeFont, getImpressionPillFontColor } from "@/features/workspace/constants/ImpressionColors";
 
 const ImpressionNode = ({
   id,
@@ -25,8 +22,6 @@ const ImpressionNode = ({
 }) => {
   const { deleteNode } = useFlowNodesContext();
   const { setJournalTarget } = useJournalStore();
-  const { darkMode } = useThemeContext();
-  const theme = useTheme();
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =
     useContextMenu({
@@ -59,9 +54,6 @@ const ImpressionNode = ({
     [deleteNode, label]
   );
 
-  const typeLabelFont = getPartNodeImpressionTypeFont(type, darkMode);
-  const pillFontColor = getImpressionPillFontColor(type, darkMode);
-
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(
       "parts-workshop/canvas-impression",
@@ -79,15 +71,15 @@ const ImpressionNode = ({
         draggable
         className={`text-left rounded-xl px-3 pt-2 pb-3 text-sm font-medium shadow-sm break-words min-w-[180px] max-w-[300px] flex flex-col gap-2 relative overflow-hidden cursor-grab active:cursor-grabbing`}
         style={{
-          backgroundColor: `var(--theme-impression-${type}-bg)`,          
-          color: pillFontColor,
+          backgroundColor: `var(--theme-impression-${type}-bg)`,
+          color: `var(--theme-impression-${type}-text)`,
         }}
       >
         <div className="flex items-center justify-between gap-2">
           <strong 
             className="text-sm font-semibold"
             style={{
-              color: typeLabelFont,
+              color: `var(--theme-impression-${type}-title)`,
             }}
           >
             {`${ImpressionTextType[type]}`}
@@ -101,10 +93,11 @@ const ImpressionNode = ({
                 title: label,
               })
             }
-            className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors flex-shrink-0"
+            className={`journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors flex-shrink-0`}
             style={{
               boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-              ...(!darkMode ? { color: pillFontColor } : { backgroundColor: typeLabelFont }),
+              background: `var(--theme-impression-${type}-icon-bg)`,
+              color: `var(--theme-impression-${type}-icon-color)`,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundImage = 'none';

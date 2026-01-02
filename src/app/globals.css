@@ -138,6 +138,34 @@
   --theme-impression-sensation-bg: rgb(249, 225, 223);
   --theme-impression-behavior-bg: rgb(253, 235, 222);
   --theme-impression-other-bg: rgb(198, 237, 233);
+
+  /* Impression Node Title Colors (type label) */
+  --theme-impression-emotion-title: rgb(63, 113, 66);
+  --theme-impression-thought-title: rgb(62, 110, 145);
+  --theme-impression-sensation-title: rgb(153, 73, 54);
+  --theme-impression-behavior-title: rgb(155, 96, 52);
+  --theme-impression-other-title: rgb(13, 148, 136);
+
+  /* Impression Node Text Colors (description/label) */
+  --theme-impression-emotion-text: rgb(63, 113, 66);
+  --theme-impression-thought-text: rgb(62, 110, 145);
+  --theme-impression-sensation-text: rgb(153, 73, 54);
+  --theme-impression-behavior-text: rgb(155, 96, 52);
+  --theme-impression-other-text: rgb(13, 148, 136);
+
+  /* Impression Node Journal Icon Background Colors (uses title color as bg) */
+  --theme-impression-emotion-icon-bg: white;
+  --theme-impression-thought-icon-bg: white;
+  --theme-impression-sensation-icon-bg: white;
+  --theme-impression-behavior-icon-bg: white;
+  --theme-impression-other-icon-bg: white;
+
+  /* Impression Node Journal Icon Colors */
+  --theme-impression-emotion-icon-color: rgb(63, 113, 66);
+  --theme-impression-thought-icon-color: rgb(62, 110, 145);
+  --theme-impression-sensation-icon-color: rgb(153, 73, 54);
+  --theme-impression-behavior-icon-color: rgb(155, 96, 52);
+  --theme-impression-other-icon-color: rgb(13, 148, 136);
 }
 
 .theme-dark {
@@ -173,6 +201,27 @@
   --theme-impression-sensation-bg: rgb(130, 87, 85);
   --theme-impression-behavior-bg: rgb(133, 104, 81);
   --theme-impression-other-bg: rgb(29, 104, 98);
+
+  /* Impression Node Title Colors (type label - partNodeTypeFont) */
+  --theme-impression-emotion-title: rgb(55, 81, 55);
+  --theme-impression-thought-title: rgb(48, 71, 89);
+  --theme-impression-sensation-title: rgb(96, 56, 52);
+  --theme-impression-behavior-title: rgb(99, 70, 48);
+  --theme-impression-other-title: rgb(8, 73, 66);
+
+  /* Impression Node Text Colors (description/label - white in dark mode) */
+  --theme-impression-emotion-text: rgb(255, 255, 255);
+  --theme-impression-thought-text: rgb(255, 255, 255);
+  --theme-impression-sensation-text: rgb(255, 255, 255);
+  --theme-impression-behavior-text: rgb(255, 255, 255);
+  --theme-impression-other-text: rgb(255, 255, 255);
+
+  /* Impression Node Journal Icon Background Colors (uses title color as bg) */
+  --theme-impression-emotion-icon-bg: rgb(55, 81, 55);
+  --theme-impression-thought-icon-bg: rgb(48, 71, 89);
+  --theme-impression-sensation-icon-bg: rgb(96, 56, 52);
+  --theme-impression-behavior-icon-bg: rgb(99, 70, 48);
+  --theme-impression-other-icon-bg: rgb(8, 73, 66);
 }
 
 .theme-cherry {

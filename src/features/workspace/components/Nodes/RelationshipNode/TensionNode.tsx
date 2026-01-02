@@ -136,7 +136,7 @@ const TensionNode = ({
               connectedNodes.map(({ part, tensionDescription }) => (
                 <div
                   key={`connectedNode-${part.id}`}
-                  className={`rounded-2xl px-4 py-3 shadow-sm theme-dark:text-slate-100 bg-[var(--theme-surface-background)] drop-shadow-[0px_14px_32px_rgba(0,0,0,0.45)]`}
+                  className={`rounded-2xl px-4 py-3 shadow-sm theme-dark:text-slate-100 bg-[var(--theme-surface-background)] theme-dark:drop-shadow-[0px_14px_32px_rgba(0,0,0,0.45)]`}
                 >
                   <div className="flex items-center justify-between">
                     <span
