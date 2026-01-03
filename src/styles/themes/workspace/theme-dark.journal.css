@@ -1,0 +1,27 @@
+.theme-dark {
+    /* Journal Components */
+    --theme-journal-mode-card-bg: #2a2e32;
+    --theme-journal-mode-card-hover-bg: rgba(59, 130, 246, 0.1);
+    --theme-journal-mode-card-textthread-hover-bg: rgba(168, 85, 247, 0.1);
+    --theme-journal-mode-card-journal-icon-bg: rgba(59, 130, 246, 0.4);
+    --theme-journal-mode-card-journal-icon-color: rgb(147, 197, 253);
+    --theme-journal-mode-card-journal-pill-bg: rgba(59, 130, 246, 0.3);
+    --theme-journal-mode-card-journal-pill-color: rgb(147, 197, 253);
+    --theme-journal-mode-card-textthread-icon-bg: rgba(168, 85, 247, 0.4);
+    --theme-journal-mode-card-textthread-icon-color: rgb(196, 181, 253);
+    --theme-journal-mode-card-textthread-pill-bg: rgba(168, 85, 247, 0.3);
+    --theme-journal-mode-card-textthread-pill-color: rgb(196, 181, 253);
+    --theme-journal-entry-card-bg: #272b2f;
+    --theme-journal-entry-card-inactive-bg: #272b2f;
+    --theme-journal-entry-card-active-bg: #2a2e32;
+    --theme-journal-entry-card-hover-bg: #2a2e32;
+    --theme-journal-entry-card-active-badge-bg: rgb(76, 77, 77);
+    --theme-journal-entry-card-active-badge-color: rgb(238, 238, 238);
+    --theme-journal-entry-delete-hover-bg: rgba(239, 68, 68, 0.2);
+    --theme-journal-tab-button-active-bg: #2a2e32;
+    --theme-journal-tab-button-inactive-bg: #212529;
+    --theme-journal-tab-button-hover-bg: #212529;
+    --theme-journal-tab-border-inactive: rgb(63, 63, 63);
+    --theme-journal-textthread-container-bg: #272b2f;
+    --theme-journal-entry-card-active-shadow: rgb(148, 146, 204) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px;
+}

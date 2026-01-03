@@ -1,0 +1,41 @@
+.theme-light {
+  /* Nodes */
+  --theme-part-node-bg: radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgba(252, 248, 246, 0.82) 100%);
+  --theme-part-node-shadow: 0 26px 60px rgba(15, 23, 42, 0.14);
+  --theme-tension-node-shadow: 0 28px 64px rgba(88, 50, 141, 0.18);
+  --theme-tension-node-bg: linear-gradient(140deg, #f7f2ff, #f1e9ff, #ffffff);
+  --theme-tension-node-pill-bg: rgba(177, 156, 217, 0.22);
+  --theme-tension-node-pill-text: var(--node-text-tension);
+  --theme-tension-node-pill-part-bg: #ebe6f5;
+  --theme-tension-node-bg-top: 1px solid #00000012;
+
+  /* Interaction Node */
+  --theme-interaction-node-bg: linear-gradient(140deg, #eaf7ff, #e4f4ff, white);
+  --theme-interaction-node-shadow: 0 26px 62px rgba(28, 102, 143, 0.16);
+  --theme-interaction-node-pill-bg: rgba(135, 206, 235, 0.25);
+  --theme-interaction-node-pill-text: var(--node-text-interaction);
+  --theme-interaction-node-journal-icon-border: 1px solid #00000012;
+  --theme-interaction-node-card-bg: white;
+  --theme-interaction-node-card-part-pill-bg: rgba(135, 206, 235, 0.18);
+  --theme-interaction-node-card-part-pill-text: var(--node-text-interaction);
+  --theme-interaction-node-edit-button-text: rgb(30, 64, 175);
+  --theme-interaction-node-edit-button-hover-text: rgb(15, 23, 42);
+  --theme-interaction-node-input-bg: white;
+  --theme-interaction-node-input-border: rgb(125, 211, 252);
+  --theme-interaction-node-input-text: rgb(14, 165, 233);
+  --theme-interaction-node-input-focus-ring: rgb(125, 211, 252);
+  --theme-interaction-node-description-text: rgb(14, 165, 233);
+  --theme-interaction-node-placeholder-text: rgba(14, 165, 233, 0.55);
+  --theme-interaction-node-empty-text: rgba(14, 165, 233, 0.7);
+
+  /* Relationship Selection Node */
+  --theme-relationship-selection-node-bg: linear-gradient(to bottom right, #f8fafc, #ffffff);
+  --theme-relationship-selection-node-shadow: 0 24px 55px rgba(15, 23, 42, 0.12);
+  --theme-relationship-selection-node-border: rgb(226, 232, 240);
+  --theme-relationship-selection-node-overlay: radial-gradient(
+    circle at top,
+    rgba(124, 58, 237, 0.08),
+    transparent 60%
+  );
+}
+

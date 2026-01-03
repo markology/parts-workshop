@@ -1,0 +1,40 @@
+.theme-dark {
+  /* Nodes */
+  --theme-part-node-bg: linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35));
+  --theme-part-node-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  --theme-tension-node-shadow: 0 32px 90px rgba(0, 0, 0, 0.65);
+  --theme-tension-node-bg: linear-gradient(140deg, #2a1f3d, #27212f);
+  --theme-tension-node-pill-bg: rgba(168, 85, 247, 0.2);
+  --theme-tension-node-pill-text: #e9d5ff;
+  --theme-tension-node-pill-part-bg: #473561;
+  --theme-tension-node-bg-top: 1px solid rgba(0, 0, 0, 0.15);
+
+  /* Interaction Node */
+  --theme-interaction-node-bg: linear-gradient(140deg, rgb(31, 42, 61), rgb(33, 39, 47));
+  --theme-interaction-node-shadow: 0 32px 90px rgba(0, 0, 0, 0.65);
+  --theme-interaction-node-pill-bg: rgba(59, 130, 246, 0.2);
+  --theme-interaction-node-pill-text: #dbeafe;
+  --theme-interaction-node-journal-icon-bg: rgba(59, 130, 246, 0.2);
+  --theme-interaction-node-journal-icon-border: 1px solid rgba(0, 0, 0, 0.15);
+  --theme-interaction-node-journal-icon-shadow: rgb(0 0 0 / 20%) 0px 2px 4px;
+  --theme-interaction-node-card-bg: #272b2f;
+  --theme-interaction-node-card-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+  --theme-interaction-node-card-part-pill-bg: rgba(59, 130, 246, 0.25);
+  --theme-interaction-node-card-part-pill-text: #dbeafe;
+  --theme-interaction-node-edit-button-text: rgb(147, 197, 253);
+  --theme-interaction-node-edit-button-hover-text: rgb(191, 219, 254);
+  --theme-interaction-node-input-bg: #212529;
+  --theme-interaction-node-input-border: rgba(59, 130, 246, 0.3);
+  --theme-interaction-node-input-text: rgb(241, 245, 249);
+  --theme-interaction-node-input-focus-ring: rgba(59, 130, 246, 0.5);
+  --theme-interaction-node-description-text: rgb(226, 232, 240);
+  --theme-interaction-node-placeholder-text: rgb(148, 163, 184);
+  --theme-interaction-node-empty-text: rgb(148, 163, 184);
+
+  /* Relationship Selection Node */
+  --theme-relationship-selection-node-bg: linear-gradient(145deg, #2a2e32, #272b2f);
+  --theme-relationship-selection-node-shadow: 0 32px 85px rgba(0, 0, 0, 0.6);
+  --theme-relationship-selection-node-border: rgba(255, 255, 255, 0.05);
+  --theme-relationship-selection-node-overlay: radial-gradient(circle at top, rgba(61, 67, 75, 0.5), transparent 65%);
+}
+
