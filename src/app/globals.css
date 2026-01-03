@@ -139,6 +139,18 @@
   --theme-assistant-bg: white;
   --theme-workspace-bg: radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgba(252, 248, 246, 0.82) 100%);
   --theme-button-border-top: 1px solid rgba(0, 0, 0, 0.07);
+
+  /* Part Detail Panel */
+  --theme-part-detail-nav-bg: #f7f7f7;
+  --theme-part-detail-section-card-bg: rgba(255, 255, 255, 0.95);
+  --theme-part-detail-sub-card-bg: var(--theme-surface);
+  --theme-part-detail-list-item-bg: var(--theme-card);
+  --theme-part-detail-modal-container-bg: var(--theme-surface);
+  --theme-part-detail-modal-field-card-bg: var(--theme-surface);
+  --theme-part-detail-modal-input-bg: var(--theme-card);
+  --theme-part-detail-modal-textarea-bg: var(--theme-card);
+  --theme-part-detail-backdrop-bg: rgba(255, 255, 255, 0.6);
+  --theme-part-detail-container-shadow: none;
 }
 
 .theme-dark {
@@ -166,6 +178,18 @@
   --theme-assistant-bg: #2a2e32;
   --theme-workspace-bg: linear-gradient(152deg, rgb(64, 70, 78), rgb(58, 64, 72));
   --theme-button-border-top: 1px solid rgba(0, 0, 0, 0.15);
+
+  /* Part Detail Panel */
+  --theme-part-detail-nav-bg: rgba(42, 46, 50, 0.75);
+  --theme-part-detail-section-card-bg: #2a2e32;
+  --theme-part-detail-sub-card-bg: rgba(33, 37, 41, 0.6);
+  --theme-part-detail-list-item-bg: rgba(33, 37, 41, 0.5);
+  --theme-part-detail-modal-container-bg: rgba(42, 46, 50, 0.75);
+  --theme-part-detail-modal-field-card-bg: rgba(42, 46, 50, 0.75);
+  --theme-part-detail-modal-input-bg: rgba(39, 43, 47, 0.6);
+  --theme-part-detail-modal-textarea-bg: rgba(39, 43, 47, 0.6);
+  --theme-part-detail-backdrop-bg: rgba(0, 0, 0, 0.95);
+  --theme-part-detail-container-shadow: 0px 1px 15px 1px rgba(0, 0, 0, 0.19);
 }
 
 .theme-cherry {
