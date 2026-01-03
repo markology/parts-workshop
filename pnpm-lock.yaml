@@ -101,6 +101,9 @@ importers:
       posthog-node:
         specifier: ^4.14.0
         version: 4.18.0
+      prettier:
+        specifier: ^3.7.4
+        version: 3.7.4
       prisma:
         specifier: ^6.6.0
         version: 6.16.2(typescript@5.9.2)
@@ -978,9 +981,6 @@ packages:
     peerDependencies:
       '@prisma/client': '>=2.26.0 || >=3'
       next-auth: ^4
-
-  '@next/env@15.2.3':
-    resolution: {integrity: sha512-a26KnbW9DFEUsSxAxKBORR/uD9THoYoKbkpFywMN/AFvboTt94b8+g/07T8J6ACsdLag8/PDU60ov4rPxRAixw==}
 
   '@next/env@15.2.8':
     resolution: {integrity: sha512-TaEsAki14R7BlgywA05t2PFYfwZiNlGUHyIQHVyloXX3y+Dm0HUITe5YwTkjtuOQuDhuuLotNEad4VtnmE11Uw==}
@@ -3635,6 +3635,11 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  prettier@3.7.4:
+    resolution: {integrity: sha512-v6UNi1+3hSlVvv8fSaoUbggEM5VErKmmpGA7Pl3HF8V6uKY7rvClBOJlH6yNwQtfTueNkGVpOv/mtWL9L4bgRA==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   pretty-format@3.8.0:
     resolution: {integrity: sha512-WuxUnVtlWL1OfZFQFuqvnvs6MiAGk9UNsBostyBOB0Is9wb5uRESevA6rnl/rkksXaGX3GzZhPup5d6Vp1nFew==}
 
@@ -5344,8 +5349,6 @@ snapshots:
       '@prisma/client': 6.16.2(prisma@6.16.2(typescript@5.9.2))(typescript@5.9.2)
       next-auth: 4.24.11(next@15.2.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(sass@1.77.4))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
 
-  '@next/env@15.2.3': {}
-
   '@next/env@15.2.8': {}
 
   '@next/eslint-plugin-next@15.2.3':
@@ -5741,7 +5744,7 @@ snapshots:
   '@react-email/render@1.1.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       html-to-text: 9.0.5
-      prettier: 3.6.2
+      prettier: 3.7.4
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
       react-promise-suspense: 0.3.4
@@ -8217,7 +8220,7 @@ snapshots:
 
   payload@3.67.0(graphql@16.12.0)(typescript@5.9.2):
     dependencies:
-      '@next/env': 15.2.3
+      '@next/env': 15.2.8
       '@payloadcms/translations': 3.67.0
       '@types/busboy': 1.5.4
       ajv: 8.17.1
@@ -8350,6 +8353,8 @@ snapshots:
   prelude-ls@1.2.1: {}
 
   prettier@3.6.2: {}
+
+  prettier@3.7.4: {}
 
   pretty-format@3.8.0: {}
 

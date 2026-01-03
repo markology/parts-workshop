@@ -42,6 +42,7 @@
     "payload-lexical-typography": "^0.5.2",
     "posthog-js": "^1.236.6",
     "posthog-node": "^4.14.0",
+    "prettier": "^3.7.4",
     "prisma": "^6.6.0",
     "react": "^19.0.0",
     "react-color": "^2.19.3",

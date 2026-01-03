@@ -125,7 +125,7 @@
   --theme-test-background: orange;
   --theme-component: white;
   --theme-sub-button: white;
-  --theme-sub-button-hover: #14171b;
+  --theme-sub-button-hover: #f1f5f9;
   --theme-jazz-gradient: linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242));
   --theme-assistant-bg: white;
   --theme-workspace-bg: radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgba(252, 248, 246, 0.82) 100%);
@@ -300,7 +300,7 @@
   --part-button-shadow: rgba(0, 0, 0, 0.2);
   --impression-button-shadow: rgba(0, 0, 0, 0.2);
   --theme-text: #ffffff;
-  --theme-text-secondary: #rgba(255, 255, 255, 0.7);
+  --theme-text-secondary: rgba(255, 255, 255, 0.7);
   --theme-text-muted: rgba(255, 255, 255, 0.5);
   --theme-surface-background: #272b2f;
   --theme-card: #212529;

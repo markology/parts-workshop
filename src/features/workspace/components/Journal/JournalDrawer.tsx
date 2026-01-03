@@ -1339,19 +1339,16 @@ export default function JournalDrawer() {
                     <button
                       type="button"
                       onClick={() => setShowLeftPanel((prev) => !prev)}
-                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm border-t-[var(--theme-journal-button-border-top)] theme-dark:shadow-[var(--theme-journal-button-shadow)]"
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm border-t-[var(--theme-journal-button-border-top)] theme-dark:shadow-[var(--theme-journal-button-shadow)] text-[var(--theme-text-primary)] bg-[var(--theme-sub-button)] hover:bg-[var(--theme-sub-button-hover)] border-none"
                   style={{
-                    backgroundColor: theme.card,
-                    color: theme.textPrimary,
-                    border: "none",
                     transition: "none !important",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.buttonHover;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.card;
-                  }}
+                  // onMouseEnter={(e) => {
+                  //   e.currentTarget.style.backgroundColor = theme.buttonHover;
+                  // }}
+                  // onMouseLeave={(e) => {
+                  //   e.currentTarget.style.backgroundColor = theme.card;
+                  // }}
                   title={showLeftPanel ? "Info active - Hide sidebar" : "Info inactive - Show sidebar"}
                 >
                   <Layers size={14} />
@@ -1361,16 +1358,16 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void handleStartNewEntry()}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm border-none text-[var(--theme-text-primary)] bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm border-none text-[var(--theme-text-primary)] bg-[var(--theme-sub-button)] hover:bg-[var(--theme-sub-button-hover)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
                   style={{
                     transition: "none !important",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.buttonHover;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.card;
-                  }}
+                  // onMouseEnter={(e) => {
+                  //   e.currentTarget.style.backgroundColor = theme.buttonHover;
+                  // }}
+                  // onMouseLeave={(e) => {
+                  //   e.currentTarget.style.backgroundColor = theme.card;
+                  // }}
                   title="Start a new journal entry"
                 >
                   <Plus size={14} />
@@ -1407,18 +1404,16 @@ export default function JournalDrawer() {
                     <button
                       type="button"
                       onClick={() => setDistractionFree(true)}
-                      className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-none text-[var(--theme-text-secondary)] bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
+                      className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-none text-[var(--theme-text-secondary)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)] bg-[var(--theme-sub-button)] hover:bg-[var(--theme-sub-button-hover)] "
                       style={{
                         transition: "none !important",
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = theme.buttonHover;
-                        e.currentTarget.style.color = theme.textPrimary;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = theme.card;
-                        e.currentTarget.style.color = theme.textSecondary;
-                      }}
+                      // onMouseEnter={(e) => {
+                      //   e.currentTarget.style.color = theme.textPrimary;
+                      // }}
+                      // onMouseLeave={(e) => {
+                      //   e.currentTarget.style.color = theme.textSecondary;
+                      // }}
                       title="Enter distraction-free mode"
                     >
                       <Maximize2 size={18} />
@@ -1427,18 +1422,18 @@ export default function JournalDrawer() {
                 <button
                   type="button"
                   onClick={() => void attemptClose()}
-                  className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-none text-[var(--theme-text-secondary)] bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)]"
+                  className="rounded-full p-1.5 flex-shrink-0 shadow-sm border-none text-[var(--theme-text-secondary)] border-t-[var(--theme-button-border-top)] theme-dark:shadow-[var(--theme-button-shadow)] bg-[var(--theme-sub-button)] hover:bg-[var(--theme-sub-button-hover)]"
                   style={{
                     transition: "none !important",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.buttonHover;
-                    e.currentTarget.style.color = theme.textPrimary;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.card;
-                    e.currentTarget.style.color = theme.textSecondary;
-                  }}
+                  // onMouseEnter={(e) => {
+                  //   e.currentTarget.style.backgroundColor = theme.buttonHover;
+                  //   e.currentTarget.style.color = theme.textPrimary;
+                  // }}
+                  // onMouseLeave={(e) => {
+                  //   e.currentTarget.style.backgroundColor = theme.card;
+                  //   e.currentTarget.style.color = theme.textSecondary;
+                  // }}
                   title="Close"
                 >
                   <X size={18} />
