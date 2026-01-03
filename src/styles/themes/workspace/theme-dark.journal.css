@@ -18,9 +18,9 @@
     --theme-journal-entry-card-active-badge-bg: rgb(76, 77, 77);
     --theme-journal-entry-card-active-badge-color: rgb(238, 238, 238);
     --theme-journal-entry-delete-hover-bg: rgba(239, 68, 68, 0.2);
-    --theme-journal-tab-button-active-bg: #2a2e32;
-    --theme-journal-tab-button-inactive-bg: #212529;
-    --theme-journal-tab-button-hover-bg: #212529;
+    --theme-journal-tab-button-active-bg: #212529;
+    --theme-journal-tab-button-inactive-bg: #2a2e32;
+    --theme-journal-tab-button-hover-bg: #14171b;
     --theme-journal-tab-border-inactive: rgb(63, 63, 63);
     --theme-journal-textthread-container-bg: #272b2f;
     --theme-journal-entry-card-active-shadow: rgb(148, 146, 204) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px;
