@@ -33,8 +33,9 @@ export default function StudioAssistant({
     {
       id: "assistant-initial",
       role: "assistant",
-      content: "Hi! I'm here to help you navigate Parts Studio. Ask me anything."
-    }
+      content:
+        "Hi! I'm here to help you navigate Parts Studio. Ask me anything.",
+    },
   ]);
   const [isChatSending, setIsChatSending] = useState(false);
   const expandedInputRef = useRef<HTMLTextAreaElement>(null);
@@ -44,7 +45,10 @@ export default function StudioAssistant({
   useEffect(() => {
     if (isOpen) {
       requestAnimationFrame(() => {
-        chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        chatMessagesEndRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
       });
     }
   }, [chatMessages, isOpen]);
@@ -67,19 +71,19 @@ export default function StudioAssistant({
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
-      content: trimmedMessage
+      content: trimmedMessage,
     };
 
     const assistantMessageId = `assistant-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-    setChatMessages(prev => [
+    setChatMessages((prev) => [
       ...prev,
       userMessage,
       {
         id: assistantMessageId,
         role: "assistant",
-        content: ""
-      }
+        content: "",
+      },
     ]);
 
     setSearchInput("");
@@ -89,11 +93,11 @@ export default function StudioAssistant({
       const response = await fetch("/api/ai/ifs-session", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userMessage: trimmedMessage
-        })
+          userMessage: trimmedMessage,
+        }),
       });
 
       if (!response.ok) {
@@ -117,27 +121,31 @@ export default function StudioAssistant({
         fullContent += decoder.decode(value, { stream: true });
 
         const content = fullContent;
-        setChatMessages(prev =>
-          prev.map(message =>
-            message.id === assistantMessageId ? { ...message, content } : message
+        setChatMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantMessageId
+              ? { ...message, content }
+              : message
           )
         );
       }
 
-      setChatMessages(prev =>
-        prev.map(message =>
-          message.id === assistantMessageId ? { ...message, content: fullContent } : message
+      setChatMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantMessageId
+            ? { ...message, content: fullContent }
+            : message
         )
       );
     } catch (error) {
       console.error("Chat error:", error);
-      setChatMessages(prev =>
-        prev.map(message =>
+      setChatMessages((prev) =>
+        prev.map((message) =>
           message.id === assistantMessageId
             ? {
                 ...message,
                 content:
-                  "I'm sorry, I'm having trouble responding right now. Please try again in a moment."
+                  "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
               }
             : message
         )
@@ -165,13 +173,8 @@ export default function StudioAssistant({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)] ${className}`}
-      style={{
-        ...containerStyle,
-        background: isDark 
-          ? `linear-gradient(152deg, rgb(29, 29, 30), rgb(28, 31, 35))`
-          : `linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252))`,
-      }}
+      className={`relative w-full h-[60vh] h-auto max-h-[600px] rounded-3xl overflow-hidden overflow-x-hidden flex flex-col shadow-[0_18px_35px_rgba(15,23,42,0.26)] ${className} bg-[image:var(--theme-assistant-bg)]`}
+      style={containerStyle}
     >
       {onClose && (
         <button
@@ -182,7 +185,7 @@ export default function StudioAssistant({
             e.currentTarget.style.color = theme.textPrimary;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.backgroundColor = "transparent";
             e.currentTarget.style.color = theme.textSecondary;
           }}
         >
@@ -190,27 +193,24 @@ export default function StudioAssistant({
         </button>
       )}
 
-      <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0">
+      <div className="flex-1 px-6 pt-6 pb-4 flex flex-col min-h-0 font-medium text-[11px]">
         <div>
-          <p
-            style={{ fontWeight: 500, fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase' }}
-          >
+          <p>
             <span
+              className="text-transparent uppercase font-medium"
               style={{
-                background: 'linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
+                background: "linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)",
+                letterSpacing: "0.2em",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
               }}
             >
               Studio Assistant
             </span>
           </p>
-          <p
-            className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)] dark:text-slate-400"
-          >
-            Ask for guidance, shortcuts, or reflections tailored to
-            your Parts Studio flow.
+          <p className="mt-3 text-sm leading-relaxed text-[var(--theme-text-secondary)]">
+            Ask for guidance, shortcuts, or reflections tailored to your Parts
+            Studio flow.
           </p>
         </div>
 
@@ -218,25 +218,23 @@ export default function StudioAssistant({
           {chatMessages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm break-words dark:text-white"
+                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm font-normal break-words dark:text-white"
                 style={
                   message.role === "user"
                     ? {
-                        background:
-                          "linear-gradient(135deg, #a855f7, #6366f1)",
+                        background: "linear-gradient(135deg, #a855f7, #6366f1)",
                         color: "#ffffff",
                       }
                     : {
-                        background: isDark
-                          ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
-                          : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
+                        background: "var(--theme-assistant-part-message-bg)",
+                        color: "var(--theme-text)",
                       }
                 }
               >
-                {message.content.trim().length > 0 ? message.content : '...'}
+                {message.content.trim().length > 0 ? message.content : "..."}
               </div>
             </div>
           ))}
@@ -260,16 +258,10 @@ export default function StudioAssistant({
               }
             }}
             placeholder="Ask me anything..."
-            className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none break-words shadow-inner dark:text-white"
-            style={{
-              background: isDark
-                ? `linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43))`
-                : `linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249))`,
-            }}
+            className="w-full min-h-[56px] resize-none rounded-xl px-5 py-2 text-sm leading-5 focus:outline-none break-words shadow-inner text-[var(--theme-text)] bg-[image:var(--theme-assistant-part-message-bg)]"
           />
         </div>
       </div>
     </div>
   );
 }
-

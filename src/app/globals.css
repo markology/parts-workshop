@@ -88,6 +88,11 @@
   --accent-hover: #60a5fa;
   --accent-active: #2563eb;
   --theme-testing-this: red;
+
+  --theme-assistant-bg: linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252));
+  --theme-assistant-button-bg: white;
+  --theme-text-secondary: #64748b;
+  --theme-assistant-part-message-bg: linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249));
 }
 
 .dark {
@@ -109,6 +114,11 @@
   --component: #2a2e32;
   --border: #ffffff1a;
   --button: #202428;
+
+  --theme-assistant-bg: linear-gradient(152deg, rgb(29, 29, 30), rgb(28, 31, 35));
+  --theme-assistant-button-bg: #202428;
+  --theme-text-secondary: rgba(255, 255, 255, 0.7);
+  --theme-assistant-part-message-bg: linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43));
 
   /* Note: Workspace theme variables (--theme-*) are NOT set here */
   /* They are set dynamically by ThemeContext based on activeTheme */
@@ -144,7 +154,9 @@
   --theme-sub-button: white;
   --theme-sub-button-hover: #f1f5f9;
   --theme-jazz-gradient: linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242));
-  --theme-assistant-bg: white;
+  --theme-assistant-button-bg: white;
+  --theme-assistant-bg: linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252));
+  --theme-assistant-part-message-bg: linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249));
   --theme-workspace-bg: radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgba(252, 248, 246, 0.82) 100%);
   --theme-button-border-top: 1px solid rgba(0, 0, 0, 0.07);
   --theme-modal-bg: radial-gradient(
@@ -184,7 +196,9 @@
   --theme-sub-button: #1e2125;
   --theme-sub-button-hover: #14171b;
   --theme-button-shadow: rgb(0 0 0 / 20%) 0px 2px 4px;
-  --theme-assistant-bg: #2a2e32;
+  --theme-assistant-button-bg: #2a2e32;
+  --theme-assistant-bg: linear-gradient(152deg, rgb(29, 29, 30), rgb(28, 31, 35));
+  --theme-assistant-part-message-bg: linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43));
   --theme-workspace-bg: linear-gradient(152deg, rgb(64, 70, 78), rgb(58, 64, 72));
   --theme-button-border-top: 1px solid rgba(0, 0, 0, 0.15);
 }
@@ -201,7 +215,7 @@
   --theme-sub-button: #1e2125;
   --theme-sub-button-hover: #14171b;
   --theme-workspace-bg: #3d434b;
-  --theme-assistant-bg: #2a2e32;
+  --theme-assistant-button-bg: #2a2e32;
   --theme-component: #2a2e32;
   --theme-component-hover: #14171b;
   --theme-sub-button: #1e2125;

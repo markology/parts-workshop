@@ -2,7 +2,20 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Calendar, Trash2, Play, Clock, ChevronDown, MailPlus, Sparkles, Target, ArrowRight, Heart, User } from "lucide-react";
+import {
+  Map,
+  Calendar,
+  Trash2,
+  Play,
+  Clock,
+  ChevronDown,
+  MailPlus,
+  Sparkles,
+  Target,
+  ArrowRight,
+  Heart,
+  User,
+} from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -11,7 +24,7 @@ import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import Modal from "@/components/Modal";
 import FeedbackForm from "@/components/FeedbackForm";
-import StudioSparkleInput from "@/components/StudioSparkleInput";
+import StudioAssistantButton from "@/components/StudioAssistantButton";
 import StudioAssistant from "@/components/StudioAssistant";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
@@ -36,7 +49,7 @@ interface WorkspaceData {
   }>;
 }
 
-type SortOption = 'edited' | 'created' | 'name';
+type SortOption = "edited" | "created" | "name";
 
 export default function WorkspacesPage() {
   const router = useRouter();
@@ -48,10 +61,12 @@ export default function WorkspacesPage() {
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('edited');
+  const [sortBy, setSortBy] = useState<SortOption>("edited");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [navigatingToWorkspace, setNavigatingToWorkspace] = useState<string | null>(null);
+  const [navigatingToWorkspace, setNavigatingToWorkspace] = useState<
+    string | null
+  >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const savedScrollY = useRef<number>(0);
@@ -65,31 +80,39 @@ export default function WorkspacesPage() {
           throw new Error("Failed to fetch workspaces");
         }
         const apiWorkspaces = await response.json();
-        
+
         // Convert API workspaces to WorkspaceData format
-        const formattedWorkspaces: WorkspaceData[] = apiWorkspaces.map((workspace: {
-          id: string;
-          title: string;
-          description?: string;
-          createdAt: string;
-          lastModified: string;
-          nodes?: Array<{ type: string; id: string; data?: { label?: string; image?: string } }>;
-        }) => {
-          // Filter to get only part nodes
-          const partNodes = (workspace.nodes || []).filter((node) => node.type === 'part');
-          
-          return {
-            id: workspace.id,
-            name: workspace.title,
-            description: workspace.description || undefined,
-            createdAt: new Date(workspace.createdAt),
-            lastModified: new Date(workspace.lastModified),
-            partCount: partNodes.length,
-            thumbnail: undefined,
-            nodes: partNodes
-          };
-        });
-        
+        const formattedWorkspaces: WorkspaceData[] = apiWorkspaces.map(
+          (workspace: {
+            id: string;
+            title: string;
+            description?: string;
+            createdAt: string;
+            lastModified: string;
+            nodes?: Array<{
+              type: string;
+              id: string;
+              data?: { label?: string; image?: string };
+            }>;
+          }) => {
+            // Filter to get only part nodes
+            const partNodes = (workspace.nodes || []).filter(
+              (node) => node.type === "part"
+            );
+
+            return {
+              id: workspace.id,
+              name: workspace.title,
+              description: workspace.description || undefined,
+              createdAt: new Date(workspace.createdAt),
+              lastModified: new Date(workspace.lastModified),
+              partCount: partNodes.length,
+              thumbnail: undefined,
+              nodes: partNodes,
+            };
+          }
+        );
+
         setWorkspaces(formattedWorkspaces);
       } catch (err) {
         console.error("Failed to load workspaces:", err);
@@ -105,16 +128,16 @@ export default function WorkspacesPage() {
   useEffect(() => {
     if (isSearchExpanded) {
       savedScrollY.current = window.scrollY;
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
       document.body.style.top = `-${savedScrollY.current}px`;
-      document.body.style.width = '100%';
+      document.body.style.width = "100%";
     } else {
       const scrollY = savedScrollY.current;
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
       // Restore scroll position immediately without animation
       requestAnimationFrame(() => {
         document.documentElement.scrollTop = scrollY;
@@ -123,10 +146,10 @@ export default function WorkspacesPage() {
     }
 
     return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
     };
   }, [isSearchExpanded]);
 
@@ -148,14 +171,12 @@ export default function WorkspacesPage() {
     };
   }, [isSearchExpanded]);
 
-
-
   const handleStartSession = async () => {
     // Allow starting with or without a name
 
     try {
       const title = `Session ${new Date().toLocaleDateString()}`;
-      
+
       const response = await fetch("/api/maps", {
         method: "POST",
         headers: {
@@ -165,7 +186,7 @@ export default function WorkspacesPage() {
           title: title,
           nodes: [],
           edges: [],
-          sidebarImpressions: createEmptyImpressionGroups()
+          sidebarImpressions: createEmptyImpressionGroups(),
         }),
       });
 
@@ -174,7 +195,7 @@ export default function WorkspacesPage() {
       }
 
       const newWorkspace = await response.json();
-      
+
       // Navigate directly to the newly created workspace
       router.push(`/workspace/${newWorkspace.id}`);
     } catch (err) {
@@ -189,10 +210,14 @@ export default function WorkspacesPage() {
   };
 
   const handleDeleteWorkspace = async (workspaceId: string) => {
-    if (confirm("Are you sure you want to delete this workspace? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this workspace? This action cannot be undone."
+      )
+    ) {
       try {
         const response = await fetch(`/api/maps/${workspaceId}`, {
-          method: 'DELETE',
+          method: "DELETE",
         });
 
         if (!response.ok) {
@@ -200,7 +225,9 @@ export default function WorkspacesPage() {
         }
 
         // Remove from local state
-        setWorkspaces(prev => prev.filter(workspace => workspace.id !== workspaceId));
+        setWorkspaces((prev) =>
+          prev.filter((workspace) => workspace.id !== workspaceId)
+        );
       } catch (err) {
         console.error("Failed to delete workspace:", err);
         alert("Failed to delete workspace. Please try again.");
@@ -209,10 +236,10 @@ export default function WorkspacesPage() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -223,44 +250,54 @@ export default function WorkspacesPage() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
 
     if (dropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [dropdownOpen]);
 
   // Sort workspaces
   const sortedWorkspaces = [...workspaces].sort((a, b) => {
-    if (sortBy === 'edited') {
+    if (sortBy === "edited") {
       return b.lastModified.getTime() - a.lastModified.getTime();
-    } else if (sortBy === 'created') {
+    } else if (sortBy === "created") {
       return b.createdAt.getTime() - a.createdAt.getTime();
     } else {
       return a.name.localeCompare(b.name);
     }
   });
 
-  const totalParts = workspaces.reduce((sum, workspace) => sum + workspace.partCount, 0);
+  const totalParts = workspaces.reduce(
+    (sum, workspace) => sum + workspace.partCount,
+    0
+  );
   const heroHighlights = [
     {
       icon: Map,
       label: "Interactive Parts Mapping",
-      description: "Plot parts and relationships on an infinite customizable canvas",
+      description:
+        "Plot parts and relationships on an infinite customizable canvas",
     },
     {
       icon: Target,
       label: "Trailhead Discovery",
-      description: "Develop your Self awareness with powerful noting meditation",
+      description:
+        "Develop your Self awareness with powerful noting meditation",
     },
     {
       icon: Heart,
       label: "Unblending Support",
-      description: "Relieve your parts carrying the weight of your inner to-do list",
+      description:
+        "Relieve your parts carrying the weight of your inner to-do list",
     },
     {
       icon: Sparkles,
@@ -282,23 +319,30 @@ export default function WorkspacesPage() {
   }
 
   return (
-    <div
-      className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50 bg-[image:var(--background-gradient-dashboard)] dark:bg-[image:var(--background-gradient-dashboard)]"
-    >
+    <div className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50 bg-[image:var(--background-gradient-dashboard)] dark:bg-[image:var(--background-gradient-dashboard)]">
       <div
         className={`fixed inset-0 ${
-          isSearchExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          isSearchExpanded
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
         style={{
-          backgroundColor: isSearchExpanded ? 'rgba(0,0,0,0.35)' : 'transparent',
-          backdropFilter: isSearchExpanded ? 'blur(2px)' : 'none',
-          WebkitBackdropFilter: isSearchExpanded ? 'blur(2px)' : 'none',
-          zIndex: isSearchExpanded ? 70 : 40
+          backgroundColor: isSearchExpanded
+            ? "rgba(0,0,0,0.35)"
+            : "transparent",
+          backdropFilter: isSearchExpanded ? "blur(2px)" : "none",
+          WebkitBackdropFilter: isSearchExpanded ? "blur(2px)" : "none",
+          zIndex: isSearchExpanded ? 70 : 40,
         }}
         onClick={() => setIsSearchExpanded(false)}
       >
         {isSearchExpanded && (
-          <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6" style={{ top: '20px' }} ref={searchBoxRef} onClick={(e) => e.stopPropagation()}>
+          <div
+            className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6"
+            style={{ top: "20px" }}
+            ref={searchBoxRef}
+            onClick={(e) => e.stopPropagation()}
+          >
             <StudioAssistant
               isOpen={isSearchExpanded}
               onClose={() => setIsSearchExpanded(false)}
@@ -308,22 +352,23 @@ export default function WorkspacesPage() {
         )}
       </div>
       {/* Header */}
-      <header
-        className="sticky top-0 z-[65] bg-white/75 dark:bg-[var(--component)] border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:shadow-none dark:border-[var(--border)]"
-      >
+      <header className="sticky top-0 z-[65] bg-white/75 dark:bg-[var(--component)] border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:shadow-none dark:border-[var(--border)]">
         <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="inline-flex items-center" style={{ columnGap: '4px', marginLeft: '6px' }}>
-              <PartsStudioLogo  className="dark:invert" size="lg" showText={false} />
+            <div
+              className="inline-flex items-center"
+              style={{ columnGap: "4px", marginLeft: "6px" }}
+            >
+              <PartsStudioLogo
+                className="dark:invert"
+                size="lg"
+                showText={false}
+              />
               <div className="flex flex-col gap-0.5">
-                <span
-                  className="text-lg font-semibold leading-tight text-slate-900 dark:text-white"
-                >
+                <span className="text-lg font-semibold leading-tight text-slate-900 dark:text-white">
                   Parts Studio
                 </span>
-                <span
-                  className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-[#ffffffb3]"
-                >
+                <span className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-[#ffffffb3]">
                   Dashboard
                 </span>
               </div>
@@ -333,14 +378,11 @@ export default function WorkspacesPage() {
           {/* Search Input - Absolutely positioned, centered */}
           <div
             className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6 pointer-events-none"
-            style={{ zIndex: 60, top: '20px' }}
+            style={{ zIndex: 60, top: "20px" }}
           >
-            <div
-              ref={searchBoxRef}
-              className="relative pointer-events-auto "
-            >
+            <div ref={searchBoxRef} className="relative pointer-events-auto ">
               {!isSearchExpanded && (
-                <StudioSparkleInput
+                <StudioAssistantButton
                   onClick={() => {
                     setIsSearchExpanded(true);
                   }}
@@ -369,10 +411,7 @@ export default function WorkspacesPage() {
             </button>
 
             {/* Account Dropdown */}
-            <AccountDropdown
-              showHelp={true}
-              themeModeType="system"
-            />
+            <AccountDropdown showHelp={true} themeModeType="system" />
           </div>
         </div>
       </header>
@@ -394,15 +433,9 @@ export default function WorkspacesPage() {
         {/* Start Session Section */}
         {!loading && !error && (
           <section className="mb-12">
-            <div
-              className="relative overflow-hidden rounded-[28px] border transition-all duration-300 bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)] dark:border-none dark:shadow-[0_40px_80px_rgba(15,23,42,0.7)] dark:bg-[image:var(--background-gradient)]"
-            >
-              <div
-                className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.28),transparent_60%)]"
-              />
-              <div
-                className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(51,65,85,0.4),transparent_65%)]"
-              />
+            <div className="relative overflow-hidden rounded-[28px] border transition-all duration-300 bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)] dark:border-none dark:shadow-[0_40px_80px_rgba(15,23,42,0.7)] dark:bg-[image:var(--background-gradient)]">
+              <div className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.28),transparent_60%)]" />
+              <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(51,65,85,0.4),transparent_65%)]" />
               <div className="relative flex flex-col gap-12 p-8 lg:flex-row lg:items-stretch lg:justify-between lg:p-12">
                 <div className="relative flex-1 space-y-6">
                   <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] border bg-white/90 dark:bg-[var(--elevated)] text-black dark:text-white border-white/80 dark:border-[var(--border)] shadow-sm">
@@ -412,23 +445,31 @@ export default function WorkspacesPage() {
                     Begin a fresh exploration of your inner team.
                   </h2>
                   <p className="text-sm leading-relaxed max-w-2xl text-slate-600 dark:text-slate-300">
-                    Launch a new Parts Studio map to capture impressions, relationships, and breakthroughs. Your work auto-saves, so you can pause and return any time.
+                    Launch a new Parts Studio map to capture impressions,
+                    relationships, and breakthroughs. Your work auto-saves, so
+                    you can pause and return any time.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    {heroHighlights.map(({ icon: Icon, label, description }) => (
-                      <div
-                        key={label}
-                        className="flex items-start gap-3 rounded-xl border px-4 py-3 border-slate-200 dark:border-none bg-white/80 dark:bg-[var(--component)] shadow-md"
-                      >
-                        <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-[var(--elevated)] text-slate-600 dark:text-white">
-                          <Icon className="w-4 h-4" />
+                    {heroHighlights.map(
+                      ({ icon: Icon, label, description }) => (
+                        <div
+                          key={label}
+                          className="flex items-start gap-3 rounded-xl border px-4 py-3 border-slate-200 dark:border-none bg-white/80 dark:bg-[var(--component)] shadow-md"
+                        >
+                          <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-[var(--elevated)] text-slate-600 dark:text-white">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="font-semibold text-slate-900 dark:text-white">
+                              {label}
+                            </p>
+                            <p className="text-slate-600 dark:text-slate-300">
+                              {description}
+                            </p>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="font-semibold text-slate-900 dark:text-white">{label}</p>
-                          <p className="text-slate-600 dark:text-slate-300">{description}</p>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2">
                     <button
@@ -467,17 +508,29 @@ export default function WorkspacesPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] shadow-[0px_1px_2px_1px_#dcdcdc82_inset] dark:shadow-none bg-[#f7ebf352] dark:bg-[var(--card)]">
-                        <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-sky-600 dark:text-slate-400">Sessions</p>
+                        <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-sky-600 dark:text-slate-400">
+                          Sessions
+                        </p>
                         <div className="flex items-baseline gap-1.5">
-                          <p className="text-2xl font-semibold text-slate-900 dark:text-white">{workspaces.length}</p>
-                          <p className="text-xs uppercase tracking-wider font-normal text-black dark:text-white">saved</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-white">
+                            {workspaces.length}
+                          </p>
+                          <p className="text-xs uppercase tracking-wider font-normal text-black dark:text-white">
+                            saved
+                          </p>
                         </div>
                       </div>
                       <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] shadow-[0px_1px_2px_1px_#dcdcdc82_inset] dark:shadow-none bg-[#8e7ff812] dark:bg-[var(--card)]">
-                        <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-indigo-600 dark:text-slate-400">Parts</p>
+                        <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-indigo-600 dark:text-slate-400">
+                          Parts
+                        </p>
                         <div className="flex items-baseline gap-1.5">
-                          <p className="text-2xl font-semibold text-slate-900 dark:text-white">{totalParts}</p>
-                          <p className="text-xs uppercase tracking-wider font-normal text-black dark:text-white">mapped</p>
+                          <p className="text-2xl font-semibold text-slate-900 dark:text-white">
+                            {totalParts}
+                          </p>
+                          <p className="text-xs uppercase tracking-wider font-normal text-black dark:text-white">
+                            mapped
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -487,16 +540,19 @@ export default function WorkspacesPage() {
                       </p>
                       <div className="space-y-3 text-sm leading-relaxed text-slate-600 dark:text-white">
                         <p>
-                          Thanks for trying Parts Studio. Every session you create is saved automatically and backed up securely so you can experiment without worry.
+                          Thanks for trying Parts Studio. Every session you
+                          create is saved automatically and backed up securely
+                          so you can experiment without worry.
                         </p>
                         <p>
-                          We want your parts to feel safe here as we continue to try and grow this tool together.
+                          We want your parts to feel safe here as we continue to
+                          try and grow this tool together.
                         </p>
                         <div className="pt-2">
                           <button
-                            onClick={() => router.push('/mission')}
+                            onClick={() => router.push("/mission")}
                             className="arrow-pulse inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
-                            style={{ color: 'orange' }}
+                            style={{ color: "orange" }}
                           >
                             <Target className="w-4 h-4" />
                             Our Mission & Roadmap
@@ -521,9 +577,12 @@ export default function WorkspacesPage() {
               <div className="bg-slate-100 dark:bg-slate-900/60 p-5 rounded-full">
                 <Map className="w-14 h-14 text-slate-500 dark:text-slate-400" />
               </div>
-              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">Your canvas is ready</h3>
+              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                Your canvas is ready
+              </h3>
               <p className="text-slate-600 dark:text-slate-400 max-w-md">
-                Kick off your first session to start mapping parts, impressions, and relationships. We&apos;ll keep everything saved as you go.
+                Kick off your first session to start mapping parts, impressions,
+                and relationships. We&apos;ll keep everything saved as you go.
               </p>
               <button
                 onClick={handleStartSession}
@@ -545,7 +604,8 @@ export default function WorkspacesPage() {
                   My Workspaces
                 </h2>
                 <span className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] bg-white dark:bg-white/90 text-slate-700 dark:text-slate-900 shadow-sm dark:shadow-none">
-                  {workspaces.length} {workspaces.length === 1 ? 'session' : 'sessions'}
+                  {workspaces.length}{" "}
+                  {workspaces.length === 1 ? "session" : "sessions"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -553,22 +613,20 @@ export default function WorkspacesPage() {
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-300 bg-white dark:bg-[image:var(--background-gradient)]"
-                    
-                    >
-                    {sortBy === 'edited' && 'Recently Edited'}
-                    {sortBy === 'created' && 'Recently Created'}
-                    {sortBy === 'name' && 'Name'}
-                    <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                  >
+                    {sortBy === "edited" && "Recently Edited"}
+                    {sortBy === "created" && "Recently Created"}
+                    {sortBy === "name" && "Name"}
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                    />
                   </button>
                   {dropdownOpen && (
-                    <div
-                      className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50 bg-white border-slate-200 dark:border-[var(--border)] dark:bg-[image:var(--background-gradient)]"
-                      
-                    >
-                      {sortBy !== 'edited' && (
+                    <div className="absolute right-0 mt-3 w-40 rounded-xl border shadow-xl overflow-hidden z-50 bg-white border-slate-200 dark:border-[var(--border)] dark:bg-[image:var(--background-gradient)]">
+                      {sortBy !== "edited" && (
                         <button
                           onClick={() => {
-                            setSortBy('edited');
+                            setSortBy("edited");
                             setDropdownOpen(false);
                           }}
                           className="w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
@@ -576,10 +634,10 @@ export default function WorkspacesPage() {
                           Recently Edited
                         </button>
                       )}
-                      {sortBy !== 'created' && (
+                      {sortBy !== "created" && (
                         <button
                           onClick={() => {
-                            setSortBy('created');
+                            setSortBy("created");
                             setDropdownOpen(false);
                           }}
                           className="w-full text-left px-4 py-2 text-sm transition-colors text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
@@ -587,10 +645,10 @@ export default function WorkspacesPage() {
                           Recently Created
                         </button>
                       )}
-                      {sortBy !== 'name' && (
+                      {sortBy !== "name" && (
                         <button
                           onClick={() => {
-                            setSortBy('name');
+                            setSortBy("name");
                             setDropdownOpen(false);
                           }}
                           className="w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
@@ -607,7 +665,8 @@ export default function WorkspacesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {sortedWorkspaces.map((workspace) => {
                 const lastEdited =
-                  workspace.createdAt.getTime() === workspace.lastModified.getTime()
+                  workspace.createdAt.getTime() ===
+                  workspace.lastModified.getTime()
                     ? workspace.createdAt
                     : workspace.lastModified;
 
@@ -620,20 +679,20 @@ export default function WorkspacesPage() {
                         ? "opacity-60 pointer-events-none"
                         : ""
                     } bg-[image:var(--background-gradient)] dark:bg-[image:var(--background-gradient)]`}
-                    
                     onClick={() => handleOpenWorkspace(workspace.id)}
                     onMouseMove={(e) => {
                       const target = e.target as HTMLElement;
-                      const deleteButton =
-                        e.currentTarget.querySelector(
-                          "[data-delete-button]"
-                        ) as HTMLButtonElement;
+                      const deleteButton = e.currentTarget.querySelector(
+                        "[data-delete-button]"
+                      ) as HTMLButtonElement;
                       // Only apply styles if not hovering over delete button
-                      if (!deleteButton?.contains(target) && target !== deleteButton) {
-                        const openButton =
-                          e.currentTarget.querySelector(
-                            "[data-open-button]"
-                          ) as HTMLButtonElement;
+                      if (
+                        !deleteButton?.contains(target) &&
+                        target !== deleteButton
+                      ) {
+                        const openButton = e.currentTarget.querySelector(
+                          "[data-open-button]"
+                        ) as HTMLButtonElement;
                         if (openButton) {
                           openButton.style.backgroundImage =
                             "linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)";
@@ -660,8 +719,7 @@ export default function WorkspacesPage() {
                     <div className="relative p-6 pb-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-2">
-                          <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm bg-white/90 text-slate-600 dark:text-white border-slate-200 dark:border-none shadow-slate-200/50 dark:shadow-none dark:bg-[var(--card)]"
-                          >
+                          <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm bg-white/90 text-slate-600 dark:text-white border-slate-200 dark:border-none shadow-slate-200/50 dark:shadow-none dark:bg-[var(--card)]">
                             Session
                           </span>
                           <h3 className="text-xl font-semibold leading-tight line-clamp-1 text-slate-900 dark:text-white">
@@ -672,15 +730,14 @@ export default function WorkspacesPage() {
                           {formatDate(lastEdited)}
                         </span>
                       </div>
-                        {workspace.description && (
+                      {workspace.description && (
                         <p className="text-sm leading-relaxed line-clamp-2 text-slate-600 dark:text-slate-400">
                           {workspace.description}
                         </p>
                       )}
                     </div>
                     <div className="relative px-6 pb-4">
-                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner dark:bg-[image:var(--background-gradient-tile)] bg-[image:var(--background-gradient-tile)]"
-                      >
+                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner dark:bg-[image:var(--background-gradient-tile)] bg-[image:var(--background-gradient-tile)]">
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
                             {workspace.nodes.slice(0, 6).map((node) => (
@@ -698,7 +755,7 @@ export default function WorkspacesPage() {
                                   />
                                 ) : (
                                   <span className="text-xs p-1 text-center truncate w-full text-slate-600 dark:text-slate-300">
-                                    {node.data?.label || 'Part'}
+                                    {node.data?.label || "Part"}
                                   </span>
                                 )}
                               </div>
@@ -711,7 +768,8 @@ export default function WorkspacesPage() {
                           </div>
                         ) : (
                           <div className="flex h-full flex-col items-center justify-center gap-2">
-                            <div className="p-3 rounded-full bg-sky-50"
+                            <div
+                              className="p-3 rounded-full bg-sky-50"
                               // style={isDark ? {
                               //   background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
                               // } : undefined}
@@ -741,9 +799,9 @@ export default function WorkspacesPage() {
                               handleOpenWorkspace(workspace.id);
                             }}
                             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 hover:text-white border border-slate-200 dark:border-[var(--border)]/60 transition-colors"
-                            style={{ 
-                              textTransform: 'uppercase', 
-                              backgroundColor: 'transparent'
+                            style={{
+                              textTransform: "uppercase",
+                              backgroundColor: "transparent",
                             }}
                             title="Open session"
                           >
@@ -788,9 +846,12 @@ export default function WorkspacesPage() {
                                 ) {
                                   openButton.style.backgroundImage =
                                     "linear-gradient(90deg, #a855f7, #6366f1, #0ea5e9)";
-                                  openButton.style.backgroundColor = "transparent";
-                                  openButton.style.backgroundClip = "padding-box";
-                                  openButton.style.webkitBackgroundClip = "padding-box";
+                                  openButton.style.backgroundColor =
+                                    "transparent";
+                                  openButton.style.backgroundClip =
+                                    "padding-box";
+                                  openButton.style.webkitBackgroundClip =
+                                    "padding-box";
                                   openButton.style.color = "white";
                                   openButton.style.borderColor = "transparent";
                                 }
@@ -816,7 +877,6 @@ export default function WorkspacesPage() {
             </div>
           </>
         )}
-
       </div>
 
       {/* Feedback Modal */}

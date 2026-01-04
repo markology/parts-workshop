@@ -14,7 +14,7 @@ import {
   Sparkles,
   User,
 } from "lucide-react";
-import StudioSparkleInput from "@/components/StudioSparkleInput";
+import StudioAssistantButton from "@/components/StudioAssistantButton";
 import StudioAssistant from "@/components/StudioAssistant";
 import AccountDropdown from "@/components/AccountDropdown";
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
@@ -787,7 +787,7 @@ const FloatingActionButtons = () => {
           ref={searchInputContainerRef}
           className="relative w-[320px] pointer-events-auto h-[49px] flex items-center"
         >
-          <StudioSparkleInput
+          <StudioAssistantButton
             onClick={() => setIsSearchExpanded(true)}
             placeholder="Ask the Studio Assistant"
             className={`${
