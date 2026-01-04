@@ -36,4 +36,5 @@
     --theme-part-detail-button-text-enabled: #ffffff;
     --theme-part-detail-button-text-disabled: #94a3b8;
     --theme-part-detail-button-border-top-disabled: 1px solid #00000012;
+    --theme-part-detail-button-shadow: "shadow-sm";
 }

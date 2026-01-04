@@ -1287,13 +1287,8 @@ theme-dark:shadow-none "
                         return (
                           <div
                             key={impression}
-                            className="break-inside-avoid rounded-2xl p-4 shadow-sm mb-4"
-                            style={{
-                              ...subCardStyle,
-                              ...(isDark
-                                ? { backgroundColor: "rgba(42, 46, 50, 0.75)" }
-                                : {}),
-                            }}
+                            className="break-inside-avoid rounded-2xl p-4 shadow-sm mb-4 theme-dark:bg-[rgba(42, 46, 50, 0.75)]"
+                            style={subCardStyle}
                           >
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2">
@@ -1325,7 +1320,8 @@ theme-dark:shadow-none "
                                     setShowImpressionModal(true);
                                   }
                                 }}
-                                className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:border-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50 border-none theme-light:border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] shadow-[var(--theme-part-detail-button-shadow)]`}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:border-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] border-none theme-light:border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] theme-light:shadow-sm theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]`}
                                 // onMouseEnter={(e) => {
                                 //   if (isDark) {
                                 //     e.currentTarget.style.backgroundColor =
@@ -1444,7 +1440,8 @@ theme-dark:shadow-none "
                               setAddingNeedsOrFears("needs");
                               setNeedsFearsInput("");
                             }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50 border-none border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] shadow-[var(--theme-part-detail-button-shadow)]`}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] border-none border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]`}
                             style={{
                               transition: "none !important",
                             }}
@@ -1515,7 +1512,8 @@ theme-dark:shadow-none "
                               setAddingNeedsOrFears("fears");
                               setNeedsFearsInput("");
                             }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50 border-none border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] shadow-[var(--theme-part-detail-button-shadow)]`}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] border-none border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]`}
                             style={{
                               transition: "none !important",
                             }}
@@ -1626,7 +1624,9 @@ theme-dark:shadow-none "
                                   });
                                 }
                               }}
-                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white shadow-[var(--theme-part-detail-button-shadow)]"
+                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] 
+                              theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                               title="Start a new journal entry"
                             >
                               <Plus size={14} />
@@ -1657,7 +1657,8 @@ theme-dark:shadow-none "
                                     });
                                   }
                                 }}
-                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white shadow-[var(--theme-part-detail-button-shadow)]"
+                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)]border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                                 style={{
                                   transition: "none !important",
                                 }}
@@ -1678,7 +1679,8 @@ theme-dark:shadow-none "
                               </button>
                               <button
                                 onClick={() => setShowJournalHistoryModal(true)}
-                                className="border-none inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white shadow-[var(--theme-part-detail-button-shadow)]"
+                                className="border-none inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                                 style={{
                                   transition: "none !important",
                                   WebkitTransition: "none !important",
@@ -1980,7 +1982,8 @@ theme-dark:shadow-none "
                                             }, 100);
                                           }
                                         }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm border-none border-t-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white shadow-[var(--theme-part-detail-button-shadow)]"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm border-none theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                                         style={{
                                           transition: "none !important",
                                           WebkitTransition: "none !important",
@@ -2606,7 +2609,8 @@ theme-dark:shadow-none "
 
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <button
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm theme-light:bg-white theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:border-none theme-light:border-t-[1px] theme-light:border-[#00000012] theme-dark:bg-[#2a2e32]"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)]theme-light:bg-white theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:border-none theme-light:border-t-[1px] theme-light:border-[#00000012] theme-dark:bg-[#2a2e32]"
                                   onClick={() => {
                                     // Open this entry in the main journal drawer
                                     if (selectedPartId && partNode) {

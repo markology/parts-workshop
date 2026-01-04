@@ -32,21 +32,25 @@ import { usePathname } from "next/navigation";
 
 // Helper to detect if user is on Mac
 const isMac = () => {
-  if (typeof window === 'undefined') return false;
-  return /Mac|iPhone|iPad|iPod/.test(navigator.platform) || 
-         /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+  if (typeof window === "undefined") return false;
+  return (
+    /Mac|iPhone|iPad|iPod/.test(navigator.platform) ||
+    /Mac|iPhone|iPad|iPod/.test(navigator.userAgent)
+  );
 };
 
 // Function to normalize sidebarImpressions data structure
 const normalizeSidebarImpressions = (sidebarImpressions: any) => {
-  if (!sidebarImpressions || typeof sidebarImpressions !== 'object') {
+  if (!sidebarImpressions || typeof sidebarImpressions !== "object") {
     return createEmptyImpressionGroups();
   }
 
   // Check if it's already in the correct format
-  const expectedKeys = ['emotion', 'thought', 'sensation', 'behavior', 'other'];
-  const hasExpectedKeys = expectedKeys.every(key => key in sidebarImpressions);
-  
+  const expectedKeys = ["emotion", "thought", "sensation", "behavior", "other"];
+  const hasExpectedKeys = expectedKeys.every(
+    (key) => key in sidebarImpressions
+  );
+
   if (hasExpectedKeys) {
     return sidebarImpressions;
   }
@@ -69,7 +73,10 @@ const ImpressionInputModalContent = ({
   setSidebarImpressionType: (type: ImpressionType) => void;
   canAddImpression: boolean;
   setCanAddImpression: (can: boolean) => void;
-  impressionAddRef: React.RefObject<{ add: () => void; isValid: boolean } | null>;
+  impressionAddRef: React.RefObject<{
+    add: () => void;
+    isValid: boolean;
+  } | null>;
   impressionModalTargetPartId?: string;
   impressionModalType?: string;
 }) => {
@@ -78,21 +85,21 @@ const ImpressionInputModalContent = ({
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const { updateNode } = useFlowNodesContext();
   const nodes = useWorkingStore((s) => s.nodes);
-  
+
   // Get part data if target part ID is set
-  const partNode = impressionModalTargetPartId 
-    ? nodes.find(node => node.id === impressionModalTargetPartId) 
+  const partNode = impressionModalTargetPartId
+    ? nodes.find((node) => node.id === impressionModalTargetPartId)
     : null;
   const partName = partNode?.data?.name || partNode?.data?.label || "this part";
-  
+
   // Determine if this is for a part or sidebar
   const isForPart = !!impressionModalTargetPartId;
-  
+
   // Set initial type from modal type if provided
   const [currentType, setCurrentType] = useState<ImpressionType>(
     (impressionModalType as ImpressionType) || sidebarImpressionType
   );
-  
+
   useEffect(() => {
     if (impressionModalType) {
       setCurrentType(impressionModalType as ImpressionType);
@@ -103,11 +110,14 @@ const ImpressionInputModalContent = ({
   useEffect(() => {
     setCanAddImpression(false);
   }, [impressionModalTargetPartId, impressionModalType, setCanAddImpression]);
-  
-  const impressionTypeLabel =
-    ImpressionTextType[currentType] ?? "Impression";
 
-  const handleAddImpression = (impressionData: { id: string; label: string; type: ImpressionType }) => {
+  const impressionTypeLabel = ImpressionTextType[currentType] ?? "Impression";
+
+  const handleAddImpression = (impressionData: {
+    id: string;
+    label: string;
+    type: ImpressionType;
+  }) => {
     if (isForPart && impressionModalTargetPartId && partNode) {
       // Add to part
       const impressionTypeKey =
@@ -157,9 +167,9 @@ const ImpressionInputModalContent = ({
       <div
         className="absolute inset-0 pointer-events-none backdrop-blur-sm"
         style={{
-          background: isDark 
-            ? `${theme.modal}f2` 
-            : 'radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)',
+          background: isDark
+            ? `${theme.modal}f2`
+            : "radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)",
         }}
       />
       <div
@@ -187,27 +197,18 @@ const ImpressionInputModalContent = ({
                   {impressionTypeLabel}
                 </span>
                 <div>
-                  <h3
-                    className="text-2xl font-semibold"
-                    style={{ color: theme.textPrimary }}
-                  >
-                    {isForPart
-                      ? (
-                          <>
-                            Add a new {impressionTypeLabel.toLowerCase()} to{' '}
-                            <span
-                              style={{
-                                background: '#fefefe80',
-                                padding: '2px 10px',
-                                borderRadius: '10px',
-                              }}
-                            >
-                              {String(partName)}
-                            </span>{' '}
-                            part
-                          </>
-                        )
-                      : `Add a new ${impressionTypeLabel.toLowerCase()} to the impressions library`}
+                  <h3 className="text-2xl font-semibold text-[var(--theme-text-primary)] truncate">
+                    {isForPart ? (
+                      <>
+                        Add a new {impressionTypeLabel.toLowerCase()} to{" "}
+                        <span className="theme-light:bg-[#fefefe80] theme-dark:bg-[rgba(0,0,0,0.14)] py-[4px] px-[10px] rounded-[10px]">
+                          {String(partName)}
+                        </span>{" "}
+                        part
+                      </>
+                    ) : (
+                      `Add a new ${impressionTypeLabel.toLowerCase()} to the impressions library`
+                    )}
                   </h3>
                   <p
                     className="mt-2 text-sm leading-relaxed"
@@ -251,26 +252,20 @@ const ImpressionInputModalContent = ({
             <div className="flex items-center justify-between gap-3 flex-wrap theme-dark:text-slate-400 theme-light:text-slate-500">
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5">
-                  <kbd 
-                    className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]"
-                  >
-                    {isMac() ? '⇧ Tab' : 'Shift+Tab'}
+                  <kbd className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]">
+                    {isMac() ? "⇧ Tab" : "Shift+Tab"}
                   </kbd>
                   <span className="text-xs">Previous Type</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <kbd 
-                    className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]"
-                  >
+                  <kbd className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]">
                     Tab
                   </kbd>
                   <span className="text-xs">Next Type</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <kbd 
-                    className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]"
-                  >
-                    {isMac() ? '⏎' : 'Enter'}
+                  <kbd className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]">
+                    {isMac() ? "⏎" : "Enter"}
                   </kbd>
                   <span className="text-xs">Submit</span>
                 </div>
@@ -286,13 +281,21 @@ const ImpressionInputModalContent = ({
                 style={{
                   backgroundColor: canAddImpression
                     ? `var(--theme-impression-${currentType}-modal-add-button-bg)`
-                    : isDark ? "rgb(59, 63, 67)" : "#e2e8f0",
+                    : isDark
+                      ? "rgb(59, 63, 67)"
+                      : "#e2e8f0",
                   color: canAddImpression
-                    ? (isDark ? "rgb(255, 255, 255)" : "#ffffff")
-                    : isDark ? "#94a3b8" : "#94a3b8",
+                    ? isDark
+                      ? "rgb(255, 255, 255)"
+                      : "#ffffff"
+                    : isDark
+                      ? "#94a3b8"
+                      : "#94a3b8",
                   border: "none",
                   transitionDuration: "75ms",
-                  ...(isDark && !canAddImpression ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" } : {}),
+                  ...(isDark && !canAddImpression
+                    ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" }
+                    : {}),
                 }}
                 onMouseEnter={(e) => {
                   if (canAddImpression) {
@@ -327,24 +330,32 @@ export default function CanvasClient({
   const isMobile = useIsMobile();
   const { data: session } = useSession();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [profileDropdownPosition, setProfileDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const [profileDropdownPosition, setProfileDropdownPosition] = useState<{
+    top: number;
+    right: number;
+  } | null>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
-  
+
   // Use individual selectors - Zustand handles this efficiently with shallow comparison
   const showPartModal = useUIStore((s) => s.showPartModal);
   const setShowPartModal = useUIStore((s) => s.setShowPartModal);
   const showImpressionModal = useUIStore((s) => s.showImpressionModal);
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
-  const impressionModalTargetPartId = useUIStore((s) => s.impressionModalTargetPartId);
+  const impressionModalTargetPartId = useUIStore(
+    (s) => s.impressionModalTargetPartId
+  );
   const impressionModalType = useUIStore((s) => s.impressionModalType);
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const { activeTheme, setActiveTheme, isDark } = useThemeContext();
   const theme = useTheme();
   const pathname = usePathname();
-  const [sidebarImpressionType, setSidebarImpressionType] = useState<ImpressionType>("emotion");
+  const [sidebarImpressionType, setSidebarImpressionType] =
+    useState<ImpressionType>("emotion");
   const [canAddImpression, setCanAddImpression] = useState(false);
-  const impressionAddRef = useRef<{ add: () => void; isValid: boolean } | null>(null);
+  const impressionAddRef = useRef<{ add: () => void; isValid: boolean } | null>(
+    null
+  );
   const previousActiveThemeRef = useRef<ActiveTheme | null>(null);
   const workspaceThemeAppliedRef = useRef(false);
   const lastAppliedMapIdRef = useRef<string | null>(null);
@@ -352,7 +363,7 @@ export default function CanvasClient({
   const prevPathnameRef = useRef<string | null>(null);
   const isRestoringThemeRef = useRef(false);
   const setActiveThemeRef = useRef(setActiveTheme);
-  
+
   // Keep refs updated
   useEffect(() => {
     setActiveThemeRef.current = setActiveTheme;
@@ -380,7 +391,7 @@ export default function CanvasClient({
       const rect = profileDropdownRef.current.getBoundingClientRect();
       setProfileDropdownPosition({
         top: rect.bottom + 8,
-        right: window.innerWidth - rect.right
+        right: window.innerWidth - rect.right,
       });
     } else {
       setProfileDropdownPosition(null);
@@ -390,18 +401,23 @@ export default function CanvasClient({
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
         setProfileDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
-    if (data && typeof data === 'object' && 'id' in data) {
-      const normalizedSidebarImpressions = normalizeSidebarImpressions(data.sidebarImpressions);
+    if (data && typeof data === "object" && "id" in data) {
+      const normalizedSidebarImpressions = normalizeSidebarImpressions(
+        data.sidebarImpressions
+      );
 
       // Clear the store completely before setting new data to prevent cross-map contamination
       useWorkingStore.getState().setState({
@@ -437,7 +453,7 @@ export default function CanvasClient({
 
       // Only apply workspace theme on initial load (when mapId changes)
       const isNewMap = lastAppliedMapIdRef.current !== data.id;
-      
+
       console.log(`[CanvasClient] Map data loaded:`, {
         mapId: data.id,
         isNewMap,
@@ -445,18 +461,21 @@ export default function CanvasClient({
         mapActiveTheme,
         currentActiveTheme: activeTheme,
         isDark,
-        metadata
+        metadata,
       });
-      
+
       if (isNewMap) {
         // Store the current global activeTheme before applying workspace theme (reset for each new map)
         // Get the actual global activeTheme from localStorage
-        const globalActiveTheme = localStorage.getItem("activeTheme") as ActiveTheme | null;
-        previousActiveThemeRef.current = globalActiveTheme || (isDark ? "dark" : "light");
+        const globalActiveTheme = localStorage.getItem(
+          "activeTheme"
+        ) as ActiveTheme | null;
+        previousActiveThemeRef.current =
+          globalActiveTheme || (isDark ? "dark" : "light");
         console.log(`[CanvasClient] Stored global activeTheme for restore:`, {
           globalActiveTheme,
           stored: previousActiveThemeRef.current,
-          isDark
+          isDark,
         });
 
         // Reset the applied flag for new map
@@ -465,16 +484,23 @@ export default function CanvasClient({
 
         // Determine workspace activeTheme to use
         let workspaceThemeToUse: ActiveTheme;
-        
-        if (mapActiveTheme && ["light", "dark", "cherry"].includes(mapActiveTheme)) {
+
+        if (
+          mapActiveTheme &&
+          ["light", "dark", "cherry"].includes(mapActiveTheme)
+        ) {
           // Use saved workspace theme
           workspaceThemeToUse = mapActiveTheme;
-          console.log(`[CanvasClient] Using saved workspace theme: ${workspaceThemeToUse}`);
+          console.log(
+            `[CanvasClient] Using saved workspace theme: ${workspaceThemeToUse}`
+          );
         } else {
           // New workspace: default to current mode (light or dark)
           workspaceThemeToUse = isDark ? "dark" : "light";
-          console.log(`[CanvasClient] No saved workspace theme, defaulting to: ${workspaceThemeToUse} (isDark: ${isDark})`);
-          
+          console.log(
+            `[CanvasClient] No saved workspace theme, defaulting to: ${workspaceThemeToUse} (isDark: ${isDark})`
+          );
+
           // Save this default to the map
           const sidebarImpressionsData = {
             ...normalizedSidebarImpressions,
@@ -487,7 +513,7 @@ export default function CanvasClient({
               activeTheme: workspaceThemeToUse,
             },
           };
-          
+
           // Save asynchronously (don't block rendering)
           setTimeout(async () => {
             try {
@@ -498,16 +524,25 @@ export default function CanvasClient({
                 workspaceBgColor: workspaceBgColor || undefined,
                 activeTheme: workspaceThemeToUse,
               };
-              console.log(`[CanvasClient] Saving default workspace theme:`, savePayload);
+              console.log(
+                `[CanvasClient] Saving default workspace theme:`,
+                savePayload
+              );
               const response = await fetch(`/api/maps/${data.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(savePayload),
               });
               const result = await response.json();
-              console.log(`[CanvasClient] Default workspace theme saved:`, { workspaceThemeToUse, result });
+              console.log(`[CanvasClient] Default workspace theme saved:`, {
+                workspaceThemeToUse,
+                result,
+              });
             } catch (error) {
-              console.error("[CanvasClient] Failed to save default workspace theme:", error);
+              console.error(
+                "[CanvasClient] Failed to save default workspace theme:",
+                error
+              );
             }
           }, 100);
         }
@@ -516,7 +551,7 @@ export default function CanvasClient({
         console.log(`[CanvasClient] Applying workspace theme:`, {
           workspaceThemeToUse,
           mapId: data.id,
-          currentActiveTheme: activeTheme
+          currentActiveTheme: activeTheme,
         });
         setActiveTheme(workspaceThemeToUse, false);
         workspaceThemeAppliedRef.current = true;
@@ -532,15 +567,25 @@ export default function CanvasClient({
   useEffect(() => {
     // Check if we're navigating away from workspace
     const isWorkspaceRoute = pathname?.startsWith("/workspace/");
-    const wasWorkspaceRoute = prevPathnameRef.current?.startsWith("/workspace/");
-    
+    const wasWorkspaceRoute =
+      prevPathnameRef.current?.startsWith("/workspace/");
+
     // If we were in a workspace and now we're not, restore the global theme
     // Use a guard to prevent multiple restorations
-    if (wasWorkspaceRoute && !isWorkspaceRoute && workspaceThemeAppliedRef.current && previousActiveThemeRef.current && !isRestoringThemeRef.current) {
+    if (
+      wasWorkspaceRoute &&
+      !isWorkspaceRoute &&
+      workspaceThemeAppliedRef.current &&
+      previousActiveThemeRef.current &&
+      !isRestoringThemeRef.current
+    ) {
       isRestoringThemeRef.current = true;
-      const themeToRestore = previousActiveThemeRef.current || (isDark ? "dark" : "light");
-      console.log(`[Workspace] Route changed away from workspace, restoring global activeTheme: ${themeToRestore}`);
-      
+      const themeToRestore =
+        previousActiveThemeRef.current || (isDark ? "dark" : "light");
+      console.log(
+        `[Workspace] Route changed away from workspace, restoring global activeTheme: ${themeToRestore}`
+      );
+
       // Reset refs first to prevent re-triggering
       previousActiveThemeRef.current = null;
       workspaceThemeAppliedRef.current = false;
@@ -551,27 +596,35 @@ export default function CanvasClient({
         isRestoringThemeRef.current = false;
       }, 0);
     }
-    
+
     // If we're entering a workspace, reset the restoration guard
     if (isWorkspaceRoute && !wasWorkspaceRoute) {
       isRestoringThemeRef.current = false;
     }
-    
+
     prevPathnameRef.current = pathname;
   }, [pathname]); // Only watch pathname
 
   // Separate effect for cleanup on unmount
   useEffect(() => {
     isInWorkspaceRef.current = true;
-    
+
     return () => {
       isInWorkspaceRef.current = false;
       // On unmount, restore the previous global activeTheme if we applied a workspace theme
       // Only restore if we're actually leaving (check pathname)
-      const isStillInWorkspace = typeof window !== "undefined" && window.location.pathname?.startsWith("/workspace/");
-      if (!isStillInWorkspace && workspaceThemeAppliedRef.current && previousActiveThemeRef.current) {
+      const isStillInWorkspace =
+        typeof window !== "undefined" &&
+        window.location.pathname?.startsWith("/workspace/");
+      if (
+        !isStillInWorkspace &&
+        workspaceThemeAppliedRef.current &&
+        previousActiveThemeRef.current
+      ) {
         const themeToRestore = previousActiveThemeRef.current;
-        console.log(`[CanvasClient] Unmounting, restoring global activeTheme: ${themeToRestore}`);
+        console.log(
+          `[CanvasClient] Unmounting, restoring global activeTheme: ${themeToRestore}`
+        );
         // Reset refs first to prevent re-triggering
         previousActiveThemeRef.current = null;
         workspaceThemeAppliedRef.current = false;
@@ -647,12 +700,12 @@ export default function CanvasClient({
       <FloatingActionButtons />
       <Canvas />
       <PartDetailPanel />
-      
+
       {/* Modals for actions */}
       <Modal show={showPartModal} onClose={() => setShowPartModal(false)}>
         <PartInput />
       </Modal>
-      
+
       {/* Sidebar Impression Input Modal */}
       {showImpressionModal && (
         <ImpressionInputModalContent
