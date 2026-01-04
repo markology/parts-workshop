@@ -582,12 +582,12 @@ const PartDetailPanel = () => {
   const { isDark } = useThemeContext();
 
   const subCardStyle = {
-    backgroundColor: "var(--theme-part-detail-sub-card-bg)",
+    backgroundColor: "var(--theme-surface)",
     borderColor: theme.border,
   };
 
   const listItemStyle = {
-    backgroundColor: "var(--theme-part-detail-list-item-bg)",
+    backgroundColor: "var(--theme-surface)",
     borderColor: theme.border,
     color: theme.textPrimary,
   };
@@ -1827,8 +1827,8 @@ theme-dark:shadow-none "
                               return (
                                 <div
                                   key={entry.id}
-                                  className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow theme-dark:bg-[rgb(42,46,50)] theme-light:bg-white"
-                                  style={subCardStyle}
+                                  className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow theme-light:bg-white bg-[var(--theme-part-detail-list-item-bg)]"
+                                  // style={subCardStyle}
                                 >
                                   {/* Header with dates and actions */}
                                   <div className="flex items-start justify-between mb-3 gap-4">
@@ -2214,11 +2214,11 @@ theme-dark:shadow-none "
                         <div className="flex items-start justify-between gap-6">
                           <div className="space-y-3">
                             <span
-                              className={`marka inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]
+                              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] border
                               ${
                                 addingNeedsOrFears === "needs"
-                                  ? "theme-dark:bg-[rgba(123, 66, 226, 0.2)] theme-light:bg-[rgba(123, 66, 226, 0.1)] theme-dark:text-[#a78bfa] theme-light:text-[#7b42e2] theme-dark:border-[1px solid rgba(123, 66, 226, 0.3)] theme-light:border-[1px solid rgba(123, 66, 226, 0.2)]"
-                                  : "theme-dark:bg-[rgba(247, 133, 133, 0.2)] theme-light:bg-[rgba(247, 133, 133, 0.1)]theme-dark:text-[#fca5a5] theme-light:text-[#f78585]theme-dark:border-[1px solid rgba(247, 133, 133, 0.3)] theme-light:border-[1px solid rgba(247, 133, 133, 0.2)]"
+                                  ? "bg-[var(--theme-part-detail-needs-bg)] text-[var(--theme-part-detail-needs-text)] border-[var(--theme-part-detail-needs-border)]"
+                                  : "bg-[var(--theme-part-detail-fears-bg)] text-[var(--theme-part-detail-fears-text)] border-[var(--theme-part-detail-fears-border)]"
                               }`}
                             >
                               {addingNeedsOrFears === "needs" ? (
@@ -2229,12 +2229,7 @@ theme-dark:shadow-none "
                               {addingNeedsOrFears === "needs" ? "Need" : "Fear"}
                             </span>
                             <div>
-                              <h3
-                                className="text-2xl font-semibold"
-                                style={{
-                                  color: isDark ? theme.textPrimary : "#0f172a",
-                                }}
-                              >
+                              <h3 className="text-2xl font-semibold theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#0f172a]">
                                 Add a new{" "}
                                 {addingNeedsOrFears === "needs"
                                   ? "need"
@@ -2244,14 +2239,7 @@ theme-dark:shadow-none "
                                   (data.label as string) ||
                                   "this part"}
                               </h3>
-                              <p
-                                className="mt-2 text-sm leading-relaxed"
-                                style={{
-                                  color: isDark
-                                    ? theme.textSecondary
-                                    : "#475569",
-                                }}
-                              >
+                              <p className="mt-2 text-sm leading-relaxed theme-dark:text-[var(--theme-text-secondary)] theme-light:text-[#475569]">
                                 {addingNeedsOrFears === "needs"
                                   ? "What does this part need to feel safe, heard, or supported?"
                                   : "What does this part fear might happen?"}
@@ -2263,31 +2251,20 @@ theme-dark:shadow-none "
                               setAddingNeedsOrFears(null);
                               setNeedsFearsInput("");
                             }}
-                            className="h-10 w-10 flex items-center justify-center rounded-full border transition-colors"
-                            style={
-                              isDark
-                                ? {
-                                    borderColor: theme.border,
-                                    color: theme.textSecondary,
-                                  }
-                                : {
-                                    borderColor: "#e2e8f0",
-                                    color: "#000000",
-                                  }
-                            }
-                            onMouseEnter={(e) => {
-                              if (isDark) {
-                                e.currentTarget.style.backgroundColor =
-                                  theme.elevated;
-                              } else {
-                                e.currentTarget.style.backgroundColor =
-                                  "#f1f5f9";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "transparent";
-                            }}
+                            className="h-10 w-10 flex items-center justify-center rounded-full border transition-colors theme-dark:border-[var(--theme-border)] theme-light:border-[#e2e8f0] theme-dark:text-[var(--theme-text-secondary)] theme-light:text-[#000000]"
+                            // onMouseEnter={(e) => {
+                            //   if (isDark) {
+                            //     e.currentTarget.style.backgroundColor =
+                            //       theme.elevated;
+                            //   } else {
+                            //     e.currentTarget.style.backgroundColor =
+                            //       "#f1f5f9";
+                            //   }
+                            // }}
+                            // onMouseLeave={(e) => {
+                            //   e.currentTarget.style.backgroundColor =
+                            //     "transparent";
+                            // }}
                             aria-label="Close"
                           >
                             <X size={18} />
@@ -2330,22 +2307,7 @@ theme-dark:shadow-none "
                             }
                           }}
                           placeholder={`Describe ${addingNeedsOrFears === "needs" ? "what this part needs" : "what this part fears"}...`}
-                          className="w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none shadow-inner"
-                          style={
-                            isDark
-                              ? {
-                                  backgroundColor: theme.surface,
-                                  borderColor: "transparent",
-                                  borderWidth: 0,
-                                  color: theme.textPrimary,
-                                }
-                              : {
-                                  backgroundColor: "#ffffff",
-                                  borderColor: "transparent",
-                                  borderWidth: 0,
-                                  color: "#0f172a",
-                                }
-                          }
+                          className="w-full min-h-[120px] resize-none rounded-xl px-5 py-4 text-sm leading-relaxed focus:outline-none shadow-inner theme-dark:bg-[var(--theme-surface)] theme-light:bg-[#ffffff] border-none theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#0f172a]"
                           rows={4}
                         />
                         <div className="flex justify-end mt-4">
@@ -2361,34 +2323,13 @@ theme-dark:shadow-none "
                               }
                             }}
                             disabled={!needsFearsInput.trim()}
-                            className="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                            style={{
-                              backgroundColor: needsFearsInput.trim()
+                            className={`px-4 py-2 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed shadow-sm border-none transition-none ${
+                              needsFearsInput.trim()
                                 ? addingNeedsOrFears === "needs"
-                                  ? isDark
-                                    ? "#6d28d9"
-                                    : "#7b42e2"
-                                  : isDark
-                                    ? "#dc2626"
-                                    : "#f78585"
-                                : isDark
-                                  ? "rgb(42, 46, 50)"
-                                  : "#e2e8f0",
-                              color: needsFearsInput.trim()
-                                ? "#ffffff"
-                                : isDark
-                                  ? theme.textMuted
-                                  : "#94a3b8",
-                              border: "none",
-                              ...(isDark
-                                ? {}
-                                : {
-                                    borderTop: needsFearsInput.trim()
-                                      ? undefined
-                                      : "1px solid #00000012",
-                                  }),
-                              transition: "none !important",
-                            }}
+                                  ? "bg-[var(--theme-part-detail-button-needs-bg-enabled)] text-[var(--theme-part-detail-button-text-enabled)]"
+                                  : "bg-[var(--theme-part-detail-button-fears-bg-enabled)] text-[var(--theme-part-detail-button-text-enabled)]"
+                                : "bg-[var(--theme-part-detail-button-bg-disabled)] text-[var(--theme-part-detail-button-text-disabled)] theme-light:border-t-[var(--theme-part-detail-button-border-top-disabled)]"
+                            }`}
                             onMouseEnter={(e) => {
                               if (needsFearsInput.trim()) {
                                 e.currentTarget.style.opacity = "0.9";
@@ -2405,30 +2346,15 @@ theme-dark:shadow-none "
                           </button>
                         </div>
 
-                        <div
-                          className="flex items-center gap-3 flex-wrap"
-                          style={{
-                            color: isDark ? theme.textMuted : "#64748b",
-                          }}
-                        >
+                        <div className="flex items-center gap-3 flex-wrap theme-dark:text-[var(--theme-text-muted)] theme-light:text-[#64748b]">
                           <div className="flex items-center gap-1.5">
-                            <kbd
-                              className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
-                              style={{
-                                backgroundColor: "white",
-                              }}
-                            >
+                            <kbd className="px-2 py-1 rounded text-[10px] font-semibold shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]">
                               {isMac() ? "⏎" : "Enter"}
                             </kbd>
                             <span className="text-xs">Submit</span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <kbd
-                              className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm"
-                              style={{
-                                backgroundColor: "white",
-                              }}
-                            >
+                            <kbd className="px-2 py-1 rounded text-[10px] font-semibold text-slate-700 shadow-sm theme-dark:text-slate-200 theme-light:text-slate-700 bg-[var(--theme-impression-modal-keyboard-bg)]">
                               Esc
                             </kbd>
                             <span className="text-xs">Cancel</span>
@@ -2447,35 +2373,21 @@ theme-dark:shadow-none "
                 className="fixed inset-0 flex items-center justify-center z-[60] p-4"
                 onClick={() => setShowJournalHistoryModal(false)}
               >
-                <div
-                  className="absolute inset-0 pointer-events-none backdrop-blur-sm"
-                  style={{
-                    backgroundColor: isDark
-                      ? `${theme.modal}f2`
-                      : `${theme.modal}99`,
-                  }}
-                />
+                <div className="marka absolute inset-0 pointer-events-none backdrop-blur-sm theme-dark:bg-[#272b2f] theme-light-[#ffffff99]" />
                 <div
                   className="relative rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-4xl max-h-[85vh] mx-4 overflow-hidden flex flex-col border"
                   style={modalContainerStyle}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div
-                    className="px-6 py-5 flex items-center justify-between"
-                    style={{
-                      backgroundColor: isDark
-                        ? "rgba(42, 46, 50, 0.75)"
-                        : theme.surface,
-                    }}
-                  >
+                  <div className="px-6 py-5 flex items-center justify-between theme-dark:bg-[var(--theme-part-detail-sub-card-bg))] theme-light:bg-[var(--theme-surface)]">
                     <div>
                       <h3
-                        className={`text-xl font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}
+                        className={`text-xl font-semibold theme-dark:text-slate-100 theme-light:text-slate-900`}
                       >
                         Journal History
                       </h3>
                       <p
-                        className={`text-sm mt-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                        className={`text-sm mt-1 theme-dark:text-slate-400 theme-light:text-slate-500`}
                       >
                         {journalEntries.length}{" "}
                         {journalEntries.length === 1 ? "entry" : "entries"} for{" "}
@@ -2486,20 +2398,7 @@ theme-dark:shadow-none "
                     </div>
                     <button
                       onClick={() => setShowJournalHistoryModal(false)}
-                      className={`p-2 rounded-full border ${
-                        isDark
-                          ? "border-slate-700 hover:bg-slate-900/60"
-                          : "border-slate-200 hover:bg-slate-100"
-                      }`}
-                      style={
-                        isDark
-                          ? {
-                              color: "#cbd5e1",
-                            }
-                          : {
-                              color: "#000000",
-                            }
-                      }
+                      className={`p-2 rounded-full border theme-dark:border-slate-700 theme-light:border-slate-200 hover:bg-slate-900/60 theme-light:hover:bg-slate-100 theme-dark:text-[#cbd5e1] theme-light:text-[#000000]`}
                       aria-label="Close"
                     >
                       <X size={16} />
@@ -2625,23 +2524,17 @@ theme-dark:shadow-none "
                         return (
                           <div
                             key={entry.id}
-                            className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow"
-                            style={{
-                              ...subCardStyle,
-                              backgroundColor: isDark
-                                ? "rgb(33, 37, 41)"
-                                : "white",
-                            }}
+                            className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow bg-[var(--theme-part-detail-list-item-bg)] border-[var(--theme-border)]"
                           >
                             {/* Header with dates and actions */}
                             <div className="flex items-start justify-between mb-3 gap-4">
                               <div className="flex-1 space-y-1.5">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <Clock
-                                    className={`w-4 h-4 flex-shrink-0 ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                                    className={`w-4 h-4 flex-shrink-0 theme-dark:text-slate-400 theme-light:text-slate-500`}
                                   />
                                   <span
-                                    className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                                    className={`text-xs theme-dark:text-slate-400 theme-light:text-slate-500`}
                                   >
                                     Created:{" "}
                                     {new Date(
@@ -2659,15 +2552,13 @@ theme-dark:shadow-none "
                                     <>
                                       <span
                                         className={
-                                          isDark
-                                            ? "text-slate-600"
-                                            : "text-slate-400"
+                                          "theme-dark:text-slate-600 theme-light:text-slate-400"
                                         }
                                       >
                                         •
                                       </span>
                                       <span
-                                        className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                                        className={`text-xs theme-dark:text-slate-400 theme-light:text-slate-500`}
                                       >
                                         Updated:{" "}
                                         {new Date(
@@ -2690,12 +2581,8 @@ theme-dark:shadow-none "
                                   <span
                                     className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
                                       isTextThread
-                                        ? isDark
-                                          ? "bg-purple-900/40 text-purple-200"
-                                          : "bg-purple-50 text-purple-700"
-                                        : isDark
-                                          ? "bg-blue-900/40 text-blue-200"
-                                          : "bg-blue-50 text-blue-700"
+                                        ? "theme-dark:bg-purple-900/40 theme-dark:text-purple-200 theme-light:bg-purple-50 theme-light:text-purple-700"
+                                        : "theme-dark:bg-blue-900/40 theme-dark:text-blue-200 theme-light:bg-blue-50 theme-light:text-blue-700"
                                     }`}
                                   >
                                     {isTextThread ? (
@@ -2711,7 +2598,7 @@ theme-dark:shadow-none "
                                     )}
                                   </span>
                                   <span
-                                    className={`text-[10px] ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                                    className={`text-[10px] theme-dark:text-slate-500 theme-light:text-slate-400`}
                                   >
                                     {wordCount} words •{" "}
                                     {charCount.toLocaleString()} chars
@@ -2721,6 +2608,7 @@ theme-dark:shadow-none "
 
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <button
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm theme-light:bg-white theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:border-none theme-light:border-t-[1px] theme-light:border-[#00000012] theme-dark:bg-[#2a2e32]"
                                   onClick={() => {
                                     // Open this entry in the main journal drawer
                                     if (selectedPartId && partNode) {
@@ -2789,35 +2677,21 @@ theme-dark:shadow-none "
                                       setShowJournalHistoryModal(false);
                                     }
                                   }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm"
                                   style={{
-                                    backgroundColor: isDark
-                                      ? "rgb(42, 46, 50)"
-                                      : "white",
-                                    border: "none",
-                                    ...(isDark
-                                      ? {
-                                          borderTop:
-                                            "1px solid rgba(0, 0, 0, 0.15)",
-                                        }
-                                      : { borderTop: "1px solid #00000012" }),
-                                    color: isDark
-                                      ? theme.textPrimary
-                                      : "#475569",
                                     transition: "none !important",
                                     WebkitTransition: "none !important",
                                     MozTransition: "none !important",
                                     OTransition: "none !important",
                                     msTransition: "none !important",
                                   }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                      isDark ? theme.buttonHover : "#f1f5f9";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                      isDark ? "rgb(42, 46, 50)" : "white";
-                                  }}
+                                  // onMouseEnter={(e) => {
+                                  //   e.currentTarget.style.backgroundColor =
+                                  //     isDark ? theme.buttonHover : "#f1f5f9";
+                                  // }}
+                                  // onMouseLeave={(e) => {
+                                  //   e.currentTarget.style.backgroundColor =
+                                  //     isDark ? "rgb(42, 46, 50)" : "white";
+                                  // }}
                                   title="Open in journal"
                                 >
                                   <BookOpen className="w-3 h-3" />
@@ -2825,13 +2699,7 @@ theme-dark:shadow-none "
                                 </button>
                                 <button
                                   disabled={true}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50"
-                                  style={{
-                                    backgroundColor: isDark
-                                      ? theme.surface
-                                      : "#e2e8f0",
-                                    color: isDark ? theme.textMuted : "#94a3b8",
-                                  }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50 theme-light:bg-[#e2e8f0] theme-dark:text-[var(--theme-text-muted)] theme-dark:bg-[var(--theme-surface)] theme-light:text-[#94a3b8]"
                                   title="Coming soon"
                                 >
                                   <Sparkles className="w-3 h-3" />
@@ -2839,11 +2707,7 @@ theme-dark:shadow-none "
                                 </button>
                                 <button
                                   onClick={() => deleteJournalEntry(entry.id)}
-                                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition ${
-                                    isDark
-                                      ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
-                                      : "text-slate-500 hover:text-red-600 hover:bg-red-50"
-                                  }`}
+                                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition theme-dark:text-slate-400 theme-dark:hover:text-red-400 theme-dark:hover:bg-red-900/20 theme-light:text-slate-500 theme-light:hover:text-red-600 theme-light:hover:bg-red-50`}
                                   title="Delete entry"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -2853,17 +2717,8 @@ theme-dark:shadow-none "
 
                             {/* Content Preview */}
                             <div
-                              className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
-                                isDark ? "text-slate-300" : "text-slate-700"
-                              }`}
-                              style={{
-                                border: "none",
-                                padding: "10px",
-                                borderRadius: "10px",
-                                ...(isDark
-                                  ? { background: "#272b2f" }
-                                  : { background: "#f8fafc" }),
-                              }}
+                              className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto theme-dark:text-slate-300 theme-light:text-slate-700 border-none p-[10px] rounded-[10px] theme-dark:bg-[#272b2f] theme-light:bg-[#f8fafc]`}
+                              style={subCardStyle}
                             >
                               {contentPreview}
                             </div>

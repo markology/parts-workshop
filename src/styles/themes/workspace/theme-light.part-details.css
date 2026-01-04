@@ -24,4 +24,16 @@
     --theme-part-detail-header-interaction-bg: rgba(135, 206, 235, 0.25);
     --theme-part-detail-header-tension-text: var(--node-text-tension);
     --theme-part-detail-header-interaction-text: var(--node-text-interaction);
+    --theme-part-detail-needs-bg: rgba(123, 66, 226, 0.1);
+    --theme-part-detail-needs-text: #7b42e2;
+    --theme-part-detail-needs-border: rgba(123, 66, 226, 0.2);
+    --theme-part-detail-fears-bg: rgba(247, 133, 133, 0.1);
+    --theme-part-detail-fears-text: #f78585;
+    --theme-part-detail-fears-border: rgba(247, 133, 133, 0.2);
+    --theme-part-detail-button-needs-bg-enabled: #7b42e2;
+    --theme-part-detail-button-fears-bg-enabled: #f78585;
+    --theme-part-detail-button-bg-disabled: #e2e8f0;
+    --theme-part-detail-button-text-enabled: #ffffff;
+    --theme-part-detail-button-text-disabled: #94a3b8;
+    --theme-part-detail-button-border-top-disabled: 1px solid #00000012;
 }
