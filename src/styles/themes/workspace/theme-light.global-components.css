@@ -1,0 +1,25 @@
+.theme-light {
+    /* Assistant */
+    --theme-assistant-button-bg: white;
+    --theme-assistant-bg: linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252));
+    --theme-assistant-part-message-bg: linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249));
+
+    /* Account Dropdown */
+    --theme-account-dropdown-bg: linear-gradient(to bottom right, rgb(255 255 255), rgb(248 250 252));
+    --theme-account-dropdown-border: rgb(226 232 240);
+
+    --theme-account-dropdown-item-bg-hover: #f3f4f6;
+    --theme-account-dropdown-item-text-color: #111827;
+    --theme-account-icon-bg: rgb(255 255 255); /* white */
+    --theme-account-icon-border: rgb(226 232 240); /* slate-200 */
+    --theme-account-icon-border-hover: rgb(148 163 184);
+
+    /* Feedback Form */
+    --theme-feedback-form-bg: #fff;
+    --theme-feedback-form-border: #e2e8f0;
+    --theme-feedback-form-text-color: #111827;
+    --theme-feedback-form-input-bg: #fff;
+    --theme-feedback-form-input-border: #e2e8f0;
+    --theme-feedback-form-input-text-color: #111827;
+    --theme-feedback-form-input-placeholder-color: #94a3b8;
+}
