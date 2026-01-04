@@ -665,9 +665,9 @@ const PartDetailPanel = () => {
           <div className="flex flex-row flex-1 overflow-hidden min-h-0">
             {/* Table of Contents - Left Column */}
             {windowWidth >= 800 && (
-              <div className="w-52 flex-shrink-0 flex flex-col border-r overflow-visible bg-[var(--theme-part-detail-nav-bg)] border-right-[var(--theme-border)]">
+              <div className="w-52 flex-shrink-0 flex flex-col border-r overflow-visible bg-[var(--theme-part-detail-nav-bg)] border-r-[var(--theme-border)]">
                 {/* Part Name Header */}
-                <div className="px-5 pt-5 pb-3 border-b bg-[var(--theme-card)] border-bottom-[var(--theme-border)]">
+                <div className="px-5 pt-5 pb-3 border-b bg-[var(--theme-card)] border-b-[var(--theme-border)]">
                   <h2 className="text-sm font-semibold truncate text-[var(--theme-text-primary)]">
                     {tempName ||
                       (data.name as string) ||
@@ -771,22 +771,22 @@ const PartDetailPanel = () => {
                           type="button"
                           onClick={saveAllInfo}
                           className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold shadow-sm hover:shadow-md theme-light:bg-[var(--theme-jazz-gradient)] theme-dark:bg-[#396bbc] theme-light:text-black theme-dark:text-white transition-none shadow-[0_6px_16px_rgba(57,107,188,0.28)]"
-                          onMouseEnter={(e) => {
-                            e.currentTarget.classList.add(
-                              "theme-light:bg-[linear-gradient(to_right,rgb(224,242,254),rgb(221,214,254),rgb(254,226,226))]"
-                            );
-                            e.currentTarget.classList.add(
-                              "theme-dark:bg-[#2f5aa3]"
-                            );
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.classList.remove(
-                              "theme-light:bg-[linear-gradient(to_right,rgb(224,242,254),rgb(221,214,254),rgb(254,226,226))]"
-                            );
-                            e.currentTarget.classList.remove(
-                              "theme-dark:bg-[#396bbc]"
-                            );
-                          }}
+                          // onMouseEnter={(e) => {
+                          //   e.currentTarget.classList.add(
+                          //     "theme-light:bg-[linear-gradient(to_right,rgb(224,242,254),rgb(221,214,254),rgb(254,226,226))]"
+                          //   );
+                          //   e.currentTarget.classList.add(
+                          //     "theme-dark:bg-[#2f5aa3]"
+                          //   );
+                          // }}
+                          // onMouseLeave={(e) => {
+                          //   e.currentTarget.classList.remove(
+                          //     "theme-light:bg-[linear-gradient(to_right,rgb(224,242,254),rgb(221,214,254),rgb(254,226,226))]"
+                          //   );
+                          //   e.currentTarget.classList.remove(
+                          //     "theme-dark:bg-[#396bbc]"
+                          //   );
+                          // }}
                         >
                           <Check className="w-4 h-4" />
                           Save changes
@@ -819,8 +819,7 @@ const PartDetailPanel = () => {
 
                   {/* Main Info Grid */}
                   <div
-                    className={`p-6 space-y-6 rounded-3xl shadow-sm ${isEditingInfo ? "border-[3px] border-[rgba(57,107,188,0.3)]" : ""}`}
-                    style={subCardStyle}
+                    className={`p-6 space-y-6 rounded-3xl shadow-sm ${isEditingInfo ? "border-[3px] border-[rgba(57,107,188,0.3)]" : ""} bg-[var(--theme-surface)]`}
                   >
                     {/* First Row: Image and Info */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1472,8 +1471,7 @@ theme-dark:shadow-none "
                             (need: string, index: number) => (
                               <div
                                 key={index}
-                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm bg-[var(--part-detail-sub-card-bg)] border-none text-[#7b42e2]"
-                                style={listItemStyle}
+                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm border-none text-[#7b42e2] text-[var(--theme-text-primary)] border-[var(--theme-border)] bg-[var(--theme-part-detail-list-item-bg)]"
                               >
                                 <span className="text-xs font-medium leading-relaxed text-[#7b42e2]">
                                   {need}
