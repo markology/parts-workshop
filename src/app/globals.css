@@ -142,6 +142,12 @@
   --theme-assistant-bg: white;
   --theme-workspace-bg: radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgba(252, 248, 246, 0.82) 100%);
   --theme-button-border-top: 1px solid rgba(0, 0, 0, 0.07);
+  --theme-modal-bg: radial-gradient(
+    circle,
+    rgb(255, 255, 255) 0%,
+    rgb(255, 255, 255) 40%,
+    rgb(252 248 246 / 0.82) 100%
+  );
 }
 
 .theme-dark {
@@ -159,6 +165,7 @@
   --theme-surface: #272b2f;
   --theme-text-primary: #ffffff;
   --theme-modal: #212529;
+  --theme-modal-bg: rgba(33, 37, 41, 0.95);
 
   /* Theme */
   --theme-test-background: blue;

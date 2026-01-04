@@ -165,22 +165,17 @@ const ImpressionInputModalContent = ({
       }}
     >
       <div
-        className="absolute inset-0 pointer-events-none backdrop-blur-sm"
-        style={{
-          background: isDark
-            ? `${theme.modal}f2`
-            : "radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)",
-        }}
+        className="absolute inset-0 pointer-events-none backdrop-blur-sm  theme-dark:bg-[var(--theme-modal-bg)]
+  theme-light:bg-[var(--theme-modal-bg)]"
       />
       <div
         className="relative w-full max-w-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]"
+          className="relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)] border-[var(--theme-border)]"
           style={{
             backgroundColor: `var(--theme-impression-${currentType}-modal-bg)`,
-            borderColor: theme.border,
           }}
         >
           <div className="relative px-8 pt-8 pb-6 space-y-7">
