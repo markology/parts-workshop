@@ -1,0 +1,20 @@
+.theme-dark {
+    /* Part Detail Panel */
+    --theme-part-detail-nav-bg: rgba(42, 46, 50, 0.75);
+    --theme-part-detail-section-card-bg: #2a2e32;
+    --theme-part-detail-sub-card-bg: rgba(42, 46, 50, 0.75);
+    --theme-part-detail-list-item-bg: rgba(33, 37, 41, 0.5);
+    --theme-part-detail-modal-container-bg: rgba(42, 46, 50, 0.75);
+    --theme-part-detail-modal-field-card-bg: rgba(42, 46, 50, 0.75);
+    --theme-part-detail-modal-input-bg: rgba(39, 43, 47, 0.6);
+    --theme-part-detail-modal-textarea-bg: rgba(39, 43, 47, 0.6);
+    --theme-part-detail-backdrop-bg: rgba(0, 0, 0, 0.95);
+    --theme-part-detail-container-shadow: 0px 1px 15px 1px rgba(0, 0, 0, 0.19);
+    --theme-part-detail-button-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px;
+    --theme-part-detail-tension-gradient-bg: linear-gradient(140deg, rgb(42, 31, 61), rgb(39, 33, 47));
+    --theme-part-detail-interaction-gradient-bg: linear-gradient(140deg, rgb(31, 42, 61), rgb(33, 39, 47));
+    --theme-part-detail-header-tension-bg: rgba(168, 85, 247, 0.2);
+    --theme-part-detail-header-interaction-bg: rgba(59, 130, 246, 0.2);
+    --theme-part-detail-header-tension-text: #e9d5ff;
+    --theme-part-detail-header-interaction-text: #dbeafe;
+}

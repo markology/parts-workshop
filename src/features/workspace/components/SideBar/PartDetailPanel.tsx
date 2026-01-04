@@ -149,14 +149,6 @@ const PartDetailPanel = () => {
   }, [selectedPartId, edges]);
   const theme = useTheme();
 
-  const toRgba = (hex: string, opacity: number) => {
-    const sanitized = hex.replace("#", "");
-    const bigint = parseInt(sanitized, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-  };
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const setImpressionModalTarget = useUIStore(
     (s) => s.setImpressionModalTarget
@@ -165,9 +157,6 @@ const PartDetailPanel = () => {
     "needs" | "fears" | null
   >(null);
   const [needsFearsInput, setNeedsFearsInput] = useState<string>("");
-  const [editingAge, setEditingAge] = useState(false);
-  const [editingGender, setEditingGender] = useState(false);
-  const [editingPartType, setEditingPartType] = useState(false);
   const [tempAge, setTempAge] = useState("");
   const [tempGender, setTempGender] = useState("");
   const [tempPartType, setTempPartType] = useState("");
@@ -184,8 +173,6 @@ const PartDetailPanel = () => {
   const scrollableContentRef = useRef<HTMLDivElement>(null);
 
   // Active section tracking for TOC
-  const [activeSection, setActiveSection] = useState<string>("info");
-
   // Scroll to section handler
   const scrollToSection = (
     sectionRef: React.RefObject<HTMLDivElement | null>,
@@ -202,15 +189,12 @@ const PartDetailPanel = () => {
         top: offsetTop,
         behavior: "smooth",
       });
-      setActiveSection(sectionId);
     }
   };
 
   // Journal state
   const [journalEntries, setJournalEntries] = useState<any[]>([]);
-  const [showJournalHistory, setShowJournalHistory] = useState(false);
   const [isLoadingJournal, setIsLoadingJournal] = useState(false);
-  const [isExtractingImpressions, setIsExtractingImpressions] = useState(false);
   const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [hoveredPartType, setHoveredPartType] = useState<string | null>(null);
@@ -241,7 +225,6 @@ const PartDetailPanel = () => {
       );
       setTempAge((data.age as string) || "Unknown");
       setTempGender((data.gender as string) || "");
-      setActiveSection("info"); // Reset to top section when part changes
     }
   }, [selectedPartId, partNode]); // Only sync when selectedPartId or partNode changes
 
@@ -316,79 +299,6 @@ const PartDetailPanel = () => {
     } catch (error) {
       console.error("Failed to delete journal entry:", error);
       alert("Failed to delete journal entry. Please try again.");
-    }
-  };
-
-  const extractImpressionsFromEntry = async (entryId: string) => {
-    if (!selectedPartId) return;
-
-    setIsExtractingImpressions(true);
-    try {
-      const response = await fetch(
-        `/api/journal/node/${selectedPartId}/extract-impressions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nodeId: selectedPartId,
-            journalEntryId: entryId,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Impressions extracted:", result);
-
-        // Add the extracted impressions to the part node's data
-        if (result.impressions && result.impressions.length > 0 && partNode) {
-          const updatedData = { ...partNode.data };
-
-          // Group impressions by type and add them to the appropriate buckets
-          result.impressions.forEach((impression: any) => {
-            const type = impression.type;
-            const impressionTypeKey =
-              ImpressionTextType[type as keyof typeof ImpressionTextType];
-
-            if (impressionTypeKey) {
-              const currentImpressions =
-                (updatedData[impressionTypeKey] as ImpressionNode[]) || [];
-              const newImpression: ImpressionNode = {
-                id: impression.id,
-                type: type,
-                data: {
-                  label: impression.label,
-                  addedAt: Date.now(),
-                },
-                position: { x: 0, y: 0 },
-              };
-
-              updatedData[impressionTypeKey] = [
-                ...currentImpressions,
-                newImpression,
-              ];
-            }
-          });
-
-          // Update the part node with the new impressions
-          updateNode(selectedPartId, {
-            data: updatedData,
-          });
-
-          console.log(
-            `Successfully added ${result.impressions.length} impressions to the part!`
-          );
-        }
-
-        // Refresh the journal entries to show updated content
-        await loadJournalEntries();
-      }
-    } catch (error) {
-      console.error("Failed to extract impressions:", error);
-    } finally {
-      setIsExtractingImpressions(false);
     }
   };
 
@@ -648,37 +558,6 @@ const PartDetailPanel = () => {
     setIsEditingInfo(false);
   };
 
-  const saveInfo = () => {
-    if (!selectedPartId || !partNode) return;
-    const trimmedName = tempName.trim();
-    const trimmedScratchpad = tempScratchpad.trim();
-    const trimmedAge =
-      tempAge.trim() === "" || tempAge === "Unknown"
-        ? "Unknown"
-        : tempAge.trim();
-    const trimmedGender = tempGender.trim();
-
-    // Use requestAnimationFrame to batch the update and avoid ResizeObserver issues
-    requestAnimationFrame(() => {
-      updateNode(selectedPartId, {
-        data: {
-          ...partNode.data,
-          name: trimmedName || "",
-          label: trimmedName || "",
-          scratchpad: trimmedScratchpad,
-          customPartType: tempPartType || undefined,
-          age: trimmedAge || "Unknown",
-          gender: trimmedGender || undefined,
-        },
-      });
-
-      setTempName(trimmedName);
-      setTempScratchpad(trimmedScratchpad);
-      setTempAge(trimmedAge);
-      setTempGender(trimmedGender);
-    });
-  };
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && selectedPartId && partNode) {
@@ -702,22 +581,6 @@ const PartDetailPanel = () => {
 
   const { isDark } = useThemeContext();
 
-  const containerStyle = {
-    backgroundColor: theme.modal,
-    borderColor: theme.border,
-    color: theme.textPrimary,
-  };
-
-  const navContainerStyle = {
-    backgroundColor: "var(--theme-part-detail-nav-bg)",
-    borderRightColor: theme.border,
-  };
-
-  const sectionCardStyle = {
-    backgroundColor: "var(--theme-part-detail-section-card-bg)",
-    borderColor: theme.border,
-  };
-
   const subCardStyle = {
     backgroundColor: "var(--theme-part-detail-sub-card-bg)",
     borderColor: theme.border,
@@ -731,23 +594,6 @@ const PartDetailPanel = () => {
 
   const modalContainerStyle = {
     backgroundColor: "var(--theme-part-detail-modal-container-bg)",
-    borderColor: theme.border,
-    color: theme.textPrimary,
-  };
-
-  const modalFieldCardStyle = {
-    backgroundColor: "var(--theme-part-detail-modal-field-card-bg)",
-    borderColor: theme.border,
-  };
-
-  const modalInputStyle = {
-    backgroundColor: "var(--theme-part-detail-modal-input-bg)",
-    borderColor: theme.border,
-    color: theme.textPrimary,
-  };
-
-  const modalTextareaStyle = {
-    backgroundColor: "var(--theme-part-detail-modal-textarea-bg)",
     borderColor: theme.border,
     color: theme.textPrimary,
   };
@@ -785,10 +631,7 @@ const PartDetailPanel = () => {
 
   return (
     <div
-      className="fixed inset-0 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 theme-dark:shadow-[var(--theme-part-detail-container-shadow)]"
-      style={{
-        backgroundColor: "var(--theme-part-detail-backdrop-bg)",
-      }}
+      className="fixed inset-0 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 theme-dark:shadow-[var(--theme-part-detail-container-shadow)] bg-[var(--theme-part-detail-backdrop-bg)]"
       onClick={handleBackdropClick}
     >
       <div
@@ -815,25 +658,16 @@ const PartDetailPanel = () => {
         </button>
 
         <div
-          className="relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col rounded-[10px] theme-dark:shadow-[var(--theme-part-detail-container-shadow)]"
-          style={containerStyle}
+          className="relative rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.28)] overflow-hidden w-full max-w-5xl max-h-[85vh] flex flex-col rounded-[10px] theme-dark:shadow-[var(--theme-part-detail-container-shadow)] bg-[var(--theme-modal)] border-[var(--theme-border)] text-[var(--theme-text-primary)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Content with TOC */}
           <div className="flex flex-row flex-1 overflow-hidden min-h-0">
             {/* Table of Contents - Left Column */}
             {windowWidth >= 800 && (
-              <div
-                className="w-52 flex-shrink-0 flex flex-col border-r overflow-visible"
-                style={navContainerStyle}
-              >
+              <div className="w-52 flex-shrink-0 flex flex-col border-r overflow-visible bg-[var(--theme-part-detail-nav-bg)] border-right-[var(--theme-border)]">
                 {/* Part Name Header */}
-                <div
-                  className="px-5 pt-5 pb-3 border-b bg-[var(--theme-card)]"
-                  style={{
-                    borderColor: theme.border,
-                  }}
-                >
+                <div className="px-5 pt-5 pb-3 border-b bg-[var(--theme-card)] border-bottom-[var(--theme-border)]">
                   <h2 className="text-sm font-semibold truncate text-[var(--theme-text-primary)]">
                     {tempName ||
                       (data.name as string) ||
@@ -847,7 +681,7 @@ const PartDetailPanel = () => {
                     className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] transition-none"
                   >
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" style={{ color: "#8f85e7" }} />
+                      <User className="w-4 h-4 text-[#8f85e7]" />
                       <span>Info</span>
                     </div>
                   </button>
@@ -868,9 +702,6 @@ const PartDetailPanel = () => {
                   <button
                     onClick={() => scrollToSection(insightsRef, "insights")}
                     className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] transition-none"
-                    style={{
-                      transition: "none",
-                    }}
                   >
                     <div className="flex items-center gap-2">
                       <Brain
@@ -906,24 +737,11 @@ const PartDetailPanel = () => {
 
             {/* Main Content - Right Column */}
             <div
-              className={`${windowWidth < 800 ? "w-full" : "flex-1"} pl-8`}
-              style={{
-                overflow: "hidden",
-                maxHeight: "85vh",
-                paddingRight: "15px",
-                paddingTop: "20px",
-                paddingBottom: "20px",
-              }}
+              className={`${windowWidth < 800 ? "w-full" : "flex-1"} pl-8 overflow-hidden max-h-[85vh] pr-[15px] pt-[20px] pb-[20px]`}
             >
               <div
                 ref={scrollableContentRef}
-                className={`overflow-y-scroll space-y-12 bg-transparent`}
-                style={{
-                  height: "100%",
-                  paddingRight: "15px",
-                  paddingTop: "12px",
-                  paddingBottom: "22px",
-                }}
+                className={`overflow-y-scroll space-y-12 bg-transparent h-full pr-[15px] pt-[12px] pb-[22px]`}
               >
                 {/* Info Section */}
                 <div ref={infoRef} className="relative space-y-4 mb-12">
@@ -931,10 +749,7 @@ const PartDetailPanel = () => {
                     <div className="flex items-center gap-2">
                       <div className="flex items-center justify-between">
                         <h3 className="text-[16px] font-semibold flex items-center gap-2 theme-light:text-slate-500 theme-dark:text-slate-400">
-                          <User
-                            className="w-[17px] h-[17px]"
-                            style={{ color: "#8f85e7" }}
-                          />
+                          <User className="w-[17px] h-[17px] text-[#8f85e7]" />
                           Info
                         </h3>
                         {!isEditingInfo && (
@@ -942,8 +757,7 @@ const PartDetailPanel = () => {
                             onClick={() => {
                               setIsEditingInfo((prev) => !prev);
                             }}
-                            className="p-2 rounded-full theme-light:text-slate-500 theme-light:hover:text-slate-700 theme-dark:text-slate-300 theme-dark:hover:text-slate-200"
-                            style={{ transition: "none" }}
+                            className="p-2 rounded-full theme-light:text-slate-500 theme-light:hover:text-slate-700 theme-dark:text-slate-300 theme-dark:hover:text-slate-200 transition-none"
                             aria-label="Edit info"
                           >
                             <Pencil className="w-4 h-4" />
@@ -956,29 +770,22 @@ const PartDetailPanel = () => {
                         <button
                           type="button"
                           onClick={saveAllInfo}
-                          className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold shadow-sm hover:shadow-md theme-light:bg-[var(--theme-jazz-gradient)] theme-dark:bg-[#396bbc] theme-light:text-black theme-dark:text-white transition-none"
-                          style={{
-                            boxShadow: "0 6px 16px rgba(57, 107, 188, 0.28)",
-                          }}
+                          className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold shadow-sm hover:shadow-md theme-light:bg-[var(--theme-jazz-gradient)] theme-dark:bg-[#396bbc] theme-light:text-black theme-dark:text-white transition-none shadow-[0_6px_16px_rgba(57,107,188,0.28)]"
                           onMouseEnter={(e) => {
                             e.currentTarget.classList.add(
                               "theme-light:bg-[linear-gradient(to_right,rgb(224,242,254),rgb(221,214,254),rgb(254,226,226))]"
                             );
-                            if (
-                              e.currentTarget.classList.contains("theme-dark")
-                            ) {
-                              e.currentTarget.style.backgroundColor = "#2f5aa3";
-                            }
+                            e.currentTarget.classList.add(
+                              "theme-dark:bg-[#2f5aa3]"
+                            );
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.classList.remove(
                               "theme-light:bg-[linear-gradient(to_right,rgb(224,242,254),rgb(221,214,254),rgb(254,226,226))]"
                             );
-                            if (
-                              e.currentTarget.classList.contains("theme-dark")
-                            ) {
-                              e.currentTarget.style.backgroundColor = "#396bbc";
-                            }
+                            e.currentTarget.classList.remove(
+                              "theme-dark:bg-[#396bbc]"
+                            );
                           }}
                         >
                           <Check className="w-4 h-4" />
@@ -1088,25 +895,13 @@ const PartDetailPanel = () => {
                                       setTempName(trimmed);
                                     }
                                   }}
-                                  className={`w-full shadow-inner font-semibold tracking-tight focus:outline-none ${
-                                    isDark
-                                      ? "text-slate-50 placeholder:text-slate-500"
-                                      : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
-                                  }`}
-                                  style={{
-                                    fontSize: "16px",
-                                    height: "52px",
-                                    padding: "10px",
-                                    borderRadius: "12px",
-                                    ...(isDark
-                                      ? {
-                                          backgroundColor: "rgb(33 37 41)",
-                                          WebkitBoxShadow:
-                                            "0 0 0 1000px rgb(33 37 41) inset",
-                                          boxShadow: "none",
-                                        }
-                                      : {}),
-                                  }}
+                                  className={`w-full shadow-inner font-semibold tracking-tight focus:outline-none
+theme-dark:text-slate-50 theme-dark:placeholder:text-slate-500
+theme-light:bg-white theme-light:focus:bg-white theme-light:text-slate-900 theme-light:placeholder:text-slate-400
+text-[16px] h-[52px] p-[10px] rounded-[12px]
+theme-dark:bg-[rgb(33_37_41)]
+theme-dark:[-webkit-box-shadow:0_0_0_1000px_rgb(33_37_41)_inset]
+theme-dark:shadow-none`}
                                   placeholder="Name this part"
                                   autoFocus
                                 />
@@ -1291,7 +1086,7 @@ const PartDetailPanel = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <label
-                              className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                              className={`text-xs font-medium uppercase tracking-wide theme-dark:text-slate-400 theme-white:text-slate-500`}
                             >
                               Age
                             </label>
@@ -1320,32 +1115,35 @@ const PartDetailPanel = () => {
                                     });
                                   }
                                 }}
-                                className={`block w-auto max-w-[100px] shadow-inner focus:outline-none font-medium ${
-                                  isDark
-                                    ? "text-slate-100 placeholder:text-slate-500"
-                                    : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
-                                }`}
-                                style={{
-                                  fontSize: "13px",
-                                  height: "40px",
-                                  padding: "10px",
-                                  fontWeight: "500",
-                                  borderRadius: "12px",
-                                  ...(isDark
-                                    ? {
-                                        backgroundColor: "rgb(33 37 41)",
-                                        WebkitBoxShadow:
-                                          "0 0 0 1000px rgb(33 37 41) inset",
-                                        boxShadow: "none",
-                                      }
-                                    : {}),
-                                }}
+                                className={`block w-full max-w-[200px]
+shadow-inner
+focus:outline-none
+font-medium
+
+theme-dark:text-slate-100
+theme-dark:placeholder:text-slate-500
+
+theme-light:bg-white
+theme-light:focus:bg-white
+theme-light:text-slate-900
+theme-light:placeholder:text-slate-400
+
+text-[13px]
+h-[40px]
+p-[10px]
+font-[500]
+rounded-[12px]
+
+theme-dark:bg-[rgb(33_37_41)]
+theme-dark:[-webkit-box-shadow:0_0_0_1000px_rgb(33_37_41)_inset]
+theme-dark:shadow-none
+                                `}
                                 placeholder="Unknown"
                                 min="0"
                               />
                             ) : (
                               <div
-                                className={`text-base ${tempAge && tempAge !== "Unknown" ? (isDark ? "text-slate-100" : "text-slate-900") : isDark ? "text-slate-500" : "text-slate-400"}`}
+                                className={`text-base ${tempAge && tempAge !== "Unknown" ? "theme-dark:text-slate-100 theme-light:text-slate-900" : "theme-dark:text-slate-500 theme-light:text-slate-400"}`}
                               >
                                 {tempAge && tempAge !== "Unknown"
                                   ? tempAge
@@ -1355,7 +1153,7 @@ const PartDetailPanel = () => {
                           </div>
                           <div className="space-y-2">
                             <label
-                              className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                              className={`text-xs font-medium uppercase tracking-wide theme-dark:text-slate-400 theme-light:text-slate-500`}
                             >
                               Gender
                             </label>
@@ -1377,31 +1175,33 @@ const PartDetailPanel = () => {
                                     });
                                   }
                                 }}
-                                className={`block w-full max-w-[200px] shadow-inner focus:outline-none font-medium ${
-                                  isDark
-                                    ? "text-slate-100 placeholder:text-slate-500"
-                                    : "bg-white focus:bg-white text-slate-900 placeholder:text-slate-400"
-                                }`}
-                                style={{
-                                  fontSize: "13px",
-                                  height: "40px",
-                                  padding: "10px",
-                                  fontWeight: "500",
-                                  borderRadius: "12px",
-                                  ...(isDark
-                                    ? {
-                                        backgroundColor: "rgb(33 37 41)",
-                                        WebkitBoxShadow:
-                                          "0 0 0 1000px rgb(33 37 41) inset",
-                                        boxShadow: "none",
-                                      }
-                                    : {}),
-                                }}
+                                className="block w-full max-w-[200px]
+shadow-inner
+focus:outline-none
+font-medium
+
+theme-dark:text-slate-100
+theme-dark:placeholder:text-slate-500
+
+theme-light:bg-white
+theme-light:focus:bg-white
+theme-light:text-slate-900
+theme-light:placeholder:text-slate-400
+
+text-[13px]
+h-[40px]
+p-[10px]
+font-[500]
+rounded-[12px]
+
+theme-dark:bg-[rgb(33_37_41)]
+theme-dark:[-webkit-box-shadow:0_0_0_1000px_rgb(33_37_41)_inset]
+theme-dark:shadow-none "
                                 placeholder="Gender"
                               />
                             ) : (
                               <div
-                                className={`text-base ${tempGender ? (isDark ? "text-slate-100" : "text-slate-900") : isDark ? "text-slate-500" : "text-slate-400"}`}
+                                className={`text-base ${tempGender ? "theme-dark:text-slate-100 theme-light:text-slate-900" : "theme-dark:text-slate-500 theme-light:text-slate-400"}`}
                               >
                                 {tempGender || "—"}
                               </div>
@@ -1412,7 +1212,7 @@ const PartDetailPanel = () => {
                         {/* Description */}
                         <div className="space-y-2">
                           <label
-                            className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                            className={`text-xs font-medium uppercase tracking-wide theme-dark:text-slate-400 theme-light:text-slate-500`}
                           >
                             Description
                           </label>
@@ -1435,34 +1235,17 @@ const PartDetailPanel = () => {
                                   });
                                 }
                               }}
-                              className={`w-full px-3.5 py-3 min-h-[140px] resize-none leading-relaxed shadow-inner focus:outline-none font-medium ${
-                                isDark
-                                  ? "text-slate-100 placeholder:text-slate-500"
-                                  : "bg-white focus:bg-white text-slate-800 placeholder:text-slate-400"
-                              }`}
-                              style={{
-                                ...(isDark
-                                  ? {
-                                      backgroundColor: "rgb(33 37 41)",
-                                      WebkitBoxShadow:
-                                        "0 0 0 1000px rgb(33 37 41) inset",
-                                      boxShadow: "none",
-                                    }
-                                  : {}),
-                                fontSize: "13px",
-                                fontWeight: "500",
-                                borderRadius: "12px",
-                              }}
+                              className={`w-full px-3.5 py-3 min-h-[140px] resize-none leading-relaxed shadow-inner focus:outline-none font-medium theme-dark:text-slate-100 theme-dark:placeholder:text-slate-500 theme-light:bg-white theme-light:focus:bg-white theme-light:text-slate-800 theme-light:placeholder:text-slate-400 size-[13px] height-[40px] padding-[10px] font-weight-[500] border-radius-[12px] theme-dark:bg-[rgb(33_37_41)] theme-dark:webkit-box-shadow-[0_0_0_1000px_rgb(33_37_41)_inset] theme-dark:box-shadow-[none]`}
                               placeholder="Add a description..."
                             />
                           ) : (
                             <p
-                              className={`text-base leading-relaxed whitespace-pre-wrap ${isDark ? "text-slate-200" : "text-slate-800"}`}
+                              className={`text-base leading-relaxed whitespace-pre-wrap theme-dark:text-slate-200 theme-light:text-slate-800`}
                             >
                               {tempScratchpad || (
                                 <span
                                   className={
-                                    isDark ? "text-slate-500" : "text-slate-400"
+                                    "theme-dark:text-slate-500 theme-light:text-slate-400"
                                   }
                                 >
                                   No description added yet.
@@ -1479,9 +1262,7 @@ const PartDetailPanel = () => {
                 {/* Impressions Section */}
                 <div ref={impressionsRef} className="relative space-y-4 mb-12">
                   <h3
-                    className={`text-[16px] font-semibold flex items-center gap-2 ${
-                      isDark ? "text-slate-400" : "text-slate-500"
-                    }`}
+                    className={`text-[16px] font-semibold flex items-center gap-2 theme-dark:text-slate-400 theme-light:text-slate-500`}
                   >
                     <Eye
                       className="w-[17px] h-[17px]"
@@ -1545,38 +1326,21 @@ const PartDetailPanel = () => {
                                     setShowImpressionModal(true);
                                   }
                                 }}
-                                className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
-                                  isDark
-                                    ? "text-slate-200"
-                                    : "border-slate-200 text-slate-600 bg-white hover:bg-slate-50"
-                                }`}
-                                style={{
-                                  border: "none",
-                                  ...(isDark
-                                    ? {}
-                                    : { borderTop: "1px solid #00000012" }),
-                                  ...(isDark
-                                    ? {
-                                        backgroundColor: "rgb(42, 46, 50)",
-                                        boxShadow:
-                                          "rgb(0 0 0 / 20%) 0px 2px 4px",
-                                      }
-                                    : {}),
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (isDark) {
-                                    e.currentTarget.style.backgroundColor =
-                                      theme.buttonHover;
-                                  } else {
-                                    e.currentTarget.style.backgroundColor =
-                                      "#f1f5f9";
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = isDark
-                                    ? "rgb(42, 46, 50)"
-                                    : "white";
-                                }}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:border-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50 border-none theme-light:border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] shadow-[var(--theme-part-detail-button-shadow)]`}
+                                // onMouseEnter={(e) => {
+                                //   if (isDark) {
+                                //     e.currentTarget.style.backgroundColor =
+                                //       theme.buttonHover;
+                                //   } else {
+                                //     e.currentTarget.style.backgroundColor =
+                                //       "#f1f5f9";
+                                //   }
+                                // }}
+                                // onMouseLeave={(e) => {
+                                //   e.currentTarget.style.backgroundColor = isDark
+                                //     ? "rgb(42, 46, 50)"
+                                //     : "white";
+                                // }}
                               >
                                 Add
                               </button>
@@ -1588,7 +1352,7 @@ const PartDetailPanel = () => {
                                   return (
                                     <div
                                       key={index}
-                                      className="group flex items-center justify-between rounded-xl px-3 py-2 shadow-sm"
+                                      className="group flex items-center justify-between rounded-xl px-3 py-2 shadow-sm "
                                       style={{
                                         ...listItemStyle,
                                         backgroundColor: `var(--theme-impression-${impression}-bg)`,
@@ -1635,19 +1399,8 @@ const PartDetailPanel = () => {
                                   );
                                 })
                               ) : (
-                                <div
-                                  className="rounded-xl border px-3 py-2"
-                                  style={{
-                                    borderColor: theme.border,
-                                    backgroundColor: isDark
-                                      ? theme.surface
-                                      : theme.card,
-                                  }}
-                                >
-                                  <span
-                                    className="text-xs"
-                                    style={{ color: theme.textMuted }}
-                                  >
+                                <div className="rounded-xl border px-3 py-2 border-[var(--theme-border)] theme-dark:bg-[rgb(42,46,50)] theme-light:bg-white">
+                                  <span className="text-xs text-[var(--theme-text-muted)]">
                                     No {impression} impressions
                                   </span>
                                 </div>
@@ -1663,9 +1416,7 @@ const PartDetailPanel = () => {
                 {/* Insights Section */}
                 <div ref={insightsRef} className="relative space-y-4">
                   <h4
-                    className={`text-[16px] font-semibold flex items-center gap-2 ${
-                      isDark ? "text-slate-400" : "text-slate-500"
-                    }`}
+                    className={`text-[16px] font-semibold flex items-center gap-2 theme-dark:text-slate-400 theme-light:text-slate-500`}
                   >
                     <Brain
                       className="w-[17px] h-[17px]"
@@ -1677,22 +1428,16 @@ const PartDetailPanel = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                       {/* Needs */}
                       <div
-                        className="p-4 shadow-sm rounded-2xl"
+                        className="p-4 shadow-sm rounded-2xl theme-dark:bg-[rgb(42,46,50)]"
                         style={{
                           ...subCardStyle,
-                          ...(isDark
-                            ? { backgroundColor: "rgba(42, 46, 50, 0.75)" }
-                            : {}),
                         }}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h4
-                            className={`font-semibold capitalize text-sm flex items-center gap-2 ${isDark ? "text-slate-100" : "text-slate-900"}`}
+                            className={`font-semibold capitalize text-sm flex items-center gap-2 theme-dark:text-slate-100 theme-light:text-slate-900`}
                           >
-                            <Heart
-                              className="w-4 h-4"
-                              style={{ color: "#7b42e2" }}
-                            />
+                            <Heart className="w-4 h-4 text-[#7b42e2]" />
                             Needs
                           </h4>
                           <button
@@ -1700,38 +1445,24 @@ const PartDetailPanel = () => {
                               setAddingNeedsOrFears("needs");
                               setNeedsFearsInput("");
                             }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
-                              isDark
-                                ? "text-slate-200"
-                                : "text-slate-600 bg-white hover:bg-slate-50"
-                            }`}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50 border-none border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] shadow-[var(--theme-part-detail-button-shadow)]`}
                             style={{
-                              border: "none",
-                              ...(isDark
-                                ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" }
-                                : { borderTop: "1px solid #00000012" }),
-                              ...(isDark
-                                ? {
-                                    backgroundColor: "rgb(42, 46, 50)",
-                                    boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px",
-                                  }
-                                : {}),
                               transition: "none !important",
                             }}
-                            onMouseEnter={(e) => {
-                              if (isDark) {
-                                e.currentTarget.style.backgroundColor =
-                                  theme.buttonHover;
-                              } else {
-                                e.currentTarget.style.backgroundColor =
-                                  "#f1f5f9";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = isDark
-                                ? "rgb(42, 46, 50)"
-                                : "white";
-                            }}
+                            // onMouseEnter={(e) => {
+                            //   if (isDark) {
+                            //     e.currentTarget.style.backgroundColor =
+                            //       theme.buttonHover;
+                            //   } else {
+                            //     e.currentTarget.style.backgroundColor =
+                            //       "#f1f5f9";
+                            //   }
+                            // }}
+                            // onMouseLeave={(e) => {
+                            //   e.currentTarget.style.backgroundColor = isDark
+                            //     ? "rgb(42, 46, 50)"
+                            //     : "white";
+                            // }}
                           >
                             Add
                           </button>
@@ -1741,20 +1472,10 @@ const PartDetailPanel = () => {
                             (need: string, index: number) => (
                               <div
                                 key={index}
-                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
-                                style={{
-                                  ...listItemStyle,
-                                  backgroundColor: isDark
-                                    ? "rgba(42, 46, 50, 0.75)"
-                                    : "white",
-                                  border: "none",
-                                  color: "#7b42e2",
-                                }}
+                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm bg-[var(--part-detail-sub-card-bg)] border-none text-[#7b42e2]"
+                                style={listItemStyle}
                               >
-                                <span
-                                  className="text-xs font-medium leading-relaxed"
-                                  style={{ color: "#7b42e2" }}
-                                >
+                                <span className="text-xs font-medium leading-relaxed text-[#7b42e2]">
                                   {need}
                                 </span>
                                 <button
@@ -1769,7 +1490,7 @@ const PartDetailPanel = () => {
                           )}
                           {((data.needs as string[]) || []).length === 0 && (
                             <div
-                              className={`text-center py-4 text-xs italic ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                              className={`text-center py-4 text-xs italic theme-dark:text-slate-400 theme-light:text-slate-500`}
                             >
                               No needs added yet
                             </div>
@@ -1779,22 +1500,16 @@ const PartDetailPanel = () => {
 
                       {/* Fears */}
                       <div
-                        className="rounded-2xl p-4 shadow-sm"
+                        className="rounded-2xl p-4 shadow-sm theme-dark:bg-[rgb(42,46,50)]"
                         style={{
                           ...subCardStyle,
-                          ...(isDark
-                            ? { backgroundColor: "rgba(42, 46, 50, 0.75)" }
-                            : {}),
                         }}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h4
-                            className={`font-semibold capitalize text-sm flex items-center gap-2 ${isDark ? "text-slate-100" : "text-slate-900"}`}
+                            className={`font-semibold capitalize text-sm flex items-center gap-2 theme-dark:text-slate-100 theme-light:text-slate-900`}
                           >
-                            <Shield
-                              className="w-4 h-4"
-                              style={{ color: "#f78585" }}
-                            />
+                            <Shield className="w-4 h-4 text-[#f78585]" />
                             Fears
                           </h4>
                           <button
@@ -1802,38 +1517,24 @@ const PartDetailPanel = () => {
                               setAddingNeedsOrFears("fears");
                               setNeedsFearsInput("");
                             }}
-                            className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-sm ${
-                              isDark
-                                ? "text-slate-200"
-                                : "text-slate-600 bg-white hover:bg-slate-50"
-                            }`}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium theme-dark:text-slate-200 theme-light:text-slate-600 theme-light:bg-white theme-light:hover:bg-slate-50 border-none border-top-[var(--theme-button-border-top)] theme-dark:bg-[rgb(42,46,50)] shadow-[var(--theme-part-detail-button-shadow)]`}
                             style={{
-                              border: "none",
-                              ...(isDark
-                                ? { borderTop: "1px solid rgba(0, 0, 0, 0.15)" }
-                                : { borderTop: "1px solid #00000012" }),
-                              ...(isDark
-                                ? {
-                                    backgroundColor: "rgb(42, 46, 50)",
-                                    boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px",
-                                  }
-                                : {}),
                               transition: "none !important",
                             }}
-                            onMouseEnter={(e) => {
-                              if (isDark) {
-                                e.currentTarget.style.backgroundColor =
-                                  theme.buttonHover;
-                              } else {
-                                e.currentTarget.style.backgroundColor =
-                                  "#f1f5f9";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = isDark
-                                ? "rgb(42, 46, 50)"
-                                : "white";
-                            }}
+                            // onMouseEnter={(e) => {
+                            //   if (isDark) {
+                            //     e.currentTarget.style.backgroundColor =
+                            //       theme.buttonHover;
+                            //   } else {
+                            //     e.currentTarget.style.backgroundColor =
+                            //       "#f1f5f9";
+                            //   }
+                            // }}
+                            // onMouseLeave={(e) => {
+                            //   e.currentTarget.style.backgroundColor = isDark
+                            //     ? "rgb(42, 46, 50)"
+                            //     : "white";
+                            // }}
                           >
                             Add
                           </button>
@@ -1843,20 +1544,10 @@ const PartDetailPanel = () => {
                             (fear: string, index: number) => (
                               <div
                                 key={index}
-                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm"
-                                style={{
-                                  ...listItemStyle,
-                                  backgroundColor: isDark
-                                    ? "rgba(42, 46, 50, 0.75)"
-                                    : "white",
-                                  border: "none",
-                                  color: "#f78585",
-                                }}
+                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm bg-[var(--part-detail-sub-card-bg)] border-none text-[#f78585]"
+                                style={listItemStyle}
                               >
-                                <span
-                                  className="text-xs font-medium leading-relaxed"
-                                  style={{ color: "#f78585" }}
-                                >
+                                <span className="text-xs font-medium leading-relaxed text-[#f78585]">
                                   {fear}
                                 </span>
                                 <button
@@ -1871,7 +1562,7 @@ const PartDetailPanel = () => {
                           )}
                           {((data.fears as string[]) || []).length === 0 && (
                             <div
-                              className={`text-center py-4 text-xs italic ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                              className={`text-center py-4 text-xs italic theme-dark:text-slate-400 theme-light:text-slate-500`}
                             >
                               No fears added yet
                             </div>
@@ -1884,23 +1575,15 @@ const PartDetailPanel = () => {
                   {/* Journal History Section */}
                   <div ref={journalRef} className="relative space-y-4 mb-12">
                     <h3
-                      className={`text-[16px] font-semibold flex items-center gap-2 ${
-                        isDark ? "text-slate-400" : "text-slate-500"
-                      }`}
+                      className={`text-[16px] font-semibold flex items-center gap-2 theme-dark:text-slate-400 theme-light:text-slate-500`}
                     >
                       <BookOpen className="w-[17px] h-[17px] text-amber-600" />
                       Journal
                     </h3>
 
                     <div
-                      className="shadow-sm rounded-2xl"
-                      style={{
-                        ...subCardStyle,
-                        ...(isDark
-                          ? { backgroundColor: "rgba(42, 46, 50, 0.75)" }
-                          : {}),
-                        padding: "20px",
-                      }}
+                      className="shadow-sm rounded-2xl theme-dark:bg-[rgb(42,46,50)] p-[20px]"
+                      style={subCardStyle}
                     >
                       {isLoadingJournal ? (
                         <div
@@ -1920,17 +1603,15 @@ const PartDetailPanel = () => {
                         >
                           <div className="text-center mb-4">
                             <BookOpen
-                              className={`w-12 h-12 mx-auto mb-4 ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                              className={`w-12 h-12 mx-auto mb-4 theme-dark:text-slate-500 theme-light:text-slate-400`}
                             />
                             <h3
-                              className={`text-lg font-semibold mb-2 ${isDark ? "text-slate-100" : "text-slate-700"}`}
+                              className={`text-lg font-semibold mb-2 theme-dark:text-slate-100 theme-light:text-slate-700`}
                             >
                               No journal entries yet
                             </h3>
                             <p
-                              className={
-                                isDark ? "text-slate-400" : "text-slate-500"
-                              }
+                              className={`theme-dark:text-slate-400 theme-light:text-slate-500`}
                             >
                               Start writing about this part to see entries here.
                             </p>
@@ -1947,30 +1628,7 @@ const PartDetailPanel = () => {
                                   });
                                 }
                               }}
-                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
-                              style={{
-                                border: "none",
-                                ...(isDark
-                                  ? {
-                                      borderTop:
-                                        "1px solid rgba(0, 0, 0, 0.15)",
-                                    }
-                                  : { borderTop: "1px solid #00000012" }),
-                                color: isDark ? theme.textPrimary : "#475569",
-                                backgroundColor: isDark
-                                  ? "rgb(59, 63, 67)"
-                                  : "#ffffff",
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = isDark
-                                  ? theme.buttonHover
-                                  : "#f1f5f9";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = isDark
-                                  ? "rgb(59, 63, 67)"
-                                  : "#ffffff";
-                              }}
+                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white shadow-[var(--theme-part-detail-button-shadow)]"
                               title="Start a new journal entry"
                             >
                               <Plus size={14} />
@@ -1982,7 +1640,7 @@ const PartDetailPanel = () => {
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <span
-                              className={`text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                              className={`text-sm theme-dark:text-slate-300 theme-light:text-slate-600`}
                             >
                               {journalEntries.length}{" "}
                               {journalEntries.length === 1
@@ -2001,30 +1659,20 @@ const PartDetailPanel = () => {
                                     });
                                   }
                                 }}
-                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 shadow-sm"
+                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white shadow-[var(--theme-part-detail-button-shadow)]"
                                 style={{
-                                  border: "none",
-                                  ...(isDark
-                                    ? {
-                                        borderTop:
-                                          "1px solid rgba(0, 0, 0, 0.15)",
-                                      }
-                                    : { borderTop: "1px solid #00000012" }),
-                                  color: isDark ? theme.textPrimary : "#475569",
-                                  backgroundColor: isDark
-                                    ? "rgb(59, 63, 67)"
-                                    : "#ffffff",
+                                  transition: "none !important",
                                 }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = isDark
-                                    ? theme.buttonHover
-                                    : "#f1f5f9";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = isDark
-                                    ? "rgb(59, 63, 67)"
-                                    : "#ffffff";
-                                }}
+                                // onMouseEnter={(e) => {
+                                //   e.currentTarget.style.backgroundColor = isDark
+                                //     ? theme.buttonHover
+                                //     : "#f1f5f9";
+                                // }}
+                                // onMouseLeave={(e) => {
+                                //   e.currentTarget.style.backgroundColor = isDark
+                                //     ? "rgb(59, 63, 67)"
+                                //     : "#ffffff";
+                                // }}
                                 title="Start a new journal entry"
                               >
                                 <Plus size={14} />
@@ -2032,28 +1680,24 @@ const PartDetailPanel = () => {
                               </button>
                               <button
                                 onClick={() => setShowJournalHistoryModal(true)}
-                                className="border-none inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm border-top-[var(--theme-button-border-top)]"
+                                className="border-none inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white shadow-[var(--theme-part-detail-button-shadow)]"
                                 style={{
-                                  color: isDark ? theme.textPrimary : "#475569",
-                                  backgroundColor: isDark
-                                    ? "rgb(59, 63, 67)"
-                                    : "#ffffff",
                                   transition: "none !important",
                                   WebkitTransition: "none !important",
                                   MozTransition: "none !important",
                                   OTransition: "none !important",
                                   msTransition: "none !important",
                                 }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = isDark
-                                    ? theme.buttonHover
-                                    : "#f1f5f9";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = isDark
-                                    ? "rgb(59, 63, 67)"
-                                    : "#ffffff";
-                                }}
+                                // onMouseEnter={(e) => {
+                                //   e.currentTarget.style.backgroundColor = isDark
+                                //     ? theme.buttonHover
+                                //     : "#f1f5f9";
+                                // }}
+                                // onMouseLeave={(e) => {
+                                //   e.currentTarget.style.backgroundColor = isDark
+                                //     ? "rgb(59, 63, 67)"
+                                //     : "#ffffff";
+                                // }}
                               >
                                 <History className="w-3.5 h-3.5" />
                                 <span>View All</span>
@@ -2183,23 +1827,18 @@ const PartDetailPanel = () => {
                               return (
                                 <div
                                   key={entry.id}
-                                  className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow"
-                                  style={{
-                                    ...subCardStyle,
-                                    backgroundColor: isDark
-                                      ? "rgb(33, 37, 41)"
-                                      : "white",
-                                  }}
+                                  className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow theme-dark:bg-[rgb(42,46,50)] theme-light:bg-white"
+                                  style={subCardStyle}
                                 >
                                   {/* Header with dates and actions */}
                                   <div className="flex items-start justify-between mb-3 gap-4">
                                     <div className="flex-1 space-y-1.5">
                                       <div className="flex items-center gap-2 flex-wrap">
                                         <Clock
-                                          className={`w-4 h-4 flex-shrink-0 ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                                          className={`w-4 h-4 flex-shrink-0 theme-dark:text-slate-400 theme-light:text-slate-500`}
                                         />
                                         <span
-                                          className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                                          className={`text-xs theme-dark:text-slate-400 theme-light:text-slate-500`}
                                         >
                                           Created:{" "}
                                           {new Date(
@@ -2217,15 +1856,13 @@ const PartDetailPanel = () => {
                                           <>
                                             <span
                                               className={
-                                                isDark
-                                                  ? "text-slate-600"
-                                                  : "text-slate-400"
+                                                "theme-dark:text-slate-600 theme-light:text-slate-400"
                                               }
                                             >
                                               •
                                             </span>
                                             <span
-                                              className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                                              className={`text-xs theme-dark:text-slate-400 theme-light:text-slate-500`}
                                             >
                                               Updated:{" "}
                                               {new Date(
@@ -2248,12 +1885,8 @@ const PartDetailPanel = () => {
                                         <span
                                           className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium ${
                                             isTextThread
-                                              ? isDark
-                                                ? "bg-purple-900/40 text-purple-200"
-                                                : "bg-purple-50 text-purple-700"
-                                              : isDark
-                                                ? "bg-blue-900/40 text-blue-200"
-                                                : "bg-blue-50 text-blue-700"
+                                              ? "theme-dark:bg-purple-900/40 theme-light:bg-purple-50 text-purple-200 theme-dark:text-purple-200 theme-light:text-purple-700"
+                                              : "theme-dark:bg-blue-900/40 theme-light:bg-blue-50 text-blue-200 theme-dark:text-blue-200 theme-light:text-blue-700"
                                           }`}
                                         >
                                           {isTextThread ? (
@@ -2269,7 +1902,7 @@ const PartDetailPanel = () => {
                                           )}
                                         </span>
                                         <span
-                                          className={`text-[10px] ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                                          className={`text-[10px] theme-dark:text-slate-500 theme-light:text-slate-400`}
                                         >
                                           {wordCount} words •{" "}
                                           {charCount.toLocaleString()} chars
@@ -2349,24 +1982,8 @@ const PartDetailPanel = () => {
                                             }, 100);
                                           }
                                         }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm border-none border-t-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white shadow-[var(--theme-part-detail-button-shadow)]"
                                         style={{
-                                          backgroundColor: isDark
-                                            ? "rgb(42, 46, 50)"
-                                            : "white",
-                                          border: "none",
-                                          ...(isDark
-                                            ? {
-                                                borderTop:
-                                                  "1px solid rgba(0, 0, 0, 0.15)",
-                                              }
-                                            : {
-                                                borderTop:
-                                                  "1px solid #00000012",
-                                              }),
-                                          color: isDark
-                                            ? theme.textPrimary
-                                            : "#475569",
                                           transition: "none !important",
                                           WebkitTransition: "none !important",
                                           MozTransition: "none !important",
@@ -2375,15 +1992,11 @@ const PartDetailPanel = () => {
                                         }}
                                         onMouseEnter={(e) => {
                                           e.currentTarget.style.backgroundColor =
-                                            isDark
-                                              ? theme.buttonHover
-                                              : "#f1f5f9";
+                                            "theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white";
                                         }}
                                         onMouseLeave={(e) => {
                                           e.currentTarget.style.backgroundColor =
-                                            isDark
-                                              ? "rgb(42, 46, 50)"
-                                              : "white";
+                                            "theme-dark:bg-[rgb(42,46,50)] theme-light:bg-white";
                                         }}
                                         title="Open in journal"
                                       >
@@ -2391,19 +2004,8 @@ const PartDetailPanel = () => {
                                         <span>Open</span>
                                       </button>
                                       <button
-                                        onClick={() =>
-                                          extractImpressionsFromEntry(entry.id)
-                                        }
                                         disabled={true}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50"
-                                        style={{
-                                          backgroundColor: isDark
-                                            ? theme.surface
-                                            : "#e2e8f0",
-                                          color: isDark
-                                            ? theme.textMuted
-                                            : "#94a3b8",
-                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50 theme-dark:bg-[var(--theme-surface)] theme-light:bg-[#e2e8f0] theme-dark:text-[var(--theme-text-muted)] theme-light:text-[#94a3b8]"
                                         title="Coming soon"
                                       >
                                         <Sparkles className="w-3 h-3" />
@@ -2413,11 +2015,7 @@ const PartDetailPanel = () => {
                                         onClick={() =>
                                           deleteJournalEntry(entry.id)
                                         }
-                                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition ${
-                                          isDark
-                                            ? "text-slate-400 hover:text-red-400 hover:bg-red-900/20"
-                                            : "text-slate-500 hover:text-red-600 hover:bg-red-50"
-                                        }`}
+                                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition theme-dark:text-slate-400 theme-light:text-slate-500 theme-dark:hover:text-red-400 theme-light:hover:text-red-600 theme-dark:hover:bg-red-900/20 theme-light:hover:bg-red-50`}
                                         title="Delete entry"
                                       >
                                         <Trash2 className="w-3.5 h-3.5" />
@@ -2427,18 +2025,13 @@ const PartDetailPanel = () => {
 
                                   {/* Content Preview */}
                                   <div
-                                    className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${
-                                      isDark
-                                        ? "text-slate-300"
-                                        : "text-slate-700"
-                                    }`}
+                                    className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${"theme-dark:text-slate-300 theme-light:text-slate-700"}`}
                                     style={{
                                       border: "none",
                                       padding: "10px",
                                       borderRadius: "10px",
-                                      ...(isDark
-                                        ? { background: "#272b2f" }
-                                        : { background: "#f8fafc" }),
+                                      background:
+                                        "theme-dark:bg-[#272b2f] theme-light:bg-[#f8fafc]",
                                     }}
                                   >
                                     {contentPreview}
@@ -2458,9 +2051,7 @@ const PartDetailPanel = () => {
                     className="relative space-y-4 mb-12"
                   >
                     <h3
-                      className={`text-[16px] font-semibold flex items-center gap-2 ${
-                        isDark ? "text-slate-400" : "text-slate-500"
-                      }`}
+                      className={`text-[16px] font-semibold flex items-center gap-2 ${"theme-dark:text-slate-400 theme-light:text-slate-500"}`}
                     >
                       <Users className="w-[17px] h-[17px] text-rose-600" />
                       Relationships
@@ -2478,60 +2069,25 @@ const PartDetailPanel = () => {
                           return (
                             <div
                               key={rel.id}
-                              className="rounded-2xl p-4 shadow-sm"
+                              className={`rounded-2xl p-4 shadow-sm`}
                               style={{
-                                border: "none",
-                                backgroundColor: isTension
-                                  ? isDark
-                                    ? "rgba(42, 46, 50, 0.75)"
-                                    : "rgba(247,242,255,0.7)"
-                                  : isInteraction
-                                    ? isDark
-                                      ? "rgba(42, 46, 50, 0.75)"
-                                      : "rgba(224,242,254,0.7)"
-                                    : isDark
-                                      ? "rgba(42, 46, 50, 0.75)"
-                                      : "#ffffff",
-                                background:
-                                  isTension && isDark
-                                    ? "linear-gradient(140deg, rgb(42, 31, 61), rgb(39, 33, 47))"
-                                    : isInteraction && isDark
-                                      ? "linear-gradient(140deg, rgb(31, 42, 61), rgb(33, 39, 47))"
-                                      : isTension && !isDark
-                                        ? "linear-gradient(140deg, rgba(247,242,255,0.9), rgba(241,233,255,0.9))"
-                                        : isInteraction && !isDark
-                                          ? "linear-gradient(140deg, rgba(224,242,254,0.9), rgba(219,234,254,0.9))"
-                                          : undefined,
+                                background: isTension
+                                  ? "var(--theme-part-detail-tension-gradient-bg)"
+                                  : "var(--theme-part-detail-interaction-gradient-bg)",
                               }}
                             >
                               {/* Header */}
                               <div className="flex items-start gap-3">
                                 <div className="flex-1 space-y-1">
                                   <div
-                                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em]"
+                                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] border-none"
                                     style={{
                                       backgroundColor: isTension
-                                        ? isDark
-                                          ? "rgba(168,85,247,0.2)"
-                                          : "rgba(177,156,217,0.22)"
-                                        : isInteraction
-                                          ? isDark
-                                            ? "rgba(59,130,246,0.2)"
-                                            : "rgba(135,206,235,0.25)"
-                                          : isDark
-                                            ? `${theme.surface}30`
-                                            : "#f1f5f9",
+                                        ? "var(--theme-part-detail-header-tension-bg)"
+                                        : "var(--theme-part-detail-header-interaction-bg)",
                                       color: isTension
-                                        ? isDark
-                                          ? "#e9d5ff"
-                                          : NodeTextColors.tension
-                                        : isInteraction
-                                          ? isDark
-                                            ? "#dbeafe"
-                                            : NodeTextColors.interaction
-                                          : isDark
-                                            ? theme.textPrimary
-                                            : "#1e293b",
+                                        ? "var(--theme-part-detail-header-tension-text)"
+                                        : "var(--theme-part-detail-header-interaction-text)",
                                     }}
                                   >
                                     {isTension ? (
@@ -2544,19 +2100,12 @@ const PartDetailPanel = () => {
                                   {rel.nodeDescription &&
                                   String(rel.nodeDescription).trim() ? (
                                     <div
-                                      className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                                        isTension
-                                          ? isDark
-                                            ? "text-purple-200"
-                                            : "text-purple-700"
-                                          : isInteraction
-                                            ? isDark
-                                              ? "text-sky-200"
-                                              : "text-sky-700"
-                                            : isDark
-                                              ? "text-slate-300"
-                                              : "text-slate-700"
-                                      }`}
+                                      className={`text-sm leading-relaxed whitespace-pre-wrap`}
+                                      style={{
+                                        color: isTension
+                                          ? "theme-dark:text-purple-200 theme-light:text-purple-700"
+                                          : "theme-dark:text-sky-200 theme-light:text-sky-700",
+                                      }}
                                     >
                                       {String(rel.nodeDescription)}
                                     </div>
@@ -2577,45 +2126,23 @@ const PartDetailPanel = () => {
                                       return (
                                         <div
                                           key={index}
-                                          className="rounded-lg px-3 py-2.5 shadow-sm hover:shadow-md transition"
-                                          style={{
-                                            backgroundColor: isDark
-                                              ? "rgba(42, 46, 50, 0.75)"
-                                              : theme.surface,
-                                          }}
+                                          className="rounded-lg px-3 py-2.5 shadow-sm hover:shadow-md transition theme-dark:bg-[var(--theme-part-detail-sub-card-bg)] theme-light:bg-[var(--theme-surface)]"
                                         >
                                           <div className="flex items-start justify-between gap-2">
-                                            <div
-                                              className="text-sm font-semibold"
-                                              style={{
-                                                color: theme.textPrimary,
-                                              }}
-                                            >
+                                            <div className="text-sm font-semibold theme-dark:text-[var(--theme-text-primary)]">
                                               {part?.data?.label ||
                                                 part?.data?.name ||
                                                 "Unknown Part"}
                                               {part?.id === selectedPartId && (
                                                 <span
-                                                  className="ml-2 inline-block font-medium"
+                                                  className="ml-2 inline-block font-medium text-[11px] rounded-[10px] py-[1px] px-[5px]"
                                                   style={{
-                                                    color: isInteraction
-                                                      ? isDark
-                                                        ? "#dbeafe"
-                                                        : NodeTextColors.interaction
-                                                      : isDark
-                                                        ? "#e9d5ff"
-                                                        : NodeTextColors.tension,
-                                                    fontSize: "11px",
-                                                    fontWeight: "500",
-                                                    background: isInteraction
-                                                      ? isDark
-                                                        ? "rgba(59,130,246,0.2)"
-                                                        : "#dbeafe"
-                                                      : isDark
-                                                        ? "rgba(168,85,247,0.2)"
-                                                        : "#e8dff7",
-                                                    borderRadius: "10px",
-                                                    padding: "1px 5px",
+                                                    backgroundColor: isTension
+                                                      ? "var(--theme-part-detail-header-tension-bg)"
+                                                      : "var(--theme-part-detail-header-interaction-bg)",
+                                                    color: isTension
+                                                      ? "var(--theme-part-detail-header-tension-text)"
+                                                      : "var(--theme-part-detail-header-interaction-text)",
                                                   }}
                                                 >
                                                   current
@@ -2624,12 +2151,7 @@ const PartDetailPanel = () => {
                                             </div>
                                           </div>
                                           {statement && (
-                                            <div
-                                              className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap"
-                                              style={{
-                                                color: theme.textSecondary,
-                                              }}
-                                            >
+                                            <div className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap text-[var(--theme-text-secondary)]">
                                               {statement}
                                             </div>
                                           )}
@@ -2649,17 +2171,15 @@ const PartDetailPanel = () => {
                         style={subCardStyle}
                       >
                         <Users
-                          className={`w-12 h-12 mx-auto mb-4 ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                          className={`w-12 h-12 mx-auto mb-4 theme-dark:text-slate-500 theme-light:text-slate-400`}
                         />
                         <h3
-                          className={`text-lg font-semibold mb-2 ${isDark ? "text-slate-100" : "text-slate-700"}`}
+                          className={`text-lg font-semibold mb-2 theme-dark:text-slate-100 theme-light:text-slate-700`}
                         >
                           No relationships yet
                         </h3>
                         <p
-                          className={
-                            isDark ? "text-slate-400" : "text-slate-500"
-                          }
+                          className={`theme-dark:text-slate-400 theme-light:text-slate-500`}
                         >
                           No relationships have been created for this part.
                         </p>
@@ -2681,54 +2201,25 @@ const PartDetailPanel = () => {
                   }}
                 >
                   <div
-                    className={`fixed inset-0 pointer-events-none ${
-                      isDark ? "bg-slate-950/30" : "bg-slate-900/20"
-                    }`}
+                    className={`fixed inset-0 pointer-events-none ${"theme-dark:bg-slate-950/30 theme-light:bg-slate-900/20"}`}
                   />
                   <div
                     className="relative w-full max-w-2xl"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div
-                      className={`relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)]`}
-                      style={
-                        isDark
-                          ? {
-                              backgroundColor: theme.card,
-                              borderColor: theme.border,
-                            }
-                          : {
-                              borderColor: "rgba(226, 232, 240, 0.8)",
-                              backgroundColor: "rgba(255, 255, 255, 0.95)",
-                            }
-                      }
+                      className={`relative overflow-hidden rounded-[28px] border shadow-[0_30px_70px_rgba(15,23,42,0.36)] theme-dark:bg-[var(--theme-card)] theme-dark:border-[var(--theme-border)] theme-light:bg-[var(--theme-part-detail-section-card-bg)] theme-light:border-[rgba(226, 232, 240, 0.8)]`}
                     >
                       <div className="relative px-8 pt-8 pb-6 space-y-7">
                         <div className="flex items-start justify-between gap-6">
                           <div className="space-y-3">
                             <span
-                              className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]"
-                              style={{
-                                ...(addingNeedsOrFears === "needs"
-                                  ? {
-                                      backgroundColor: isDark
-                                        ? "rgba(123, 66, 226, 0.2)"
-                                        : "rgba(123, 66, 226, 0.1)",
-                                      color: isDark ? "#a78bfa" : "#7b42e2",
-                                      border: isDark
-                                        ? "1px solid rgba(123, 66, 226, 0.3)"
-                                        : "1px solid rgba(123, 66, 226, 0.2)",
-                                    }
-                                  : {
-                                      backgroundColor: isDark
-                                        ? "rgba(247, 133, 133, 0.2)"
-                                        : "rgba(247, 133, 133, 0.1)",
-                                      color: isDark ? "#fca5a5" : "#f78585",
-                                      border: isDark
-                                        ? "1px solid rgba(247, 133, 133, 0.3)"
-                                        : "1px solid rgba(247, 133, 133, 0.2)",
-                                    }),
-                              }}
+                              className={`marka inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em]
+                              ${
+                                addingNeedsOrFears === "needs"
+                                  ? "theme-dark:bg-[rgba(123, 66, 226, 0.2)] theme-light:bg-[rgba(123, 66, 226, 0.1)] theme-dark:text-[#a78bfa] theme-light:text-[#7b42e2] theme-dark:border-[1px solid rgba(123, 66, 226, 0.3)] theme-light:border-[1px solid rgba(123, 66, 226, 0.2)]"
+                                  : "theme-dark:bg-[rgba(247, 133, 133, 0.2)] theme-light:bg-[rgba(247, 133, 133, 0.1)]theme-dark:text-[#fca5a5] theme-light:text-[#f78585]theme-dark:border-[1px solid rgba(247, 133, 133, 0.3)] theme-light:border-[1px solid rgba(247, 133, 133, 0.2)]"
+                              }`}
                             >
                               {addingNeedsOrFears === "needs" ? (
                                 <Heart size={14} />
@@ -3333,9 +2824,6 @@ const PartDetailPanel = () => {
                                   <span>Open</span>
                                 </button>
                                 <button
-                                  onClick={() =>
-                                    extractImpressionsFromEntry(entry.id)
-                                  }
                                   disabled={true}
                                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-not-allowed opacity-50"
                                   style={{

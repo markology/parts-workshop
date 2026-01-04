@@ -28,11 +28,11 @@
   --theme-impression-other-icon-bg: rgb(8, 73, 66);
 
   /* Impression Part Details Header Colors (for container titles - white in dark mode) */
-  --theme-impression-emotion-part-details-header: rgb(255, 255, 255);
-  --theme-impression-thought-part-details-header: rgb(255, 255, 255);
-  --theme-impression-sensation-part-details-header: rgb(255, 255, 255);
-  --theme-impression-behavior-part-details-header: rgb(255, 255, 255);
-  --theme-impression-other-part-details-header: rgb(255, 255, 255);
+  --theme-impression-emotion-part-details-header: rgb(139, 203, 139);
+  --theme-impression-thought-part-details-header: rgb(122, 179, 224);
+  --theme-impression-sensation-part-details-header: rgb(242, 140, 130);
+  --theme-impression-behavior-part-details-header: rgb(249, 177, 122);
+  --theme-impression-other-part-details-header: rgb(20, 184, 166);
 
   /* Impression Sidebar Header Background Colors */
   --theme-impression-emotion-sidebar-header-bg: rgb(71, 92, 76);
@@ -105,4 +105,3 @@
   /* Impression Input Modal Keyboard Keys Background */
   --theme-impression-modal-keyboard-bg: rgb(59, 63, 67);
 }
-

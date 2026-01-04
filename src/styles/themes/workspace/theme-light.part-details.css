@@ -1,0 +1,27 @@
+.theme-light {
+    /* Part Detail Panel */
+    --theme-part-detail-nav-bg: #f7f7f7;
+    --theme-part-detail-section-card-bg: rgba(255, 255, 255, 0.95);
+    --theme-part-detail-sub-card-bg: var(--theme-surface);
+    --theme-part-detail-list-item-bg: var(--theme-card);
+    --theme-part-detail-modal-container-bg: var(--theme-surface);
+    --theme-part-detail-modal-field-card-bg: var(--theme-surface);
+    --theme-part-detail-modal-input-bg: var(--theme-card);
+    --theme-part-detail-modal-textarea-bg: var(--theme-card);
+    --theme-part-detail-backdrop-bg: rgba(255, 255, 255, 0.6);
+    --theme-part-detail-container-shadow: none;
+    --theme-part-detail-tension-gradient-bg: linear-gradient(
+        140deg,
+        rgba(247, 242, 255, 0.9),
+        rgba(241, 233, 255, 0.9)
+    );
+    --theme-part-detail-interaction-gradient-bg: linear-gradient(
+        140deg,
+        rgba(224, 242, 254, 0.9),
+        rgba(219, 234, 254, 0.9)
+    );
+    --theme-part-detail-header-tension-bg: rgba(177, 156, 217, 0.22);
+    --theme-part-detail-header-interaction-bg: rgba(135, 206, 235, 0.25);
+    --theme-part-detail-header-tension-text: var(--node-text-tension);
+    --theme-part-detail-header-interaction-text: var(--node-text-interaction);
+}
