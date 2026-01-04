@@ -165,17 +165,15 @@ export default function AccountDropdown({
   };
 
   // Default button className if not provided
-  const defaultButtonClassName = useWorkspaceTheme
-    ? "flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden"
-    : "flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden border-slate-200 dark:border-[var(--border)] bg-white dark:bg-slate-900/80 hover:border-slate-400 dark:hover:border-slate-500";
+  const defaultButtonClassName =
+    "flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden bg-[var(--theme-account-icon-bg)] border-[var(--theme-account-icon-border)] hover:border-[var(--theme-account-icon-border-hover)]";
 
   // Default menu className if not provided
   const defaultMenuClassName =
-    "fixed rounded-lg shadow-lg z-[100] bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-[var(--border)] dark:bg-[image:var(--background-gradient)]";
+    "fixed rounded-lg shadow-lg z-[100] bg-[image:var(--theme-account-dropdown-bg)] bg-[var(--theme-account-dropdown-bg)] border-[var(--theme-account-dropdown-border)]";
 
-  const menuItemClassName = useWorkspaceTheme
-    ? "w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors"
-    : "w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white";
+  const menuItemClassName =
+    "w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-[var(--theme-account-dropdown-item-bg-hover)] text-[var(--theme-account-dropdown-item-text-color)]";
 
   return (
     <>
@@ -272,7 +270,7 @@ export default function AccountDropdown({
               ).dropdownMenu = el;
             }
           }}
-          className={`${menuClassName || defaultMenuClassName} overflow-hidden`}
+          className={`${defaultMenuClassName} overflow-hidden`}
           style={
             useWorkspaceTheme
               ? {
@@ -390,21 +388,21 @@ export default function AccountDropdown({
                 onClick={handleDashboardClick}
                 className={`${menuItemClassName} first:rounded-t-lg`}
                 style={useWorkspaceTheme ? {} : undefined}
-                onMouseEnter={
-                  useWorkspaceTheme
-                    ? (e) => {
-                        e.currentTarget.style.backgroundColor =
-                          "var(--theme-button-hover)";
-                      }
-                    : undefined
-                }
-                onMouseLeave={
-                  useWorkspaceTheme
-                    ? (e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }
-                    : undefined
-                }
+                // onMouseEnter={
+                //   useWorkspaceTheme
+                //     ? (e) => {
+                //         e.currentTarget.style.backgroundColor =
+                //           "var(--theme-button-hover)";
+                //       }
+                //     : undefined
+                // }
+                // onMouseLeave={
+                //   useWorkspaceTheme
+                //     ? (e) => {
+                //         e.currentTarget.style.backgroundColor = "transparent";
+                //       }
+                //     : undefined
+                // }
               >
                 <Map className="w-4 h-4" />
                 Dashboard
@@ -415,21 +413,21 @@ export default function AccountDropdown({
               onClick={handleAccountClick}
               className={`${menuItemClassName} ${!showDashboard ? "first:rounded-t-lg" : ""}`}
               style={useWorkspaceTheme ? {} : undefined}
-              onMouseEnter={
-                useWorkspaceTheme
-                  ? (e) => {
-                      e.currentTarget.style.backgroundColor =
-                        "var(--theme-button-hover)";
-                    }
-                  : undefined
-              }
-              onMouseLeave={
-                useWorkspaceTheme
-                  ? (e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  : undefined
-              }
+              // onMouseEnter={
+              //   useWorkspaceTheme
+              //     ? (e) => {
+              //         e.currentTarget.style.backgroundColor =
+              //           "var(--theme-button-hover)";
+              //       }
+              //     : undefined
+              // }
+              // onMouseLeave={
+              //   useWorkspaceTheme
+              //     ? (e) => {
+              //         e.currentTarget.style.backgroundColor = "transparent";
+              //       }
+              //     : undefined
+              // }
             >
               <Settings className="w-4 h-4" />
               Account
@@ -440,21 +438,21 @@ export default function AccountDropdown({
                 onClick={() => setShowThemePanel(true)}
                 className={menuItemClassName}
                 style={useWorkspaceTheme ? {} : undefined}
-                onMouseEnter={
-                  useWorkspaceTheme
-                    ? (e) => {
-                        e.currentTarget.style.backgroundColor =
-                          "var(--theme-button-hover)";
-                      }
-                    : undefined
-                }
-                onMouseLeave={
-                  useWorkspaceTheme
-                    ? (e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }
-                    : undefined
-                }
+                // onMouseEnter={
+                //   useWorkspaceTheme
+                //     ? (e) => {
+                //         e.currentTarget.style.backgroundColor =
+                //           "var(--theme-button-hover)";
+                //       }
+                //     : undefined
+                // }
+                // onMouseLeave={
+                //   useWorkspaceTheme
+                //     ? (e) => {
+                //         e.currentTarget.style.backgroundColor = "transparent";
+                //       }
+                //     : undefined
+                // }
               >
                 {themeModeType === "system" ? (
                   <>
@@ -479,21 +477,21 @@ export default function AccountDropdown({
                 onClick={handleWorkspaceThemeClick}
                 className={menuItemClassName}
                 style={useWorkspaceTheme ? {} : undefined}
-                onMouseEnter={
-                  useWorkspaceTheme
-                    ? (e) => {
-                        e.currentTarget.style.backgroundColor =
-                          "var(--theme-button-hover)";
-                      }
-                    : undefined
-                }
-                onMouseLeave={
-                  useWorkspaceTheme
-                    ? (e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }
-                    : undefined
-                }
+                // onMouseEnter={
+                //   useWorkspaceTheme
+                //     ? (e) => {
+                //         e.currentTarget.style.backgroundColor =
+                //           "var(--theme-button-hover)";
+                //       }
+                //     : undefined
+                // }
+                // onMouseLeave={
+                //   useWorkspaceTheme
+                //     ? (e) => {
+                //         e.currentTarget.style.backgroundColor = "transparent";
+                //       }
+                //     : undefined
+                // }
               >
                 <Paintbrush className="w-4 h-4" />
                 Themes
@@ -505,21 +503,21 @@ export default function AccountDropdown({
                 onClick={handleHelpClick}
                 className={menuItemClassName}
                 style={useWorkspaceTheme ? {} : undefined}
-                onMouseEnter={
-                  useWorkspaceTheme
-                    ? (e) => {
-                        e.currentTarget.style.backgroundColor =
-                          "var(--theme-button-hover)";
-                      }
-                    : undefined
-                }
-                onMouseLeave={
-                  useWorkspaceTheme
-                    ? (e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                      }
-                    : undefined
-                }
+                // onMouseEnter={
+                //   useWorkspaceTheme
+                //     ? (e) => {
+                //         e.currentTarget.style.backgroundColor =
+                //           "var(--theme-button-hover)";
+                //       }
+                //     : undefined
+                // }
+                // onMouseLeave={
+                //   useWorkspaceTheme
+                //     ? (e) => {
+                //         e.currentTarget.style.backgroundColor = "transparent";
+                //       }
+                //     : undefined
+                // }
               >
                 <HelpCircle className="w-4 h-4" />
                 Help
@@ -530,21 +528,21 @@ export default function AccountDropdown({
               onClick={handleSignOut}
               className={`${menuItemClassName} last:rounded-b-lg`}
               style={useWorkspaceTheme ? {} : undefined}
-              onMouseEnter={
-                useWorkspaceTheme
-                  ? (e) => {
-                      e.currentTarget.style.backgroundColor =
-                        "var(--theme-button-hover)";
-                    }
-                  : undefined
-              }
-              onMouseLeave={
-                useWorkspaceTheme
-                  ? (e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  : undefined
-              }
+              // onMouseEnter={
+              //   useWorkspaceTheme
+              //     ? (e) => {
+              //         e.currentTarget.style.backgroundColor =
+              //           "var(--theme-button-hover)";
+              //       }
+              //     : undefined
+              // }
+              // onMouseLeave={
+              //   useWorkspaceTheme
+              //     ? (e) => {
+              //         e.currentTarget.style.backgroundColor = "transparent";
+              //       }
+              //     : undefined
+              // }
             >
               <LogOut className="w-4 h-4" />
               Sign Out

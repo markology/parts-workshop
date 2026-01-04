@@ -81,7 +81,7 @@
   --button-text: #1e293b;
   --text-primary: #1e293b;
   --text-secondary: #64748b;
-  --text-muted: #94a3b8;
+  --text-muted: #;
   --border-2: rgba(0, 0, 0, 0.1);
   --border-subtle: rgba(0, 0, 0, 0.05);
   --accent: #3b82f6;
@@ -93,6 +93,15 @@
   --theme-assistant-button-bg: white;
   --theme-text-secondary: #64748b;
   --theme-assistant-part-message-bg: linear-gradient(152deg, rgb(248, 250, 252), rgb(241, 245, 249));
+
+  --theme-account-dropdown-bg: linear-gradient(to bottom right, rgb(255 255 255), rgb(248 250 252));
+  --theme-account-dropdown-border: rgb(226 232 240);
+
+  --theme-account-dropdown-item-bg-hover: #f3f4f6;
+  --theme-account-dropdown-item-text-color: #111827;
+  --theme-account-icon-bg: rgb(255 255 255); /* white */
+  --theme-account-icon-border: rgb(226 232 240); /* slate-200 */
+  --theme-account-icon-border-hover: rgb(148 163 184); /* slate-400 */
 }
 
 .dark {
@@ -120,9 +129,17 @@
   --theme-text-secondary: rgba(255, 255, 255, 0.7);
   --theme-assistant-part-message-bg: linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43));
 
+  --theme-account-dropdown-bg: rgb(33, 37, 41);
+  --theme-account-dropdown-border: none;
   /* Note: Workspace theme variables (--theme-*) are NOT set here */
   /* They are set dynamically by ThemeContext based on activeTheme */
   /* When activeTheme is "dark", ThemeContext sets --theme-* to darkTheme values */
+
+  --theme-account-dropdown-item-bg-hover: #1e2125;
+  --theme-account-dropdown-item-text-color: #fff;
+  --theme-account-icon-bg: rgb(15 23 42 / 0.8); /* slate-900/80 */
+  --theme-account-icon-border: var(--border);
+  --theme-account-icon-border-hover: rgb(100 116 139); /* slate-500 */
 }
 
 /* Workspace-specific variables - respect workspace themes, not global dark mode */
@@ -165,6 +182,15 @@
     rgb(255, 255, 255) 40%,
     rgb(252 248 246 / 0.82) 100%
   );
+
+  --theme-account-dropdown-bg: linear-gradient(to bottom right, rgb(255 255 255), rgb(248 250 252));
+  --theme-account-dropdown-border: rgb(226 232 240);
+
+  --theme-account-dropdown-item-bg-hover: #f3f4f6;
+  --theme-account-dropdown-item-text-color: #111827;
+  --theme-account-icon-bg: rgb(255 255 255); /* white */
+  --theme-account-icon-border: rgb(226 232 240); /* slate-200 */
+  --theme-account-icon-border-hover: rgb(148 163 184);
 }
 
 .theme-dark {
@@ -201,6 +227,18 @@
   --theme-assistant-part-message-bg: linear-gradient(152deg, rgb(39, 43, 47), rgb(35, 39, 43));
   --theme-workspace-bg: linear-gradient(152deg, rgb(64, 70, 78), rgb(58, 64, 72));
   --theme-button-border-top: 1px solid rgba(0, 0, 0, 0.15);
+
+  --theme-account-dropdown-bg: rgb(33, 37, 41);
+  --theme-account-dropdown-border: none;
+  /* Note: Workspace theme variables (--theme-*) are NOT set here */
+  /* They are set dynamically by ThemeContext based on activeTheme */
+  /* When activeTheme is "dark", ThemeContext sets --theme-* to darkTheme values */
+
+  --theme-account-dropdown-item-bg-hover: #1e2125;
+  --theme-account-dropdown-item-text-color: #fff;
+  --theme-account-icon-bg: rgb(15 23 42 / 0.8); /* slate-900/80 */
+  --theme-account-icon-border: var(--border);
+  --theme-account-icon-border-hover: rgb(100 116 139); /* slate-500 */
 }
 
 .theme-cherry {
