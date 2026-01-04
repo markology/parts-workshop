@@ -418,6 +418,10 @@ button {
   scrollbar-color: #3b3f43 transparent;
 }
 
+.theme-dark * {
+  scrollbar-color: rgb(59, 63, 67) transparent;
+}
+
 .dark *::-webkit-scrollbar-thumb {
   background-color: #3b3f43;
 }

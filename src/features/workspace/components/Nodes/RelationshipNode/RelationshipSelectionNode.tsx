@@ -33,7 +33,8 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
       if (!node) return;
 
       // Update the node to the chosen relationship type
-      const nodeType = relationshipType === "tension" ? "tension" : "interaction";
+      const nodeType =
+        relationshipType === "tension" ? "tension" : "interaction";
       const label = relationshipType === "tension" ? "Tension" : "Interaction";
 
       setNodes((nodes) =>
@@ -73,7 +74,9 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
             <p className="text-[11px] uppercase tracking-[0.32em] theme-light:text-slate-500 theme-dark:text-slate-400">
               Define Connection
             </p>
-            <h3 className="text-lg font-semibold theme-light:text-slate-900 theme-dark:text-slate-100">Choose Relationship Type</h3>
+            <h3 className="text-lg font-semibold theme-light:text-slate-900 theme-dark:text-slate-100">
+              Choose Relationship Type
+            </h3>
             <p className="mt-1 text-sm theme-light:text-slate-500 theme-dark:text-slate-400">
               Select whether these parts are in tension or interacting.
             </p>
@@ -88,8 +91,12 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
                 <MessageCircleWarning size={20} />
               </span>
               <div className="text-center">
-                <p className="font-semibold text-sm theme-light:text-purple-700 theme-dark:text-purple-200">Tension</p>
-                <p className="text-xs theme-light:text-purple-600 theme-dark:text-purple-300">Parts in opposition</p>
+                <p className="font-semibold text-sm theme-light:text-purple-700 theme-dark:text-purple-200">
+                  Tension
+                </p>
+                <p className="text-xs theme-light:text-purple-600 theme-dark:text-purple-300">
+                  Parts in opposition
+                </p>
               </div>
             </button>
 
@@ -101,8 +108,12 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
                 <Users size={20} />
               </span>
               <div className="text-center">
-                <p className="font-semibold text-sm theme-light:text-sky-700 theme-dark:text-sky-200">Interaction</p>
-                <p className="text-xs theme-light:text-sky-600 theme-dark:text-sky-300">Parts working together</p>
+                <p className="font-semibold text-sm theme-light:text-sky-700 theme-dark:text-sky-200">
+                  Interaction
+                </p>
+                <p className="text-xs theme-light:text-sky-600 theme-dark:text-sky-300">
+                  Parts working together
+                </p>
               </div>
             </button>
           </div>
@@ -114,4 +125,3 @@ const RelationshipSelectionNode = ({ id }: { id: string }) => {
 };
 
 export default RelationshipSelectionNode;
-
