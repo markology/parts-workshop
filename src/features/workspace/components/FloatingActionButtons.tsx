@@ -1,6 +1,19 @@
 "use client";
 
-import { Plus, Settings, X, Minus, Save, SaveAll, Check, LoaderCircle, MailPlus, Mail, Sparkles, User } from "lucide-react";
+import {
+  Plus,
+  Settings,
+  X,
+  Minus,
+  Save,
+  SaveAll,
+  Check,
+  LoaderCircle,
+  MailPlus,
+  Mail,
+  Sparkles,
+  User,
+} from "lucide-react";
 import StudioSparkleInput from "@/components/StudioSparkleInput";
 import StudioAssistant from "@/components/StudioAssistant";
 import AccountDropdown from "@/components/AccountDropdown";
@@ -14,7 +27,10 @@ import ImpressionSidebar from "./SideBar/Impressions/ImpressionSidebar";
 import { SidebarImpression } from "@/features/workspace/types/Sidebar";
 import { useWorkingStore } from "../state/stores/useWorkingStore";
 import { NodeBackgroundColors } from "../constants/Nodes";
-import { getImpressionBaseColors, getImpressionPillFontColor } from "../constants/ImpressionColors";
+import {
+  getImpressionBaseColors,
+  getImpressionPillFontColor,
+} from "../constants/ImpressionColors";
 import { useSidebarStore } from "../state/stores/Sidebar";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
@@ -26,13 +42,11 @@ import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { HelpCircle } from "lucide-react";
 const FloatingActionButtons = () => {
-
-  const router = useRouter();
-  const { data: session } = useSession();
-  const [activeButton, setActiveButton] = useState<string | null>('action');
+  const [activeButton, setActiveButton] = useState<string | null>("action");
   const [windowWidth, setWindowWidth] = useState(0);
-  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
-  const [impressionDropdownStates, setImpressionDropdownStates] = useState<Partial<Record<ImpressionType, boolean>>>({
+  const [impressionDropdownStates, setImpressionDropdownStates] = useState<
+    Partial<Record<ImpressionType, boolean>>
+  >({
     emotion: true,
     thought: true,
     sensation: true,
@@ -40,13 +54,13 @@ const FloatingActionButtons = () => {
     other: true,
   });
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [isCollapsing, setIsCollapsing] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const searchInputContainerRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const menuWidthRef = useRef<number>(0);
-  const [menuWidthMeasured, setMenuWidthMeasured] = useState(false);
-  const [chatboxPosition, setChatboxPosition] = useState<{ top: number; right: number } | null>(null);
+  const [chatboxPosition, setChatboxPosition] = useState<{
+    top: number;
+    right: number;
+  } | null>(null);
   // Use actions-only hook to prevent re-renders when nodes/edges change
   const { createNode } = useFlowNodesActions();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -54,20 +68,21 @@ const FloatingActionButtons = () => {
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const { isDark } = useThemeContext();
   const theme = useTheme();
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [workspaceBgColor, setWorkspaceBgColorState] = useState("#f8fafc");
-  
-  const setShowPartModal = useUIStore((s) => s.setShowPartModal);
+
   const showImpressionModal = useUIStore((s) => s.showImpressionModal);
-  const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const shouldCollapseSidebar = useUIStore((s) => s.shouldCollapseSidebar);
-  const setShouldCollapseSidebar = useUIStore((s) => s.setShouldCollapseSidebar);
+  const setShouldCollapseSidebar = useUIStore(
+    (s) => s.setShouldCollapseSidebar
+  );
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const setSelectedPartId = useUIStore((s) => s.setSelectedPartId);
   const setShouldAutoEditPart = useUIStore((s) => s.setShouldAutoEditPart);
-  const showPartDetailImpressionInput = useUIStore((s) => s.showPartDetailImpressionInput);
-  const [showRelationshipTypeModal, setShowRelationshipTypeModal] = useState(true);
+  const showPartDetailImpressionInput = useUIStore(
+    (s) => s.showPartDetailImpressionInput
+  );
+  const [showRelationshipTypeModal, setShowRelationshipTypeModal] =
+    useState(true);
   const { isSaving, saveCheck } = useAutoSave();
   const saveMap = useSaveMap();
   const [localIsSaving, setLocalIsSaving] = useState(false);
@@ -76,44 +91,50 @@ const FloatingActionButtons = () => {
     {
       key: "3d-body-map",
       title: "3D Body Map",
-      description: "Place sensations and parts onto an interactive 3D body map.",
+      description:
+        "Place sensations and parts onto an interactive 3D body map.",
       image: "/parts-hero-extended.png",
     },
     {
       key: "ai-exploration",
       title: "AI Exploration",
-      description: "Ask guided questions and explore parts with an AI companion.",
+      description:
+        "Ask guided questions and explore parts with an AI companion.",
       image: "/globe.svg",
     },
     {
       key: "free-writing",
       title: "Free Writing",
-      description: "Open a focused space to write without distractions or limits.",
+      description:
+        "Open a focused space to write without distractions or limits.",
       image: "/parts-hero.jpg",
     },
     {
       key: "journal-analysis",
       title: "Journal Analysis",
-      description: "Surface insights, patterns, and tags across your journal entries.",
+      description:
+        "Surface insights, patterns, and tags across your journal entries.",
       image: "/parts-hero-extended-blend.png",
     },
     {
       key: "affirmations",
       title: "Affirmations",
-      description: "Generate supportive statements tailored to how your parts feel.",
+      description:
+        "Generate supportive statements tailored to how your parts feel.",
       image: "/window.svg",
     },
     {
       key: "resources",
       title: "Resources",
-      description: "Keep practices, references, and links close to your current work.",
+      description:
+        "Keep practices, references, and links close to your current work.",
       image: "/file.svg",
     },
   ];
-  
+
   const impressions = useWorkingStore((s) => s.sidebarImpressions);
   const { setActiveSidebarNode } = useSidebarStore();
-  
+
   // Handle click outside and escape key for chatbox
   useEffect(() => {
     if (!isSearchExpanded) {
@@ -121,7 +142,10 @@ const FloatingActionButtons = () => {
     }
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
+      if (
+        searchBoxRef.current &&
+        !searchBoxRef.current.contains(event.target as Node)
+      ) {
         handleSearchClose();
       }
     };
@@ -149,8 +173,8 @@ const FloatingActionButtons = () => {
       setWindowWidth(window.innerWidth);
     };
     updateWindowWidth();
-    window.addEventListener('resize', updateWindowWidth);
-    return () => window.removeEventListener('resize', updateWindowWidth);
+    window.addEventListener("resize", updateWindowWidth);
+    return () => window.removeEventListener("resize", updateWindowWidth);
   }, []);
 
   // When a part detail panel opens (selectedPartId), hide the action menu.
@@ -162,7 +186,7 @@ const FloatingActionButtons = () => {
         const rect = searchInputContainerRef.current.getBoundingClientRect();
         setChatboxPosition({
           top: rect.top,
-          right: window.innerWidth - rect.right
+          right: window.innerWidth - rect.right,
         });
       } else {
         setChatboxPosition(null);
@@ -172,40 +196,35 @@ const FloatingActionButtons = () => {
     updatePosition();
 
     if (isSearchExpanded) {
-      window.addEventListener('resize', updatePosition);
-      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener("resize", updatePosition);
+      window.addEventListener("scroll", updatePosition, true);
       return () => {
-        window.removeEventListener('resize', updatePosition);
-        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener("resize", updatePosition);
+        window.removeEventListener("scroll", updatePosition, true);
       };
     }
   }, [isSearchExpanded]);
-
 
   // Measure menu width when it opens - use useLayoutEffect for synchronous measurement
   useLayoutEffect(() => {
     if (showRelationshipTypeModal && !selectedPartId && menuRef.current) {
       // Measure synchronously before paint to minimize delay
-      const menuElement = menuRef.current?.querySelector('div') as HTMLElement;
+      const menuElement = menuRef.current?.querySelector("div") as HTMLElement;
       if (menuElement) {
         // Force a layout calculation by reading offsetWidth
         const width = menuElement.offsetWidth;
         if (width > 0) {
           menuWidthRef.current = width;
-          setMenuWidthMeasured(true);
         } else {
           // If width is 0, the menu might still be animating, so measure again
           requestAnimationFrame(() => {
             const newWidth = menuElement.offsetWidth;
             if (newWidth > 0) {
               menuWidthRef.current = newWidth;
-              setMenuWidthMeasured(true);
             }
           });
         }
       }
-    } else {
-      setMenuWidthMeasured(false);
     }
   }, [showRelationshipTypeModal, selectedPartId]);
 
@@ -220,20 +239,13 @@ const FloatingActionButtons = () => {
 
   const handleSearchClose = () => {
     // Start the collapse animation
-    setIsCollapsing(true);
     setIsSearchExpanded(false);
-    
-    // Clear the collapsing state after the animation completes (300ms)
-    setTimeout(() => {
-      setIsCollapsing(false);
-    }, 300);
   };
 
-  
   const handleSaveAndCleanup = async () => {
     setLocalIsSaving(true);
     setLocalSaveCheck(false);
-    
+
     try {
       await saveMap.mutateAsync(undefined);
       const nodeIds = useWorkingStore.getState().nodes.map((n) => n.id);
@@ -246,7 +258,7 @@ const FloatingActionButtons = () => {
       toast.error("Failed to save map");
     }
   };
-  
+
   const onDragStart = (
     event: React.DragEvent<HTMLDivElement>,
     draggableId: string,
@@ -254,9 +266,9 @@ const FloatingActionButtons = () => {
   ) => {
     // Get the impression data
     const impression = impressions[type]?.[draggableId];
-    
+
     if (!impression) {
-      console.error('Impression not found:', type, draggableId);
+      console.error("Impression not found:", type, draggableId);
       event.preventDefault();
       return;
     }
@@ -271,46 +283,48 @@ const FloatingActionButtons = () => {
     const activeSideBarNode = impressions[type]?.[draggableId];
     setActiveSidebarNode(activeSideBarNode?.id || null, type);
     event.dataTransfer.effectAllowed = "move";
-    
+
     // Create a custom drag image from the element itself to ensure it appears
     const dragElement = event.currentTarget as HTMLElement;
     const rect = dragElement.getBoundingClientRect();
-    
+
     // Create a temporary element for the drag image
-    const dragImage = document.createElement('div');
+    const dragImage = document.createElement("div");
     dragImage.innerHTML = dragElement.innerHTML;
     dragImage.style.cssText = window.getComputedStyle(dragElement).cssText;
-    dragImage.style.position = 'absolute';
-    dragImage.style.top = '-9999px';
-    dragImage.style.opacity = '0.8';
-    dragImage.style.pointerEvents = 'none';
+    dragImage.style.position = "absolute";
+    dragImage.style.top = "-9999px";
+    dragImage.style.opacity = "0.8";
+    dragImage.style.pointerEvents = "none";
     document.body.appendChild(dragImage);
-    
+
     // Calculate offset to maintain cursor position
     const offsetX = event.clientX - rect.left;
     const offsetY = event.clientY - rect.top;
     event.dataTransfer.setDragImage(dragImage, offsetX, offsetY);
-    
+
     // Clean up after a short delay
     setTimeout(() => {
       if (document.body.contains(dragImage)) {
         document.body.removeChild(dragImage);
       }
     }, 0);
-    
-    console.log('Drag started:', { type, id: draggableId, label: impression.label });
-  };
-  
-  // Don't close the menu when clicking outside - it should only close when clicking the X button
 
+    console.log("Drag started:", {
+      type,
+      id: draggableId,
+      label: impression.label,
+    });
+  };
+
+  // Don't close the menu when clicking outside - it should only close when clicking the X button
 
   // Close dropdown when canvas pane is clicked
   useEffect(() => {
-    const handlePaneClick = () => {
-      setProfileDropdownOpen(false);
-    };
+    const handlePaneClick = () => {};
     window.addEventListener("workspace-pane-click", handlePaneClick);
-    return () => window.removeEventListener("workspace-pane-click", handlePaneClick);
+    return () =>
+      window.removeEventListener("workspace-pane-click", handlePaneClick);
   }, []);
 
   useEffect(() => {
@@ -321,7 +335,6 @@ const FloatingActionButtons = () => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setActiveButton(null);
-        setProfileDropdownOpen(false);
         setShowRelationshipTypeModal(false);
       }
     };
@@ -334,8 +347,7 @@ const FloatingActionButtons = () => {
 
   const closeOptionsModal = () => {
     // Restore left column/actions when closing options
-    setActiveButton('action');
-    setProfileDropdownOpen(false);
+    setActiveButton("action");
     setShowRelationshipTypeModal(true);
   };
 
@@ -343,19 +355,19 @@ const FloatingActionButtons = () => {
     if (event) {
       event.stopPropagation();
     }
-    
+
     // If the assistant chat is open and another action is clicked, close the chat first.
     if (isSearchExpanded) {
       handleSearchClose();
     }
 
-    if (action === 'save') {
+    if (action === "save") {
       // Save functionality - just execute, don't change any UI state
       handleSaveAndCleanup();
       return;
     }
-    
-    if (action === 'contact') {
+
+    if (action === "contact") {
       // Allow clicks that land inside the feedback modal to go through without closing it
       setTimeout(() => {
         const activeElement = document.activeElement;
@@ -367,161 +379,53 @@ const FloatingActionButtons = () => {
       setShowFeedbackModal(true);
       return;
     }
-    
+
     // Settings action is now handled by AccountDropdown component directly
     // No need to handle it here
 
-    if (action === 'action') {
+    if (action === "action") {
       // Toggle action button and its associated menu/sidebar only
-      if (activeButton === 'action') {
+      if (activeButton === "action") {
         // Close action button's menu and sidebar
         setActiveButton(null);
         setShowRelationshipTypeModal(false);
       } else {
         // Open action button's menu and sidebar
-        setActiveButton('action');
+        setActiveButton("action");
         setShowRelationshipTypeModal(true);
       }
       return;
     }
 
-    if (action === 'options') {
+    if (action === "options") {
       // Toggle options button - if active, close everything. If not active, activate it and close action menu
-      if (activeButton === 'options') {
+      if (activeButton === "options") {
         // Clicking X on options button closes everything
         closeOptionsModal();
       } else {
         // Clicking options button activates it and closes action menu
-        setActiveButton('options');
+        setActiveButton("options");
         setShowRelationshipTypeModal(false);
-        setProfileDropdownOpen(false);
       }
       return;
     }
 
     if (activeButton === action) {
       // If clicking the same button, toggle it but keep action button active
-      setActiveButton('action'); // Return to action button being active
+      setActiveButton("action"); // Return to action button being active
       // Don't close the relationship type modal - keep it open
     } else {
       // Switch to other button but keep action button active and menu open
-      setProfileDropdownOpen(false);
       setActiveButton(action);
     }
   };
 
-  const ImpressionDropdown = ({
-    type,
-    filteredImpressions,
-    onDragStart,
-  }: {
-    type: ImpressionType;
-    filteredImpressions: Record<string, SidebarImpression>;
-    onDragStart: (
-      event: React.DragEvent<HTMLDivElement>,
-      draggableId: string,
-      type: ImpressionType
-    ) => void;
-  }) => {
-    const open = impressionDropdownStates[type] ?? true;
-    const isImpressionsEmpty = !filteredImpressions || !Object.keys(filteredImpressions).length;
-    const emptyOpacityStyle = isImpressionsEmpty ? 0.4 : 1;
-    
-    const toggleOpen = () => {
-      setImpressionDropdownStates(prev => ({
-        ...prev,
-        [type]: !prev[type]
-      }));
-    };
-    
-    return (
-      <div className="mb-3">
-        <button
-          className={`capitalize flex items-center justify-between w-full p-2 text-left font-semibold rounded transition-colors ${
-            isImpressionsEmpty ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80"
-          }`}
-          disabled={isImpressionsEmpty}
-          onClick={toggleOpen}
-          style={{
-            color: `var(--theme-impression-${type}-text)`,
-            opacity: emptyOpacityStyle,
-            backgroundColor: `var(--theme-impression-${type}-sidebar-header-bg)`,
-            borderColor: isImpressionsEmpty 
-              ? "transparent"
-              : `var(--theme-impression-${type}-sidebar-header-border)`,
-            borderWidth: "2px",
-            borderStyle: "solid",
-          }}
-        >
-          <p
-            style={{
-              color: `var(--theme-impression-${type}-text)`,
-            }}
-          >
-            {type}
-          </p>
-          {open ? (
-            <Minus
-              style={{
-                opacity: emptyOpacityStyle,
-              }}
-              size={16}
-              strokeWidth={3}
-            />
-          ) : (
-            <Plus
-              style={{
-                opacity: emptyOpacityStyle,
-              }}
-              size={16}
-              strokeWidth={3}
-            />
-          )}
-        </button>
-        <hr className={`pb-2 ${isDark ? "border-white/10" : "border-gray-300"}`} />
-        <div className="flex flex-col gap-2">
-          {open &&
-            filteredImpressions &&
-            Object.values(filteredImpressions).map((item, index) => (
-              <div
-                key={item.id}
-                className="sidebar-impression text-white rounded-lg px-3 py-2 cursor-grab flex justify-between items-center shadow-sm transition-transform hover:-translate-y-[1px] active:cursor-grabbing relative"
-                onDragStart={(event) => onDragStart(event, item.id, item.type)}
-                draggable
-                style={{
-                  background: `var(--theme-impression-${item.type}-bg)`,
-                  color: `var(--theme-impression-${item.type}-text)`,
-                  userSelect: 'none',
-                  zIndex: index === 0 ? 10 : 1,
-                  marginTop: index === 0 ? '4px' : '0',
-                }}
-              >
-                <span>{item.label}</span>
-                <button
-                  className="px-1 hover:bg-white/20 rounded transition-colors"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    useWorkingStore
-                      .getState()
-                      .removeImpression({ type: item.type, id: item.id });
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-        </div>
-      </div>
-    );
-  };
-
   const buttons = [
-    { icon: Plus, action: 'action', label: 'Add' },
-    { icon: 'dots', action: 'options', label: 'Options' },
-    { icon: 'save', action: 'save', label: 'Save' },
-    { icon: 'contact', action: 'contact', label: 'Contact' },
-    { icon: User, action: 'settings', label: 'Settings' },
+    { icon: Plus, action: "action", label: "Add" },
+    { icon: "dots", action: "options", label: "Options" },
+    { icon: "save", action: "save", label: "Save" },
+    { icon: "contact", action: "contact", label: "Contact" },
+    { icon: User, action: "settings", label: "Settings" },
   ];
 
   const DotsIcon = () => (
@@ -538,16 +442,24 @@ const FloatingActionButtons = () => {
     </svg>
   );
 
-  const ButtonComponent = ({ icon, action, label }: { icon: any, action: string, label: string }) => {
+  const ButtonComponent = ({
+    icon,
+    action,
+    label,
+  }: {
+    icon: any;
+    action: string;
+    label: string;
+  }) => {
     const isActive = activeButton === action;
-    const isSettingsAction = action === 'settings';
-    const isSaveAction = action === 'save';
-    const isContactAction = action === 'contact';
-    const isActionButton = action === 'action';
-    const isOptionsButton = action === 'options';
+    const isSettingsAction = action === "settings";
+    const isSaveAction = action === "save";
+    const isContactAction = action === "contact";
+    const isActionButton = action === "action";
+    const isOptionsButton = action === "options";
     const showXForAction = isActionButton && showRelationshipTypeModal;
     const showXForOptions = isOptionsButton && isActive;
-    
+
     // For settings action, render AccountDropdown component directly
     if (isSettingsAction) {
       return (
@@ -573,7 +485,7 @@ const FloatingActionButtons = () => {
             shadow-sm
             flex items-center justify-center
             transition-all duration-200
-            ${isSaveAction || isContactAction ? 'relative' : ''}
+            ${isSaveAction || isContactAction ? "relative" : ""}
             bg-[var(--theme-component)]
             hover:bg-[var(--theme-component-hover)]
             shadow-[var(--theme-button-shadow)]
@@ -581,55 +493,13 @@ const FloatingActionButtons = () => {
             theme-dark:hover:bg-[var(--theme-sub-button-hover)]
             text-[var(--theme-button-text)]
           `}
-          // onMouseEnter={(e) => {
-          //   if (isDark) {
-          //     // Darken the button on hover by reducing RGB values (same as Part/Relationship buttons)
-          //     let r: number, g: number, b: number;
-              
-          //     if (theme.button.startsWith('#')) {
-          //       // Hex format
-          //       const hex = theme.button.replace('#', '');
-          //       r = parseInt(hex.substr(0, 2), 16);
-          //       g = parseInt(hex.substr(2, 2), 16);
-          //       b = parseInt(hex.substr(4, 2), 16);
-          //     } else if (theme.button.startsWith('rgb')) {
-          //       // RGB format
-          //       const matches = theme.button.match(/\d+/g);
-          //       if (matches && matches.length >= 3) {
-          //         r = parseInt(matches[0]);
-          //         g = parseInt(matches[1]);
-          //         b = parseInt(matches[2]);
-          //       } else {
-          //         return; // Can't parse, don't change color
-          //       }
-          //     } else {
-          //       return; // Unknown format, don't change color
-          //     }
-              
-          //     const darkerR = Math.max(0, r - 20);
-          //     const darkerG = Math.max(0, g - 20);
-          //     const darkerB = Math.max(0, b - 20);
-          //     e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-          //   } else {
-          //     // Apply gradient background on hover
-          //     e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
-          //   }
-          // }}
-          // onMouseLeave={(e) => {
-          //   if (isDark) {
-          //     e.currentTarget.style.backgroundColor = theme.button;
-          //   } else {
-          //     e.currentTarget.style.backgroundImage = 'none';
-          //     e.currentTarget.style.backgroundColor = theme.button;
-          //   }
-          // }}
           title={label}
         >
           {showXForAction ? (
             <X className="w-6 h-6" />
           ) : showXForOptions ? (
             <X className="w-6 h-6" />
-          ) : icon === 'dots' ? (
+          ) : icon === "dots" ? (
             <div className="group-hover:rotate-90 transition-transform">
               <DotsIcon />
             </div>
@@ -641,7 +511,7 @@ const FloatingActionButtons = () => {
             <>
               {(localIsSaving || isSaving) && !(localSaveCheck || saveCheck) ? (
                 <LoaderCircle className="w-6 h-6 animate-spin" />
-              ) : (localSaveCheck || saveCheck) ? (
+              ) : localSaveCheck || saveCheck ? (
                 <Check className="w-6 h-6" />
               ) : (
                 <>
@@ -676,7 +546,7 @@ const FloatingActionButtons = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[85]"
             onClick={closeOptionsModal}
           />
-          <div className="fixed inset-0 z-[90]" style={{ backgroundColor: theme.modal }}>
+          <div className="fixed inset-0 z-[90] bg-[var(--theme-modal)]">
             <div className="h-full flex flex-col items-center">
               <div
                 className="relative w-full max-w-6xl h-full px-6 sm:px-10 lg:px-16 py-6 flex flex-col"
@@ -684,37 +554,19 @@ const FloatingActionButtons = () => {
               >
                 <button
                   onClick={closeOptionsModal}
-                  className="absolute top-4 right-4 rounded-full p-2 transition shadow-md"
-                  style={{ 
-                    backgroundColor: isDark ? theme.button : 'white', 
-                    color: theme.buttonText 
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isDark) {
-                      e.currentTarget.style.backgroundColor = theme.buttonHover;
-                    } else {
-                      e.currentTarget.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (isDark) {
-                      e.currentTarget.style.backgroundColor = theme.button;
-                    } else {
-                      e.currentTarget.style.backgroundImage = 'none';
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }
-                  }}
+                  className="absolute top-4 right-4 rounded-full p-2 transition shadow-md bg-white theme-dark:bg-[var(--theme-button)] text-[var(--theme-button-text)] theme-dark:hover:bg-[#1e2125] theme-light:hover:[background-image:var(--theme-jazz-gradient)]"
                   aria-label="Close options"
                 >
                   <X className="w-5 h-5" />
                 </button>
                 <div className="flex flex-col h-full gap-4">
-                  <div className="pb-3 border-b" style={{ borderColor: theme.border }}>
-                    <h2 className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
+                  <div className="pb-3 border-b border-[var(--theme-border)]">
+                    <h2 className="text-2xl font-bold text-[var(--theme-text-primary)]">
                       Quick options
                     </h2>
-                    <p className="text-sm mt-1 max-w-3xl" style={{ color: theme.textSecondary }}>
-                      These spaces are coming soon. Pick where you want to go next and we'll take you there when it's ready.
+                    <p className="text-sm mt-1 max-w-3xl text-[var(--theme-text-secondary)]">
+                      These spaces are coming soon. Pick where you want to go
+                      next and we'll take you there when it's ready.
                     </p>
                   </div>
                   <div className="flex-1 overflow-y-auto pb-4 px-2">
@@ -722,11 +574,7 @@ const FloatingActionButtons = () => {
                       {optionItems.map((item) => (
                         <div
                           key={item.key}
-                          className="group h-full rounded-2xl border shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-                          style={{ 
-                            backgroundColor: theme.elevated, 
-                            borderColor: theme.border 
-                          }}
+                          className="group h-full rounded-2xl border shadow-sm hover:shadow-md transition-shadow overflow-hidden bg-[var(--theme-elevated)] border-[var(--theme-border)]"
                         >
                           <div className="relative aspect-[4/3] overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/10 to-transparent" />
@@ -741,7 +589,11 @@ const FloatingActionButtons = () => {
                             <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-black/60 backdrop-blur px-3 py-1 text-xs font-semibold text-white uppercase tracking-wide">
                               Coming soon
                             </div>
-                            {["free-writing", "ai-exploration", "journal-analysis"].includes(item.key) && (
+                            {[
+                              "free-writing",
+                              "ai-exploration",
+                              "journal-analysis",
+                            ].includes(item.key) && (
                               <div className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-white/85 backdrop-blur px-3 py-1 text-xs font-semibold text-purple-600 shadow-sm">
                                 <Sparkles className="w-4 h-4" />
                                 AI
@@ -749,8 +601,12 @@ const FloatingActionButtons = () => {
                             )}
                           </div>
                           <div className="p-4 flex flex-col gap-2">
-                            <h3 className="text-lg font-semibold" style={{ color: theme.textPrimary }}>{item.title}</h3>
-                            <p className="text-sm leading-relaxed" style={{ color: theme.textSecondary }}>{item.description}</p>
+                            <h3 className="text-lg font-semibold text-[var(--theme-text-primary)]">
+                              {item.title}
+                            </h3>
+                            <p className="text-sm leading-relaxed text-[var(--theme-text-secondary)]">
+                              {item.description}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -770,58 +626,92 @@ const FloatingActionButtons = () => {
           position={chatboxPosition}
         />
       )}
- 
+
       {/* Plus button and 9 dots on the left */}
-      <div className={`absolute top-4 left-4 flex flex-row gap-3 items-center`} 
-      style={{ zIndex: showPartDetailImpressionInput ? 49 : (selectedPartId && windowWidth < 1400 ? 49 : (selectedPartId ? 51 : (showImpressionModal ? 49 : 50))), pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto' }}>
+      <div
+        className={`absolute top-4 left-4 flex flex-row gap-3 items-center`}
+        style={{
+          zIndex: showPartDetailImpressionInput
+            ? 49
+            : selectedPartId && windowWidth < 1400
+              ? 49
+              : selectedPartId
+                ? 51
+                : showImpressionModal
+                  ? 49
+                  : 50,
+          pointerEvents:
+            showImpressionModal || showPartDetailImpressionInput
+              ? "none"
+              : "auto",
+        }}
+      >
         {/* Plus/X button - slides to end of options pill when menu opens */}
         <div
           className="relative"
           style={{
-            transform: selectedPartId 
-              ? 'translateX(0)' 
-              : (showRelationshipTypeModal && !selectedPartId
-                ? `translateX(calc(${menuWidthRef.current || 0}px + 16px))` 
-                : 'translateX(0)'),
-            transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
-            zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : (showRelationshipTypeModal ? 76 : 75),
-            pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto'
+            transform: selectedPartId
+              ? "translateX(0)"
+              : showRelationshipTypeModal && !selectedPartId
+                ? `translateX(calc(${menuWidthRef.current || 0}px + 16px))`
+                : "translateX(0)",
+            transition: "transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)",
+            zIndex:
+              showImpressionModal || showPartDetailImpressionInput
+                ? 30
+                : showRelationshipTypeModal
+                  ? 76
+                  : 75,
+            pointerEvents:
+              showImpressionModal || showPartDetailImpressionInput
+                ? "none"
+                : "auto",
           }}
         >
           <ButtonComponent icon={Plus} action="action" label="Add" />
         </div>
-        
+
         {/* 9 dots button - stays to the right of +/X */}
         <div
           className="relative"
           style={{
-            transform: selectedPartId 
-              ? 'translateX(0)' 
-              : (showRelationshipTypeModal && !selectedPartId
-                ? `translateX(calc(${menuWidthRef.current || 0}px + 16px))` 
-                : 'translateX(0)'),
-            transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
-            zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : (showRelationshipTypeModal ? 76 : 75),
-            pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto'
+            transform: selectedPartId
+              ? "translateX(0)"
+              : showRelationshipTypeModal && !selectedPartId
+                ? `translateX(calc(${menuWidthRef.current || 0}px + 16px))`
+                : "translateX(0)",
+            transition: "transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)",
+            zIndex:
+              showImpressionModal || showPartDetailImpressionInput
+                ? 30
+                : showRelationshipTypeModal
+                  ? 76
+                  : 75,
+            pointerEvents:
+              showImpressionModal || showPartDetailImpressionInput
+                ? "none"
+                : "auto",
           }}
         >
           <ButtonComponent icon="dots" action="options" label="Options" />
         </div>
-        
+
         {/* Impressions window underneath the + button */}
-        {activeButton === 'action' && (
-          <div 
-            ref={impressionsRef} 
-            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col backdrop-blur-xl bg-[var(--theme-component)] theme-light:bg-rgba(255, 255, 255, 0.92)[]"
-            style={{ 
-              border: 'none',
-              borderTop: isDark ? '1px solid rgb(27 27 27 / 25%)' : 'solid 1px #d3d3d340',
-              zIndex: (showImpressionModal || showPartDetailImpressionInput) ? 30 : 100, 
-              width: '313px',
-              transform: 'scaleX(0)',
-              transformOrigin: 'left center',
-              animation: 'expandMenu 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards',
-              pointerEvents: (showImpressionModal || showPartDetailImpressionInput) ? 'none' : 'auto'
+        {activeButton === "action" && (
+          <div
+            ref={impressionsRef}
+            className="absolute top-16 left-0 mt-2 rounded-lg shadow-xl h-[calc(100vh-160px)] overflow-hidden flex flex-col backdrop-blur-xl bg-[var(--theme-component)] theme-light:bg-[rgba(255, 255, 255, 0.92)] border-none theme-dark:border-t-[1px_solid_rgb(27_27_27/25%)] theme-light:border-t-[1px_solid_#d3d3d340] w-[313px]"
+            style={{
+              zIndex:
+                showImpressionModal || showPartDetailImpressionInput ? 30 : 100,
+              transform: "scaleX(0)",
+              transformOrigin: "left center",
+              animation:
+                "expandMenu 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards",
+              pointerEvents:
+                showImpressionModal || showPartDetailImpressionInput
+                  ? "none"
+                  : "auto",
             }}
           >
             <div className="pt-[10px] pb-[15px] px-[10px] h-full flex flex-col">
@@ -833,94 +723,23 @@ const FloatingActionButtons = () => {
 
       {/* Quick Action Menu (shown when "Add" is clicked) - aligned with impression sidebar */}
       {showRelationshipTypeModal && !selectedPartId && (
-        <div 
-          ref={menuRef} 
-          className="absolute top-4 z-50"
-          style={{
-            left: '16px', // Aligned with impression sidebar (left-4 = 16px)
-            overflow: 'visible'
-          }}
+        <div
+          ref={menuRef}
+          className="absolute top-4 z-50 left-[16px] overflow-visible"
         >
           <div
-            className="rounded-full shadow-xl flex items-center overflow-hidden"
+            className="rounded-full shadow-xl flex items-center overflow-hidden bg-[var(--theme-card)]"
             style={{
-              backgroundColor: theme.card,
-              width: 'max-content',
-              transform: 'scaleX(0)',
-              transformOrigin: 'left center',
-              animation: 'expandMenu 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards'
+              width: "max-content",
+              transform: "scaleX(0)",
+              transformOrigin: "left center",
+              animation:
+                "expandMenu 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) forwards",
             }}
           >
             {/* Part option */}
             <button
               className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative bg-[var(--theme-component)] hover:bg-[var(--theme-component-hover)] group text-[var(--theme-button-text)]"
-              style={{ 
-                // backgroundColor: theme.button,
-                // color: theme.buttonText 
-              }}
-              // onMouseEnter={(e) => {
-              //   setHoveredOption('part');
-              //   if (isDark) {
-              //     // Darken the button on hover by reducing RGB values
-              //     let r: number, g: number, b: number;
-                  
-              //     if (theme.button.startsWith('#')) {
-              //       // Hex format
-              //       const hex = theme.button.replace('#', '');
-              //       r = parseInt(hex.substr(0, 2), 16);
-              //       g = parseInt(hex.substr(2, 2), 16);
-              //       b = parseInt(hex.substr(4, 2), 16);
-              //     } else if (theme.button.startsWith('rgb')) {
-              //       // RGB format
-              //       const matches = theme.button.match(/\d+/g);
-              //       if (matches && matches.length >= 3) {
-              //         r = parseInt(matches[0]);
-              //         g = parseInt(matches[1]);
-              //         b = parseInt(matches[2]);
-              //       } else {
-              //         return; // Can't parse, don't change color
-              //       }
-              //     } else {
-              //       return; // Unknown format, don't change color
-              //     }
-                  
-              //     const darkerR = Math.max(0, r - 20);
-              //     const darkerG = Math.max(0, g - 20);
-              //     const darkerB = Math.max(0, b - 20);
-              //     e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-                  
-              //     // Set Add pill to impression sidebar background color on hover
-              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
-              //     if (pill) {
-              //       pill.style.backgroundColor = theme.sidebar;
-              //     }
-              //   } else {
-              //     // Apply gradient to span on button hover
-              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
-              //     if (pill) {
-              //       pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
-              //     }
-              //   }
-              // }}
-              // onMouseLeave={(e) => {
-              //   setHoveredOption(null);
-              //   if (isDark) {
-              //     e.currentTarget.style.backgroundColor = theme.button;
-                  
-              //     // Reset the Add pill color
-              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
-              //     if (pill) {
-              //       pill.style.backgroundColor = theme.buttonActive;
-              //     }
-              //   } else {
-              //     // Reset span gradient
-              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
-              //     if (pill) {
-              //       pill.style.backgroundImage = 'none';
-              //       pill.style.backgroundColor = 'white';
-              //     }
-              //   }
-              // }}
               onClick={() => {
                 const newNode = createNode("part", "");
                 if (newNode && newNode.id) {
@@ -936,89 +755,16 @@ const FloatingActionButtons = () => {
               }}
             >
               Part
-              <span 
-                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)] theme-dark:hover:bg-[var(--theme-sub-button-hover)] theme-light:group-hover:bg-[image:var(--theme-jazz-gradient)]"
-                style={{ 
-                  // backgroundColor: isDark ? theme.buttonActive : 'white', 
-                  color: theme.buttonText 
-                }}
-              >
+              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)] theme-dark:hover:bg-[var(--theme-sub-button-hover)] theme-light:group-hover:bg-[image:var(--theme-jazz-gradient)] text-[var(--theme-button-text)]">
                 Add
               </span>
             </button>
-            
-            <div className="w-px h-6" style={{ backgroundColor: theme.borderSubtle }} />
-            
+
+            <div className="w-px h-6 bg-[var(--theme-border-subtle)]" />
+
             {/* Relationship option */}
             <button
               className="px-6 py-3 transition-colors font-medium flex items-center gap-2 relative bg-[var(--theme-component)] hover:bg-[var(--theme-component-hover)] light-theme:hover:bg-[image:var(--theme-jazz-gradient)] group text-[var(--theme-button-text)]"
-              // style={{ 
-              //   backgroundColor: theme.button,
-              //   color: theme.buttonText 
-              // }}
-              // onMouseEnter={(e) => {
-              //   setHoveredOption('relationship');
-              //   if (isDark) {
-              //     // Darken the button on hover by reducing RGB values
-              //     let r: number, g: number, b: number;
-                  
-              //     if (theme.button.startsWith('#')) {
-              //       // Hex format
-              //       const hex = theme.button.replace('#', '');
-              //       r = parseInt(hex.substr(0, 2), 16);
-              //       g = parseInt(hex.substr(2, 2), 16);
-              //       b = parseInt(hex.substr(4, 2), 16);
-              //     } else if (theme.button.startsWith('rgb')) {
-              //       // RGB format
-              //       const matches = theme.button.match(/\d+/g);
-              //       if (matches && matches.length >= 3) {
-              //         r = parseInt(matches[0]);
-              //         g = parseInt(matches[1]);
-              //         b = parseInt(matches[2]);
-              //       } else {
-              //         return; // Can't parse, don't change color
-              //       }
-              //     } else {
-              //       return; // Unknown format, don't change color
-              //     }
-                  
-              //     const darkerR = Math.max(0, r - 20);
-              //     const darkerG = Math.max(0, g - 20);
-              //     const darkerB = Math.max(0, b - 20);
-              //     e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-                  
-              //     // Set Add pill to impression sidebar background color on hover
-              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
-              //     if (pill) {
-              //       pill.style.backgroundColor = theme.sidebar;
-              //     }
-              //   } else {
-              //     // Apply gradient to span on button hover
-              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
-              //     if (pill) {
-              //       pill.style.backgroundImage = 'linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))';
-              //     }
-              //   }
-              // }}
-              // onMouseLeave={(e) => {
-              //   setHoveredOption(null);
-              //   if (isDark) {
-              //     e.currentTarget.style.backgroundColor = theme.button;
-                  
-              //     // Reset the Add pill color
-              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
-              //     if (pill) {
-              //       pill.style.backgroundColor = theme.buttonActive;
-              //     }
-              //   } else {
-              //     // Reset span gradient
-              //     const pill = e.currentTarget.querySelector('span') as HTMLElement;
-              //     if (pill) {
-              //       pill.style.backgroundImage = 'none';
-              //       pill.style.backgroundColor = 'white';
-              //     }
-              //   }
-              // }}
               onClick={() => {
                 createNode("relationship", "Choose Relationship Type");
                 // Keep action button active so impressions sidebar stays open
@@ -1026,13 +772,7 @@ const FloatingActionButtons = () => {
               }}
             >
               Relationship
-              <span 
-                className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)] theme-dark:hover:bg-[var(--theme-sub-button-hover)] theme-light:group-hover:bg-[image:var(--theme-jazz-gradient)]"
-                style={{ 
-                  // backgroundColor: isDark ? theme.buttonActive : 'white', 
-                  color: theme.buttonText 
-                }}
-              >
+              <span className="h-6 px-2 rounded-full flex items-center justify-center text-xs font-medium shadow-sm bg-[var(--theme-sub-button)] theme-dark:hover:bg-[var(--theme-sub-button-hover)] theme-light:group-hover:bg-[image:var(--theme-jazz-gradient)] text-[var(--theme-button-text)]">
                 Add
               </span>
             </button>
@@ -1041,14 +781,11 @@ const FloatingActionButtons = () => {
       )}
 
       {/* Right side: Assistant input and action buttons */}
-      <div
-        className="absolute top-4 right-4 flex flex-row gap-3 items-start z-50"
-      >
+      <div className="absolute top-4 right-4 flex flex-row gap-3 items-start z-50">
         {/* Assistant input (hidden when chat open) */}
-        <div 
-          ref={searchInputContainerRef} 
-          className="relative w-[320px] pointer-events-auto"
-          style={{ height: '49px', alignContent: 'center' }}
+        <div
+          ref={searchInputContainerRef}
+          className="relative w-[320px] pointer-events-auto h-[49px] flex items-center"
         >
           <StudioSparkleInput
             onClick={() => setIsSearchExpanded(true)}
@@ -1064,11 +801,15 @@ const FloatingActionButtons = () => {
           {buttons
             .filter((b) => b.action !== "action" && b.action !== "options")
             .map(({ icon, action, label }) => (
-              <ButtonComponent key={action} icon={icon} action={action} label={label} />
+              <ButtonComponent
+                key={action}
+                icon={icon}
+                action={action}
+                label={label}
+              />
             ))}
         </div>
       </div>
-
     </>
   );
 };

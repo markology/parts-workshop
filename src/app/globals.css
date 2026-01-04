@@ -130,8 +130,12 @@
   --theme-border: var(--border);
   --theme-card: #ffffff;
   --theme-border: rgba(0, 0, 0, 0.1);
+  --theme-border-subtle: rgba(0, 0, 0, 0.05);
   --theme-surface: #f8fafc;
   --theme-modal: #ffffff;
+  --theme-button-text: #1e293b;
+  --theme-button: #ffffff;
+  --theme-elevated: #f1f5f9;
 
   /* Theme */
   --theme-test-background: orange;
@@ -162,10 +166,14 @@
   --theme-surface-background: #272b2f;
   --theme-card: #212529;
   --theme-border: rgba(255, 255, 255, 0.1);
+  --theme-border-subtle: rgba(255, 255, 255, 0.05);
   --theme-surface: #272b2f;
   --theme-text-primary: #ffffff;
   --theme-modal: #212529;
   --theme-modal-bg: rgba(33, 37, 41, 0.95);
+  --theme-button-text: #ffffff;
+  --theme-button: rgb(42, 46, 50);
+  --theme-elevated: #2a2e32;
 
   /* Theme */
   --theme-test-background: blue;
