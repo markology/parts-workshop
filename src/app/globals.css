@@ -136,6 +136,7 @@
   --theme-button-text: #1e293b;
   --theme-button: #ffffff;
   --theme-elevated: #f1f5f9;
+  --theme-foreground-button-bg: #ffffff;
 
   /* Theme */
   --theme-test-background: orange;
@@ -174,6 +175,7 @@
   --theme-button-text: #ffffff;
   --theme-button: rgb(42, 46, 50);
   --theme-elevated: #2a2e32;
+  --theme-foreground-button-bg: #3b3f43;
 
   /* Theme */
   --theme-test-background: blue;

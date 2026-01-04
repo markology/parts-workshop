@@ -1626,7 +1626,7 @@ theme-dark:shadow-none "
                               }}
                               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] 
                               theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
+                                  theme-dark:hover:bg-[var(--theme-card)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)]  theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                               title="Start a new journal entry"
                             >
                               <Plus size={14} />
@@ -1658,20 +1658,10 @@ theme-dark:shadow-none "
                                   }
                                 }}
                                 className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)]border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
+                                  theme-dark:hover:bg-[var(--theme-card)]border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)]  theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                                 style={{
                                   transition: "none !important",
                                 }}
-                                // onMouseEnter={(e) => {
-                                //   e.currentTarget.style.backgroundColor = isDark
-                                //     ? theme.buttonHover
-                                //     : "#f1f5f9";
-                                // }}
-                                // onMouseLeave={(e) => {
-                                //   e.currentTarget.style.backgroundColor = isDark
-                                //     ? "rgb(59, 63, 67)"
-                                //     : "#ffffff";
-                                // }}
                                 title="Start a new journal entry"
                               >
                                 <Plus size={14} />
@@ -1680,7 +1670,7 @@ theme-dark:shadow-none "
                               <button
                                 onClick={() => setShowJournalHistoryModal(true)}
                                 className="border-none inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)] border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
+                                  theme-dark:hover:bg-[var(--theme-card)] border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)] theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                                 style={{
                                   transition: "none !important",
                                   WebkitTransition: "none !important",
@@ -1983,7 +1973,7 @@ theme-dark:shadow-none "
                                           }
                                         }}
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm border-none theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
+                                  theme-dark:hover:bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)] theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                                         style={{
                                           transition: "none !important",
                                           WebkitTransition: "none !important",
@@ -1991,14 +1981,14 @@ theme-dark:shadow-none "
                                           OTransition: "none !important",
                                           msTransition: "none !important",
                                         }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.backgroundColor =
-                                            "theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.backgroundColor =
-                                            "theme-dark:bg-[rgb(42,46,50)] theme-light:bg-white";
-                                        }}
+                                        // onMouseEnter={(e) => {
+                                        //   e.currentTarget.style.backgroundColor =
+                                        //     "theme-dark:bg-[rgb(59,63,67)] theme-light:bg-white";
+                                        // }}
+                                        // onMouseLeave={(e) => {
+                                        //   e.currentTarget.style.backgroundColor =
+                                        //     "theme-dark:bg-[rgb(42,46,50)] theme-light:bg-white";
+                                        // }}
                                         title="Open in journal"
                                       >
                                         <BookOpen className="w-3 h-3" />
