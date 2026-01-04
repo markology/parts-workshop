@@ -102,6 +102,34 @@
   --theme-account-icon-bg: rgb(255 255 255); /* white */
   --theme-account-icon-border: rgb(226 232 240); /* slate-200 */
   --theme-account-icon-border-hover: rgb(148 163 184); /* slate-400 */
+
+  /* Feedback Form - Light Mode */
+  --theme-feedback-form-bg: white;
+  --theme-feedback-form-border: rgba(0, 0, 0, 0.1);
+  --theme-feedback-form-text-primary: #1e293b;
+  --theme-feedback-form-text-secondary: #64748b;
+  --theme-feedback-form-header-bg: linear-gradient(to bottom, rgba(254, 241, 242, 0.3), white);
+  --theme-feedback-form-header-border: rgba(0, 0, 0, 0.1);
+  --theme-feedback-form-header-gradient: linear-gradient(to bottom, rgba(254, 241, 242, 0.3), white);
+  --theme-feedback-form-content-bg: white;
+  --theme-feedback-form-input-bg: #f8fafc;
+  --theme-feedback-form-input-border: rgba(0, 0, 0, 0.1);
+  --theme-feedback-form-input-text: #1e293b;
+  --theme-feedback-form-input-placeholder: #94a3b8;
+  --theme-feedback-form-attach-button-bg-hover: #f1f5f9;
+  --theme-feedback-form-attach-button-text: #64748b;
+  --theme-feedback-form-toggle-container-bg: #fcf9fb;
+  --theme-feedback-form-toggle-text: #1e293b;
+  --theme-feedback-form-footer-bg: linear-gradient(to bottom, white, rgba(254, 241, 242, 0.3));
+  --theme-feedback-form-footer-border: none;
+  --theme-feedback-form-footer-gradient: linear-gradient(to bottom, white, rgba(254, 241, 242, 0.3));
+  --theme-feedback-form-footer-text: #94a3b8;
+  --theme-feedback-form-file-preview-bg: #f8fafc;
+  --theme-feedback-form-file-preview-border: #e2e8f0;
+  --theme-feedback-form-submit-button-bg: linear-gradient(to right, #0ea5e9, #06b6d4);
+  --theme-toggle-button-bg-anon: #0ea5e9;
+  --theme-toggle-button-bg: #e2e8f0;
+  --theme-send-feedback-button-text: #ffffff;
 }
 
 .dark {
@@ -138,8 +166,36 @@
   --theme-account-dropdown-item-bg-hover: #1e2125;
   --theme-account-dropdown-item-text-color: #fff;
   --theme-account-icon-bg: rgb(15 23 42 / 0.8); /* slate-900/80 */
-  --theme-account-icon-border: var(--border);
+  --theme-account-icon-border: rgba(255, 255, 255, 0.1);
   --theme-account-icon-border-hover: rgb(100 116 139); /* slate-500 */
+
+  /* Feedback Form - Dark Mode */
+  --theme-feedback-form-bg: #212529;
+  --theme-feedback-form-border: rgba(255, 255, 255, 0.1);
+  --theme-feedback-form-text-primary: #ffffff;
+  --theme-feedback-form-text-secondary: rgba(255, 255, 255, 0.7);
+  --theme-feedback-form-header-bg: #2a2e32;
+  --theme-feedback-form-header-border: rgba(255, 255, 255, 0.1);
+  --theme-feedback-form-header-gradient: none;
+  --theme-feedback-form-content-bg: #212529;
+  --theme-feedback-form-input-bg: #272b2f;
+  --theme-feedback-form-input-border: rgba(255, 255, 255, 0.1);
+  --theme-feedback-form-input-text: #ffffff;
+  --theme-feedback-form-input-placeholder: rgba(255, 255, 255, 0.5);
+  --theme-feedback-form-attach-button-bg-hover: #2a2e32;
+  --theme-feedback-form-attach-button-text: rgba(255, 255, 255, 0.7);
+  --theme-feedback-form-toggle-container-bg: #2a2e32;
+  --theme-feedback-form-toggle-text: #ffffff;
+  --theme-feedback-form-footer-bg: #2a2e32;
+  --theme-feedback-form-footer-border: rgba(255, 255, 255, 0.1);
+  --theme-feedback-form-footer-gradient: none;
+  --theme-feedback-form-footer-text: rgba(255, 255, 255, 0.7);
+  --theme-feedback-form-file-preview-bg: #272b2f;
+  --theme-feedback-form-file-preview-border: rgba(255, 255, 255, 0.1);
+  --theme-feedback-form-submit-button-bg: linear-gradient(to right, #06b6d4, #0ea5e9);
+  --theme-toggle-button-bg-anon: rgba(6, 182, 212, 0.7);
+  --theme-toggle-button-bg: #212529;
+  --theme-send-feedback-button-text: #1e293b;
 }
 
 @import "../styles/themes/workspace/theme-light.global-components.css";

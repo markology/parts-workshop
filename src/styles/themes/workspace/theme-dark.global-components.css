@@ -8,19 +8,36 @@
     --theme-account-dropdown-item-bg-hover: #1e2125;
     --theme-account-dropdown-item-text-color: #fff;
     --theme-account-icon-bg: rgb(15 23 42 / 0.8); /* slate-900/80 */
-    --theme-account-icon-border: var(--border);
+    --theme-account-icon-border: rgba(255, 255, 255, 0.1);
     --theme-account-icon-border-hover: rgb(100 116 139); /* slate-500 */
     --theme-account-dropdown-bg: rgb(33, 37, 41);
     --theme-account-dropdown-border: none;
 
     /* Feedback Form */
-    --theme-feedback-form-bg: #2a2e32;
-    --theme-feedback-form-border: #1e2125;
-    --theme-feedback-form-text-color: #fff;
-    --theme-feedback-form-input-bg: #2a2e32;
-    --theme-feedback-form-input-border: #1e2125;
-    --theme-feedback-form-input-text-color: #fff;
-    --theme-feedback-form-input-placeholder-color: #888;
-    --theme-feedback-form-input-focus-border-color: #1e2125;
-    --theme-feedback-form-input-focus-text-color: #fff;
+    --theme-feedback-form-bg: #212529;
+    --theme-feedback-form-border: rgba(255, 255, 255, 0.1);
+    --theme-feedback-form-text-primary: #ffffff;
+    --theme-feedback-form-text-secondary: rgba(255, 255, 255, 0.7);
+    --theme-feedback-form-header-bg: #2a2e32;
+    --theme-feedback-form-header-border: rgba(255, 255, 255, 0.1);
+    --theme-feedback-form-header-gradient: none;
+    --theme-feedback-form-content-bg: #212529;
+    --theme-feedback-form-input-bg: #272b2f;
+    --theme-feedback-form-input-border: rgba(255, 255, 255, 0.1);
+    --theme-feedback-form-input-text: #ffffff;
+    --theme-feedback-form-input-placeholder: rgba(255, 255, 255, 0.5);
+    --theme-feedback-form-attach-button-bg-hover: #2a2e32;
+    --theme-feedback-form-attach-button-text: rgba(255, 255, 255, 0.7);
+    --theme-feedback-form-toggle-container-bg: #2a2e32;
+    --theme-feedback-form-toggle-text: #ffffff;
+    --theme-feedback-form-footer-bg: #2a2e32;
+    --theme-feedback-form-footer-border: rgba(255, 255, 255, 0.1);
+    --theme-feedback-form-footer-gradient: none;
+    --theme-feedback-form-footer-text: rgba(255, 255, 255, 0.7);
+    --theme-feedback-form-file-preview-bg: #272b2f;
+    --theme-feedback-form-file-preview-border: rgba(255, 255, 255, 0.1);
+    --theme-feedback-form-submit-button-bg: linear-gradient(to right, #06b6d4, #0ea5e9);
+    --theme-toggle-button-bg-anon: rgba(6, 182, 212, 0.7);
+    --theme-toggle-button-bg: #212529;
+    --theme-send-feedback-button-text: #1e293b;
 }

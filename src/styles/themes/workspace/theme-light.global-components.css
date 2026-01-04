@@ -15,11 +15,30 @@
     --theme-account-icon-border-hover: rgb(148 163 184);
 
     /* Feedback Form */
-    --theme-feedback-form-bg: #fff;
-    --theme-feedback-form-border: #e2e8f0;
-    --theme-feedback-form-text-color: #111827;
-    --theme-feedback-form-input-bg: #fff;
-    --theme-feedback-form-input-border: #e2e8f0;
-    --theme-feedback-form-input-text-color: #111827;
-    --theme-feedback-form-input-placeholder-color: #94a3b8;
+    --theme-feedback-form-bg: white;
+    --theme-feedback-form-border: rgba(0, 0, 0, 0.1);
+    --theme-feedback-form-text-primary: #1e293b;
+    --theme-feedback-form-text-secondary: #64748b;
+    --theme-feedback-form-header-bg: linear-gradient(to bottom, rgba(254, 241, 242, 0.3), white);
+    --theme-feedback-form-header-border: rgba(0, 0, 0, 0.1);
+    --theme-feedback-form-header-gradient: linear-gradient(to bottom, rgba(254, 241, 242, 0.3), white);
+    --theme-feedback-form-content-bg: white;
+    --theme-feedback-form-input-bg: #f8fafc;
+    --theme-feedback-form-input-border: rgba(0, 0, 0, 0.1);
+    --theme-feedback-form-input-text: #1e293b;
+    --theme-feedback-form-input-placeholder: #94a3b8;
+    --theme-feedback-form-attach-button-bg-hover: #f1f5f9;
+    --theme-feedback-form-attach-button-text: #64748b;
+    --theme-feedback-form-toggle-container-bg: #fcf9fb;
+    --theme-feedback-form-toggle-text: #1e293b;
+    --theme-feedback-form-footer-bg: linear-gradient(to bottom, white, rgba(254, 241, 242, 0.3));
+    --theme-feedback-form-footer-border: none;
+    --theme-feedback-form-footer-gradient: linear-gradient(to bottom, white, rgba(254, 241, 242, 0.3));
+    --theme-feedback-form-footer-text: #94a3b8;
+    --theme-feedback-form-file-preview-bg: #f8fafc;
+    --theme-feedback-form-file-preview-border: #e2e8f0;
+    --theme-feedback-form-submit-button-bg: linear-gradient(to right, #0ea5e9, #06b6d4);
+    --theme-toggle-button-bg-anon: #0ea5e9;
+    --theme-toggle-button-bg: #e2e8f0;
+    --theme-send-feedback-button-text: #ffffff;
 }
