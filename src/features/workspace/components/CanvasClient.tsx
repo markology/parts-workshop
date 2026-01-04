@@ -80,7 +80,6 @@ const ImpressionInputModalContent = ({
   impressionModalTargetPartId?: string;
   impressionModalType?: string;
 }) => {
-  const { isDark } = useThemeContext();
   const theme = useTheme();
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const { updateNode } = useFlowNodesContext();
@@ -272,25 +271,16 @@ const ImpressionInputModalContent = ({
                   }
                 }}
                 disabled={!canAddImpression}
-                className="px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-75 disabled:opacity-40 disabled:cursor-not-allowed border-none
+                  ${
+                    canAddImpression
+                      ? "text-white"
+                      : "text-[#94a3b8] theme-dark:bg-[rgb(59,63,67)] theme-light:bg-[#e2e8f0] theme-dark:shadow-[rgb(0_0_0/20%)_0px_2px_4px]"
+                  }`}
                 style={{
-                  backgroundColor: canAddImpression
-                    ? `var(--theme-impression-${currentType}-modal-add-button-bg)`
-                    : isDark
-                      ? "rgb(59, 63, 67)"
-                      : "#e2e8f0",
-                  color: canAddImpression
-                    ? isDark
-                      ? "rgb(255, 255, 255)"
-                      : "#ffffff"
-                    : isDark
-                      ? "#94a3b8"
-                      : "#94a3b8",
-                  border: "none",
-                  transitionDuration: "75ms",
-                  ...(isDark && !canAddImpression
-                    ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" }
-                    : {}),
+                  ...(canAddImpression && {
+                    backgroundColor: `var(--theme-impression-${currentType}-modal-add-button-bg)`,
+                  }),
                 }}
                 onMouseEnter={(e) => {
                   if (canAddImpression) {
@@ -449,16 +439,6 @@ export default function CanvasClient({
       // Only apply workspace theme on initial load (when mapId changes)
       const isNewMap = lastAppliedMapIdRef.current !== data.id;
 
-      console.log(`[CanvasClient] Map data loaded:`, {
-        mapId: data.id,
-        isNewMap,
-        lastAppliedMapId: lastAppliedMapIdRef.current,
-        mapActiveTheme,
-        currentActiveTheme: activeTheme,
-        isDark,
-        metadata,
-      });
-
       if (isNewMap) {
         // Store the current global activeTheme before applying workspace theme (reset for each new map)
         // Get the actual global activeTheme from localStorage
@@ -467,11 +447,6 @@ export default function CanvasClient({
         ) as ActiveTheme | null;
         previousActiveThemeRef.current =
           globalActiveTheme || (isDark ? "dark" : "light");
-        console.log(`[CanvasClient] Stored global activeTheme for restore:`, {
-          globalActiveTheme,
-          stored: previousActiveThemeRef.current,
-          isDark,
-        });
 
         // Reset the applied flag for new map
         workspaceThemeAppliedRef.current = false;
@@ -492,10 +467,6 @@ export default function CanvasClient({
         } else {
           // New workspace: default to current mode (light or dark)
           workspaceThemeToUse = isDark ? "dark" : "light";
-          console.log(
-            `[CanvasClient] No saved workspace theme, defaulting to: ${workspaceThemeToUse} (isDark: ${isDark})`
-          );
-
           // Save this default to the map
           const sidebarImpressionsData = {
             ...normalizedSidebarImpressions,
