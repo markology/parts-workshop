@@ -7,7 +7,7 @@ import {
   ConnectedNodeType,
 } from "@/features/workspace/types/Nodes";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
-import { MessageCircleWarning, Trash2, BookOpen } from "lucide-react";
+import { MessageCircleWarning, Trash2, BookOpen, Check } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import detachImpressionFromPart from "../../../state/updaters/detachImpressionFromPart";
 
@@ -43,7 +43,7 @@ const TensionNode = ({
   const { setJournalTarget } = useJournalStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Handle Enter key or outside click save
   const handleSave = useCallback(() => {
@@ -58,8 +58,8 @@ const TensionNode = ({
     setEditingId(null);
   }, [editValue, editingId, getNode, id, updateTensionDescription]);
 
-  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const handleEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       handleSave();
     }
   };
@@ -69,7 +69,8 @@ const TensionNode = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (
         inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
+        !inputRef.current.contains(event.target as Node) &&
+        !(event.target as HTMLElement)?.closest('button[title="Save"]')
       ) {
         handleSave(); // Trigger save when clicking outside
       }
@@ -144,29 +145,44 @@ const TensionNode = ({
                     >
                       {part.data.label}
                     </span>
-                    <button
-                      onClick={() => {
-                        setEditValue(tensionDescription);
-                        setEditingId(part.id);
-                      }}
-                      className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors
-                        theme-dark:text-purple-300 theme-dark:hover:text-purple-200 theme-light:text-purple-700 theme-light:hover:text-purple-900`}
-                    >
-                      Edit
-                    </button>
+                    {part.id !== editingId && (
+                      <button
+                        onClick={() => {
+                          setEditValue(tensionDescription);
+                          setEditingId(part.id);
+                        }}
+                        className={`text-[11px] font-semibold uppercase tracking-[0.28em] transition-colors
+                          theme-dark:text-purple-300 theme-dark:hover:text-purple-200 theme-light:text-purple-700 theme-light:hover:text-purple-900`}
+                      >
+                        Edit
+                      </button>
+                    )}
                   </div>
 
                   <div className="mt-3">
                     {part.id === editingId ? (
-                      <input
-                        className={`w-full rounded-md border px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 theme-dark:bg-[#212529] theme-dark:border-purple-500/30 theme-dark:text-slate-100 theme-dark:focus:ring-purple-500/50 theme-light:bg-white theme-light:border-purple-300 theme-light:text-purple-900 theme-light:focus:ring-purple-300`}
-                        ref={inputRef}
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={handleEnter}
-                        autoFocus
-                        placeholder="Describe the friction between these parts"
-                      />
+                      <div className="relative flex items-start gap-2">
+                        <textarea
+                          className={`flex-1 rounded-md border-none shadow-inner px-3 py-2 text-xs font-medium focus:outline-none resize-none min-h-[60px] theme-dark:bg-[#212529] theme-dark:text-slate-100 theme-light:bg-white theme-light:text-purple-900`}
+                          ref={inputRef}
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={handleEnter}
+                          autoFocus
+                          placeholder="Describe the friction between these parts"
+                          rows={3}
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSave();
+                          }}
+                          className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors theme-dark:bg-purple-500/30 theme-dark:hover:bg-purple-500/50 theme-dark:text-purple-200 theme-light:bg-purple-100 theme-light:hover:bg-purple-200 theme-light:text-purple-700 mt-0.5"
+                          title="Save"
+                        >
+                          <Check size={16} />
+                        </button>
+                      </div>
                     ) : tensionDescription ? (
                       <p
                         className={`text-xs leading-relaxed text-right theme-dark:text-slate-200 theme-light:text-purple-900`}
