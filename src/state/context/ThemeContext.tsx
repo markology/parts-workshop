@@ -9,6 +9,7 @@ import {
   useRef,
   useMemo,
 } from "react";
+import { usePathname } from "next/navigation";
 import { ColorGroup, ActiveTheme, getTheme } from "@/features/workspace/constants/theme";
 
 /**
@@ -97,11 +98,18 @@ export const ThemeContextProvider = ({
   const initial = getInitialTheme();
   const [themePref, setThemePrefState] = useState<ThemePref>(initial.themePref);
   const [activeTheme, setActiveThemeState] = useState<ActiveTheme>(initial.activeTheme);
+  const pathname = usePathname();
   
   // Track current mode class to avoid unnecessary DOM updates
   const modeClassRef = useRef<"light" | "dark">("light");
   const themeClassRef = useRef<string>("");
   const isInitialMount = useRef(true);
+
+  // Check if we're in a workspace route
+  const isInWorkspace = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return pathname?.startsWith("/workspace/") ?? false;
+  }, [pathname]);
 
   // Derive isDark from themePref (mode)
   const isDark = useMemo(() => getIsDark(themePref), [themePref]);
@@ -126,22 +134,27 @@ export const ThemeContextProvider = ({
   }, [isDark]);
 
   // Apply theme class (theme-light/theme-dark/theme-cherry) to <html> element and set CSS variables
+  // Only apply when in workspace, remove when leaving workspace
   useEffect(() => {
     if (typeof window === "undefined") return;
     
     const root = document.documentElement;
-    const newThemeClass = `theme-${activeTheme}`;
-    const currentTheme = getTheme(activeTheme);
     
-    // Remove all theme-* classes
-    root.classList.remove("theme-light", "theme-dark", "theme-cherry");
-    
-    // Add current theme class
-    if (themeClassRef.current !== newThemeClass || isInitialMount.current) {
-      root.classList.add(newThemeClass);
-      themeClassRef.current = newThemeClass;
+    if (isInWorkspace) {
+      // Apply theme classes and CSS variables only when in workspace
+      const newThemeClass = `theme-${activeTheme}`;
+      const currentTheme = getTheme(activeTheme);
       
-      // Set CSS custom properties for theme colors (this is necessary to generate theme css properties - mark)
+      // Remove all theme-* classes
+      root.classList.remove("theme-light", "theme-dark", "theme-cherry");
+      
+      // Add current theme class (always apply when in workspace)
+      if (themeClassRef.current !== newThemeClass) {
+        root.classList.add(newThemeClass);
+        themeClassRef.current = newThemeClass;
+      }
+      
+      // Always set CSS custom properties for theme colors when in workspace
       root.style.setProperty("--theme-workspace", currentTheme.workspace);
       root.style.setProperty("--theme-background-gradient", currentTheme.backgroundGradient);
       root.style.setProperty("--theme-card", currentTheme.card);
@@ -165,9 +178,39 @@ export const ThemeContextProvider = ({
       root.style.setProperty("--theme-journal-icon-button-bg", currentTheme.journalIconButtonBg);
       root.style.setProperty("--theme-journal-icon-button-color", currentTheme.journalIconButtonColor);
       root.style.setProperty("--theme-journal-icon-button-hover-color", currentTheme.journalIconButtonHoverColor);
+    } else {
+      // Remove theme classes and CSS variables when not in workspace
+      root.classList.remove("theme-light", "theme-dark", "theme-cherry");
+      themeClassRef.current = "";
       
+      // Remove all theme CSS variables
+      root.style.removeProperty("--theme-workspace");
+      root.style.removeProperty("--theme-background-gradient");
+      root.style.removeProperty("--theme-card");
+      root.style.removeProperty("--theme-modal");
+      root.style.removeProperty("--theme-sidebar");
+      root.style.removeProperty("--theme-elevated");
+      root.style.removeProperty("--theme-surface");
+      root.style.removeProperty("--theme-button");
+      root.style.removeProperty("--theme-button2");
+      root.style.removeProperty("--theme-button-hover");
+      root.style.removeProperty("--theme-button-active");
+      root.style.removeProperty("--theme-button-text");
+      root.style.removeProperty("--theme-text-primary");
+      root.style.removeProperty("--theme-text-secondary");
+      root.style.removeProperty("--theme-text-muted");
+      root.style.removeProperty("--theme-border");
+      root.style.removeProperty("--theme-border-subtle");
+      root.style.removeProperty("--theme-accent");
+      root.style.removeProperty("--theme-accent-hover");
+      root.style.removeProperty("--theme-accent-active");
+      root.style.removeProperty("--theme-journal-icon-button-bg");
+      root.style.removeProperty("--theme-journal-icon-button-color");
+      root.style.removeProperty("--theme-journal-icon-button-hover-color");
     }
-  }, [activeTheme]);
+    
+    isInitialMount.current = false;
+  }, [activeTheme, isInWorkspace]);
 
   // Set theme preference
   const setThemePref = (pref: ThemePref, persistGlobal: boolean = true) => {
