@@ -81,6 +81,17 @@ export default function AccountDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const internalTriggerRef = useRef<HTMLDivElement>(null);
   const actualTriggerRef = triggerRef || internalTriggerRef;
+  // Use refs to track state across re-renders to prevent autosave from closing dropdown
+  const dropdownOpenRef = useRef(dropdownOpen);
+  const triggerRefStable = useRef(triggerRef);
+  const containerRefStable = useRef(containerRef);
+
+  // Update refs when props change
+  useEffect(() => {
+    dropdownOpenRef.current = dropdownOpen;
+    triggerRefStable.current = triggerRef;
+    containerRefStable.current = containerRef;
+  }, [dropdownOpen, triggerRef, containerRef]);
 
   // Reset theme panel when dropdown closes
   useEffect(() => {
@@ -94,35 +105,58 @@ export default function AccountDropdown({
   // So this effect is only needed if we want to handle it here, but currently the workspace
   // handles it via handleActionClick, so this can be removed or left as a no-op
 
-  // Calculate dropdown position
+  // Calculate dropdown position - only recalculate when dropdown opens, not on every render
   useEffect(() => {
     if (dropdownOpen) {
-      const triggerElement =
-        triggerRef?.current ||
-        containerRef?.current ||
-        internalTriggerRef.current;
-      if (triggerElement) {
-        const rect = triggerElement.getBoundingClientRect();
-        setDropdownPosition({
-          top: rect.bottom + 8,
-          right: window.innerWidth - rect.right,
-        });
-      }
+      // Use requestAnimationFrame to ensure DOM is ready and avoid unnecessary recalculations
+      const updatePosition = () => {
+        const triggerElement =
+          triggerRefStable.current?.current ||
+          containerRefStable.current?.current ||
+          internalTriggerRef.current;
+        if (triggerElement) {
+          const rect = triggerElement.getBoundingClientRect();
+          setDropdownPosition((prev) => {
+            // Only update if position actually changed to prevent unnecessary re-renders
+            const newPos = {
+              top: rect.bottom + 8,
+              right: window.innerWidth - rect.right,
+            };
+            if (
+              prev &&
+              prev.top === newPos.top &&
+              prev.right === newPos.right
+            ) {
+              return prev;
+            }
+            return newPos;
+          });
+        }
+      };
+      // Small delay to ensure DOM is ready
+      const timeoutId = setTimeout(updatePosition, 0);
+      return () => clearTimeout(timeoutId);
     } else {
       setDropdownPosition(null);
     }
-  }, [dropdownOpen, triggerRef, containerRef]);
+    // Only depend on dropdownOpen, not refs (refs are stable via useRef)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dropdownOpen]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside - use stable refs to prevent re-creation
   useEffect(() => {
+    if (!dropdownOpen) return;
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (!dropdownOpen) return;
+      // Use ref to check current state instead of closure value
+      if (!dropdownOpenRef.current) return;
 
       const target = event.target as Node;
-      const triggerElement = triggerRef?.current || internalTriggerRef.current;
+      const triggerElement =
+        triggerRefStable.current?.current || internalTriggerRef.current;
       const dropdownMenu = (
         dropdownRef.current as { dropdownMenu?: HTMLElement }
-      ).dropdownMenu;
+      )?.dropdownMenu;
 
       const clickedInsideTrigger = triggerElement?.contains(target);
       const clickedInsideMenu = dropdownMenu?.contains(target);
@@ -132,12 +166,13 @@ export default function AccountDropdown({
       }
     };
 
-    if (dropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [dropdownOpen, triggerRef]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+    // Only depend on dropdownOpen to add/remove listener, but use refs inside handler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dropdownOpen]);
 
   const handleAccountClick = () => {
     router.push("/account");
