@@ -211,65 +211,12 @@ function AccountDropdown({
         <div className="relative" ref={internalTriggerRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className={buttonClassName || defaultButtonClassName}
+            className={`${buttonClassName || defaultButtonClassName} ${useWorkspaceTheme && workspaceTheme && isDark ? "dark:shadow-[0_2px_4px_rgb(0_0_0/0.2)] theme-dark:shadow-[0_2px_4px_rgb(0_0_0/0.2)]" : ""}`}
             style={
               useWorkspaceTheme && workspaceTheme
                 ? {
                     backgroundColor: workspaceTheme.button,
                     color: workspaceTheme.buttonText,
-                    ...(isDark
-                      ? { boxShadow: "rgb(0 0 0 / 20%) 0px 2px 4px" }
-                      : {}),
-                  }
-                : undefined
-            }
-            onMouseEnter={
-              useWorkspaceTheme && workspaceTheme && isDark
-                ? (e) => {
-                    // Darken the button on hover by reducing RGB values
-                    let r: number, g: number, b: number;
-
-                    if (workspaceTheme.button.startsWith("#")) {
-                      const hex = workspaceTheme.button.replace("#", "");
-                      r = parseInt(hex.substr(0, 2), 16);
-                      g = parseInt(hex.substr(2, 2), 16);
-                      b = parseInt(hex.substr(4, 2), 16);
-                    } else if (workspaceTheme.button.startsWith("rgb")) {
-                      const matches = workspaceTheme.button.match(/\d+/g);
-                      if (matches && matches.length >= 3) {
-                        r = parseInt(matches[0]);
-                        g = parseInt(matches[1]);
-                        b = parseInt(matches[2]);
-                      } else {
-                        return;
-                      }
-                    } else {
-                      return;
-                    }
-
-                    const darkerR = Math.max(0, r - 20);
-                    const darkerG = Math.max(0, g - 20);
-                    const darkerB = Math.max(0, b - 20);
-                    e.currentTarget.style.backgroundColor = `rgb(${darkerR}, ${darkerG}, ${darkerB})`;
-                  }
-                : useWorkspaceTheme && workspaceTheme && !isDark
-                  ? (e) => {
-                      e.currentTarget.style.backgroundImage =
-                        "linear-gradient(to right, rgb(240, 249, 255), rgb(238, 242, 255), rgb(255, 241, 242))";
-                    }
-                  : undefined
-            }
-            onMouseLeave={
-              useWorkspaceTheme && workspaceTheme
-                ? (e) => {
-                    if (isDark) {
-                      e.currentTarget.style.backgroundColor =
-                        workspaceTheme.button;
-                    } else {
-                      e.currentTarget.style.backgroundImage = "none";
-                      e.currentTarget.style.backgroundColor =
-                        workspaceTheme.button;
-                    }
                   }
                 : undefined
             }
@@ -316,96 +263,98 @@ function AccountDropdown({
           }}
         >
           {/* Theme Panel - slides out from the right */}
-          <div
-            className={`absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-none dark:bg-[image:var(--background-gradient)] rounded-lg transition-transform duration-300 ease-in-out z-10 ${
-              showThemePanel ? "translate-x-0" : "translate-x-full"
-            }`}
-            style={{
-              minWidth: useWorkspaceTheme ? "150px" : "160px",
-            }}
-          >
-            <div className="px-4 py-0 border-b border-slate-200 dark:border-[var(--border)] flex items-center gap-2">
-              <button
-                onClick={() => setShowThemePanel(false)}
-                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <svg
-                  className="w-4 h-4 text-gray-600 dark:text-gray-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+          {!useWorkspaceTheme && (
+            <div
+              className={`absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-none dark:bg-[image:var(--background-gradient)] rounded-lg transition-transform duration-300 ease-in-out z-10 ${
+                showThemePanel ? "translate-x-0" : "translate-x-full"
+              }`}
+              style={{
+                minWidth: "160px",
+              }}
+            >
+              <div className="px-4 py-0 border-b border-slate-200 dark:border-[var(--border)] flex items-center gap-2">
+                <button
+                  onClick={() => setShowThemePanel(false)}
+                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Appearance
+                  <svg
+                    className="w-4 h-4 text-gray-600 dark:text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Appearance
+                </div>
+              </div>
+              <div className="py-2">
+                {themeModeType === "system" ? (
+                  (["light", "dark", "system"] as const).map((mode) => {
+                    const isActive = themePref === mode;
+                    const getIcon = () => {
+                      if (mode === "system")
+                        return <Monitor className="w-4 h-4" />;
+                      if (mode === "dark") return <Moon className="w-4 h-4" />;
+                      return <Sun className="w-4 h-4" />;
+                    };
+                    const getLabel = () => {
+                      if (mode === "system") return "System";
+                      if (mode === "dark") return "Dark Mode";
+                      return "Light Mode";
+                    };
+                    return (
+                      <button
+                        key={mode}
+                        onClick={() => {
+                          setThemePref(mode, true);
+                          setShowThemePanel(false);
+                          setDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                          isActive
+                            ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                        }`}
+                      >
+                        {getIcon()}
+                        {getLabel()}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <button
+                    onClick={() => {
+                      const nextTheme = isDark ? "light" : "dark";
+                      setThemePref(nextTheme, true);
+                      setShowThemePanel(false);
+                      setDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    {isDark ? (
+                      <>
+                        <Sun className="w-4 h-4" />
+                        Light Mode
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="w-4 h-4" />
+                        Dark Mode
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
-            <div className="py-2">
-              {themeModeType === "system" ? (
-                (["light", "dark", "system"] as const).map((mode) => {
-                  const isActive = themePref === mode;
-                  const getIcon = () => {
-                    if (mode === "system")
-                      return <Monitor className="w-4 h-4" />;
-                    if (mode === "dark") return <Moon className="w-4 h-4" />;
-                    return <Sun className="w-4 h-4" />;
-                  };
-                  const getLabel = () => {
-                    if (mode === "system") return "System";
-                    if (mode === "dark") return "Dark Mode";
-                    return "Light Mode";
-                  };
-                  return (
-                    <button
-                      key={mode}
-                      onClick={() => {
-                        setThemePref(mode, true);
-                        setShowThemePanel(false);
-                        setDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                        isActive
-                          ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                      }`}
-                    >
-                      {getIcon()}
-                      {getLabel()}
-                    </button>
-                  );
-                })
-              ) : (
-                <button
-                  onClick={() => {
-                    const nextTheme = isDark ? "light" : "dark";
-                    setThemePref(nextTheme, true);
-                    setShowThemePanel(false);
-                    setDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  {isDark ? (
-                    <>
-                      <Sun className="w-4 h-4" />
-                      Light Mode
-                    </>
-                  ) : (
-                    <>
-                      <Moon className="w-4 h-4" />
-                      Dark Mode
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
+          )}
 
           {/* Main Menu - slides out to the left when theme panel is open */}
           <div
