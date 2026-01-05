@@ -131,7 +131,10 @@ export default function PageHeader({
       <header className="sticky top-0 z-[65] bg-white/75 dark:bg-[var(--component)] border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:shadow-none dark:border-[var(--border)]">
         <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           {/* Logo and Page Name */}
-          <div className="flex items-center gap-4">
+          <Link
+            href={session ? "/dashboard" : "/"}
+            className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+          >
             <div
               className="inline-flex items-center"
               style={{ columnGap: "4px", marginLeft: "6px" }}
@@ -150,7 +153,7 @@ export default function PageHeader({
                 </span>
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* Search Input - Absolutely positioned, centered */}
           {showSearch && (
@@ -219,4 +222,3 @@ export default function PageHeader({
     </>
   );
 }
-

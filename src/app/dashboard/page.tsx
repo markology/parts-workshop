@@ -741,7 +741,7 @@ export default function WorkspacesPage() {
                     </div>
 
                     {navigatingToWorkspace === workspace.id && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-white/80 dark:bg-slate-950/80">
+                      <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-[var(--card)]">
                         <LoadingSpinner variant="spinner" size="lg" />
                       </div>
                     )}
