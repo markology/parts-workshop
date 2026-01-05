@@ -9,7 +9,6 @@ import {
   Play,
   Clock,
   ChevronDown,
-  MailPlus,
   Sparkles,
   Target,
   ArrowRight,
@@ -24,12 +23,9 @@ import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import Modal from "@/components/Modal";
 import FeedbackForm from "@/components/FeedbackForm";
-import StudioAssistantButton from "@/components/StudioAssistantButton";
-import StudioAssistant from "@/components/StudioAssistant";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
-import PartsStudioLogo from "@/components/PartsStudioLogo";
-import AccountDropdown from "@/components/AccountDropdown";
+import PageHeader from "@/components/PageHeader";
 
 interface WorkspaceData {
   id: string;
@@ -141,52 +137,6 @@ export default function WorkspacesPage() {
     loadWorkspaces();
   }, []);
 
-  useEffect(() => {
-    if (isSearchExpanded) {
-      savedScrollY.current = window.scrollY;
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${savedScrollY.current}px`;
-      document.body.style.width = "100%";
-    } else {
-      const scrollY = savedScrollY.current;
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      // Restore scroll position immediately without animation
-      requestAnimationFrame(() => {
-        document.documentElement.scrollTop = scrollY;
-        document.body.scrollTop = scrollY;
-      });
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-    };
-  }, [isSearchExpanded]);
-
-  useEffect(() => {
-    if (!isSearchExpanded) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsSearchExpanded(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isSearchExpanded]);
-
   const handleStartSession = async () => {
     // Allow starting with or without a name
 
@@ -262,10 +212,6 @@ export default function WorkspacesPage() {
       year: "numeric",
     });
   };
-
-  const headerBackgroundClass = isSearchExpanded
-    ? "bg-transparent supports-[backdrop-filter]:backdrop-blur-xl border-b border-transparent"
-    : "bg-white/75 border-b border-slate-200/70 dark:border-slate-800/60 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)]";
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -344,101 +290,7 @@ export default function WorkspacesPage() {
 
   return (
     <div className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50 bg-[image:var(--background-gradient-dashboard)] dark:bg-[image:var(--background-gradient-dashboard)]">
-      <div
-        className={`fixed inset-0 ${
-          isSearchExpanded
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
-        style={{
-          backgroundColor: isSearchExpanded
-            ? "rgba(0,0,0,0.35)"
-            : "transparent",
-          backdropFilter: isSearchExpanded ? "blur(2px)" : "none",
-          WebkitBackdropFilter: isSearchExpanded ? "blur(2px)" : "none",
-          zIndex: isSearchExpanded ? 70 : 40,
-        }}
-        onClick={() => setIsSearchExpanded(false)}
-      >
-        {isSearchExpanded && (
-          <div
-            className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6"
-            style={{ top: "20px" }}
-            ref={searchBoxRef}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <StudioAssistant
-              isOpen={isSearchExpanded}
-              onClose={() => setIsSearchExpanded(false)}
-              containerRef={searchBoxRef}
-            />
-          </div>
-        )}
-      </div>
-      {/* Header */}
-      <header className="sticky top-0 z-[65] bg-white/75 dark:bg-[var(--component)] border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:shadow-none dark:border-[var(--border)]">
-        <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div
-              className="inline-flex items-center"
-              style={{ columnGap: "4px", marginLeft: "6px" }}
-            >
-              <PartsStudioLogo
-                className="dark:invert"
-                size="lg"
-                showText={false}
-              />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-lg font-semibold leading-tight text-slate-900 dark:text-white">
-                  Parts Studio
-                </span>
-                <span className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-[#ffffffb3]">
-                  Dashboard
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Search Input - Absolutely positioned, centered */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6 pointer-events-none"
-            style={{ zIndex: 60, top: "20px" }}
-          >
-            <div ref={searchBoxRef} className="relative pointer-events-auto ">
-              {!isSearchExpanded && (
-                <StudioAssistantButton
-                  onClick={() => {
-                    setIsSearchExpanded(true);
-                  }}
-                  placeholder="Ask the Studio Assistant"
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Contact Button and Profile Dropdown */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => setShowFeedbackModal(true)}
-              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 text-white bg-[image:var(--button-jazz-gradient)]"
-              title="Contact"
-            >
-              <MailPlus className="w-4 h-4" />
-              <span>Contact</span>
-            </button>
-            <button
-              onClick={() => setShowFeedbackModal(true)}
-              className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors bg-white dark:bg-slate-900/80 text-slate-700 dark:text-white"
-              title="Contact"
-            >
-              <MailPlus className="w-5 h-5" />
-            </button>
-
-            {/* Account Dropdown */}
-            <AccountDropdown showHelp={true} themeModeType="system" />
-          </div>
-        </div>
-      </header>
+      <PageHeader pageName="Dashboard" showDashboard={false} />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Error State */}

@@ -1,0 +1,92 @@
+:root {
+    /* Mission page light mode variables */
+    --mission-bg: #f8fafc;
+    --mission-text-primary: #1e293b;
+    --mission-text-secondary: #64748b;
+    --mission-text-muted: #94a3b8;
+    --mission-card-bg: linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252));
+    --mission-card-border: rgba(0, 0, 0, 0.1);
+    --mission-border: rgba(0, 0, 0, 0.1);
+    --mission-grid-opacity: 0.1;
+    --mission-gradient-bg: linear-gradient(
+        to bottom right,
+        rgb(248, 250, 252),
+        rgba(219, 234, 254, 0.3),
+        rgba(243, 232, 255, 0.3)
+    );
+    --mission-button-bg: white;
+    --mission-button-border: rgb(226, 232, 240);
+    --mission-button-hover-border: rgb(148, 163, 184);
+    --mission-header-bg: rgba(241, 245, 249, 0.8);
+    --mission-header-border: rgba(0, 0, 0, 0.1);
+    --mission-dropdown-bg: linear-gradient(152deg, rgb(255, 255, 255), rgb(248, 250, 252));
+    --mission-dropdown-item-hover: #f3f4f6;
+    --mission-dropdown-text: #111827;
+    --mission-heart-icon: #9333ea;
+    --mission-route-icon: #0ea5e9;
+    --mission-phase-card-bg: rgba(255, 255, 255, 0.6);
+    --mission-phase-card-border: rgb(226, 232, 240);
+    --mission-phase-item-bg: rgba(248, 250, 252, 0.4);
+    --mission-phase-item-border: rgba(0, 0, 0, 0.1);
+    --mission-photo-glow: linear-gradient(to bottom right, rgba(196, 181, 253, 0.3), rgba(186, 230, 253, 0.3));
+    --mission-photo-border: rgb(226, 232, 240);
+    --mission-photo-bg: rgba(255, 255, 255, 0.8);
+    --mission-photo-inner-bg: linear-gradient(to bottom right, rgba(243, 232, 255, 0.4), rgba(224, 242, 254, 0.4));
+    --mission-photo-text: rgb(100, 116, 139);
+    --mission-donation-bg: linear-gradient(
+        to right,
+        rgba(168, 85, 247, 0.9),
+        rgba(99, 102, 241, 0.8),
+        rgba(14, 165, 233, 0.9)
+    );
+    --mission-donation-border: rgba(168, 85, 247, 0.5);
+    --mission-donation-text: rgba(255, 255, 255, 0.9);
+    --mission-donation-text-muted: rgba(255, 255, 255, 0.8);
+    --mission-footer-border: rgb(226, 232, 240);
+    --mission-footer-text: rgb(100, 116, 139);
+}
+
+.dark {
+    /* Mission page dark mode variables */
+    --mission-bg: rgb(61, 67, 75);
+    --mission-text-primary: white;
+    --mission-text-secondary: rgba(255, 255, 255, 0.7);
+    --mission-text-muted: rgba(255, 255, 255, 0.5);
+    --mission-card-bg: linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35));
+    --mission-card-border: rgba(255, 255, 255, 0.1);
+    --mission-border: rgba(255, 255, 255, 0.1);
+    --mission-grid-opacity: 0.2;
+    --mission-gradient-bg: linear-gradient(135deg, rgb(33, 37, 41), rgb(61, 67, 75), rgb(33, 37, 41));
+    --mission-button-bg: rgba(15, 23, 42, 0.8);
+    --mission-button-border: rgba(255, 255, 255, 0.1);
+    --mission-button-hover-border: rgb(100, 116, 139);
+    --mission-header-bg: rgba(42, 46, 50, 0.8);
+    --mission-header-border: rgba(255, 255, 255, 0.1);
+    --mission-dropdown-bg: linear-gradient(152deg, rgb(42, 46, 50), rgb(28, 31, 35));
+    --mission-dropdown-item-hover: rgba(55, 65, 81, 1);
+    --mission-dropdown-text: white;
+    --mission-heart-icon: #a855f7;
+    --mission-route-icon: #38bdf8;
+    --mission-phase-card-bg: rgba(255, 255, 255, 0.04);
+    --mission-phase-card-border: rgba(255, 255, 255, 0.1);
+    --mission-phase-item-bg: rgba(255, 255, 255, 0.02);
+    --mission-phase-item-border: rgba(255, 255, 255, 0.05);
+    --mission-photo-glow: linear-gradient(to bottom right, rgba(168, 85, 247, 0.2), rgba(14, 165, 233, 0.15));
+    --mission-photo-border: rgba(255, 255, 255, 0.1);
+    --mission-photo-bg: rgba(255, 255, 255, 0.05);
+    --mission-photo-inner-bg: linear-gradient(to bottom right, rgba(168, 85, 247, 0.2), rgba(14, 165, 233, 0.2));
+    --mission-photo-text: rgb(148, 163, 184);
+    --mission-donation-bg: linear-gradient(
+        to right,
+        rgba(147, 51, 234, 0.8),
+        rgba(79, 70, 229, 0.7),
+        rgba(14, 165, 233, 0.7)
+    );
+    --mission-donation-border: rgba(255, 255, 255, 0.1);
+    --mission-donation-text: rgba(255, 255, 255, 0.8);
+    --mission-donation-text-muted: rgba(255, 255, 255, 0.7);
+    --mission-footer-border: rgba(255, 255, 255, 0.1);
+    --mission-footer-text: rgba(255, 255, 255, 0.6);
+    --mission-phase-item-bg: rgba(39, 43, 47, 0.25);
+    --mission-phase-item-border: rgba(255, 255, 255, 0.05);
+}
