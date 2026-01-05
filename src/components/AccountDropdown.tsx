@@ -296,62 +296,38 @@ function AccountDropdown({
                 </div>
               </div>
               <div className="py-2">
-                {themeModeType === "system" ? (
-                  (["light", "dark", "system"] as const).map((mode) => {
-                    const isActive = themePref === mode;
-                    const getIcon = () => {
-                      if (mode === "system")
-                        return <Monitor className="w-4 h-4" />;
-                      if (mode === "dark") return <Moon className="w-4 h-4" />;
-                      return <Sun className="w-4 h-4" />;
-                    };
-                    const getLabel = () => {
-                      if (mode === "system") return "System";
-                      if (mode === "dark") return "Dark Mode";
-                      return "Light Mode";
-                    };
-                    return (
-                      <button
-                        key={mode}
-                        onClick={() => {
-                          setThemePref(mode, true);
-                          setShowThemePanel(false);
-                          setDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                          isActive
-                            ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                            : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                        }`}
-                      >
-                        {getIcon()}
-                        {getLabel()}
-                      </button>
-                    );
-                  })
-                ) : (
-                  <button
-                    onClick={() => {
-                      const nextTheme = isDark ? "light" : "dark";
-                      setThemePref(nextTheme, true);
-                      setShowThemePanel(false);
-                      setDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    {isDark ? (
-                      <>
-                        <Sun className="w-4 h-4" />
-                        Light Mode
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="w-4 h-4" />
-                        Dark Mode
-                      </>
-                    )}
-                  </button>
-                )}
+                {(["light", "dark", "system"] as const).map((mode) => {
+                  const isActive = themePref === mode;
+                  const getIcon = () => {
+                    if (mode === "system")
+                      return <Monitor className="w-4 h-4" />;
+                    if (mode === "dark") return <Moon className="w-4 h-4" />;
+                    return <Sun className="w-4 h-4" />;
+                  };
+                  const getLabel = () => {
+                    if (mode === "system") return "System";
+                    if (mode === "dark") return "Dark Mode";
+                    return "Light Mode";
+                  };
+                  return (
+                    <button
+                      key={mode}
+                      onClick={() => {
+                        setThemePref(mode, true);
+                        setShowThemePanel(false);
+                        setDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                        isActive
+                          ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                      }`}
+                    >
+                      {getIcon()}
+                      {getLabel()}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -367,21 +343,6 @@ function AccountDropdown({
                 onClick={handleDashboardClick}
                 className={`${menuItemClassName} first:rounded-t-lg`}
                 style={useWorkspaceTheme ? {} : undefined}
-                // onMouseEnter={
-                //   useWorkspaceTheme
-                //     ? (e) => {
-                //         e.currentTarget.style.backgroundColor =
-                //           "var(--theme-button-hover)";
-                //       }
-                //     : undefined
-                // }
-                // onMouseLeave={
-                //   useWorkspaceTheme
-                //     ? (e) => {
-                //         e.currentTarget.style.backgroundColor = "transparent";
-                //       }
-                //     : undefined
-                // }
               >
                 <Map className="w-4 h-4" />
                 Dashboard
@@ -392,21 +353,6 @@ function AccountDropdown({
               onClick={handleAccountClick}
               className={`${menuItemClassName} ${!showDashboard ? "first:rounded-t-lg" : ""}`}
               style={useWorkspaceTheme ? {} : undefined}
-              // onMouseEnter={
-              //   useWorkspaceTheme
-              //     ? (e) => {
-              //         e.currentTarget.style.backgroundColor =
-              //           "var(--theme-button-hover)";
-              //       }
-              //     : undefined
-              // }
-              // onMouseLeave={
-              //   useWorkspaceTheme
-              //     ? (e) => {
-              //         e.currentTarget.style.backgroundColor = "transparent";
-              //       }
-              //     : undefined
-              // }
             >
               <Settings className="w-4 h-4" />
               Account
@@ -417,21 +363,6 @@ function AccountDropdown({
                 onClick={() => setShowThemePanel(true)}
                 className={menuItemClassName}
                 style={useWorkspaceTheme ? {} : undefined}
-                // onMouseEnter={
-                //   useWorkspaceTheme
-                //     ? (e) => {
-                //         e.currentTarget.style.backgroundColor =
-                //           "var(--theme-button-hover)";
-                //       }
-                //     : undefined
-                // }
-                // onMouseLeave={
-                //   useWorkspaceTheme
-                //     ? (e) => {
-                //         e.currentTarget.style.backgroundColor = "transparent";
-                //       }
-                //     : undefined
-                // }
               >
                 {themeModeType === "system" ? (
                   <>
@@ -456,21 +387,6 @@ function AccountDropdown({
                 onClick={handleWorkspaceThemeClick}
                 className={menuItemClassName}
                 style={useWorkspaceTheme ? {} : undefined}
-                // onMouseEnter={
-                //   useWorkspaceTheme
-                //     ? (e) => {
-                //         e.currentTarget.style.backgroundColor =
-                //           "var(--theme-button-hover)";
-                //       }
-                //     : undefined
-                // }
-                // onMouseLeave={
-                //   useWorkspaceTheme
-                //     ? (e) => {
-                //         e.currentTarget.style.backgroundColor = "transparent";
-                //       }
-                //     : undefined
-                // }
               >
                 <Paintbrush className="w-4 h-4" />
                 Themes
@@ -482,21 +398,6 @@ function AccountDropdown({
                 onClick={handleHelpClick}
                 className={menuItemClassName}
                 style={useWorkspaceTheme ? {} : undefined}
-                // onMouseEnter={
-                //   useWorkspaceTheme
-                //     ? (e) => {
-                //         e.currentTarget.style.backgroundColor =
-                //           "var(--theme-button-hover)";
-                //       }
-                //     : undefined
-                // }
-                // onMouseLeave={
-                //   useWorkspaceTheme
-                //     ? (e) => {
-                //         e.currentTarget.style.backgroundColor = "transparent";
-                //       }
-                //     : undefined
-                // }
               >
                 <HelpCircle className="w-4 h-4" />
                 Help
@@ -507,21 +408,6 @@ function AccountDropdown({
               onClick={handleSignOut}
               className={`${menuItemClassName} last:rounded-b-lg`}
               style={useWorkspaceTheme ? {} : undefined}
-              // onMouseEnter={
-              //   useWorkspaceTheme
-              //     ? (e) => {
-              //         e.currentTarget.style.backgroundColor =
-              //           "var(--theme-button-hover)";
-              //       }
-              //     : undefined
-              // }
-              // onMouseLeave={
-              //   useWorkspaceTheme
-              //     ? (e) => {
-              //         e.currentTarget.style.backgroundColor = "transparent";
-              //       }
-              //     : undefined
-              // }
             >
               <LogOut className="w-4 h-4" />
               Sign Out
