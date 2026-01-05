@@ -33,7 +33,7 @@ const AccountPageClient = () => {
   const router = useRouter();
   const { status, update } = useSession();
   const theme = useTheme();
-  const { darkMode } = useThemeContext();
+  const { isDark } = useThemeContext();
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<AccountUser | null>(null);
@@ -131,7 +131,9 @@ const AccountPageClient = () => {
       toast.success("Profile updated");
     } catch (error: unknown) {
       console.error(error);
-      toast.error(error instanceof Error ? error.message : "Unable to update profile");
+      toast.error(
+        error instanceof Error ? error.message : "Unable to update profile"
+      );
     } finally {
       setProfileSaving(false);
     }
@@ -168,7 +170,9 @@ const AccountPageClient = () => {
       toast.success("Password updated");
     } catch (error: unknown) {
       console.error(error);
-      toast.error(error instanceof Error ? error.message : "Unable to update password");
+      toast.error(
+        error instanceof Error ? error.message : "Unable to update password"
+      );
     } finally {
       setPasswordSaving(false);
     }
@@ -191,7 +195,9 @@ const AccountPageClient = () => {
       await signOut({ callbackUrl: "/login" });
     } catch (error: unknown) {
       console.error(error);
-      toast.error(error instanceof Error ? error.message : "Failed to delete account");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete account"
+      );
     } finally {
       setDeleteLoading(false);
     }
@@ -207,10 +213,10 @@ const AccountPageClient = () => {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen"
       style={{
-        background: darkMode 
+        background: isDark
           ? `linear-gradient(to bottom, ${theme.workspace}, ${theme.surface})`
           : "linear-gradient(to bottom, #f8fafc, #ffffff, #f1f5f9)",
         color: theme.textPrimary,
@@ -232,7 +238,10 @@ const AccountPageClient = () => {
               Back
             </button>
             <div>
-              <h1 style={{ color: theme.textPrimary }} className="text-xl font-semibold">
+              <h1
+                style={{ color: theme.textPrimary }}
+                className="text-xl font-semibold"
+              >
                 Account settings
               </h1>
               <p style={{ color: theme.textSecondary }} className="text-sm">
@@ -240,7 +249,10 @@ const AccountPageClient = () => {
               </p>
             </div>
           </div>
-          <div style={{ color: theme.textSecondary }} className="hidden sm:flex items-center gap-2 text-sm">
+          <div
+            style={{ color: theme.textSecondary }}
+            className="hidden sm:flex items-center gap-2 text-sm"
+          >
             <ShieldCheck className="h-4 w-4 text-emerald-500" />
             Secure area
           </div>
@@ -248,7 +260,7 @@ const AccountPageClient = () => {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <div 
+            <div
               style={{
                 borderColor: theme.border,
                 backgroundColor: theme.card,
@@ -256,9 +268,15 @@ const AccountPageClient = () => {
               className="rounded-2xl border p-6 shadow-sm"
             >
               <div className="flex items-center gap-2">
-                <UserIcon style={{ color: theme.textSecondary }} className="h-5 w-5" />
+                <UserIcon
+                  style={{ color: theme.textSecondary }}
+                  className="h-5 w-5"
+                />
                 <div>
-                  <h2 style={{ color: theme.textPrimary }} className="text-lg font-semibold">
+                  <h2
+                    style={{ color: theme.textPrimary }}
+                    className="text-lg font-semibold"
+                  >
                     Profile
                   </h2>
                   <p style={{ color: theme.textSecondary }} className="text-sm">
@@ -269,11 +287,17 @@ const AccountPageClient = () => {
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-2">
-                  <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
+                  <span
+                    style={{ color: theme.textPrimary }}
+                    className="text-sm font-medium"
+                  >
                     Email
                   </span>
                   <div className="relative">
-                    <Mail style={{ color: theme.textMuted }} className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                    <Mail
+                      style={{ color: theme.textMuted }}
+                      className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                    />
                     <input
                       type="email"
                       value={email}
@@ -289,11 +313,17 @@ const AccountPageClient = () => {
                 </label>
 
                 <label className="flex flex-col gap-2">
-                  <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
+                  <span
+                    style={{ color: theme.textPrimary }}
+                    className="text-sm font-medium"
+                  >
                     Username
                   </span>
                   <div className="relative">
-                    <UserIcon style={{ color: theme.textMuted }} className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                    <UserIcon
+                      style={{ color: theme.textMuted }}
+                      className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+                    />
                     <input
                       type="text"
                       value={name}
@@ -314,7 +344,9 @@ const AccountPageClient = () => {
                   onClick={handleProfileSave}
                   disabled={profileSaving}
                   style={{
-                    backgroundColor: profileSaving ? theme.buttonActive : theme.button,
+                    backgroundColor: profileSaving
+                      ? theme.buttonActive
+                      : theme.button,
                     color: theme.buttonText,
                   }}
                   className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
@@ -334,7 +366,7 @@ const AccountPageClient = () => {
               </div>
             </div>
 
-            <div 
+            <div
               style={{
                 borderColor: theme.border,
                 backgroundColor: theme.card,
@@ -342,9 +374,15 @@ const AccountPageClient = () => {
               className="rounded-2xl border p-6 shadow-sm"
             >
               <div className="flex items-center gap-2">
-                <Lock style={{ color: theme.textSecondary }} className="h-5 w-5" />
+                <Lock
+                  style={{ color: theme.textSecondary }}
+                  className="h-5 w-5"
+                />
                 <div>
-                  <h2 style={{ color: theme.textPrimary }} className="text-lg font-semibold">
+                  <h2
+                    style={{ color: theme.textPrimary }}
+                    className="text-lg font-semibold"
+                  >
                     Password
                   </h2>
                   <p style={{ color: theme.textSecondary }} className="text-sm">
@@ -358,7 +396,10 @@ const AccountPageClient = () => {
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {hasPassword && (
                   <label className="flex flex-col gap-2">
-                    <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
+                    <span
+                      style={{ color: theme.textPrimary }}
+                      className="text-sm font-medium"
+                    >
                       Current password
                     </span>
                     <input
@@ -377,7 +418,10 @@ const AccountPageClient = () => {
                 )}
 
                 <label className="flex flex-col gap-2">
-                  <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
+                  <span
+                    style={{ color: theme.textPrimary }}
+                    className="text-sm font-medium"
+                  >
                     New password
                   </span>
                   <input
@@ -395,7 +439,10 @@ const AccountPageClient = () => {
                 </label>
 
                 <label className="flex flex-col gap-2">
-                  <span style={{ color: theme.textPrimary }} className="text-sm font-medium">
+                  <span
+                    style={{ color: theme.textPrimary }}
+                    className="text-sm font-medium"
+                  >
                     Confirm new password
                   </span>
                   <input
@@ -418,7 +465,9 @@ const AccountPageClient = () => {
                   onClick={handlePasswordSave}
                   disabled={passwordSaving}
                   style={{
-                    backgroundColor: passwordSaving ? theme.buttonActive : theme.button,
+                    backgroundColor: passwordSaving
+                      ? theme.buttonActive
+                      : theme.button,
                     color: theme.buttonText,
                   }}
                   className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
@@ -442,7 +491,7 @@ const AccountPageClient = () => {
           </div>
 
           <div className="space-y-6">
-            <div 
+            <div
               style={{
                 borderColor: theme.border,
                 backgroundColor: theme.card,
@@ -452,7 +501,10 @@ const AccountPageClient = () => {
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
                 <div>
-                  <h3 style={{ color: theme.textPrimary }} className="text-base font-semibold">
+                  <h3
+                    style={{ color: theme.textPrimary }}
+                    className="text-base font-semibold"
+                  >
                     Account overview
                   </h3>
                   <p style={{ color: theme.textSecondary }} className="text-sm">
@@ -462,32 +514,58 @@ const AccountPageClient = () => {
               </div>
 
               <div className="mt-4 space-y-3 text-sm">
-                <div style={{ backgroundColor: theme.surface }} className="flex items-center justify-between rounded-lg px-3 py-2">
+                <div
+                  style={{ backgroundColor: theme.surface }}
+                  className="flex items-center justify-between rounded-lg px-3 py-2"
+                >
                   <span style={{ color: theme.textSecondary }}>Email</span>
-                  <span style={{ color: theme.textPrimary }} className="font-medium">{email}</span>
+                  <span
+                    style={{ color: theme.textPrimary }}
+                    className="font-medium"
+                  >
+                    {email}
+                  </span>
                 </div>
-                <div style={{ backgroundColor: theme.surface }} className="flex items-center justify-between rounded-lg px-3 py-2">
+                <div
+                  style={{ backgroundColor: theme.surface }}
+                  className="flex items-center justify-between rounded-lg px-3 py-2"
+                >
                   <span style={{ color: theme.textSecondary }}>Username</span>
-                  <span style={{ color: theme.textPrimary }} className="font-medium">
+                  <span
+                    style={{ color: theme.textPrimary }}
+                    className="font-medium"
+                  >
                     {name || "Not set"}
                   </span>
                 </div>
-                <div style={{ backgroundColor: theme.surface }} className="flex items-center justify-between rounded-lg px-3 py-2">
+                <div
+                  style={{ backgroundColor: theme.surface }}
+                  className="flex items-center justify-between rounded-lg px-3 py-2"
+                >
                   <span style={{ color: theme.textSecondary }}>Created</span>
-                  <span style={{ color: theme.textPrimary }} className="font-medium">
+                  <span
+                    style={{ color: theme.textPrimary }}
+                    className="font-medium"
+                  >
                     {formattedCreatedAt || "—"}
                   </span>
                 </div>
-                <div style={{ backgroundColor: theme.surface }} className="flex items-center justify-between rounded-lg px-3 py-2">
+                <div
+                  style={{ backgroundColor: theme.surface }}
+                  className="flex items-center justify-between rounded-lg px-3 py-2"
+                >
                   <span style={{ color: theme.textSecondary }}>Password</span>
-                  <span style={{ color: theme.textPrimary }} className="font-medium">
+                  <span
+                    style={{ color: theme.textPrimary }}
+                    className="font-medium"
+                  >
                     {hasPassword ? "Set" : "Not set"}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div 
+            <div
               style={{
                 borderColor: theme.border,
                 backgroundColor: theme.card,
@@ -497,7 +575,10 @@ const AccountPageClient = () => {
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-sky-500" />
                 <div>
-                  <h3 style={{ color: theme.textPrimary }} className="text-base font-semibold">
+                  <h3
+                    style={{ color: theme.textPrimary }}
+                    className="text-base font-semibold"
+                  >
                     Subscriptions
                   </h3>
                   <p style={{ color: theme.textSecondary }} className="text-sm">
@@ -507,7 +588,7 @@ const AccountPageClient = () => {
               </div>
 
               <div className="mt-4 space-y-3 text-sm">
-                <div 
+                <div
                   style={{
                     borderColor: theme.border,
                     backgroundColor: theme.surface,
@@ -531,7 +612,7 @@ const AccountPageClient = () => {
               </div>
             </div>
 
-            <div 
+            <div
               style={{
                 borderColor: theme.border,
                 backgroundColor: theme.card,
@@ -541,7 +622,10 @@ const AccountPageClient = () => {
               <div className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-indigo-500" />
                 <div>
-                  <h3 style={{ color: theme.textPrimary }} className="text-base font-semibold">
+                  <h3
+                    style={{ color: theme.textPrimary }}
+                    className="text-base font-semibold"
+                  >
                     Payment methods
                   </h3>
                   <p style={{ color: theme.textSecondary }} className="text-sm">
@@ -550,7 +634,7 @@ const AccountPageClient = () => {
                 </div>
               </div>
 
-              <div 
+              <div
                 style={{
                   borderColor: theme.border,
                   backgroundColor: theme.surface,
@@ -559,7 +643,9 @@ const AccountPageClient = () => {
                 className="mt-4 flex items-center gap-3 rounded-lg border border-dashed px-3 py-2 text-sm"
               >
                 <WalletCards className="h-4 w-4 text-indigo-500" />
-                <span>We&apos;ll add cards, receipts, and billing contacts here.</span>
+                <span>
+                  We&apos;ll add cards, receipts, and billing contacts here.
+                </span>
               </div>
               <button
                 disabled
@@ -575,10 +661,10 @@ const AccountPageClient = () => {
           </div>
         </div>
 
-        <div 
+        <div
           style={{
-            borderColor: darkMode ? "rgba(239, 68, 68, 0.3)" : "#fecaca",
-            backgroundColor: darkMode ? "rgba(127, 29, 29, 0.2)" : "#fef2f2",
+            borderColor: isDark ? "rgba(239, 68, 68, 0.3)" : "#fecaca",
+            backgroundColor: isDark ? "rgba(127, 29, 29, 0.2)" : "#fef2f2",
           }}
           className="rounded-2xl border p-6 shadow-sm"
         >
@@ -601,7 +687,7 @@ const AccountPageClient = () => {
               onChange={(e) => setDeleteConfirm(e.target.value)}
               placeholder='Type "DELETE" to confirm'
               style={{
-                borderColor: darkMode ? "rgba(239, 68, 68, 0.3)" : "#fecaca",
+                borderColor: isDark ? "rgba(239, 68, 68, 0.3)" : "#fecaca",
                 backgroundColor: theme.surface,
                 color: theme.textPrimary,
               }}

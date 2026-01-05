@@ -35,8 +35,8 @@ interface WorkspaceData {
   id: string;
   name: string;
   description?: string;
-  createdAt: Date;
-  lastModified: Date;
+  createdAt: Date | null;
+  lastModified: Date | null;
   partCount: number;
   thumbnail?: string;
   nodes: Array<{
@@ -100,12 +100,28 @@ export default function WorkspacesPage() {
               (node) => node.type === "part"
             );
 
+            // Parse dates from API - only create Date objects if values exist
+            const createdAt = workspace.createdAt
+              ? new Date(workspace.createdAt)
+              : null;
+            const lastModified = workspace.lastModified
+              ? new Date(workspace.lastModified)
+              : null;
+
+            // Use dates as-is if valid, otherwise use null (will be handled in display)
+            const validCreatedAt =
+              createdAt && !isNaN(createdAt.getTime()) ? createdAt : null;
+            const validLastModified =
+              lastModified && !isNaN(lastModified.getTime())
+                ? lastModified
+                : null;
+
             return {
               id: workspace.id,
               name: workspace.title,
               description: workspace.description || undefined,
-              createdAt: new Date(workspace.createdAt),
-              lastModified: new Date(workspace.lastModified),
+              createdAt: validCreatedAt,
+              lastModified: validLastModified,
               partCount: partNodes.length,
               thumbnail: undefined,
               nodes: partNodes,
@@ -235,7 +251,11 @@ export default function WorkspacesPage() {
     }
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | null) => {
+    // Check if date is valid
+    if (!date || isNaN(date.getTime())) {
+      return "";
+    }
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -268,9 +288,13 @@ export default function WorkspacesPage() {
   // Sort workspaces
   const sortedWorkspaces = [...workspaces].sort((a, b) => {
     if (sortBy === "edited") {
-      return b.lastModified.getTime() - a.lastModified.getTime();
+      const aTime = a.lastModified?.getTime() ?? 0;
+      const bTime = b.lastModified?.getTime() ?? 0;
+      return bTime - aTime;
     } else if (sortBy === "created") {
-      return b.createdAt.getTime() - a.createdAt.getTime();
+      const aTime = a.createdAt?.getTime() ?? 0;
+      const bTime = b.createdAt?.getTime() ?? 0;
+      return bTime - aTime;
     } else {
       return a.name.localeCompare(b.name);
     }
@@ -492,7 +516,7 @@ export default function WorkspacesPage() {
                   </div>
                 </div>
                 <aside className="relative lg:w-[360px] xl:w-[380px]">
-                  <div className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 bg-white/92 dark:bg-[var(--card)] border-white/70 dark:border-none shadow-[0_55px_120px_rgba(91,105,255,0.15)] backdrop-blur-xl dark:shadow-[0_48px_90px_rgba(2,6,23,0.6)]">
+                  <div className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 bg-white/92 dark:bg-[var(--component)] border-white/70 dark:border-none shadow-[0_55px_120px_rgba(91,105,255,0.15)] backdrop-blur-xl dark:shadow-[0_48px_90px_rgba(2,6,23,0.6)]">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.32em] font-semibold text-black dark:text-slate-400">
@@ -534,17 +558,17 @@ export default function WorkspacesPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-slate-200/70 dark:border-none bg-white/90 dark:bg-[var(--component)] shadow-md p-[30px]">
+                    <div className="rounded-2xl border border-slate-200/70 dark:border-none bg-white/90 dark:bg-[var(--card)] shadow-md p-[30px]">
                       <p className="text-[11px] uppercase tracking-[0.32em] mb-2 text-slate-500 dark:text-slate-400">
                         Message from the team
                       </p>
                       <div className="space-y-3 text-sm leading-relaxed text-slate-600 dark:text-white">
-                        <p>
+                        <p className="dark:text-slate-300">
                           Thanks for trying Parts Studio. Every session you
                           create is saved automatically and backed up securely
                           so you can experiment without worry.
                         </p>
-                        <p>
+                        <p className="dark:text-slate-300">
                           We want your parts to feel safe here as we continue to
                           try and grow this tool together.
                         </p>
@@ -664,11 +688,9 @@ export default function WorkspacesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {sortedWorkspaces.map((workspace) => {
+                // Use lastModified if available, otherwise fall back to createdAt
                 const lastEdited =
-                  workspace.createdAt.getTime() ===
-                  workspace.lastModified.getTime()
-                    ? workspace.createdAt
-                    : workspace.lastModified;
+                  workspace.lastModified || workspace.createdAt || null;
 
                 return (
                   <div
