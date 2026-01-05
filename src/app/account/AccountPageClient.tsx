@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import {
-  ArrowLeft,
   CreditCard,
   Loader2,
   Lock,
@@ -17,6 +16,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import PageLoader from "@/components/PageLoader";
+import PageHeader from "@/components/PageHeader";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { useThemeContext } from "@/state/context/ThemeContext";
 
@@ -222,32 +222,19 @@ const AccountPageClient = () => {
         color: theme.textPrimary,
       }}
     >
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
+      <PageHeader pageName="Account" showDashboard={false} />
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-10 py-10">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.back()}
-              style={{
-                borderColor: theme.border,
-                backgroundColor: theme.card,
-                color: theme.textPrimary,
-              }}
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm shadow-sm transition hover:-translate-y-px hover:shadow"
+          <div>
+            <h1
+              style={{ color: theme.textPrimary }}
+              className="text-xl font-semibold"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </button>
-            <div>
-              <h1
-                style={{ color: theme.textPrimary }}
-                className="text-xl font-semibold"
-              >
-                Account settings
-              </h1>
-              <p style={{ color: theme.textSecondary }} className="text-sm">
-                Update your sign-in details, billing, and security.
-              </p>
-            </div>
+              Account settings
+            </h1>
+            <p style={{ color: theme.textSecondary }} className="text-sm">
+              Update your sign-in details, billing, and security.
+            </p>
           </div>
           <div
             style={{ color: theme.textSecondary }}
