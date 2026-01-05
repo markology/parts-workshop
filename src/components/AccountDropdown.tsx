@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
@@ -44,7 +44,7 @@ interface AccountDropdownProps {
   onClose?: () => void;
 }
 
-export default function AccountDropdown({
+function AccountDropdown({
   showDashboard = false,
   showHelp = false,
   showWorkspaceTheme = false,
@@ -62,7 +62,6 @@ export default function AccountDropdown({
   const { themePref, setThemePref, isDark } = useThemeContext();
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const workspaceTheme = useWorkspaceTheme ? useTheme() : null;
-  console.log("mark acosta", useWorkspaceTheme, workspaceTheme);
   const [internalDropdownOpen, setInternalDropdownOpen] = useState(false);
   const dropdownOpen =
     externalIsOpen !== undefined ? externalIsOpen : internalDropdownOpen;
@@ -203,10 +202,6 @@ export default function AccountDropdown({
   const defaultButtonClassName =
     "flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden bg-[var(--theme-account-icon-bg)] border-[var(--theme-account-icon-border)] hover:border-[var(--theme-account-icon-border-hover)]";
 
-  // Default menu className if not provided
-  const defaultMenuClassName =
-    "fixed rounded-lg shadow-lg z-[100] bg-[image:var(--theme-account-dropdown-bg)] bg-[var(--theme-account-dropdown-bg)] border-[var(--theme-account-dropdown-border)]";
-
   const menuItemClassName =
     "w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-[var(--theme-account-dropdown-item-bg-hover)] text-[var(--theme-account-dropdown-item-text-color)]";
 
@@ -305,9 +300,9 @@ export default function AccountDropdown({
               ).dropdownMenu = el;
             }
           }}
-          className={`${defaultMenuClassName} overflow-hidden`}
-          style={
-            useWorkspaceTheme
+          className={`fixed rounded-lg shadow-lg z-[100] bg-[image:var(--theme-account-dropdown-bg)] bg-[var(--theme-account-dropdown-bg)] border-none overflow-hidden`}
+          style={{
+            ...(useWorkspaceTheme
               ? {
                   minWidth: "150px",
                   top: `${dropdownPosition.top}px`,
@@ -317,12 +312,12 @@ export default function AccountDropdown({
                   minWidth: "160px",
                   top: `${dropdownPosition.top}px`,
                   right: `${dropdownPosition.right}px`,
-                }
-          }
+                }),
+          }}
         >
           {/* Theme Panel - slides out from the right */}
           <div
-            className={`absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-[var(--border)] dark:bg-[image:var(--background-gradient)] rounded-lg transition-transform duration-300 ease-in-out z-10 ${
+            className={`absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-none dark:bg-[image:var(--background-gradient)] rounded-lg transition-transform duration-300 ease-in-out z-10 ${
               showThemePanel ? "translate-x-0" : "translate-x-full"
             }`}
             style={{
@@ -588,3 +583,6 @@ export default function AccountDropdown({
     </>
   );
 }
+
+// Memoize to prevent re-renders when parent re-renders due to autosave
+export default memo(AccountDropdown);

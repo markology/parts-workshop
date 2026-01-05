@@ -17,7 +17,7 @@ import {
 import StudioAssistantButton from "@/components/StudioAssistantButton";
 import StudioAssistant from "@/components/StudioAssistant";
 import AccountDropdown from "@/components/AccountDropdown";
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUIStore } from "../state/stores/UI";
 import { useFlowNodesActions } from "../state/FlowNodesContext";
@@ -442,6 +442,24 @@ const FloatingActionButtons = () => {
     </svg>
   );
 
+  // Memoize AccountDropdown to prevent re-renders when autosave state changes
+  // This keeps it stable across parent re-renders
+  // Refs are stable, so we don't need them in dependencies
+  const memoizedAccountDropdown = useMemo(
+    () => (
+      <AccountDropdown
+        showDashboard={true}
+        showHelp={true}
+        showWorkspaceTheme={true}
+        themeModeType="none"
+        useWorkspaceTheme={true}
+        buttonClassName="group w-12 h-12 rounded-full shadow-sm flex items-center justify-center transition-all duration-200 overflow-hidden"
+        containerRef={profileDropdownRef}
+      />
+    ),
+    [] // Empty deps - AccountDropdown is memoized and props are stable
+  );
+
   const ButtonComponent = ({
     icon,
     action,
@@ -452,28 +470,12 @@ const FloatingActionButtons = () => {
     label: string;
   }) => {
     const isActive = activeButton === action;
-    const isSettingsAction = action === "settings";
     const isSaveAction = action === "save";
     const isContactAction = action === "contact";
     const isActionButton = action === "action";
     const isOptionsButton = action === "options";
     const showXForAction = isActionButton && showRelationshipTypeModal;
     const showXForOptions = isOptionsButton && isActive;
-
-    // For settings action, render AccountDropdown component directly
-    if (isSettingsAction) {
-      return (
-        <AccountDropdown
-          showDashboard={true}
-          showHelp={true}
-          showWorkspaceTheme={true}
-          themeModeType="none"
-          useWorkspaceTheme={true}
-          buttonClassName="group w-12 h-12 rounded-full shadow-sm flex items-center justify-center transition-all duration-200 overflow-hidden"
-          containerRef={profileDropdownRef}
-        />
-      );
-    }
 
     return (
       <div className="relative">
@@ -799,7 +801,7 @@ const FloatingActionButtons = () => {
         {/* Other action buttons */}
         <div className="flex flex-row gap-3 pointer-events-auto">
           {buttons
-            .filter((b) => b.action !== "action" && b.action !== "options")
+            .filter((b) => b.action !== "action" && b.action !== "options" && b.action !== "settings")
             .map(({ icon, action, label }) => (
               <ButtonComponent
                 key={action}
@@ -808,6 +810,8 @@ const FloatingActionButtons = () => {
                 label={label}
               />
             ))}
+          {/* Render AccountDropdown separately to prevent remounting when save state changes */}
+          {memoizedAccountDropdown}
         </div>
       </div>
     </>
