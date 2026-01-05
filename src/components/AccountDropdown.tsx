@@ -59,7 +59,7 @@ function AccountDropdown({
 }: AccountDropdownProps) {
   const router = useRouter();
   const { data: session } = useSession();
-  const { themePref, setThemePref, isDark } = useThemeContext();
+  const { themePref, setThemePref } = useThemeContext();
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const workspaceTheme = useWorkspaceTheme ? useTheme() : null;
   const [internalDropdownOpen, setInternalDropdownOpen] = useState(false);
@@ -211,7 +211,7 @@ function AccountDropdown({
         <div className="relative" ref={internalTriggerRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className={`${buttonClassName || defaultButtonClassName} ${useWorkspaceTheme && workspaceTheme && isDark ? "dark:shadow-[0_2px_4px_rgb(0_0_0/0.2)] theme-dark:shadow-[0_2px_4px_rgb(0_0_0/0.2)]" : ""}`}
+            className={`${buttonClassName || defaultButtonClassName} ${useWorkspaceTheme && workspaceTheme && "dark:shadow-[0_2px_4px_rgb(0_0_0/0.2)] theme-dark:shadow-[0_2px_4px_rgb(0_0_0/0.2)]"}`}
             style={
               useWorkspaceTheme && workspaceTheme
                 ? {
@@ -364,21 +364,8 @@ function AccountDropdown({
                 className={menuItemClassName}
                 style={useWorkspaceTheme ? {} : undefined}
               >
-                {themeModeType === "system" ? (
-                  <>
-                    <Monitor className="w-4 h-4" />
-                    Appearance
-                  </>
-                ) : (
-                  <>
-                    {isDark ? (
-                      <Sun className="w-4 h-4" />
-                    ) : (
-                      <Moon className="w-4 h-4" />
-                    )}
-                    Appearance
-                  </>
-                )}
+                <Monitor className="w-4 h-4" />
+                Appearance
               </button>
             )}
 
