@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2, Sparkles } from "lucide-react";
-import { useThemeContext } from "@/state/context/ThemeContext";
 
 interface LoadingSpinnerProps {
   message?: string;
@@ -16,8 +15,6 @@ export default function LoadingSpinner({
   variant = "spinner",
   fullScreen = false,
 }: LoadingSpinnerProps) {
-  const { darkMode } = useThemeContext();
-
   const sizeClasses = {
     sm: "w-4 h-4",
     md: "w-6 h-6",
@@ -33,32 +30,31 @@ export default function LoadingSpinner({
       <div className={containerClasses}>
         <div className="flex gap-2">
           <div
-            className={`rounded-full ${sizeClasses[size]} animate-pulse`}
+            className={`rounded-full ${sizeClasses[size]} bg-purple-600 dark:bg-purple-500 animate-pulse`}
             style={{
-              backgroundColor: darkMode ? "#8b5cf6" : "#7c3aed",
               animationDelay: "0ms",
               animationDuration: "1.4s",
             }}
           />
           <div
-            className={`rounded-full ${sizeClasses[size]} animate-pulse`}
+            className={`rounded-full ${sizeClasses[size]} bg-purple-600 dark:bg-purple-500 animate-pulse`}
             style={{
-              backgroundColor: darkMode ? "#8b5cf6" : "#7c3aed",
               animationDelay: "200ms",
               animationDuration: "1.4s",
             }}
           />
           <div
-            className={`rounded-full ${sizeClasses[size]} animate-pulse`}
+            className={`rounded-full ${sizeClasses[size]} bg-purple-600 dark:bg-purple-500 animate-pulse`}
             style={{
-              backgroundColor: darkMode ? "#8b5cf6" : "#7c3aed",
               animationDelay: "400ms",
               animationDuration: "1.4s",
             }}
           />
         </div>
         {message && (
-          <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>{message}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            {message}
+          </p>
         )}
       </div>
     );
@@ -72,15 +68,12 @@ export default function LoadingSpinner({
             className={`${sizeClasses[size]} text-purple-400 animate-pulse`}
             style={{ animationDuration: "1.5s" }}
           />
-          <div
-            className="absolute inset-0 rounded-full animate-ping opacity-20"
-            style={{
-              backgroundColor: darkMode ? "#a78bfa" : "#8b5cf6",
-            }}
-          />
+          <div className="absolute inset-0 rounded-full bg-purple-500 dark:bg-purple-400 animate-ping opacity-20" />
         </div>
         {message && (
-          <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>{message}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            {message}
+          </p>
         )}
       </div>
     );
@@ -93,7 +86,7 @@ export default function LoadingSpinner({
         className={`${sizeClasses[size]} text-purple-400 animate-spin`}
       />
       {message && (
-        <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>{message}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{message}</p>
       )}
     </div>
   );
