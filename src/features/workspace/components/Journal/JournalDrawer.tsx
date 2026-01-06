@@ -223,7 +223,8 @@ export default function JournalDrawer() {
   const isOpen = useJournalStore((s) => s.isOpen);
   const closeJournal = useJournalStore((s) => s.closeJournal);
   const journalTarget = useJournalStore((s) => s.journalTarget);
-  const journalData = useJournalStore((s) => s.journalData);
+  const journalDataJson = useJournalStore((s) => s.journalDataJson);
+  const journalDataText = useJournalStore((s) => s.journalDataText);
   const setJournalData = useJournalStore((s) => s.setJournalData);
   const loadEntry = useJournalStore((s) => s.loadEntry);
   const activeEntryId = useJournalStore((s) => s.activeEntryId);
@@ -231,7 +232,9 @@ export default function JournalDrawer() {
   const setSelectedSpeakers = useJournalStore((s) => s.setSelectedSpeakers);
   // Ensure selectedSpeakers is always an array
   const speakersArray = Array.isArray(selectedSpeakers) ? selectedSpeakers : [];
-  const lastSavedJournalData = useJournalStore((s) => s.lastSavedJournalData);
+  const lastSavedJournalDataJson = useJournalStore(
+    (s) => s.lastSavedJournalDataJson
+  );
 
   const flowNodesContext = useFlowNodesContextOptional();
   const workingStoreNodes = useWorkingStore((s) => s.nodes);
@@ -353,14 +356,14 @@ export default function JournalDrawer() {
   //   return relevantEntries.find((entry) => entry.id === activeEntryId) ?? null;
   // }, [activeEntryId, relevantEntries]);
 
-  const hasUnsavedChanges = journalData !== lastSavedJournalData;
+  // Compare JSON strings to detect unsaved changes
+  const hasUnsavedChanges = journalDataJson !== lastSavedJournalDataJson;
 
-  // Check if there's actual content to save
+  // Check if there's actual content to save (use plain text directly)
   const hasContentToSave = useMemo(() => {
     if (!hasUnsavedChanges) return false;
-    const textContent = extractPlainText(journalData);
-    return textContent && textContent.trim().length > 0;
-  }, [journalData, hasUnsavedChanges]);
+    return journalDataText && journalDataText.trim().length > 0;
+  }, [journalDataText, hasUnsavedChanges]);
 
   // Don't allow saving if it's a new entry with no content
   const canSave = useMemo(() => {
@@ -373,17 +376,22 @@ export default function JournalDrawer() {
     return true;
   }, [hasUnsavedChanges, activeEntryId, hasContentToSave]);
 
-  // Detect mode from content (JSON array = textThread, otherwise normal)
+  // Detect mode from content (JSON array = textThread, Lexical JSON = normal)
   const detectModeFromContent = useCallback(
-    (content: string | null | undefined): "normal" | "textThread" => {
-      if (!content) return "normal";
+    (contentJson: string | null | undefined): "normal" | "textThread" => {
+      if (!contentJson) return "normal";
       try {
-        const parsed = JSON.parse(content);
+        const parsed = JSON.parse(contentJson);
+        // If it's an array, it's a textThread
         if (Array.isArray(parsed)) {
           return "textThread";
         }
+        // If it has a "root" property, it's Lexical JSON (normal mode)
+        if (parsed.root) {
+          return "normal";
+        }
       } catch {
-        // Not JSON, assume normal journal
+        // Not valid JSON, assume normal journal
       }
       return "normal";
     },
@@ -403,10 +411,15 @@ export default function JournalDrawer() {
       previousNodeIdRef.current !== undefined &&
       previousNodeIdRef.current !== nodeId
     ) {
-      setJournalData("");
+      setJournalData({ json: null, text: "" });
       // For impressions, default to only "self" in speakers
       const defaultSpeakers = isImpressionJournal ? ["self"] : [];
-      loadEntry({ entryId: null, content: "", speakers: defaultSpeakers });
+      loadEntry({
+        entryId: null,
+        contentJson: null,
+        contentText: "",
+        speakers: defaultSpeakers,
+      });
       setJournalMode(null); // Reset mode when switching nodes
     }
 
@@ -468,8 +481,8 @@ export default function JournalDrawer() {
     async (options?: { createNewVersion?: boolean }) => {
       if (!journalTarget) return false;
 
-      const textContent = extractPlainText(journalData);
-      const hasContent = textContent && textContent.trim().length > 0;
+      // Use plain text directly from store
+      const hasContent = journalDataText && journalDataText.trim().length > 0;
 
       // Don't allow saving if there's no content and it's a new entry (never been saved)
       if (!activeEntryId && !hasContent) {
@@ -480,14 +493,24 @@ export default function JournalDrawer() {
       // (This handles the case where user deletes all content from an existing entry)
 
       try {
-        // Only derive title if there's actual content
-        const textContent = extractPlainText(journalData);
-        const hasContent = textContent && textContent.trim().length > 0;
-        const title = hasContent ? deriveTitleFromContent(journalData, "") : "";
+        // Derive title from plain text (first line or first 80 chars)
+        const title = hasContent
+          ? journalDataText
+              .split(/\r?\n/)
+              .find((line) => line.trim().length > 0)
+              ?.slice(0, 80) || journalDataText.slice(0, 80)
+          : "";
+
+        // Ensure we have JSON to save
+        if (!journalDataJson) {
+          console.error("Cannot save: no journalDataJson");
+          return false;
+        }
 
         const entry = await saveJournalEntry({
           nodeId,
-          content: journalData,
+          contentJson: journalDataJson,
+          contentText: journalDataText,
           title: title || undefined, // Don't save empty title
           entryId:
             options?.createNewVersion || !activeEntryId
@@ -510,27 +533,33 @@ export default function JournalDrawer() {
 
         console.log("✅ Saved entry:", entry);
 
-        // Determine mode from entry content
+        // Determine mode from entry contentJson
         let mode: "normal" | "textThread" = "normal";
-        try {
-          const contentToParse = entry.content || journalData || "";
-          if (contentToParse) {
-            const parsed = JSON.parse(contentToParse);
-            if (Array.isArray(parsed)) {
-              mode = "textThread";
-            }
-          }
-        } catch {
-          // Not JSON, keep as normal
+        const contentJsonToCheck = entry.contentJson
+          ? typeof entry.contentJson === "string"
+            ? entry.contentJson
+            : JSON.stringify(entry.contentJson)
+          : journalDataJson;
+
+        if (contentJsonToCheck) {
+          mode = detectModeFromContent(contentJsonToCheck);
         }
+
         // Force normal mode for impressions
         if (isImpressionJournal) {
           mode = "normal";
         }
         setJournalMode(mode);
+
+        // Load the saved entry back into store
         loadEntry({
           entryId: entry.id,
-          content: entry.content ?? journalData,
+          contentJson: entry.contentJson
+            ? typeof entry.contentJson === "string"
+              ? entry.contentJson
+              : JSON.stringify(entry.contentJson)
+            : null,
+          contentText: entry.contentText || journalDataText || "",
           speakers: Array.isArray(entry.speakers)
             ? entry.speakers
             : speakersArray,
@@ -548,13 +577,16 @@ export default function JournalDrawer() {
     },
     [
       activeEntryId,
-      journalData,
+      journalDataJson,
+      journalDataText,
       journalTarget,
       loadEntry,
       nodeId,
       nodeLabel,
       saveJournalEntry,
       speakersArray,
+      isImpressionJournal,
+      detectModeFromContent,
     ]
   );
 
@@ -569,7 +601,12 @@ export default function JournalDrawer() {
     setShowModeSelection(true);
     // For impressions, default to only "self" in speakers
     const defaultSpeakers = isImpressionJournal ? ["self"] : [];
-    loadEntry({ entryId: null, content: "", speakers: defaultSpeakers });
+    loadEntry({
+      entryId: null,
+      contentJson: null,
+      contentText: "",
+      speakers: defaultSpeakers,
+    });
     // Flag will be reset when mode is selected in handleModeSelect
   }, [loadEntry, isImpressionJournal]);
 
@@ -587,7 +624,8 @@ export default function JournalDrawer() {
       const defaultSpeakers = isImpressionJournal ? ["self"] : [];
       loadEntry({
         entryId: null,
-        content: mode === "textThread" ? "[]" : "",
+        contentJson: mode === "textThread" ? "[]" : null,
+        contentText: "",
         speakers: defaultSpeakers,
       });
       // Keep isStartingNewEntry true until user actually starts typing or saves
@@ -623,8 +661,17 @@ export default function JournalDrawer() {
     (entry: JournalEntry) => {
       // Always load the entry, even if it's the same one (allows re-opening)
       setIsStartingNewEntry(false); // Reset flag when selecting an existing entry
-      const content = entry.content ?? "";
-      let detectedMode = detectModeFromContent(content);
+
+      // Get contentJson - prefer contentJson, fallback to content (legacy) for migration
+      const contentJson = entry.contentJson
+        ? typeof entry.contentJson === "string"
+          ? entry.contentJson
+          : JSON.stringify(entry.contentJson)
+        : entry.content // Legacy: if contentJson is missing, might be old HTML in content field
+          ? null // If only old content field exists, we can't use it (would need migration)
+          : null;
+
+      let detectedMode = detectModeFromContent(contentJson);
       // Force normal mode for impressions, even if content is a text thread
       if (isImpressionJournal) {
         detectedMode = "normal";
@@ -633,7 +680,8 @@ export default function JournalDrawer() {
       setShowModeSelection(false); // Hide mode selection when loading an entry
       loadEntry({
         entryId: entry.id,
-        content,
+        contentJson: contentJson,
+        contentText: entry.contentText || "",
         speakers: Array.isArray(entry.speakers) ? entry.speakers : [],
       });
     },
@@ -682,12 +730,17 @@ export default function JournalDrawer() {
 
             if (remainingEntries.length > 0) {
               const latestEntry = remainingEntries[0];
-              const content = latestEntry.content ?? "";
-              const detectedMode = detectModeFromContent(content);
+              const contentJson = latestEntry.contentJson
+                ? typeof latestEntry.contentJson === "string"
+                  ? latestEntry.contentJson
+                  : JSON.stringify(latestEntry.contentJson)
+                : null;
+              const detectedMode = detectModeFromContent(contentJson);
               setJournalMode(detectedMode);
               loadEntry({
                 entryId: latestEntry.id,
-                content,
+                contentJson: contentJson,
+                contentText: latestEntry.contentText || "",
                 speakers: Array.isArray(latestEntry.speakers)
                   ? latestEntry.speakers
                   : [],
@@ -700,7 +753,8 @@ export default function JournalDrawer() {
               const defaultSpeakers = isImpressionJournal ? ["self"] : [];
               loadEntry({
                 entryId: null,
-                content: "",
+                contentJson: null,
+                contentText: "",
                 speakers: defaultSpeakers,
               });
             }
@@ -1411,8 +1465,18 @@ export default function JournalDrawer() {
       ? {
           id: "draft",
           nodeId: nodeId || null,
-          content: journalData,
-          title: deriveTitleFromContent(journalData, "Draft"),
+          contentJson: journalDataJson
+            ? typeof journalDataJson === "string"
+              ? JSON.parse(journalDataJson)
+              : journalDataJson
+            : null,
+          contentText: journalDataText,
+          title: journalDataText
+            ? journalDataText
+                .split(/\r?\n/)
+                .find((line) => line.trim().length > 0)
+                ?.slice(0, 80) || journalDataText.slice(0, 80)
+            : "Draft",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           speakers: speakersArray,
@@ -1442,8 +1506,19 @@ export default function JournalDrawer() {
             {allEntriesToShow.map((entry) => {
               const isDraftEntry = entry.id === "draft";
               const isActive = entry.id === activeEntryId || isDraftEntry;
-              const preview = extractPlainText(entry.content, partNodes);
-              const entryIsTextThread = isTextThread(entry.content || "");
+              // Get preview text - prefer contentText, fallback to extracting from contentJson
+              const preview = entry.contentText
+                ? entry.contentText.slice(0, 150) +
+                  (entry.contentText.length > 150 ? "..." : "")
+                : extractPlainText(entry.content || "", partNodes); // Legacy fallback
+
+              // Determine if entry is text thread
+              const contentJsonToCheck = entry.contentJson
+                ? typeof entry.contentJson === "string"
+                  ? entry.contentJson
+                  : JSON.stringify(entry.contentJson)
+                : entry.content; // Legacy fallback
+              const entryIsTextThread = isTextThread(contentJsonToCheck || "");
 
               // Calculate word and character counts
               const wordCount = entryIsTextThread
@@ -2273,8 +2348,23 @@ export default function JournalDrawer() {
                       </div>
                     ) : journalMode === "textThread" && !isImpressionJournal ? (
                       <TextThreadEditor
-                        content={journalData}
-                        onContentChange={setJournalData}
+                        content={journalDataJson || "[]"}
+                        onContentChange={(jsonString) => {
+                          // TextThreadEditor returns JSON array string
+                          // Extract text from the array for contentText
+                          try {
+                            const parsed = JSON.parse(jsonString);
+                            const text = Array.isArray(parsed)
+                              ? parsed
+                                  .map((msg: any) => msg.text || "")
+                                  .join(" ")
+                                  .trim()
+                              : "";
+                            setJournalData({ json: jsonString, text });
+                          } catch {
+                            setJournalData({ json: jsonString, text: "" });
+                          }
+                        }}
                         partNodes={partNodes}
                         allPartNodes={allPartNodes}
                         nodeId={nodeId}
@@ -2283,7 +2373,7 @@ export default function JournalDrawer() {
                     ) : (
                       <JournalEditor
                         key={activeEntryId || "new-entry"}
-                        content={journalData}
+                        contentJson={journalDataJson}
                         onContentChange={setJournalData}
                         nodeType={
                           nodeType as
@@ -2293,14 +2383,6 @@ export default function JournalDrawer() {
                             | "interaction"
                             | undefined
                         }
-                        selectedSpeakers={speakersArray}
-                        activeSpeaker={activeSpeaker}
-                        onToggleSpeaker={(id) => {
-                          toggleSpeaker(id);
-                        }}
-                        partNodes={partNodes}
-                        allPartNodes={allPartNodes}
-                        nodeId={nodeId}
                       />
                     )}
                   </div>

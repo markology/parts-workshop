@@ -7,14 +7,16 @@ export const useSaveJournalEntry = () => {
   return useMutation({
     mutationFn: async ({
       nodeId,
-      content,
+      contentJson,
+      contentText,
       title,
       entryId,
       createNewVersion,
       speakers,
     }: {
       nodeId?: string;
-      content: string;
+      contentJson: string; // Lexical JSON string
+      contentText?: string; // Plain text (optional, computed if missing)
       title?: string;
       entryId?: string;
       createNewVersion?: boolean;
@@ -27,7 +29,8 @@ export const useSaveJournalEntry = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content,
+          contentJson,
+          contentText,
           title,
           entryId,
           createNewVersion,

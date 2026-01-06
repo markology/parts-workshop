@@ -36,10 +36,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       case "POST":
         // Create a new journal entry for a part
-        const { title, content } = req.body;
+        const { title, contentJson, contentText } = req.body;
 
-        if (!content || content.trim().length === 0) {
-          return res.status(400).json({ error: "Content is required" });
+        if (!contentJson || typeof contentJson !== "string") {
+          return res.status(400).json({ error: "contentJson is required (string)" });
+        }
+
+        // Parse and validate JSON
+        let parsedJson: any;
+        try {
+          parsedJson = JSON.parse(contentJson);
+        } catch (error) {
+          return res.status(400).json({ error: "contentJson must be valid JSON string" });
+        }
+
+        // Extract text if not provided
+        let finalContentText = contentText;
+        if (!finalContentText && parsedJson?.root?.children) {
+          const extractTextFromNodes = (nodes: any[]): string => {
+            let text = "";
+            for (const node of nodes) {
+              if (node.type === "text") {
+                text += node.text || "";
+              } else if (node.children) {
+                text += extractTextFromNodes(node.children);
+              }
+            }
+            return text;
+          };
+          finalContentText = extractTextFromNodes(parsedJson.root.children);
         }
 
         // Verify the part belongs to the user
@@ -57,7 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const newEntry = await prisma.journalEntry.create({
           data: {
             title: title || `Journal Entry - ${part.name}`,
-            content: content,
+            contentJson: parsedJson,
+            contentText: finalContentText || "",
             partId: partId,
             userId: session.user.id,
           },
@@ -67,14 +93,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       case "PUT":
         // Update an existing journal entry
-        const { entryId, title: updateTitle, content: updateContent } = req.body;
+        const { entryId, title: updateTitle, contentJson, contentText } = req.body;
 
         if (!entryId) {
           return res.status(400).json({ error: "Entry ID is required" });
         }
 
-        if (!updateContent || updateContent.trim().length === 0) {
-          return res.status(400).json({ error: "Content is required" });
+        if (!contentJson || typeof contentJson !== "string") {
+          return res.status(400).json({ error: "contentJson is required (string)" });
+        }
+
+        // Parse and validate JSON
+        let parsedUpdateJson: any;
+        try {
+          parsedUpdateJson = JSON.parse(contentJson);
+        } catch (error) {
+          return res.status(400).json({ error: "contentJson must be valid JSON string" });
+        }
+
+        // Extract text if not provided
+        let finalUpdateContentText = contentText;
+        if (!finalUpdateContentText && parsedUpdateJson?.root?.children) {
+          const extractTextFromNodes = (nodes: any[]): string => {
+            let text = "";
+            for (const node of nodes) {
+              if (node.type === "text") {
+                text += node.text || "";
+              } else if (node.children) {
+                text += extractTextFromNodes(node.children);
+              }
+            }
+            return text;
+          };
+          finalUpdateContentText = extractTextFromNodes(parsedUpdateJson.root.children);
         }
 
         // Verify the entry belongs to the user and part
@@ -96,7 +147,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           data: {
             title: updateTitle,
-            content: updateContent,
+            contentJson: parsedUpdateJson,
+            contentText: finalUpdateContentText || "",
           },
         });
 

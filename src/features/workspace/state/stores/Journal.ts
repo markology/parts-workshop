@@ -13,26 +13,33 @@ type JournalTarget =
 type JournalStore = {
   isOpen: boolean;
   journalTarget: JournalTarget | null;
-  journalData: string;
-  lastSavedJournalData: string;
+  journalDataJson: string | null; // Lexical JSON (stringified SerializedEditorState)
+  journalDataText: string; // Plain text for preview/search
+  lastSavedJournalDataJson: string | null; // Last saved JSON for comparison
   activeEntryId: string | null;
   selectedSpeakers: string[]; // Array of part IDs or "self"
   openJournal: () => void;
   closeJournal: () => void;
   setJournalTarget: (target: JournalTarget) => void;
-  setJournalData: (data: string) => void;
-  setLastSavedJournalData: (data: string) => void;
+  setJournalData: (data: { json: string | null; text: string }) => void;
+  setLastSavedJournalData: (data: { json: string | null; text: string }) => void;
   setActiveEntryId: (entryId: string | null) => void;
   setSelectedSpeakers: (speakers: string[] | ((prev: string[]) => string[])) => void;
-  loadEntry: (payload: { entryId: string | null; content: string; speakers?: string[] }) => void;
+  loadEntry: (payload: { 
+    entryId: string | null; 
+    contentJson: string | null; 
+    contentText?: string;
+    speakers?: string[] 
+  }) => void;
   markJournalSaved: () => void;
 };
 
 export const useJournalStore = create<JournalStore>((set) => ({
   isOpen: false,
   journalTarget: null,
-  journalData: "",
-  lastSavedJournalData: "",
+  journalDataJson: null,
+  journalDataText: "",
+  lastSavedJournalDataJson: null,
   activeEntryId: null,
   selectedSpeakers: [],
 
@@ -40,15 +47,22 @@ export const useJournalStore = create<JournalStore>((set) => ({
   closeJournal: () =>
     set({
       isOpen: false,
-      journalData: "",
-      lastSavedJournalData: "",
+      journalDataJson: null,
+      journalDataText: "",
+      lastSavedJournalDataJson: null,
       journalTarget: null,
       activeEntryId: null,
       selectedSpeakers: [],
     }),
   setJournalTarget: (target) => set({ journalTarget: target, isOpen: true }),
-  setJournalData: (data) => set({ journalData: data }),
-  setLastSavedJournalData: (data) => set({ lastSavedJournalData: data }),
+  setJournalData: (data) => set({ 
+    journalDataJson: data.json, 
+    journalDataText: data.text 
+  }),
+  setLastSavedJournalData: (data) => set({ 
+    lastSavedJournalDataJson: data.json,
+    // Note: we don't track lastSavedText separately, just JSON
+  }),
   setActiveEntryId: (entryId) => set({ activeEntryId: entryId }),
   setSelectedSpeakers: (speakers) => {
     if (typeof speakers === 'function') {
@@ -57,12 +71,15 @@ export const useJournalStore = create<JournalStore>((set) => ({
       set({ selectedSpeakers: speakers });
     }
   },
-  loadEntry: ({ entryId, content, speakers }) =>
+  loadEntry: ({ entryId, contentJson, contentText, speakers }) =>
     set({
       activeEntryId: entryId,
-      journalData: content,
-      lastSavedJournalData: content,
+      journalDataJson: contentJson,
+      journalDataText: contentText || "",
+      lastSavedJournalDataJson: contentJson,
       selectedSpeakers: speakers || [],
     }),
-  markJournalSaved: () => set((s) => ({ lastSavedJournalData: s.journalData })),
+  markJournalSaved: () => set((s) => ({ 
+    lastSavedJournalDataJson: s.journalDataJson 
+  })),
 }));

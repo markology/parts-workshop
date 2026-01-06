@@ -44,7 +44,8 @@ export default async function handler(
         data: {
           userId,
           nodeId,
-          content: "",
+          contentJson: null,
+          contentText: "",
         },
       });
 
@@ -54,10 +55,38 @@ export default async function handler(
     return res.json(entries[0]);
   }
   if (req.method === "POST") {
-    const { content, title, entryId, createNewVersion } = req.body ?? {};
+    // Accept contentJson (required) and contentText (optional, computed if missing)
+    const { contentJson, contentText, title, entryId, createNewVersion } = req.body ?? {};
 
-    if (typeof content !== "string") {
-      return res.status(400).json({ error: "Content is required" });
+    if (typeof contentJson !== "string") {
+      return res.status(400).json({ error: "contentJson is required (string)" });
+    }
+
+    // Parse contentJson to validate it's valid JSON and extract text if contentText not provided
+    let parsedJson: any;
+    try {
+      parsedJson = JSON.parse(contentJson);
+    } catch (error) {
+      return res.status(400).json({ error: "contentJson must be valid JSON string" });
+    }
+
+    // Use provided contentText or extract from JSON (fallback)
+    let finalContentText = contentText;
+    if (!finalContentText && parsedJson?.root?.children) {
+      // Basic text extraction from Lexical JSON structure
+      // This is a fallback; ideally contentText should be provided by client
+      const extractTextFromNodes = (nodes: any[]): string => {
+        let text = "";
+        for (const node of nodes) {
+          if (node.type === "text") {
+            text += node.text || "";
+          } else if (node.children) {
+            text += extractTextFromNodes(node.children);
+          }
+        }
+        return text;
+      };
+      finalContentText = extractTextFromNodes(parsedJson.root.children);
     }
 
     const shouldCreateNew = createNewVersion || !entryId;
@@ -74,7 +103,8 @@ export default async function handler(
       const entry = await prisma.journalEntry.update({
         where: { id: entryId },
         data: {
-          content,
+          contentJson: parsedJson,
+          contentText: finalContentText || "",
           title: typeof title === "string" ? title : undefined,
           speakers: Array.isArray(req.body.speakers) ? req.body.speakers : undefined,
         },
@@ -87,7 +117,8 @@ export default async function handler(
       data: {
         userId,
         nodeId,
-        content,
+        contentJson: parsedJson,
+        contentText: finalContentText || "",
         title: typeof title === "string" ? title : null,
         speakers: Array.isArray(req.body.speakers) ? req.body.speakers : [],
       },

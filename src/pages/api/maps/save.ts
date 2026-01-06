@@ -51,7 +51,45 @@ export default async function handler(
       // ✅ Save Journal Entries if provided
       if (Array.isArray(journalEntries)) {
         for (const entry of journalEntries) {
-          if (!entry.content || entry.content.trim() === "") continue;
+          // Accept either contentJson (preferred) or content (legacy)
+          const contentJson = entry.contentJson || entry.content;
+          if (!contentJson || (typeof contentJson === "string" && contentJson.trim() === "")) {
+            continue;
+          }
+
+          // Parse JSON if it's a string, otherwise use as-is
+          let parsedJson: any;
+          let contentText: string = "";
+
+          if (typeof contentJson === "string") {
+            try {
+              parsedJson = JSON.parse(contentJson);
+            } catch (error) {
+              // If parsing fails, might be legacy HTML - skip for now or handle migration
+              console.warn("Maps save: Invalid JSON in journal entry, skipping", error);
+              continue;
+            }
+          } else {
+            parsedJson = contentJson;
+          }
+
+          // Extract text if available
+          if (entry.contentText) {
+            contentText = entry.contentText;
+          } else if (parsedJson?.root?.children) {
+            const extractTextFromNodes = (nodes: any[]): string => {
+              let text = "";
+              for (const node of nodes) {
+                if (node.type === "text") {
+                  text += node.text || "";
+                } else if (node.children) {
+                  text += extractTextFromNodes(node.children);
+                }
+              }
+              return text;
+            };
+            contentText = extractTextFromNodes(parsedJson.root.children);
+          }
 
           // First try to find an existing entry
           const existingEntry = await prisma.journalEntry.findFirst({
@@ -66,7 +104,8 @@ export default async function handler(
             await prisma.journalEntry.update({
               where: { id: existingEntry.id },
               data: {
-                content: entry.content,
+                contentJson: parsedJson,
+                contentText: contentText,
                 updatedAt: new Date(),
               },
             });
@@ -76,7 +115,8 @@ export default async function handler(
               data: {
                 userId,
                 nodeId: entry.nodeId ?? null,
-                content: entry.content,
+                contentJson: parsedJson,
+                contentText: contentText,
               },
             });
           }

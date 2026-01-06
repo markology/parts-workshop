@@ -26,6 +26,9 @@ importers:
       '@lexical/selection':
         specifier: ^0.38.2
         version: 0.38.2
+      '@lexical/utils':
+        specifier: ^0.38.2
+        version: 0.38.2
       '@mui/material':
         specifier: ^7.0.2
         version: 7.3.2(@emotion/react@11.14.0(@types/react@19.1.15)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.15)(react@19.1.1))(@types/react@19.1.15)(react@19.1.1))(@types/react@19.1.15)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -3629,11 +3632,6 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
-
-  prettier@3.6.2:
-    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
-    engines: {node: '>=14'}
-    hasBin: true
 
   prettier@3.7.4:
     resolution: {integrity: sha512-v6UNi1+3hSlVvv8fSaoUbggEM5VErKmmpGA7Pl3HF8V6uKY7rvClBOJlH6yNwQtfTueNkGVpOv/mtWL9L4bgRA==}
@@ -7602,7 +7600,7 @@ snapshots:
       js-yaml: 4.1.0
       lodash: 4.17.21
       minimist: 1.2.8
-      prettier: 3.6.2
+      prettier: 3.7.4
       tinyglobby: 0.2.15
 
   json-schema-traverse@0.4.1: {}
@@ -8351,8 +8349,6 @@ snapshots:
   preact@10.27.2: {}
 
   prelude-ls@1.2.1: {}
-
-  prettier@3.6.2: {}
 
   prettier@3.7.4: {}
 

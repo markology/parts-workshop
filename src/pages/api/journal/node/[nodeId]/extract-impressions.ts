@@ -66,6 +66,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const targetNode = nodes.find((n: any) => n.id === nodeId);
     const nodeName = (targetNode as any)?.data?.name || (targetNode as any)?.data?.label || "Unknown";
 
+    // Use contentText for AI (cleaner, fewer tokens, better for meaning extraction)
+    // If contentText is missing, fall back to extracting from contentJson
+    let journalContent = journalEntry.contentText;
+    if (!journalContent && journalEntry.contentJson) {
+      // Fallback: extract text from JSON (shouldn't happen if contentText is always saved)
+      const { extractAiText } = await import("@/features/workspace/utils/extractAiText");
+      journalContent = extractAiText(journalEntry.contentJson);
+    }
+    // Last resort: use old content field (legacy)
+    if (!journalContent) {
+      journalContent = journalEntry.content || "";
+    }
+
     // Call the impression extraction API
     const extractionResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/ai/extract-impressions`, {
       method: "POST",
@@ -73,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        journalContent: journalEntry.content,
+        journalContent,
         partName: nodeName,
       }),
     });

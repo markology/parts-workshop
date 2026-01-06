@@ -1,3 +1,21 @@
+/**
+ * JournalEditor.tsx
+ *
+ * Clean, predictable Lexical editor with:
+ * - Bold / Italic / Underline (works correctly for mixed selections)
+ * - Bullet list toggle
+ * - Text color picker
+ * - JSON <-> Lexical state sync
+ * - Debounced onContentChange
+ *
+ * Key behavior:
+ * - Toolbar state is DERIVED from Lexical (selection + editor updates)
+ * - Formatting commands ONLY mutate Lexical (no setFormats inside editor.update)
+ * - Mixed selection formatting:
+ *    - if entire selection already has format -> remove it from selection
+ *    - else -> apply it only to segments missing it
+ */
+
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
@@ -5,7 +23,7 @@ import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { NodeBackgroundColors } from "../../constants/Nodes";
 
-// Lexical imports
+// Lexical React
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
@@ -14,21 +32,33 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 
+// Lexical core
 import {
   EditorState,
+  LexicalEditor,
+  LexicalNode,
+  TextNode,
+  $createParagraphNode,
+  $getRoot,
   $getSelection,
   $isRangeSelection,
-  $getRoot,
-  $createParagraphNode,
-  TextNode,
   $isTextNode,
-  LexicalNode,
+  SELECTION_CHANGE_COMMAND,
+  COMMAND_PRIORITY_LOW,
+  IS_BOLD,
+  IS_ITALIC,
+  IS_UNDERLINE,
 } from "lexical";
+
+import { mergeRegister } from "@lexical/utils";
+
 import {
   $patchStyleText,
   $getSelectionStyleValueForProperty,
 } from "@lexical/selection";
-import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
+
+import { $generateHtmlFromNodes } from "@lexical/html";
+
 import {
   ListNode,
   ListItemNode,
@@ -38,8 +68,8 @@ import {
 } from "@lexical/list";
 
 interface JournalEditorProps {
-  content: string;
-  onContentChange: (html: string) => void;
+  contentJson: string | null;
+  onContentChange: (data: { json: string; text: string }) => void;
   readOnly?: boolean;
   nodeType?: ImpressionType | "part" | "tension" | "interaction";
 }
@@ -54,180 +84,178 @@ const lexicalTheme = {
     underline: "underline",
   },
   list: {
-    nested: {
-      listitem: "list-none",
-    },
+    nested: { listitem: "list-none" },
     ol: "list-decimal",
     ul: "list-disc",
     listitem: "ml-4",
   },
 };
 
+export function exportEditorHtml(editor: LexicalEditor): string {
+  return editor
+    .getEditorState()
+    .read(() => $generateHtmlFromNodes(editor, null));
+}
+
+/* ----------------------------- Change Handler ----------------------------- */
+
 function ChangeHandler({
   onContentChange,
   readOnly,
   onClearFormatting,
+  isSyncingRef,
 }: {
-  onContentChange: (html: string) => void;
+  onContentChange: (data: { json: string; text: string }) => void;
   readOnly: boolean;
   onClearFormatting?: () => void;
+  isSyncingRef: React.MutableRefObject<boolean>;
 }) {
   const [editor] = useLexicalComposerContext();
   const previousTextContentRef = useRef<string>("");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
 
   return (
     <OnChangePlugin
       onChange={(editorState: EditorState) => {
         if (readOnly) return;
+        if (isSyncingRef.current) return; // prevent loops during external sync
+
         editorState.read(() => {
           const root = $getRoot();
           const textContent = root.getTextContent();
-          const htmlString = $generateHtmlFromNodes(editor, null);
 
-          // Check if editor is now empty (was not empty before)
           const wasNotEmpty = previousTextContentRef.current.trim().length > 0;
           const isNowEmpty = textContent.trim().length === 0;
 
           if (wasNotEmpty && isNowEmpty) {
-            // All text was deleted - clear all formatting by resetting to clean empty state
             editor.update(
               () => {
-                // Check if we're in a list and remove it
+                // Remove list formatting if cursor is currently in a list
                 const selection = $getSelection();
                 if ($isRangeSelection(selection)) {
-                  const anchor = selection.anchor;
-                  let node = anchor.getNode();
+                  let node: LexicalNode | null = selection.anchor.getNode();
                   while (node) {
                     if ($isListNode(node)) {
                       editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
                       break;
                     }
-                    const parent = node.getParent();
-                    if (!parent) break;
-                    node = parent;
+                    node = node.getParent();
                   }
                 }
 
-                // Clear the root and create a fresh empty paragraph with no formatting
+                // Reset to a clean empty paragraph
                 root.clear();
-                const parser = new DOMParser();
-                const dom = parser.parseFromString("<p></p>", "text/html");
-                const nodes = $generateNodesFromDOM(editor, dom);
-                root.append(...nodes);
+                root.append($createParagraphNode());
               },
               { discrete: true }
             );
 
-            // Notify parent to clear active color in toolbar
             onClearFormatting?.();
           }
 
           previousTextContentRef.current = textContent;
-          onContentChange(htmlString);
+
+          if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+          // debounceTimerRef.current = setTimeout(() => {
+          //   const json = JSON.stringify(editorState.toJSON());
+          //   onContentChange({ json, text: textContent });
+          // }, 300);
         });
       }}
     />
   );
 }
 
-// Plugin to apply default theme color when editor selection has no color style
-function DefaultColorPlugin({ defaultColor }: { defaultColor: string }) {
+/* ----------------------------- Content Sync ------------------------------ */
+
+function ContentSyncPlugin({
+  contentJson,
+  isSyncingRef,
+}: {
+  contentJson: string | null;
+  isSyncingRef: React.MutableRefObject<boolean>;
+}) {
   const [editor] = useLexicalComposerContext();
+  const previousContentRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Use update listener to ensure selection always has default color when no explicit color is set
-    return editor.registerUpdateListener(({ editorState }) => {
-      editorState.read(() => {
-        const selection = $getSelection();
-        if ($isRangeSelection(selection) && selection.isCollapsed()) {
-          // Check if current selection has no color style
-          const currentColor = $getSelectionStyleValueForProperty(
-            selection,
-            "color"
-          );
-          if (!currentColor) {
-            // Apply default color in a separate update to avoid read/write conflict
-            setTimeout(() => {
-              editor.update(() => {
-                const currentSelection = $getSelection();
-                if (
-                  $isRangeSelection(currentSelection) &&
-                  currentSelection.isCollapsed()
-                ) {
-                  const color = $getSelectionStyleValueForProperty(
-                    currentSelection,
-                    "color"
-                  );
-                  if (!color) {
-                    $patchStyleText(currentSelection, { color: defaultColor });
-                  }
-                }
-              });
-            }, 0);
-          }
-        }
+    if (isSyncingRef.current) return;
+    if (contentJson === previousContentRef.current) return;
+
+    const normalized =
+      contentJson && contentJson !== "null" && contentJson.trim() !== ""
+        ? contentJson
+        : null;
+
+    // If null/empty, ensure editor is empty (but avoid extra work if already empty)
+    if (!normalized) {
+      let alreadyEmpty = false;
+      editor.getEditorState().read(() => {
+        alreadyEmpty = $getRoot().getTextContent().trim().length === 0;
       });
-    });
-  }, [editor, defaultColor]);
+
+      previousContentRef.current = contentJson;
+      if (alreadyEmpty) return;
+
+      isSyncingRef.current = true;
+      editor.update(
+        () => {
+          const root = $getRoot();
+          root.clear();
+          root.append($createParagraphNode());
+        },
+        { discrete: true }
+      );
+      queueMicrotask(() => {
+        isSyncingRef.current = false;
+      });
+      return;
+    }
+
+    // Sync real JSON into editor
+    try {
+      isSyncingRef.current = true;
+      const nextState = editor.parseEditorState(normalized);
+      editor.setEditorState(nextState);
+    } catch (e) {
+      console.warn("ContentSyncPlugin: failed to parse editor state", e);
+      editor.update(
+        () => {
+          const root = $getRoot();
+          root.clear();
+          root.append($createParagraphNode());
+        },
+        { discrete: true }
+      );
+    } finally {
+      previousContentRef.current = contentJson;
+      queueMicrotask(() => {
+        isSyncingRef.current = false;
+      });
+    }
+  }, [contentJson, editor, isSyncingRef]);
 
   return null;
 }
 
-function ContentSyncPlugin({ content }: { content: string }) {
-  const [editor] = useLexicalComposerContext();
-  const previousContentRef = useRef<string>("");
-  const isUpdatingRef = useRef<boolean>(false);
+/* ------------------------------ Color Picker ------------------------------ */
 
-  useEffect(() => {
-    // Skip if we're already updating or content hasn't changed
-    if (isUpdatingRef.current || content === previousContentRef.current) return;
-
-    // Check if editor content already matches (prevents unnecessary updates)
-    let shouldUpdate = true;
-    editor.getEditorState().read(() => {
-      const currentHtml = $generateHtmlFromNodes(editor, null);
-      if (currentHtml === content || (currentHtml === "<p></p>" && !content)) {
-        shouldUpdate = false;
-        previousContentRef.current = content;
-      }
-    });
-
-    if (!shouldUpdate) return;
-
-    // Update editor with new content
-    isUpdatingRef.current = true;
-    editor.update(
-      () => {
-        const parser = new DOMParser();
-        const dom = parser.parseFromString(content || "<p></p>", "text/html");
-        const nodes = $generateNodesFromDOM(editor, dom);
-        const root = $getRoot();
-        root.clear();
-        root.append(...nodes);
-      },
-      { discrete: true }
-    );
-
-    // Reset flag after update completes
-    setTimeout(() => {
-      isUpdatingRef.current = false;
-      previousContentRef.current = content;
-    }, 0);
-  }, [content, editor]);
-
-  return null;
-}
-
-// Preset colors for quick selection
 const PRESET_COLORS = [
-  "#000000", // Black
-  "#FFFFFF", // White
-  "#EF4444", // Red
-  "#3B82F6", // Blue
-  "#10B981", // Green
-  "#F59E0B", // Yellow/Orange
-  "#8B5CF6", // Purple
-  "#EC4899", // Pink
+  "#000000",
+  "#FFFFFF",
+  "#EF4444",
+  "#3B82F6",
+  "#10B981",
+  "#F59E0B",
+  "#8B5CF6",
+  "#EC4899",
 ];
 
 function ColorPicker({
@@ -260,15 +288,8 @@ function ColorPicker({
     }
   }, [isOpen]);
 
-  const handleColorSelect = (color: string | null) => {
-    if (disabled) return;
-    onColorChange(color);
-    setIsOpen(false);
-  };
-
-  // Helper to determine if color is dark (needs white text)
   const isDarkColor = (color: string | null): boolean => {
-    if (!color) return true; // Default to dark
+    if (!color) return true;
     const hex = color.replace("#", "");
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
@@ -287,9 +308,7 @@ function ColorPicker({
         disabled={disabled}
         onMouseDown={(e) => {
           e.preventDefault();
-          if (!disabled) {
-            setIsOpen(!isOpen);
-          }
+          if (!disabled) setIsOpen((v) => !v);
         }}
         className="relative w-8 rounded-md transition-all duration-200"
         style={{
@@ -301,23 +320,11 @@ function ColorPicker({
           opacity: disabled ? 0.5 : 1,
           cursor: disabled ? "not-allowed" : "pointer",
         }}
-        onMouseEnter={(e) => {
-          if (!disabled && !isOpen) {
-            e.currentTarget.style.opacity = "0.9";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!disabled && !isOpen) {
-            e.currentTarget.style.opacity = "1";
-          }
-        }}
         title="Text Color"
       >
         <div className="absolute inset-0 flex items-center justify-center">
           <span
-            className={`text-xs font-semibold ${
-              needsWhiteText ? "text-white" : "text-slate-900"
-            }`}
+            className={`text-xs font-semibold ${needsWhiteText ? "text-white" : "text-slate-900"}`}
             style={{
               textShadow: needsWhiteText ? "0 1px 2px rgba(0,0,0,0.3)" : "none",
             }}
@@ -337,7 +344,8 @@ function ColorPicker({
                   type="button"
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    handleColorSelect(color);
+                    onColorChange(color);
+                    setIsOpen(false);
                   }}
                   className={`relative h-8 w-8 rounded-full border transition-all duration-150 ${
                     activeColor === color
@@ -351,16 +359,6 @@ function ColorPicker({
                         ? "var(--theme-accent)"
                         : "var(--theme-border)",
                   }}
-                  onMouseEnter={(e) => {
-                    if (activeColor !== color) {
-                      e.currentTarget.style.borderColor = "var(--theme-accent)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeColor !== color) {
-                      e.currentTarget.style.borderColor = "var(--theme-border)";
-                    }
-                  }}
                   title={color}
                 />
               ))}
@@ -371,7 +369,8 @@ function ColorPicker({
                 type="button"
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  handleColorSelect(null);
+                  onColorChange(null);
+                  setIsOpen(false);
                 }}
                 className="w-full rounded-md px-2.5 py-1.5 text-sm font-medium transition text-[var(--theme-text-primary)]"
                 onMouseEnter={(e) => {
@@ -392,6 +391,91 @@ function ColorPicker({
   );
 }
 
+/* --------------------------- Formatting Helpers --------------------------- */
+
+type Format = "bold" | "italic" | "underline";
+
+const FORMAT_FLAG: Record<Format, number> = {
+  bold: IS_BOLD,
+  italic: IS_ITALIC,
+  underline: IS_UNDERLINE,
+};
+
+function addFormat(node: TextNode, format: Format) {
+  const flag = FORMAT_FLAG[format];
+  node.setFormat(node.getFormat() | flag);
+}
+
+function removeFormat(node: TextNode, format: Format) {
+  const flag = FORMAT_FLAG[format];
+  node.setFormat(node.getFormat() & ~flag);
+}
+
+/**
+ * Split partially-selected boundary text nodes so formatting applies ONLY
+ * to the highlighted characters (not outside the selection).
+ */
+function getSelectedTextNodes(selection: any): TextNode[] {
+  const isBackward = selection.isBackward();
+  const startPoint = isBackward ? selection.focus : selection.anchor;
+  const endPoint = isBackward ? selection.anchor : selection.focus;
+
+  const startNode = startPoint.getNode();
+  const endNode = endPoint.getNode();
+
+  const sizeOf = (n: TextNode) => n.getTextContentSize();
+
+  if ($isTextNode(startNode) && $isTextNode(endNode)) {
+    if (startNode === endNode) {
+      const a = Math.min(startPoint.offset, endPoint.offset);
+      const b = Math.max(startPoint.offset, endPoint.offset);
+      if (a !== 0 || b !== sizeOf(startNode)) {
+        startNode.splitText(a, b);
+      }
+    } else {
+      const startOffset = startPoint.offset;
+      if (startOffset !== 0 && startOffset !== sizeOf(startNode)) {
+        startNode.splitText(startOffset);
+      }
+
+      const endOffset = endPoint.offset;
+      if (endOffset !== 0 && endOffset !== sizeOf(endNode)) {
+        endNode.splitText(endOffset);
+      }
+    }
+  }
+
+  return selection.getNodes().filter($isTextNode) as TextNode[];
+}
+
+function toggleFormatUniform(editor: LexicalEditor, format: Format) {
+  editor.update(() => {
+    const selection = $getSelection();
+    if (!$isRangeSelection(selection)) return;
+
+    // Cursor: Lexical toggle is correct
+    if (selection.isCollapsed()) {
+      selection.formatText(format);
+      return;
+    }
+
+    // Range: "uniform toggle"
+    const textNodes = getSelectedTextNodes(selection);
+    if (textNodes.length === 0) return;
+
+    const allHave = textNodes.every((n) => n.hasFormat(format));
+    if (allHave) {
+      textNodes.forEach((n) => removeFormat(n, format));
+    } else {
+      textNodes.forEach((n) => {
+        if (!n.hasFormat(format)) addFormat(n, format);
+      });
+    }
+  });
+}
+
+/* -------------------------------- Toolbar -------------------------------- */
+
 function Toolbar({
   activeColor,
   setActiveColor,
@@ -400,6 +484,8 @@ function Toolbar({
   setActiveColor: (color: string | null) => void;
 }) {
   const [editor] = useLexicalComposerContext();
+  const theme = useTheme();
+
   const [formats, setFormats] = useState({
     bold: false,
     italic: false,
@@ -407,196 +493,111 @@ function Toolbar({
     list: false,
   });
 
-  // Helper function to update formatting state from editor state
-  const updateFormattingFromEditorState = useCallback(
+  const readToolbarState = useCallback(
     (editorState: EditorState) => {
       editorState.read(() => {
         const selection = $getSelection();
-
-        if ($isRangeSelection(selection)) {
-          const anchorNode = selection.anchor.getNode();
-          // Check if caret/selection is in a list
-          const anchor = selection.anchor;
-          let inList = false;
-          let node = anchor.getNode();
-          while (node) {
-            if ($isListNode(node)) {
-              inList = true;
-              break;
-            }
-            const parent = node.getParent();
-            if (!parent) break;
-            node = parent;
-          }
-
-          const selectionStyleColor = $getSelectionStyleValueForProperty(
-            selection,
-            "color",
-            undefined
-          );
-
-          // Read color from text node if available
-          let effectiveColor: string | null = null;
-
-          const readColorFromStyleString = (
-            style: string | null | undefined
-          ) => {
-            if (!style) return null;
-            const match = style.match(
-              /(?:^|;)\s*color\s*:\s*([^;]+)\s*(?:;|$)/i
-            );
-            return match?.[1]?.trim() ?? null;
-          };
-
-          if (selection.isCollapsed()) {
-            // Try the node the caret is in.
-            if ($isTextNode(anchorNode)) {
-              const fromNode = readColorFromStyleString(anchorNode.getStyle());
-              if (fromNode) {
-                effectiveColor = fromNode;
-              }
-            }
-
-            // If caret is at an element boundary, check nearest text neighbors.
-            if (!effectiveColor) {
-              const tryNeighbor = (node: LexicalNode | null | undefined) => {
-                if ($isTextNode(node)) {
-                  return readColorFromStyleString(
-                    (node as TextNode).getStyle()
-                  );
-                }
-                return null;
-              };
-
-              const prev = (anchorNode as any)?.getPreviousSibling?.();
-              const next = (anchorNode as any)?.getNextSibling?.();
-              const fromPrev = tryNeighbor(prev);
-              const fromNext = tryNeighbor(next);
-              if (fromPrev) {
-                effectiveColor = fromPrev;
-              } else if (fromNext) {
-                effectiveColor = fromNext;
-              }
-            }
-          }
-
-          if (!effectiveColor) {
-            effectiveColor = selectionStyleColor ?? null;
-          }
-
-          // Compute effective formats
-          let effectiveBold = selection.hasFormat("bold");
-          let effectiveItalic = selection.hasFormat("italic");
-          let effectiveUnderline = selection.hasFormat("underline");
-
-          if (selection.isCollapsed()) {
-            const readFormatsFromNode = (
-              node: LexicalNode | null | undefined
-            ) => {
-              if (!$isTextNode(node)) return null;
-              const t = node as TextNode;
-              return {
-                bold: t.hasFormat("bold"),
-                italic: t.hasFormat("italic"),
-                underline: t.hasFormat("underline"),
-              };
-            };
-
-            const fromAnchor = readFormatsFromNode(anchorNode);
-            if (fromAnchor) {
-              effectiveBold = fromAnchor.bold;
-              effectiveItalic = fromAnchor.italic;
-              effectiveUnderline = fromAnchor.underline;
-            } else {
-              const prev = anchorNode.getPreviousSibling();
-              const next = anchorNode.getNextSibling();
-              const fromPrev = readFormatsFromNode(prev);
-              const fromNext = readFormatsFromNode(next);
-              if (fromPrev) {
-                effectiveBold = fromPrev.bold;
-                effectiveItalic = fromPrev.italic;
-                effectiveUnderline = fromPrev.underline;
-              } else if (fromNext) {
-                effectiveBold = fromNext.bold;
-                effectiveItalic = fromNext.italic;
-                effectiveUnderline = fromNext.underline;
-              }
-            }
-          }
-
-          setFormats({
-            bold: effectiveBold,
-            italic: effectiveItalic,
-            underline: effectiveUnderline,
-            list: inList,
-          });
-
-          setActiveColor(effectiveColor || null);
-        } else {
-          // No selection: reset formats
+        if (!$isRangeSelection(selection)) {
           setFormats({
             bold: false,
             italic: false,
             underline: false,
             list: false,
           });
+          return;
         }
+
+        // list
+        let inList = false;
+        let node: LexicalNode | null = selection.anchor.getNode();
+        while (node) {
+          if ($isListNode(node)) {
+            inList = true;
+            break;
+          }
+          node = node.getParent();
+        }
+
+        // formats
+        let bold = selection.hasFormat("bold");
+        let italic = selection.hasFormat("italic");
+        let underline = selection.hasFormat("underline");
+
+        // For a range selection, make button "active" only if ALL selected text is formatted
+        if (!selection.isCollapsed()) {
+          const textNodes = selection
+            .getNodes()
+            .filter($isTextNode) as TextNode[];
+          if (textNodes.length > 0) {
+            bold = textNodes.every((n) => n.hasFormat("bold"));
+            italic = textNodes.every((n) => n.hasFormat("italic"));
+            underline = textNodes.every((n) => n.hasFormat("underline"));
+          }
+        }
+
+        setFormats({ bold, italic, underline, list: inList });
+
+        // color indicator (selection style is the least surprising)
+        const selectionStyleColor = $getSelectionStyleValueForProperty(
+          selection,
+          "color",
+          undefined
+        );
+        setActiveColor(selectionStyleColor ?? null);
       });
     },
     [setActiveColor]
   );
 
-  // Listen for editor state updates
+  // Keep toolbar synced (selection changes + editor updates)
   useEffect(() => {
-    return editor.registerUpdateListener(({ editorState }) => {
-      setTimeout(() => {
-        const latestState = editor.getEditorState();
-        updateFormattingFromEditorState(latestState);
-      }, 0);
-    });
-  }, [editor, updateFormattingFromEditorState]);
+    const sync = () => readToolbarState(editor.getEditorState());
 
-  const formatText = (format: "bold" | "italic" | "underline") => {
-    editor.update(() => {
-      const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        selection.formatText(format);
-      }
-    });
-  };
+    // initial sync
+    sync();
+
+    return mergeRegister(
+      editor.registerCommand(
+        SELECTION_CHANGE_COMMAND,
+        () => {
+          sync();
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerUpdateListener(({ editorState }) => {
+        readToolbarState(editorState);
+      })
+    );
+  }, [editor, readToolbarState]);
 
   const toggleList = () => {
     editor.update(() => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
 
-      const anchor = selection.anchor;
-      let node = anchor.getNode();
+      let node: LexicalNode | null = selection.anchor.getNode();
       while (node) {
         if ($isListNode(node)) {
           editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
           return;
         }
-        const parent = node.getParent();
-        if (!parent) break;
-        node = parent;
+        node = node.getParent();
       }
+
       editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
     });
   };
 
-  const theme = useTheme();
   const applyColor = (color: string | null) => {
     editor.update(() => {
       const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        // When color is null, use theme text color as default
-        const styles = color ? { color } : { color: theme.textPrimary };
-        $patchStyleText(selection, styles);
-      }
+      if (!$isRangeSelection(selection)) return;
+      const styles = color ? { color } : { color: theme.textPrimary };
+      $patchStyleText(selection, styles);
     });
 
-    // Always update the toolbar indicator, even if no selection (empty editor)
+    // update indicator immediately (listeners will also update it)
     setActiveColor(color);
   };
 
@@ -623,24 +624,12 @@ function Toolbar({
         type="button"
         onMouseDown={(e) => {
           e.preventDefault();
-          formatText("bold");
+          toggleFormatUniform(editor, "bold");
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.bold),
           transition: "none !important",
-        }}
-        onMouseEnter={(e) => {
-          if (!formats.bold) {
-            e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
-            e.currentTarget.style.color = "var(--theme-text-primary)";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!formats.bold) {
-            e.currentTarget.style.backgroundColor = "transparent";
-            e.currentTarget.style.color = "var(--theme-text-secondary)";
-          }
         }}
         title="Bold"
       >
@@ -651,24 +640,12 @@ function Toolbar({
         type="button"
         onMouseDown={(e) => {
           e.preventDefault();
-          formatText("italic");
+          toggleFormatUniform(editor, "italic");
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.italic),
           transition: "none !important",
-        }}
-        onMouseEnter={(e) => {
-          if (!formats.italic) {
-            e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
-            e.currentTarget.style.color = "var(--theme-text-primary)";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!formats.italic) {
-            e.currentTarget.style.backgroundColor = "transparent";
-            e.currentTarget.style.color = "var(--theme-text-secondary)";
-          }
         }}
         title="Italic"
       >
@@ -679,24 +656,12 @@ function Toolbar({
         type="button"
         onMouseDown={(e) => {
           e.preventDefault();
-          formatText("underline");
+          toggleFormatUniform(editor, "underline");
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.underline),
           transition: "none !important",
-        }}
-        onMouseEnter={(e) => {
-          if (!formats.underline) {
-            e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
-            e.currentTarget.style.color = "var(--theme-text-primary)";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!formats.underline) {
-            e.currentTarget.style.backgroundColor = "transparent";
-            e.currentTarget.style.color = "var(--theme-text-secondary)";
-          }
         }}
         title="Underline"
       >
@@ -714,18 +679,6 @@ function Toolbar({
           ...activeButtonStyle(formats.list),
           transition: "none !important",
         }}
-        onMouseEnter={(e) => {
-          if (!formats.list) {
-            e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
-            e.currentTarget.style.color = "var(--theme-text-primary)";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!formats.list) {
-            e.currentTarget.style.backgroundColor = "transparent";
-            e.currentTarget.style.color = "var(--theme-text-secondary)";
-          }
-        }}
         title="Bullet List"
       >
         • List
@@ -742,8 +695,10 @@ function Toolbar({
   );
 }
 
+/* ------------------------------ Main Editor ------------------------------ */
+
 export default function JournalEditor({
-  content,
+  contentJson,
   onContentChange,
   readOnly = false,
   nodeType,
@@ -759,6 +714,9 @@ export default function JournalEditor({
       NodeBackgroundColors.default
     );
   }, [nodeType]);
+
+  // Shared flag to prevent ContentSync -> ChangeHandler -> parent loop
+  const isSyncingRef = useRef(false);
 
   const initialConfig = {
     namespace: "JournalEditor",
@@ -777,15 +735,13 @@ export default function JournalEditor({
         {!readOnly && (
           <Toolbar activeColor={activeColor} setActiveColor={setActiveColor} />
         )}
+
         <div className="relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex border-[var(--theme-border)] bg-[var(--theme-surface)]">
           <div className="flex-1 relative overflow-hidden">
             <style
               dangerouslySetInnerHTML={{
                 __html: `
-              /* Override prose default text color - only apply to elements without inline color style */
-              .prose {
-                color: var(--theme-text-primary);
-              }
+              .prose { color: var(--theme-text-primary); }
               .prose p:not([style*="color"]), 
               .prose li:not([style*="color"]), 
               .prose span:not([style*="color"]), 
@@ -795,6 +751,7 @@ export default function JournalEditor({
             `,
               }}
             />
+
             <div className="h-full relative overflow-y-auto">
               <RichTextPlugin
                 contentEditable={
@@ -813,15 +770,19 @@ export default function JournalEditor({
                 }
                 ErrorBoundary={({ children }) => <>{children}</>}
               />
+
               <HistoryPlugin />
               <ListPlugin />
-              {!readOnly && (
-                <DefaultColorPlugin defaultColor={theme.textPrimary} />
-              )}
-              <ContentSyncPlugin content={content} />
+
+              <ContentSyncPlugin
+                contentJson={contentJson}
+                isSyncingRef={isSyncingRef}
+              />
+
               <ChangeHandler
                 onContentChange={onContentChange}
                 readOnly={readOnly}
+                isSyncingRef={isSyncingRef}
                 onClearFormatting={() => setActiveColor(null)}
               />
             </div>
