@@ -272,7 +272,6 @@ export default function JournalDrawer() {
 
   const targetNode = useMemo<WorkshopNode | null>(() => {
     if (!nodeId) {
-      console.log("JournalDrawer: No nodeId provided, skipping search");
       return null;
     }
 
@@ -481,7 +480,6 @@ export default function JournalDrawer() {
       // (This handles the case where user deletes all content from an existing entry)
 
       try {
-        console.log("💾 Saving journal entry with speakers:", speakersArray);
         // Only derive title if there's actual content
         const textContent = extractPlainText(journalData);
         const hasContent = textContent && textContent.trim().length > 0;
@@ -560,6 +558,9 @@ export default function JournalDrawer() {
     ]
   );
 
+  // new entry selected
+  // no journal mode selected (null)
+  // show mode selection
   const handleStartNewEntry = useCallback(() => {
     // Allow starting new entry freely - don't block
     // Reset mode and show mode selection modal
@@ -572,6 +573,8 @@ export default function JournalDrawer() {
     // Flag will be reset when mode is selected in handleModeSelect
   }, [loadEntry, isImpressionJournal]);
 
+  // handles which modes to display and which are selected
+  // ex: impression modals are always normal mode, so we don't need to show the mode selection modal
   const handleModeSelect = useCallback(
     (mode: "normal" | "textThread") => {
       // Prevent text thread mode for impressions
@@ -626,12 +629,6 @@ export default function JournalDrawer() {
       if (isImpressionJournal) {
         detectedMode = "normal";
       }
-      console.log(
-        "📖 Detected mode:",
-        detectedMode,
-        "Content length:",
-        content.length
-      );
       setJournalMode(detectedMode);
       setShowModeSelection(false); // Hide mode selection when loading an entry
       loadEntry({
@@ -1355,15 +1352,6 @@ export default function JournalDrawer() {
                           {partTypePill.icon}
                           {partType || "No type set"}
                         </span>
-                        {partData.needs && partData.needs.length > 0 && (
-                          <span
-                            className="text-xs"
-                            style={{ color: theme.textMuted }}
-                          >
-                            Needs: {partData.needs.slice(0, 2).join(", ")}
-                            {partData.needs.length > 2 ? "..." : ""}
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>
@@ -2308,10 +2296,6 @@ export default function JournalDrawer() {
                         selectedSpeakers={speakersArray}
                         activeSpeaker={activeSpeaker}
                         onToggleSpeaker={(id) => {
-                          console.log(
-                            "📞 onToggleSpeaker prop called with:",
-                            id
-                          );
                           toggleSpeaker(id);
                         }}
                         partNodes={partNodes}

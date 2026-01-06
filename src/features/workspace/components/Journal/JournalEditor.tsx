@@ -4,7 +4,6 @@ import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { NodeBackgroundColors } from "../../constants/Nodes";
-import { SquareUserRound, Plus, ChevronDown, X } from "lucide-react";
 
 // Lexical imports
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
@@ -20,15 +19,10 @@ import {
   $getSelection,
   $isRangeSelection,
   $getRoot,
-  $createTextNode,
   $createParagraphNode,
-  $insertNodes,
-  $createRangeSelection,
-  $setSelection,
   TextNode,
   $isTextNode,
   LexicalNode,
-  ElementNode,
 } from "lexical";
 import {
   $patchStyleText,
@@ -40,33 +34,14 @@ import {
   ListItemNode,
   INSERT_UNORDERED_LIST_COMMAND,
   REMOVE_LIST_COMMAND,
-  $handleListInsertParagraph,
-  $isListItemNode,
   $isListNode,
 } from "@lexical/list";
-import {
-  INSERT_PARAGRAPH_COMMAND,
-  KEY_ENTER_COMMAND,
-  KEY_BACKSPACE_COMMAND,
-  KEY_DELETE_COMMAND,
-} from "lexical";
-import {
-  SpeakerLineNode,
-  $createSpeakerLineNode,
-  $isSpeakerLineNode,
-} from "./SpeakerLineNode";
 
 interface JournalEditorProps {
   content: string;
   onContentChange: (html: string) => void;
   readOnly?: boolean;
   nodeType?: ImpressionType | "part" | "tension" | "interaction";
-  selectedSpeakers?: string[];
-  activeSpeaker?: string | null;
-  onToggleSpeaker?: (speakerId: string) => void;
-  partNodes?: Array<{ id: string; label: string }>;
-  allPartNodes?: Array<{ id: string; label: string }>;
-  nodeId?: string;
 }
 
 const PLACEHOLDER_TEXT = "Start writing your journal entry...";
@@ -134,38 +109,11 @@ function ChangeHandler({
                 }
 
                 // Clear the root and create a fresh empty paragraph with no formatting
-                // Use HTML parsing to ensure proper structure
                 root.clear();
                 const parser = new DOMParser();
                 const dom = parser.parseFromString("<p></p>", "text/html");
                 const nodes = $generateNodesFromDOM(editor, dom);
                 root.append(...nodes);
-
-                // Set selection to the new paragraph and clear any formatting
-                const firstChild = root.getFirstChild();
-                if (firstChild) {
-                  const rangeSelection = $createRangeSelection();
-                  rangeSelection.anchor.set(firstChild.getKey(), 0, "element");
-                  rangeSelection.focus.set(firstChild.getKey(), 0, "element");
-                  $setSelection(rangeSelection);
-
-                  // Clear all formatting from the selection (color, bold, italic, underline)
-                  const newSelection = $getSelection();
-                  if ($isRangeSelection(newSelection)) {
-                    // Remove color formatting
-                    $patchStyleText(newSelection, { color: null });
-                    // Remove text formats
-                    if (newSelection.hasFormat("bold")) {
-                      newSelection.formatText("bold");
-                    }
-                    if (newSelection.hasFormat("italic")) {
-                      newSelection.formatText("italic");
-                    }
-                    if (newSelection.hasFormat("underline")) {
-                      newSelection.formatText("underline");
-                    }
-                  }
-                }
               },
               { discrete: true }
             );
@@ -180,813 +128,6 @@ function ChangeHandler({
       }}
     />
   );
-}
-
-function SpeakerLineEnterPlugin({
-  getSpeakerColor,
-}: {
-  getSpeakerColor: (speakerId: string) => string;
-}) {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
-    const enterUnregister = editor.registerCommand(
-      KEY_ENTER_COMMAND,
-      (event: KeyboardEvent | null) => {
-        const selection = $getSelection();
-        if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
-          return false;
-        }
-
-        const anchorNode = selection.anchor.getNode();
-        let currentNode: LexicalNode | null = anchorNode;
-        let speakerLine: SpeakerLineNode | null = null;
-
-        // Walk up to find SpeakerLineNode
-        while (currentNode) {
-          if ($isSpeakerLineNode(currentNode)) {
-            speakerLine = currentNode;
-            break;
-          }
-          currentNode = currentNode.getParent();
-        }
-
-        if (speakerLine) {
-          const speakerId = speakerLine.getSpeakerId();
-          if (speakerId) {
-            // Create new SpeakerLineNode with same speaker and apply color
-            editor.update(() => {
-              const newSpeakerLine = $createSpeakerLineNode(speakerId);
-              speakerLine.insertAfter(newSpeakerLine);
-
-              // Move selection to new line
-              const rangeSelection = $createRangeSelection();
-              rangeSelection.anchor.set(newSpeakerLine.getKey(), 0, "element");
-              rangeSelection.focus.set(newSpeakerLine.getKey(), 0, "element");
-              $setSelection(rangeSelection);
-
-              // Apply speaker color to future typing
-              const speakerColor = getSpeakerColor(speakerId);
-              $patchStyleText(rangeSelection, { color: speakerColor });
-            });
-
-            if (event) {
-              event.preventDefault();
-            }
-            return true;
-          }
-        }
-
-        return false;
-      },
-      1 // Priority: higher than default
-    );
-
-    // Handle backspace/delete to remove entire SpeakerLineNode when trying to delete the label
-    const backspaceUnregister = editor.registerCommand(
-      KEY_BACKSPACE_COMMAND,
-      (event: KeyboardEvent | null) => {
-        const selection = $getSelection();
-        if (!$isRangeSelection(selection)) {
-          return false;
-        }
-
-        console.log(
-          "[BACKSPACE] Handler called, collapsed:",
-          selection.isCollapsed()
-        );
-
-        // If selection includes the label or we're at the start of content, delete entire SpeakerLineNode
-        if (selection.isCollapsed()) {
-          const anchorNode = selection.anchor.getNode();
-          const offset = selection.anchor.offset;
-
-          if ($isTextNode(anchorNode)) {
-            const parent = anchorNode.getParent();
-            if ($isSpeakerLineNode(parent)) {
-              const children = parent.getChildren();
-              const firstChild = children[0];
-
-              // Check if the first child is actually a label node (has bold format)
-              const isLabelNode =
-                firstChild &&
-                $isTextNode(firstChild) &&
-                firstChild.hasFormat("bold");
-
-              if (isLabelNode) {
-                // There is a label node - check if we're in it or at the start of the content node
-                const labelNode = firstChild;
-                const contentNode = children[1];
-
-                // Only delete entire line if we're in the label node OR at the very start of the content node
-                if (anchorNode === labelNode) {
-                  // We're in the label node itself - delete entire line
-                  editor.update(() => {
-                    const newParagraph = $createParagraphNode();
-                    parent.replace(newParagraph);
-                    const rangeSelection = $createRangeSelection();
-                    rangeSelection.anchor.set(
-                      newParagraph.getKey(),
-                      0,
-                      "element"
-                    );
-                    rangeSelection.focus.set(
-                      newParagraph.getKey(),
-                      0,
-                      "element"
-                    );
-                    $setSelection(rangeSelection);
-                  });
-
-                  if (event) {
-                    event.preventDefault();
-                  }
-                  return true;
-                }
-
-                // If we're at offset 0 of the content node (right after label), delete entire line
-                if (anchorNode === contentNode && offset === 0) {
-                  editor.update(() => {
-                    const newParagraph = $createParagraphNode();
-                    parent.replace(newParagraph);
-                    const rangeSelection = $createRangeSelection();
-                    rangeSelection.anchor.set(
-                      newParagraph.getKey(),
-                      0,
-                      "element"
-                    );
-                    rangeSelection.focus.set(
-                      newParagraph.getKey(),
-                      0,
-                      "element"
-                    );
-                    $setSelection(rangeSelection);
-                  });
-
-                  if (event) {
-                    event.preventDefault();
-                  }
-                  return true;
-                }
-              }
-              // If there's no label node, don't intercept backspace - let it work normally
-            }
-          }
-        } else {
-          // Selection is not collapsed - check if selection includes any part of a pill label
-          // If it does, delete the entire speaker line(s) that contain the label(s)
-          const anchorNode = selection.anchor.getNode();
-          const focusNode = selection.focus.getNode();
-
-          // Get all nodes in the selection to check if any label is included
-          const nodes = selection.getNodes();
-          console.log("[PILL-DELETE] Selection nodes:", nodes.length);
-
-          // Track all speaker lines that have their labels in the selection
-          const speakerLinesToDelete = new Set<SpeakerLineNode>();
-
-          // Check each node in the selection to see if it's a label node
-          for (const node of nodes) {
-            if ($isTextNode(node) && node.hasFormat("bold")) {
-              const parent = node.getParent();
-              if ($isSpeakerLineNode(parent)) {
-                const children = parent.getChildren();
-                const firstChild = children[0];
-
-                // Check if this node is the first child (the label)
-                if (
-                  firstChild === node &&
-                  $isTextNode(firstChild) &&
-                  firstChild.hasFormat("bold")
-                ) {
-                  speakerLinesToDelete.add(parent);
-                }
-              }
-            }
-          }
-
-          // Also check anchor and focus nodes directly (they might not be in getNodes if selection is within a single node)
-          let anchorSpeakerLine: SpeakerLineNode | null = null;
-          let focusSpeakerLine: SpeakerLineNode | null = null;
-
-          let currentNode: LexicalNode | null = anchorNode;
-          while (currentNode) {
-            if ($isSpeakerLineNode(currentNode)) {
-              anchorSpeakerLine = currentNode;
-              break;
-            }
-            currentNode = currentNode.getParent();
-          }
-
-          currentNode = focusNode;
-          while (currentNode) {
-            if ($isSpeakerLineNode(currentNode)) {
-              focusSpeakerLine = currentNode;
-              break;
-            }
-            currentNode = currentNode.getParent();
-          }
-
-          // Check if anchor or focus is in a label node
-          if (anchorSpeakerLine) {
-            const children = anchorSpeakerLine.getChildren();
-            const firstChild = children[0];
-            if (
-              firstChild &&
-              $isTextNode(firstChild) &&
-              firstChild.hasFormat("bold") &&
-              $isTextNode(anchorNode) &&
-              anchorNode === firstChild
-            ) {
-              speakerLinesToDelete.add(anchorSpeakerLine);
-            }
-          }
-
-          if (focusSpeakerLine) {
-            const children = focusSpeakerLine.getChildren();
-            const firstChild = children[0];
-            if (
-              firstChild &&
-              $isTextNode(firstChild) &&
-              firstChild.hasFormat("bold") &&
-              $isTextNode(focusNode) &&
-              focusNode === firstChild
-            ) {
-              speakerLinesToDelete.add(focusSpeakerLine);
-            }
-          }
-
-          console.log(
-            "[PILL-DELETE] Speaker lines to delete:",
-            Array.from(speakerLinesToDelete).map((sl) => sl.getSpeakerId())
-          );
-
-          // If any speaker lines with labels are in the selection, delete all of them
-          if (speakerLinesToDelete.size > 0) {
-            console.log(
-              "[PILL-DELETE] ✓ Intercepting - deleting",
-              speakerLinesToDelete.size,
-              "pill(s)"
-            );
-            editor.update(() => {
-              // Find where to position cursor BEFORE deleting - find the node before the first deleted pill
-              const root = $getRoot();
-              const rootChildrenBeforeDelete = root.getChildren();
-              const deletedSpeakerLineKeys = new Set(
-                Array.from(speakerLinesToDelete).map((sl) => sl.getKey())
-              );
-
-              // Find the index of the first deleted speaker line
-              let firstDeletedIndex = -1;
-              for (let i = 0; i < rootChildrenBeforeDelete.length; i++) {
-                if (
-                  deletedSpeakerLineKeys.has(
-                    rootChildrenBeforeDelete[i].getKey()
-                  )
-                ) {
-                  firstDeletedIndex = i;
-                  break;
-                }
-              }
-
-              // Store the previous node BEFORE deletion (we'll use this to position cursor after deletion)
-              let previousNodeBeforeDelete: LexicalNode | null = null;
-              if (firstDeletedIndex > 0) {
-                previousNodeBeforeDelete =
-                  rootChildrenBeforeDelete[firstDeletedIndex - 1];
-              }
-
-              // Get all nodes in the selection BEFORE we modify anything
-              const originalSelectedNodes = Array.from(selection.getNodes());
-              const replacementParagraphs: ReturnType<
-                typeof $createParagraphNode
-              >[] = [];
-
-              // Replace all speaker lines that have labels in the selection with empty paragraphs
-              for (const speakerLine of speakerLinesToDelete) {
-                const newParagraph = $createParagraphNode();
-                speakerLine.replace(newParagraph);
-                replacementParagraphs.push(newParagraph);
-              }
-
-              // Delete all originally selected nodes
-              // First collect what needs to be removed
-              const elementNodesToRemove: LexicalNode[] = [];
-
-              for (const node of originalSelectedNodes) {
-                if ($isTextNode(node)) {
-                  // For text nodes, just remove the node (which deletes its content)
-                  if (node.getParent()) {
-                    node.remove();
-                  }
-                } else {
-                  // Collect element nodes to remove
-                  if (!node.getParent()) {
-                    continue; // Already removed
-                  }
-                  if ($isSpeakerLineNode(node)) {
-                    continue; // Already replaced
-                  }
-                  elementNodesToRemove.push(node);
-                }
-              }
-
-              // Remove the element nodes
-              for (const node of elementNodesToRemove) {
-                node.remove();
-              }
-
-              // Also delete the replacement paragraphs we created
-              for (const replacementParagraph of replacementParagraphs) {
-                if (replacementParagraph.getParent()) {
-                  replacementParagraph.remove();
-                }
-              }
-
-              // Now find where to position the cursor - at the end of the node that was before the deleted section
-              let targetNode: LexicalNode | null = null;
-              let targetOffset = 0;
-
-              if (previousNodeBeforeDelete) {
-                // Find this node in the tree after deletions (by key)
-                const targetKey = previousNodeBeforeDelete.getKey();
-                const rootChildrenAfterDelete = root.getChildren();
-
-                // Find the node with this key
-                for (const child of rootChildrenAfterDelete) {
-                  if (child.getKey() === targetKey) {
-                    targetNode = child;
-                    break;
-                  }
-                }
-
-                // If we found the node, position cursor at its end
-                if (targetNode) {
-                  if ($isTextNode(targetNode)) {
-                    targetOffset = targetNode.getTextContent().length;
-                  } else {
-                    // It's an element node - find its last text node
-                    if (targetNode instanceof ElementNode) {
-                      const originalElementNode = targetNode;
-                      const children = targetNode.getChildren();
-                      if (children.length > 0) {
-                        // Walk backwards to find last text node
-                        for (let j = children.length - 1; j >= 0; j--) {
-                          const childNode = children[j];
-                          if ($isTextNode(childNode)) {
-                            targetNode = childNode;
-                            targetOffset = childNode.getTextContent().length;
-                            break;
-                          }
-                        }
-                        // If no text node found, position at end of element
-                        if (targetNode === originalElementNode) {
-                          targetOffset = children.length;
-                        }
-                      } else {
-                        targetOffset = 0;
-                      }
-                    } else {
-                      targetOffset = targetNode.getTextContent().length;
-                    }
-                  }
-                }
-              }
-
-              // Fallback: if we didn't find a target, use first child
-              if (!targetNode) {
-                targetNode = root.getFirstChild();
-                if (targetNode && $isTextNode(targetNode)) {
-                  targetOffset = targetNode.getTextContent().length;
-                } else {
-                  targetOffset = 0;
-                }
-              }
-
-              // Ensure we have at least one paragraph
-              if (!targetNode) {
-                targetNode = $createParagraphNode();
-                root.append(targetNode);
-                targetOffset = 0;
-              }
-
-              // Set selection to the target position
-              const rangeSelection = $createRangeSelection();
-              if ($isTextNode(targetNode)) {
-                rangeSelection.anchor.set(
-                  targetNode.getKey(),
-                  targetOffset,
-                  "text"
-                );
-                rangeSelection.focus.set(
-                  targetNode.getKey(),
-                  targetOffset,
-                  "text"
-                );
-              } else {
-                rangeSelection.anchor.set(
-                  targetNode.getKey(),
-                  targetOffset,
-                  "element"
-                );
-                rangeSelection.focus.set(
-                  targetNode.getKey(),
-                  targetOffset,
-                  "element"
-                );
-              }
-              $setSelection(rangeSelection);
-            });
-
-            if (event) {
-              event.preventDefault();
-            }
-            return true;
-          }
-          // If no labels are in the selection, let Lexical handle the deletion normally
-          console.log(
-            "[PILL-DELETE] ✗ No pills in selection - allowing normal deletion"
-          );
-        }
-
-        return false;
-      },
-      1 // Priority: higher than default
-    );
-
-    const deleteUnregister = editor.registerCommand(
-      KEY_DELETE_COMMAND,
-      (event: KeyboardEvent | null) => {
-        // Similar logic for delete key
-        const selection = $getSelection();
-        if (!$isRangeSelection(selection)) {
-          return false;
-        }
-
-        if (selection.isCollapsed()) {
-          const anchorNode = selection.anchor.getNode();
-          if ($isTextNode(anchorNode)) {
-            const parent = anchorNode.getParent();
-            if ($isSpeakerLineNode(parent)) {
-              const children = parent.getChildren();
-              const firstChild = children[0];
-
-              // Check if the first child is actually a label node (has bold format)
-              const isLabelNode =
-                firstChild &&
-                $isTextNode(firstChild) &&
-                firstChild.hasFormat("bold");
-
-              // If we're in the label node, delete entire SpeakerLineNode
-              if (isLabelNode && anchorNode === firstChild) {
-                editor.update(() => {
-                  const newParagraph = $createParagraphNode();
-                  parent.replace(newParagraph);
-                  const rangeSelection = $createRangeSelection();
-                  rangeSelection.anchor.set(
-                    newParagraph.getKey(),
-                    0,
-                    "element"
-                  );
-                  rangeSelection.focus.set(newParagraph.getKey(), 0, "element");
-                  $setSelection(rangeSelection);
-                });
-
-                if (event) {
-                  event.preventDefault();
-                }
-                return true;
-              }
-              // If there's no label node, don't intercept delete - let it work normally
-            }
-          }
-        } else {
-          // Selection is not collapsed - check if selection includes any part of a pill label
-          // If it does, delete the entire speaker line(s) that contain the label(s)
-          const anchorNode = selection.anchor.getNode();
-          const focusNode = selection.focus.getNode();
-
-          // Get all nodes in the selection to check if any label is included
-          const nodes = selection.getNodes();
-          console.log("[PILL-DELETE] Selection nodes:", nodes.length);
-
-          // Track all speaker lines that have their labels in the selection
-          const speakerLinesToDelete = new Set<SpeakerLineNode>();
-
-          // Check each node in the selection to see if it's a label node
-          for (const node of nodes) {
-            if ($isTextNode(node) && node.hasFormat("bold")) {
-              const parent = node.getParent();
-              if ($isSpeakerLineNode(parent)) {
-                const children = parent.getChildren();
-                const firstChild = children[0];
-
-                // Check if this node is the first child (the label)
-                if (
-                  firstChild === node &&
-                  $isTextNode(firstChild) &&
-                  firstChild.hasFormat("bold")
-                ) {
-                  speakerLinesToDelete.add(parent);
-                }
-              }
-            }
-          }
-
-          // Also check anchor and focus nodes directly (they might not be in getNodes if selection is within a single node)
-          let anchorSpeakerLine: SpeakerLineNode | null = null;
-          let focusSpeakerLine: SpeakerLineNode | null = null;
-
-          let currentNode: LexicalNode | null = anchorNode;
-          while (currentNode) {
-            if ($isSpeakerLineNode(currentNode)) {
-              anchorSpeakerLine = currentNode;
-              break;
-            }
-            currentNode = currentNode.getParent();
-          }
-
-          currentNode = focusNode;
-          while (currentNode) {
-            if ($isSpeakerLineNode(currentNode)) {
-              focusSpeakerLine = currentNode;
-              break;
-            }
-            currentNode = currentNode.getParent();
-          }
-
-          // Check if anchor or focus is in a label node
-          if (anchorSpeakerLine) {
-            const children = anchorSpeakerLine.getChildren();
-            const firstChild = children[0];
-            if (
-              firstChild &&
-              $isTextNode(firstChild) &&
-              firstChild.hasFormat("bold") &&
-              $isTextNode(anchorNode) &&
-              anchorNode === firstChild
-            ) {
-              speakerLinesToDelete.add(anchorSpeakerLine);
-            }
-          }
-
-          if (focusSpeakerLine) {
-            const children = focusSpeakerLine.getChildren();
-            const firstChild = children[0];
-            if (
-              firstChild &&
-              $isTextNode(firstChild) &&
-              firstChild.hasFormat("bold") &&
-              $isTextNode(focusNode) &&
-              focusNode === firstChild
-            ) {
-              speakerLinesToDelete.add(focusSpeakerLine);
-            }
-          }
-
-          console.log(
-            "[PILL-DELETE] Speaker lines to delete:",
-            Array.from(speakerLinesToDelete).map((sl) => sl.getSpeakerId())
-          );
-
-          // If any speaker lines with labels are in the selection, delete all of them
-          if (speakerLinesToDelete.size > 0) {
-            console.log(
-              "[PILL-DELETE] ✓ Intercepting - deleting",
-              speakerLinesToDelete.size,
-              "pill(s)"
-            );
-            editor.update(() => {
-              // Find where to position cursor BEFORE deleting - find the node before the first deleted pill
-              const root = $getRoot();
-              const rootChildrenBeforeDelete = root.getChildren();
-              const deletedSpeakerLineKeys = new Set(
-                Array.from(speakerLinesToDelete).map((sl) => sl.getKey())
-              );
-
-              // Find the index of the first deleted speaker line
-              let firstDeletedIndex = -1;
-              for (let i = 0; i < rootChildrenBeforeDelete.length; i++) {
-                if (
-                  deletedSpeakerLineKeys.has(
-                    rootChildrenBeforeDelete[i].getKey()
-                  )
-                ) {
-                  firstDeletedIndex = i;
-                  break;
-                }
-              }
-
-              // Store the previous node BEFORE deletion (we'll use this to position cursor after deletion)
-              let previousNodeBeforeDelete: LexicalNode | null = null;
-              if (firstDeletedIndex > 0) {
-                previousNodeBeforeDelete =
-                  rootChildrenBeforeDelete[firstDeletedIndex - 1];
-              }
-
-              // Get all nodes in the selection BEFORE we modify anything
-              const originalSelectedNodes = Array.from(selection.getNodes());
-              const replacementParagraphs: ReturnType<
-                typeof $createParagraphNode
-              >[] = [];
-
-              // Replace all speaker lines that have labels in the selection with empty paragraphs
-              for (const speakerLine of speakerLinesToDelete) {
-                const newParagraph = $createParagraphNode();
-                speakerLine.replace(newParagraph);
-                replacementParagraphs.push(newParagraph);
-              }
-
-              // Delete all originally selected nodes
-              // First collect what needs to be removed
-              const elementNodesToRemove: LexicalNode[] = [];
-
-              for (const node of originalSelectedNodes) {
-                if ($isTextNode(node)) {
-                  // For text nodes, just remove the node (which deletes its content)
-                  if (node.getParent()) {
-                    node.remove();
-                  }
-                } else {
-                  // Collect element nodes to remove
-                  if (!node.getParent()) {
-                    continue; // Already removed
-                  }
-                  if ($isSpeakerLineNode(node)) {
-                    continue; // Already replaced
-                  }
-                  elementNodesToRemove.push(node);
-                }
-              }
-
-              // Remove the element nodes
-              for (const node of elementNodesToRemove) {
-                node.remove();
-              }
-
-              // Also delete the replacement paragraphs we created
-              for (const replacementParagraph of replacementParagraphs) {
-                if (replacementParagraph.getParent()) {
-                  replacementParagraph.remove();
-                }
-              }
-
-              // Now find where to position the cursor - at the end of the node that was before the deleted section
-              let targetNode: LexicalNode | null = null;
-              let targetOffset = 0;
-
-              if (previousNodeBeforeDelete) {
-                // Find this node in the tree after deletions (by key)
-                const targetKey = previousNodeBeforeDelete.getKey();
-                const rootChildrenAfterDelete = root.getChildren();
-
-                // Find the node with this key
-                for (const child of rootChildrenAfterDelete) {
-                  if (child.getKey() === targetKey) {
-                    targetNode = child;
-                    break;
-                  }
-                }
-
-                // If we found the node, position cursor at its end
-                if (targetNode) {
-                  if ($isTextNode(targetNode)) {
-                    targetOffset = targetNode.getTextContent().length;
-                  } else {
-                    // It's an element node - find its last text node
-                    if (targetNode instanceof ElementNode) {
-                      const originalElementNode = targetNode;
-                      const children = targetNode.getChildren();
-                      if (children.length > 0) {
-                        // Walk backwards to find last text node
-                        for (let j = children.length - 1; j >= 0; j--) {
-                          const childNode = children[j];
-                          if ($isTextNode(childNode)) {
-                            targetNode = childNode;
-                            targetOffset = childNode.getTextContent().length;
-                            break;
-                          }
-                        }
-                        // If no text node found, position at end of element
-                        if (targetNode === originalElementNode) {
-                          targetOffset = children.length;
-                        }
-                      } else {
-                        targetOffset = 0;
-                      }
-                    } else {
-                      targetOffset = targetNode.getTextContent().length;
-                    }
-                  }
-                }
-              }
-
-              // Fallback: if we didn't find a target, use first child
-              if (!targetNode) {
-                targetNode = root.getFirstChild();
-                if (targetNode && $isTextNode(targetNode)) {
-                  targetOffset = targetNode.getTextContent().length;
-                } else {
-                  targetOffset = 0;
-                }
-              }
-
-              // Ensure we have at least one paragraph
-              if (!targetNode) {
-                targetNode = $createParagraphNode();
-                root.append(targetNode);
-                targetOffset = 0;
-              }
-
-              // Set selection to the target position
-              const rangeSelection = $createRangeSelection();
-              if ($isTextNode(targetNode)) {
-                rangeSelection.anchor.set(
-                  targetNode.getKey(),
-                  targetOffset,
-                  "text"
-                );
-                rangeSelection.focus.set(
-                  targetNode.getKey(),
-                  targetOffset,
-                  "text"
-                );
-              } else {
-                rangeSelection.anchor.set(
-                  targetNode.getKey(),
-                  targetOffset,
-                  "element"
-                );
-                rangeSelection.focus.set(
-                  targetNode.getKey(),
-                  targetOffset,
-                  "element"
-                );
-              }
-              $setSelection(rangeSelection);
-            });
-
-            if (event) {
-              event.preventDefault();
-            }
-            return true;
-          }
-          // If no labels are in the selection, let Lexical handle the deletion normally
-          console.log(
-            "[PILL-DELETE] ✗ No pills in selection - allowing normal deletion"
-          );
-        }
-
-        return false;
-      },
-      1 // Priority: higher than default
-    );
-
-    // Prevent cursor from being placed inside the label - move it to content node instead
-    const updateUnregister = editor.registerUpdateListener(
-      ({ editorState }) => {
-        editorState.read(() => {
-          const selection = $getSelection();
-          if ($isRangeSelection(selection) && selection.isCollapsed()) {
-            const anchorNode = selection.anchor.getNode();
-            if ($isTextNode(anchorNode)) {
-              const parent = anchorNode.getParent();
-              if ($isSpeakerLineNode(parent)) {
-                const children = parent.getChildren();
-                const firstChild = children[0];
-                const contentNode = children[1];
-
-                // Check if the first child is actually a label node (has bold format)
-                const isLabelNode =
-                  firstChild &&
-                  $isTextNode(firstChild) &&
-                  firstChild.hasFormat("bold");
-
-                // If cursor is in the label node, move it to the content node
-                if (isLabelNode && anchorNode === firstChild && contentNode) {
-                  editor.update(() => {
-                    const rangeSelection = $createRangeSelection();
-                    rangeSelection.anchor.set(contentNode.getKey(), 0, "text");
-                    rangeSelection.focus.set(contentNode.getKey(), 0, "text");
-                    $setSelection(rangeSelection);
-                  });
-                }
-              }
-            }
-          }
-        });
-      }
-    );
-
-    return () => {
-      enterUnregister();
-      backspaceUnregister();
-      deleteUnregister();
-      updateUnregister();
-    };
-  }, [editor, getSpeakerColor]);
-
-  return null;
 }
 
 // Plugin to apply default theme color when editor selection has no color style
@@ -1170,9 +311,7 @@ function ColorPicker({
             e.currentTarget.style.opacity = "1";
           }
         }}
-        title={
-          disabled ? "Formatting locked while speaker is active" : "Text Color"
-        }
+        title="Text Color"
       >
         <div className="absolute inset-0 flex items-center justify-center">
           <span
@@ -1256,257 +395,17 @@ function ColorPicker({
 function Toolbar({
   activeColor,
   setActiveColor,
-  selectedSpeakers,
-  activeSpeaker,
-  onToggleSpeaker,
-  partNodes,
-  allPartNodes,
-  nodeId,
-  nodeType,
-  getSpeakerColor,
 }: {
   activeColor: string | null;
   setActiveColor: (color: string | null) => void;
-  selectedSpeakers?: string[];
-  activeSpeaker?: string | null;
-  onToggleSpeaker?: (speakerId: string) => void;
-  partNodes?: Array<{ id: string; label: string }>;
-  allPartNodes?: Array<{ id: string; label: string }>;
-  nodeId?: string;
-  nodeType?: ImpressionType | "part" | "tension" | "interaction";
-  getSpeakerColor: (speakerId: string) => string;
 }) {
   const [editor] = useLexicalComposerContext();
-  const DEBUG_JOURNAL_EDITOR =
-    typeof window !== "undefined" &&
-    (window.localStorage?.getItem("journalEditorDebug") === "1" ||
-      new URLSearchParams(window.location.search).get("journalEditorDebug") ===
-        "1");
-  const debugLog = useCallback(
-    (message: string, data?: Record<string, unknown>) => {
-      if (!DEBUG_JOURNAL_EDITOR) return;
-      // Use console.log (not console.debug) so it's visible in default DevTools filters.
-      // eslint-disable-next-line no-console
-      console.log(`[JournalEditor][Toolbar] ${message}`, data ?? {});
-    },
-    [DEBUG_JOURNAL_EDITOR]
-  );
-
-  useEffect(() => {
-    if (!DEBUG_JOURNAL_EDITOR) return;
-    // eslint-disable-next-line no-console
-    console.log("[JournalEditor][Toolbar] debug enabled", {
-      viaLocalStorage:
-        typeof window !== "undefined" &&
-        window.localStorage?.getItem("journalEditorDebug") === "1",
-      viaQueryParam:
-        typeof window !== "undefined" &&
-        new URLSearchParams(window.location.search).get(
-          "journalEditorDebug"
-        ) === "1",
-    });
-  }, [DEBUG_JOURNAL_EDITOR]);
   const [formats, setFormats] = useState({
     bold: false,
     italic: false,
     underline: false,
     list: false,
   });
-  const [showAddPartDropdown, setShowAddPartDropdown] = useState(false);
-  const [addedPartIds, setAddedPartIds] = useState<string[]>([]);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Get default speakers (Self + relevant parts)
-  // Unknown stays in dropdown, not in defaults
-  // For impressions, only "self" is shown by default, all parts go in dropdown
-  const defaultSpeakers = useMemo(() => {
-    const speakers = [
-      { id: "self", label: "Self", isSelf: true, isUnknown: false },
-    ];
-
-    // For impressions, only show "self" by default - all parts go in dropdown
-    const isImpression =
-      nodeType &&
-      [
-        "emotion",
-        "thought",
-        "sensation",
-        "behavior",
-        "other",
-        "default",
-      ].includes(nodeType);
-    if (isImpression) {
-      return speakers; // Only return self for impressions
-    }
-
-    // Add target part if journal is about a part
-    if (nodeType === "part" && nodeId && partNodes) {
-      const targetPart = partNodes.find((p) => p.id === nodeId);
-      if (targetPart) {
-        speakers.push({
-          id: targetPart.id,
-          label: targetPart.label,
-          isSelf: false,
-          isUnknown: false,
-        });
-      }
-    }
-
-    // For tension/interaction, parts are already filtered in partNodes prop
-    // Add all relevant parts from partNodes (these are already filtered to be relevant)
-    if (partNodes && nodeType !== "part") {
-      // For tension/interaction, add all parts in partNodes
-      partNodes.forEach((part) => {
-        if (!speakers.find((s) => s.id === part.id)) {
-          speakers.push({
-            id: part.id,
-            label: part.label,
-            isSelf: false,
-            isUnknown: false,
-          });
-        }
-      });
-    }
-
-    return speakers;
-  }, [partNodes, nodeId, nodeType]);
-
-  // Get all available speakers (default + added parts)
-  const allSpeakers = useMemo(() => {
-    const speakerMap = new Map<
-      string,
-      { id: string; label: string; isSelf: boolean; isUnknown: boolean }
-    >();
-
-    // Add default speakers
-    defaultSpeakers.forEach((s) => speakerMap.set(s.id, s));
-
-    // Add parts that were added from dropdown
-    // Need to look in allPartNodes, not just partNodes, since added parts might not be in partNodes
-    addedPartIds.forEach((partId) => {
-      if (!speakerMap.has(partId)) {
-        if (partId === "unknown") {
-          speakerMap.set("unknown", {
-            id: "unknown",
-            label: "Unknown",
-            isSelf: false,
-            isUnknown: true,
-          });
-        } else {
-          // Look in allPartNodes first, then partNodes as fallback
-          const part =
-            allPartNodes?.find((p) => p.id === partId) ||
-            partNodes?.find((p) => p.id === partId);
-          if (part) {
-            speakerMap.set(part.id, {
-              id: part.id,
-              label: part.label,
-              isSelf: false,
-              isUnknown: false,
-            });
-          }
-        }
-      }
-    });
-
-    return Array.from(speakerMap.values());
-  }, [defaultSpeakers, addedPartIds, partNodes, allPartNodes]);
-
-  // Get parts available to add (not already in defaults or added)
-  // Unknown is always in the dropdown, not in defaults
-  // For impressions, include all parts from partNodes in the dropdown
-  const availablePartsToAdd = useMemo(() => {
-    const isImpression =
-      nodeType &&
-      [
-        "emotion",
-        "thought",
-        "sensation",
-        "behavior",
-        "other",
-        "default",
-      ].includes(nodeType);
-    const defaultPartIds = new Set(defaultSpeakers.map((s) => s.id));
-    const currentPartIds = new Set(partNodes?.map((p) => p.id) || []);
-    const allShownIds = new Set([
-      ...Array.from(defaultPartIds),
-      ...addedPartIds,
-    ]);
-
-    // For impressions, include parts from partNodes in the dropdown (they're not in defaults)
-    const impressionParts =
-      isImpression && partNodes
-        ? partNodes
-            .filter((p) => !allShownIds.has(p.id))
-            .map((p) => ({
-              id: p.id,
-              label: p.label,
-              isUnknown: false,
-            }))
-        : [];
-
-    // Get parts from allPartNodes that are not already shown
-    // For impressions, don't filter out currentPartIds since we want them in dropdown
-    const otherParts = (allPartNodes || [])
-      .filter(
-        (p) =>
-          !allShownIds.has(p.id) && !isImpression && !currentPartIds.has(p.id)
-      )
-      .map((p) => ({
-        id: p.id,
-        label: p.label,
-        isUnknown: false,
-      }));
-
-    // Always include Unknown in dropdown (not in defaults)
-    const unknownAvailable = !addedPartIds.includes("unknown");
-
-    return [
-      ...impressionParts,
-      ...otherParts,
-      ...(unknownAvailable
-        ? [{ id: "unknown", label: "Unknown", isUnknown: true }]
-        : []),
-    ];
-  }, [partNodes, allPartNodes, defaultSpeakers, addedPartIds, nodeType]);
-
-  // Add part from dropdown (including Unknown)
-  const handleAddPart = useCallback(
-    (partId: string) => {
-      if (partId === "unknown") {
-        // Unknown is special - add it to addedPartIds
-        if (!addedPartIds.includes("unknown")) {
-          setAddedPartIds((prev) => [...prev, "unknown"]);
-        }
-      } else {
-        // Regular part
-        if (!addedPartIds.includes(partId)) {
-          setAddedPartIds((prev) => [...prev, partId]);
-        }
-      }
-      setShowAddPartDropdown(false);
-      // Just add to available speakers - don't activate or insert text
-    },
-    [addedPartIds]
-  );
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowAddPartDropdown(false);
-      }
-    };
-
-    if (showAddPartDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [showAddPartDropdown]);
 
   // Helper function to update formatting state from editor state
   const updateFormattingFromEditorState = useCallback(
@@ -1516,7 +415,6 @@ function Toolbar({
 
         if ($isRangeSelection(selection)) {
           const anchorNode = selection.anchor.getNode();
-          const focusNode = selection.focus.getNode();
           // Check if caret/selection is in a list
           const anchor = selection.anchor;
           let inList = false;
@@ -1537,23 +435,13 @@ function Toolbar({
             undefined
           );
 
-          // IMPORTANT:
-          // Lexical can keep a "current selection style" (used for future typing) even when the caret
-          // moves through differently-styled text via Backspace/Delete. To make the toolbar reflect
-          // what the caret is *actually inside*, we try to read the style from the underlying TextNode.
+          // Read color from text node if available
           let effectiveColor: string | null = null;
-          let effectiveColorSource:
-            | "textNode"
-            | "neighborTextNode"
-            | "selectionStyle"
-            | "none" = "none";
 
           const readColorFromStyleString = (
             style: string | null | undefined
           ) => {
             if (!style) return null;
-            // Lexical stores inline styles as a CSS string, e.g. "color: rgb(239, 68, 68); font-weight: 700;"
-            // We'll extract the color value if present.
             const match = style.match(
               /(?:^|;)\s*color\s*:\s*([^;]+)\s*(?:;|$)/i
             );
@@ -1566,12 +454,10 @@ function Toolbar({
               const fromNode = readColorFromStyleString(anchorNode.getStyle());
               if (fromNode) {
                 effectiveColor = fromNode;
-                effectiveColorSource = "textNode";
               }
             }
 
-            // If caret is at an element boundary, the anchor node might not be the node that visually
-            // "owns" the caret. As a fallback, check nearest text neighbors.
+            // If caret is at an element boundary, check nearest text neighbors.
             if (!effectiveColor) {
               const tryNeighbor = (node: LexicalNode | null | undefined) => {
                 if ($isTextNode(node)) {
@@ -1588,32 +474,20 @@ function Toolbar({
               const fromNext = tryNeighbor(next);
               if (fromPrev) {
                 effectiveColor = fromPrev;
-                effectiveColorSource = "neighborTextNode";
               } else if (fromNext) {
                 effectiveColor = fromNext;
-                effectiveColorSource = "neighborTextNode";
               }
             }
           }
 
           if (!effectiveColor) {
             effectiveColor = selectionStyleColor ?? null;
-            effectiveColorSource = selectionStyleColor
-              ? "selectionStyle"
-              : "none";
           }
 
-          // Compute effective formats. Similar to color, Lexical can keep a "future typing"
-          // format on the selection when the caret moves via deletion. Prefer the TextNode's
-          // real format when the selection is collapsed.
+          // Compute effective formats
           let effectiveBold = selection.hasFormat("bold");
           let effectiveItalic = selection.hasFormat("italic");
           let effectiveUnderline = selection.hasFormat("underline");
-          let effectiveFormatSource:
-            | "textNode"
-            | "neighborTextNode"
-            | "selection"
-            | "none" = "selection";
 
           if (selection.isCollapsed()) {
             const readFormatsFromNode = (
@@ -1633,7 +507,6 @@ function Toolbar({
               effectiveBold = fromAnchor.bold;
               effectiveItalic = fromAnchor.italic;
               effectiveUnderline = fromAnchor.underline;
-              effectiveFormatSource = "textNode";
             } else {
               const prev = anchorNode.getPreviousSibling();
               const next = anchorNode.getNextSibling();
@@ -1643,48 +516,13 @@ function Toolbar({
                 effectiveBold = fromPrev.bold;
                 effectiveItalic = fromPrev.italic;
                 effectiveUnderline = fromPrev.underline;
-                effectiveFormatSource = "neighborTextNode";
               } else if (fromNext) {
                 effectiveBold = fromNext.bold;
                 effectiveItalic = fromNext.italic;
                 effectiveUnderline = fromNext.underline;
-                effectiveFormatSource = "neighborTextNode";
-              } else {
-                effectiveFormatSource = "selection";
               }
             }
           }
-
-          debugLog("selection read", {
-            isCollapsed: selection.isCollapsed(),
-            anchorKey: selection.anchor.key,
-            anchorOffset: selection.anchor.offset,
-            anchorType: selection.anchor.type,
-            anchorNodeType: anchorNode.getType(),
-            anchorNodeKey: anchorNode.getKey(),
-            anchorNodeStyle: $isTextNode(anchorNode)
-              ? anchorNode.getStyle()
-              : null,
-            focusKey: selection.focus.key,
-            focusOffset: selection.focus.offset,
-            focusType: selection.focus.type,
-            focusNodeType: focusNode.getType(),
-            focusNodeKey: focusNode.getKey(),
-            focusNodeStyle: $isTextNode(focusNode)
-              ? focusNode.getStyle()
-              : null,
-            formats: {
-              bold: effectiveBold,
-              italic: effectiveItalic,
-              underline: effectiveUnderline,
-            },
-            effectiveFormatSource,
-            inList,
-            selectionStyleColor: selectionStyleColor ?? null,
-            effectiveColor,
-            effectiveColorSource,
-            activeColorBefore: activeColor,
-          });
 
           setFormats({
             bold: effectiveBold,
@@ -1693,40 +531,9 @@ function Toolbar({
             list: inList,
           });
 
-          // 👉 Use effective color (prefer the text node the caret is actually inside)
           setActiveColor(effectiveColor || null);
-
-          // Detect which SpeakerLineNode the caret is inside for active speaker tracking
-          let currentNode: LexicalNode | null = anchorNode;
-          let speakerLine: SpeakerLineNode | null = null;
-          while (currentNode) {
-            if ($isSpeakerLineNode(currentNode)) {
-              speakerLine = currentNode;
-              break;
-            }
-            currentNode = currentNode.getParent();
-          }
-
-          const detectedSpeakerId = speakerLine?.getSpeakerId() || null;
-          // Update active speaker based on detected SpeakerLineNode
-          // Note: onToggleSpeaker toggles, so we need to be careful:
-          // - If we detect a speaker that's different from active, toggle the new one (turns it on)
-          // - If we detect no speaker but one is active, toggle the active one (turns it off)
-          if (detectedSpeakerId !== activeSpeaker) {
-            if (detectedSpeakerId) {
-              // We're entering a new speaker line - toggle it on
-              // If activeSpeaker is set, toggleSpeaker will turn it off and turn detectedSpeakerId on
-              // But since toggleSpeaker is a toggle, we need to ensure the right behavior
-              // For now, just call it - if activeSpeaker !== detectedSpeakerId, this will switch
-              onToggleSpeaker?.(detectedSpeakerId);
-            } else if (activeSpeaker) {
-              // We're leaving a speaker line - toggle off the current active speaker
-              onToggleSpeaker?.(activeSpeaker);
-            }
-          }
         } else {
-          debugLog("no range selection", { activeColorBefore: activeColor });
-          // No selection: reset formats; leave color alone (color picker controls it)
+          // No selection: reset formats
           setFormats({
             bold: false,
             italic: false,
@@ -1736,69 +543,20 @@ function Toolbar({
         }
       });
     },
-    [debugLog, setActiveColor, activeColor, onToggleSpeaker, activeSpeaker]
+    [setActiveColor]
   );
-
-  // Helper function to update formatting from current editor state (for keyboard events)
-  const updateFormattingFromSelection = useCallback(() => {
-    const editorState = editor.getEditorState();
-    updateFormattingFromEditorState(editorState);
-  }, [editor, updateFormattingFromEditorState]);
 
   // Listen for editor state updates
   useEffect(() => {
-    return editor.registerUpdateListener(({ editorState, prevEditorState }) => {
-      debugLog("registerUpdateListener fired", {});
-      // Schedule formatting update after the current update cycle completes
-      // This is especially important for backspace/delete operations where
-      // the selection might update in a separate cycle
+    return editor.registerUpdateListener(({ editorState }) => {
       setTimeout(() => {
-        debugLog("registerUpdateListener tick", {});
-        // Read from the latest editor state, not the one passed to the listener
-        // This ensures we get the most up-to-date selection
         const latestState = editor.getEditorState();
         updateFormattingFromEditorState(latestState);
       }, 0);
     });
   }, [editor, updateFormattingFromEditorState]);
 
-  // Also listen for keyboard events as a backup, especially for backspace/delete
-  // This ensures formatting updates even if the update listener doesn't fire immediately
-  useEffect(() => {
-    const editorElement = editor.getRootElement();
-    if (!editorElement) return;
-
-    const handleKeyUp = (event: KeyboardEvent) => {
-      // Handle backspace and delete
-      if (event.key === "Backspace" || event.key === "Delete") {
-        debugLog("keyup", { key: event.key });
-        // Use requestAnimationFrame + setTimeout to ensure Lexical has fully processed
-        // First frame: DOM updates
-        requestAnimationFrame(() => {
-          // Second frame: Lexical state updates
-          requestAnimationFrame(() => {
-            // Then read the state after a small delay
-            setTimeout(() => {
-              debugLog("keyup tick", { key: event.key });
-              updateFormattingFromSelection();
-            }, 5);
-          });
-        });
-      }
-    };
-
-    editorElement.addEventListener("keyup", handleKeyUp);
-
-    return () => {
-      editorElement.removeEventListener("keyup", handleKeyUp);
-    };
-  }, [editor, updateFormattingFromSelection, debugLog]);
-
   const formatText = (format: "bold" | "italic" | "underline") => {
-    // Lock formatting when a speaker is active
-    if (activeSpeaker) {
-      return;
-    }
     editor.update(() => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
@@ -1808,10 +566,6 @@ function Toolbar({
   };
 
   const toggleList = () => {
-    // Lock formatting when a speaker is active
-    if (activeSpeaker) {
-      return;
-    }
     editor.update(() => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
@@ -1831,13 +585,8 @@ function Toolbar({
     });
   };
 
-  // Color via $patchStyleText (works for selection + caret "current style")
+  const theme = useTheme();
   const applyColor = (color: string | null) => {
-    // Lock formatting when a speaker is active
-    if (activeSpeaker) {
-      return;
-    }
-    // 1) Update Lexical selection if it exists
     editor.update(() => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
@@ -1847,11 +596,10 @@ function Toolbar({
       }
     });
 
-    // 2) Always update the toolbar indicator, even if no selection (empty editor)
+    // Always update the toolbar indicator, even if no selection (empty editor)
     setActiveColor(color);
   };
 
-  const theme = useTheme();
   const activeButtonStyle = (isActive: boolean) => {
     if (!isActive) {
       return {
@@ -1862,13 +610,10 @@ function Toolbar({
       } as const;
     }
 
-    // Light theme: white active background (instead of accent fill)
-    // Dark theme: keep accent fill
     return {
       backgroundColor: "var(--theme-workspace)",
       color: "var(--theme-text-primary)",
       boxShadow: "0 1px 2px rgba(0, 0, 0, 0.08)",
-      // border: `1px solid ${theme.border}`,
     } as const;
   };
 
@@ -1876,144 +621,112 @@ function Toolbar({
     <div className="sticky top-0 z-10 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 shadow-sm backdrop-blur border-[var(--theme-border)] bg-[var(--theme-elevated)]">
       <button
         type="button"
-        disabled={!!activeSpeaker}
         onMouseDown={(e) => {
           e.preventDefault();
-          if (!activeSpeaker) {
-            formatText("bold");
-          }
+          formatText("bold");
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.bold),
           transition: "none !important",
-          opacity: activeSpeaker ? 0.5 : 1,
-          cursor: activeSpeaker ? "not-allowed" : "pointer",
         }}
         onMouseEnter={(e) => {
-          if (!activeSpeaker && !formats.bold) {
+          if (!formats.bold) {
             e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
             e.currentTarget.style.color = "var(--theme-text-primary)";
           }
         }}
         onMouseLeave={(e) => {
-          if (!activeSpeaker && !formats.bold) {
+          if (!formats.bold) {
             e.currentTarget.style.backgroundColor = "transparent";
             e.currentTarget.style.color = "var(--theme-text-secondary)";
           }
         }}
-        title={
-          activeSpeaker ? "Formatting locked while speaker is active" : "Bold"
-        }
+        title="Bold"
       >
         <span className="font-semibold">B</span>
       </button>
 
       <button
         type="button"
-        disabled={!!activeSpeaker}
         onMouseDown={(e) => {
           e.preventDefault();
-          if (!activeSpeaker) {
-            formatText("italic");
-          }
+          formatText("italic");
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.italic),
           transition: "none !important",
-          opacity: activeSpeaker ? 0.5 : 1,
-          cursor: activeSpeaker ? "not-allowed" : "pointer",
         }}
         onMouseEnter={(e) => {
-          if (!activeSpeaker && !formats.italic) {
+          if (!formats.italic) {
             e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
             e.currentTarget.style.color = "var(--theme-text-primary)";
           }
         }}
         onMouseLeave={(e) => {
-          if (!activeSpeaker && !formats.italic) {
+          if (!formats.italic) {
             e.currentTarget.style.backgroundColor = "transparent";
             e.currentTarget.style.color = "var(--theme-text-secondary)";
           }
         }}
-        title={
-          activeSpeaker ? "Formatting locked while speaker is active" : "Italic"
-        }
+        title="Italic"
       >
         <span className="italic">I</span>
       </button>
 
       <button
         type="button"
-        disabled={!!activeSpeaker}
         onMouseDown={(e) => {
           e.preventDefault();
-          if (!activeSpeaker) {
-            formatText("underline");
-          }
+          formatText("underline");
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.underline),
           transition: "none !important",
-          opacity: activeSpeaker ? 0.5 : 1,
-          cursor: activeSpeaker ? "not-allowed" : "pointer",
         }}
         onMouseEnter={(e) => {
-          if (!activeSpeaker && !formats.underline) {
+          if (!formats.underline) {
             e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
             e.currentTarget.style.color = "var(--theme-text-primary)";
           }
         }}
         onMouseLeave={(e) => {
-          if (!activeSpeaker && !formats.underline) {
+          if (!formats.underline) {
             e.currentTarget.style.backgroundColor = "transparent";
             e.currentTarget.style.color = "var(--theme-text-secondary)";
           }
         }}
-        title={
-          activeSpeaker
-            ? "Formatting locked while speaker is active"
-            : "Underline"
-        }
+        title="Underline"
       >
         <span className="underline underline-offset-2">U</span>
       </button>
 
       <button
         type="button"
-        disabled={!!activeSpeaker}
         onMouseDown={(e) => {
           e.preventDefault();
-          if (!activeSpeaker) {
-            toggleList();
-          }
+          toggleList();
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.list),
           transition: "none !important",
-          opacity: activeSpeaker ? 0.5 : 1,
-          cursor: activeSpeaker ? "not-allowed" : "pointer",
         }}
         onMouseEnter={(e) => {
-          if (!activeSpeaker && !formats.list) {
+          if (!formats.list) {
             e.currentTarget.style.backgroundColor = "var(--theme-button-hover)";
             e.currentTarget.style.color = "var(--theme-text-primary)";
           }
         }}
         onMouseLeave={(e) => {
-          if (!activeSpeaker && !formats.list) {
+          if (!formats.list) {
             e.currentTarget.style.backgroundColor = "transparent";
             e.currentTarget.style.color = "var(--theme-text-secondary)";
           }
         }}
-        title={
-          activeSpeaker
-            ? "Formatting locked while speaker is active"
-            : "Bullet List"
-        }
+        title="Bullet List"
       >
         • List
       </button>
@@ -2023,362 +736,8 @@ function Toolbar({
       <ColorPicker
         activeColor={activeColor}
         onColorChange={applyColor}
-        disabled={!!activeSpeaker}
+        disabled={false}
       />
-
-      {allSpeakers.length > 0 && (
-        <>
-          <div className="h-5 w-px bg-[var(--theme-border)]" />
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {allSpeakers.map((speaker) => {
-              const isActive = activeSpeaker === speaker.id;
-              const speakerColor = getSpeakerColor(speaker.id);
-
-              const handleSpeakerClick = () => {
-                // If clicking on an already active speaker, deselect it and go to new normal line
-                if (isActive) {
-                  editor.update(() => {
-                    editor.focus();
-
-                    const root = $getRoot();
-                    const selection = $getSelection();
-
-                    // Create a new regular paragraph (not a SpeakerLineNode)
-                    const newParagraph = $createParagraphNode();
-
-                    // Insert after current selection
-                    if ($isRangeSelection(selection)) {
-                      const anchorNode = selection.anchor.getNode();
-                      let currentNode: LexicalNode | null = anchorNode;
-                      let speakerLine: SpeakerLineNode | null = null;
-
-                      // Find the SpeakerLineNode we're in
-                      while (currentNode) {
-                        if ($isSpeakerLineNode(currentNode)) {
-                          speakerLine = currentNode;
-                          break;
-                        }
-                        currentNode = currentNode.getParent();
-                      }
-
-                      if (speakerLine) {
-                        speakerLine.insertAfter(newParagraph);
-                      } else {
-                        const parent = anchorNode.getParent();
-                        if (parent) {
-                          parent.insertAfter(newParagraph);
-                        } else {
-                          root.append(newParagraph);
-                        }
-                      }
-                    } else {
-                      root.append(newParagraph);
-                    }
-
-                    // Set selection to new paragraph and clear all formatting
-                    const rangeSelection = $createRangeSelection();
-                    rangeSelection.anchor.set(
-                      newParagraph.getKey(),
-                      0,
-                      "element"
-                    );
-                    rangeSelection.focus.set(
-                      newParagraph.getKey(),
-                      0,
-                      "element"
-                    );
-                    $setSelection(rangeSelection);
-
-                    // Clear all formatting - clear color style and remove text formats from selection
-                    $patchStyleText(rangeSelection, { color: null });
-                    // Toggle off formats if they're active in the selection style
-                    // We need to get the selection again after setting it to check formats
-                    const currentSelection = $getSelection();
-                    if ($isRangeSelection(currentSelection)) {
-                      if (currentSelection.hasFormat("bold"))
-                        currentSelection.formatText("bold");
-                      if (currentSelection.hasFormat("italic"))
-                        currentSelection.formatText("italic");
-                      if (currentSelection.hasFormat("underline"))
-                        currentSelection.formatText("underline");
-                    }
-                  });
-
-                  // Reset active color in toolbar
-                  setActiveColor(null);
-
-                  // Toggle speaker off
-                  onToggleSpeaker?.(speaker.id);
-                  return;
-                }
-
-                // Create a SpeakerLineNode with the speaker's label and color
-                editor.update(() => {
-                  editor.focus();
-
-                  const root = $getRoot();
-                  const selection = $getSelection();
-
-                  // Create new SpeakerLineNode
-                  const speakerLine = $createSpeakerLineNode(speaker.id);
-
-                  // Create and insert the speaker label with color and bold
-                  // Create and insert the speaker label with bold
-                  // Note: CSS will style the <strong> tag wrapper with pill styling
-                  const labelText = $createTextNode(`${speaker.label}: `);
-                  // Don't set color on the label - CSS handles the pill styling
-                  labelText.setFormat("bold");
-                  speakerLine.append(labelText);
-
-                  // Insert an empty non-bold text node after the label for future typing
-                  // This ensures the cursor is in a non-bold node so typed content won't be bold
-                  const contentText = $createTextNode("");
-                  contentText.setStyle(`color: ${speakerColor}`);
-                  // Don't set bold format on contentText - it should be normal weight
-                  speakerLine.append(contentText);
-
-                  // Insert the speaker line after current selection or at end
-                  // If root is empty or only has an empty paragraph, replace it with the speaker line
-                  const firstChild = root.getFirstChild();
-                  const isEmptyEditor =
-                    !firstChild ||
-                    (firstChild.getType() === "paragraph" &&
-                      firstChild.getTextContent().trim() === "");
-
-                  if (isEmptyEditor) {
-                    // Replace empty root/paragraph with speaker line
-                    if (firstChild) {
-                      firstChild.replace(speakerLine);
-                    } else {
-                      root.append(speakerLine);
-                    }
-                  } else if ($isRangeSelection(selection)) {
-                    const anchorNode = selection.anchor.getNode();
-                    const parent = anchorNode.getParent();
-                    if (parent && parent !== root) {
-                      parent.insertAfter(speakerLine);
-                    } else {
-                      root.append(speakerLine);
-                    }
-                  } else {
-                    root.append(speakerLine);
-                  }
-
-                  // Set selection to the empty content text node (at offset 0)
-                  const rangeSelection = $createRangeSelection();
-                  rangeSelection.anchor.set(contentText.getKey(), 0, "text");
-                  rangeSelection.focus.set(contentText.getKey(), 0, "text");
-                  $setSelection(rangeSelection);
-
-                  // Apply color to future typing (already set on contentText, but ensure selection style matches)
-                  $patchStyleText(rangeSelection, { color: speakerColor });
-                });
-
-                // Update active color for toolbar indicator
-                setActiveColor(speakerColor);
-
-                // Toggle speaker in parent state
-                onToggleSpeaker?.(speaker.id);
-              };
-
-              return (
-                <button
-                  key={speaker.id}
-                  type="button"
-                  onClick={handleSpeakerClick}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
-                    isActive
-                      ? "ring-2 ring-offset-2 scale-105"
-                      : "hover:scale-102"
-                  }`}
-                  style={{
-                    backgroundColor: isActive
-                      ? speakerColor
-                      : "var(--theme-surface)",
-                    color: isActive ? "white" : "var(--theme-text-secondary)",
-                    borderColor: isActive
-                      ? speakerColor
-                      : "var(--theme-border)",
-                    boxShadow: isActive
-                      ? `0 4px 12px ${speakerColor}40`
-                      : "0 1px 3px rgba(0, 0, 0, 0.1)",
-                    transition: "none !important",
-                  }}
-                  title={`Switch to ${speaker.label}`}
-                >
-                  {speaker.isUnknown ? (
-                    <span className="text-sm font-bold">?</span>
-                  ) : (
-                    <SquareUserRound size={12} />
-                  )}
-                  {speaker.label}
-                  {addedPartIds.includes(speaker.id) && !speaker.isSelf && (
-                    <X
-                      size={10}
-                      className="ml-0.5 opacity-70 hover:opacity-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const wasActive = activeSpeaker === speaker.id;
-
-                        // If the pill was active, deselect it (same behavior as clicking active speaker)
-                        if (wasActive) {
-                          editor.update(() => {
-                            editor.focus();
-
-                            const root = $getRoot();
-                            const selection = $getSelection();
-
-                            // Create a new regular paragraph (not a SpeakerLineNode)
-                            const newParagraph = $createParagraphNode();
-
-                            // Insert after current selection
-                            if ($isRangeSelection(selection)) {
-                              const anchorNode = selection.anchor.getNode();
-                              let currentNode: LexicalNode | null = anchorNode;
-                              let speakerLine: SpeakerLineNode | null = null;
-
-                              // Find the SpeakerLineNode we're in
-                              while (currentNode) {
-                                if ($isSpeakerLineNode(currentNode)) {
-                                  speakerLine = currentNode;
-                                  break;
-                                }
-                                currentNode = currentNode.getParent();
-                              }
-
-                              if (speakerLine) {
-                                speakerLine.insertAfter(newParagraph);
-                              } else {
-                                const parent = anchorNode.getParent();
-                                if (parent) {
-                                  parent.insertAfter(newParagraph);
-                                } else {
-                                  root.append(newParagraph);
-                                }
-                              }
-                            } else {
-                              root.append(newParagraph);
-                            }
-
-                            // Set selection to new paragraph and clear all formatting
-                            const rangeSelection = $createRangeSelection();
-                            rangeSelection.anchor.set(
-                              newParagraph.getKey(),
-                              0,
-                              "element"
-                            );
-                            rangeSelection.focus.set(
-                              newParagraph.getKey(),
-                              0,
-                              "element"
-                            );
-                            $setSelection(rangeSelection);
-
-                            // Clear all formatting - clear color style and remove text formats from selection
-                            $patchStyleText(rangeSelection, { color: null });
-                            // Toggle off formats if they're active in the selection style
-                            const currentSelection = $getSelection();
-                            if ($isRangeSelection(currentSelection)) {
-                              if (currentSelection.hasFormat("bold"))
-                                currentSelection.formatText("bold");
-                              if (currentSelection.hasFormat("italic"))
-                                currentSelection.formatText("italic");
-                              if (currentSelection.hasFormat("underline"))
-                                currentSelection.formatText("underline");
-                            }
-                          });
-
-                          // Reset active color in toolbar
-                          setActiveColor(null);
-
-                          // Deselect the speaker
-                          onToggleSpeaker?.(speaker.id);
-                        }
-
-                        // Remove the part from the toolbar
-                        setAddedPartIds((prev) =>
-                          prev.filter((id) => id !== speaker.id)
-                        );
-                      }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-
-            {/* Add Part Dropdown */}
-            {availablePartsToAdd.length > 0 && (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
-                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium hover:scale-102 border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)]"
-                  style={{
-                    transition: "none !important",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      "var(--theme-button-hover)";
-                    e.currentTarget.style.color = "var(--theme-text-primary)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      "var(--theme-surface)";
-                    e.currentTarget.style.color = "var(--theme-text-secondary)";
-                  }}
-                  title="Add another part"
-                >
-                  <Plus size={12} />
-                  <span>Add Part</span>
-                  <ChevronDown
-                    size={10}
-                    className={showAddPartDropdown ? "rotate-180" : ""}
-                  />
-                </button>
-
-                {showAddPartDropdown && (
-                  <div className="absolute top-full left-0 mt-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden border-[var(--theme-border)] bg-[var(--theme-card)]">
-                    <div className="max-h-60 overflow-y-auto">
-                      {availablePartsToAdd.map((part) => (
-                        <button
-                          key={part.id || (part.isUnknown ? "unknown" : "")}
-                          type="button"
-                          onClick={() =>
-                            handleAddPart(part.isUnknown ? "unknown" : part.id)
-                          }
-                          className="w-full text-left px-3 py-2 text-xs font-medium text-[var(--theme-text-primary)]"
-                          style={{
-                            transition: "none !important",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "var(--theme-button-hover)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "transparent";
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="w-3.5 flex items-center justify-center">
-                              {part.isUnknown ? (
-                                <span className="text-sm font-bold">?</span>
-                              ) : (
-                                <SquareUserRound size={14} />
-                              )}
-                            </div>
-                            <span>{part.label}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </>
-      )}
     </div>
   );
 }
@@ -2388,12 +747,6 @@ export default function JournalEditor({
   onContentChange,
   readOnly = false,
   nodeType,
-  selectedSpeakers,
-  activeSpeaker,
-  onToggleSpeaker,
-  partNodes,
-  allPartNodes,
-  nodeId,
 }: JournalEditorProps) {
   const theme = useTheme();
   const [activeColor, setActiveColor] = useState<string | null>(
@@ -2407,34 +760,10 @@ export default function JournalEditor({
     );
   }, [nodeType]);
 
-  // Get speaker color - shared between Toolbar and plugins
-  const getSpeakerColor = useCallback(
-    (speakerId: string): string => {
-      if (speakerId === "self") {
-        return theme.info; // Use theme info color (blue) for self
-      }
-      if (speakerId === "unknown") {
-        return theme.textMuted; // Use theme muted text color for unknown
-      }
-      // Generate color for parts - use allPartNodes for consistent color across all parts
-      const allParts = allPartNodes || partNodes || [];
-      const partIndex = allParts.findIndex((p) => p.id === speakerId);
-      if (partIndex >= 0) {
-        // Use golden angle for color distribution to ensure different colors
-        // Use 58% lightness as a middle ground that works for both themes
-        const hue = (partIndex * 137.508) % 360;
-        return `hsl(${hue}, 65%, 58%)`;
-      }
-      // Fallback color if part not found - use theme error color
-      return theme.error || "rgb(239, 68, 68)";
-    },
-    [theme, partNodes, allPartNodes]
-  );
-
   const initialConfig = {
     namespace: "JournalEditor",
     theme: lexicalTheme,
-    nodes: [ListNode, ListItemNode, SpeakerLineNode],
+    nodes: [ListNode, ListItemNode],
     onError: (error: Error) => {
       console.error("Lexical error:", error);
     },
@@ -2446,38 +775,13 @@ export default function JournalEditor({
     <LexicalComposer initialConfig={initialConfig}>
       <div className="flex h-full flex-col gap-4">
         {!readOnly && (
-          <Toolbar
-            activeColor={activeColor}
-            setActiveColor={setActiveColor}
-            selectedSpeakers={selectedSpeakers}
-            activeSpeaker={activeSpeaker}
-            onToggleSpeaker={onToggleSpeaker}
-            partNodes={partNodes}
-            allPartNodes={allPartNodes}
-            nodeId={nodeId}
-            nodeType={nodeType}
-            getSpeakerColor={getSpeakerColor}
-          />
+          <Toolbar activeColor={activeColor} setActiveColor={setActiveColor} />
         )}
         <div className="relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex border-[var(--theme-border)] bg-[var(--theme-surface)]">
           <div className="flex-1 relative overflow-hidden">
             <style
               dangerouslySetInnerHTML={{
                 __html: `
-              /* Style only the speaker label (first bold child) within speaker lines */
-              /* Target the first strong tag which is always the speaker label */
-              p[data-speaker-id] > strong:first-child {
-                display: inline-block;
-                width: auto;
-                text-align: right;
-                background: white;
-                color: black;
-                border-radius: 20px;
-                padding: 2px 6px;
-                font-size: 12px;
-                margin-right: 10px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-              }
               /* Override prose default text color - only apply to elements without inline color style */
               .prose {
                 color: var(--theme-text-primary);
@@ -2511,9 +815,6 @@ export default function JournalEditor({
               />
               <HistoryPlugin />
               <ListPlugin />
-              {!readOnly && (
-                <SpeakerLineEnterPlugin getSpeakerColor={getSpeakerColor} />
-              )}
               {!readOnly && (
                 <DefaultColorPlugin defaultColor={theme.textPrimary} />
               )}
