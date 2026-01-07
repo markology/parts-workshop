@@ -46,6 +46,7 @@ export default async function handler(
           nodeId,
           contentJson: null,
           contentText: "",
+          journalType: "normal", // Default to normal journal type
         },
       });
 
@@ -56,7 +57,7 @@ export default async function handler(
   }
   if (req.method === "POST") {
     // Accept contentJson (required) and contentText (optional, computed if missing)
-    const { contentJson, contentText, title, entryId, createNewVersion } = req.body ?? {};
+    const { contentJson, contentText, title, entryId, createNewVersion, journalType, speakers } = req.body ?? {};
 
     if (typeof contentJson !== "string") {
       return res.status(400).json({ error: "contentJson is required (string)" });
@@ -89,6 +90,9 @@ export default async function handler(
       finalContentText = extractTextFromNodes(parsedJson.root.children);
     }
 
+    // Validate journalType if provided
+    const validJournalType = journalType === "normal" || journalType === "textThread" ? journalType : null;
+
     const shouldCreateNew = createNewVersion || !entryId;
 
     if (!shouldCreateNew) {
@@ -106,7 +110,8 @@ export default async function handler(
           contentJson: parsedJson,
           contentText: finalContentText || "",
           title: typeof title === "string" ? title : undefined,
-          speakers: Array.isArray(req.body.speakers) ? req.body.speakers : undefined,
+          journalType: validJournalType,
+          speakers: Array.isArray(speakers) ? speakers : undefined,
         },
       });
 
@@ -120,7 +125,8 @@ export default async function handler(
         contentJson: parsedJson,
         contentText: finalContentText || "",
         title: typeof title === "string" ? title : null,
-        speakers: Array.isArray(req.body.speakers) ? req.body.speakers : [],
+        journalType: validJournalType,
+        speakers: Array.isArray(speakers) ? speakers : [],
       },
     });
 

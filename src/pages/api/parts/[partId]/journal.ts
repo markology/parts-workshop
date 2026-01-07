@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       case "POST":
         // Create a new journal entry for a part
-        const { title, contentJson, contentText } = req.body;
+        const { title, contentJson, contentText, journalType } = req.body;
 
         if (!contentJson || typeof contentJson !== "string") {
           return res.status(400).json({ error: "contentJson is required (string)" });
@@ -67,6 +67,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           finalContentText = extractTextFromNodes(parsedJson.root.children);
         }
 
+        // Validate journalType if provided
+        const validJournalType = journalType === "normal" || journalType === "textThread" ? journalType : null;
+
         // Verify the part belongs to the user
         const part = await prisma.part.findFirst({
           where: {
@@ -84,6 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             title: title || `Journal Entry - ${part.name}`,
             contentJson: parsedJson,
             contentText: finalContentText || "",
+            journalType: validJournalType,
             partId: partId,
             userId: session.user.id,
           },
@@ -93,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       case "PUT":
         // Update an existing journal entry
-        const { entryId, title: updateTitle, contentJson, contentText } = req.body;
+        const { entryId, title: updateTitle, contentJson, contentText, journalType } = req.body;
 
         if (!entryId) {
           return res.status(400).json({ error: "Entry ID is required" });
@@ -141,6 +145,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(404).json({ error: "Journal entry not found" });
         }
 
+        // Validate journalType if provided
+        const validJournalType = journalType === "normal" || journalType === "textThread" ? journalType : null;
+
         const updatedEntry = await prisma.journalEntry.update({
           where: {
             id: entryId,
@@ -149,6 +156,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             title: updateTitle,
             contentJson: parsedUpdateJson,
             contentText: finalUpdateContentText || "",
+            journalType: validJournalType,
           },
         });
 

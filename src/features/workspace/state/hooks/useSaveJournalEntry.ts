@@ -13,6 +13,7 @@ export const useSaveJournalEntry = () => {
       entryId,
       createNewVersion,
       speakers,
+      journalType,
     }: {
       nodeId?: string;
       contentJson: string; // Lexical JSON string
@@ -21,6 +22,7 @@ export const useSaveJournalEntry = () => {
       entryId?: string;
       createNewVersion?: boolean;
       speakers?: string[];
+      journalType?: "normal" | "textThread";
     }) => {
       const url = nodeId
         ? `/api/journal/node/${nodeId}`
@@ -35,6 +37,7 @@ export const useSaveJournalEntry = () => {
           entryId,
           createNewVersion,
           speakers,
+          journalType,
         }),
       });
       

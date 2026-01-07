@@ -12,9 +12,11 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
+import { SquareUserRound, Plus, ChevronDown, X, User } from "lucide-react";
+import { ImpressionType } from "@/features/workspace/types/Impressions";
 import {
   EditorState,
   LexicalEditor,
@@ -36,6 +38,18 @@ import {
 import { mergeRegister } from "@lexical/utils";
 import { $isListNode } from "@lexical/list";
 import { SMART_TOGGLE_BULLET_LIST } from "../commands/smartList";
+import {
+  $getRoot,
+  $createTextNode,
+  $createParagraphNode,
+  $createRangeSelection,
+  $setSelection,
+} from "lexical";
+import {
+  SpeakerLineNode,
+  $createSpeakerLineNode,
+  $isSpeakerLineNode,
+} from "../SpeakerLineNode";
 
 /* ============================================================================
  * Color Picker Component
@@ -366,7 +380,54 @@ function toggleFormatUniform(editor: LexicalEditor, format: Format) {
  * - Smart bullet list toggle (Notion-style)
  * - Text color picker
  */
-export default function ToolbarPlugin() {
+interface ToolbarPluginProps {
+  partNodes?: Array<{ id: string; label: string }>;
+  allPartNodes?: Array<{ id: string; label: string }>;
+  selectedSpeakers?: string[];
+  activeSpeaker?: string | null;
+  onToggleSpeaker?: (speakerId: string) => void;
+  nodeId?: string;
+  nodeType?: ImpressionType | "part" | "tension" | "interaction";
+}
+
+/**
+ * Generates a consistent color for a speaker based on their ID.
+ * Uses golden angle distribution for visually distinct colors.
+ */
+function getSpeakerColor(
+  speakerId: string,
+  theme: ReturnType<typeof useTheme>,
+  partNodes?: Array<{ id: string; label: string }>,
+  allPartNodes?: Array<{ id: string; label: string }>
+): string {
+  if (speakerId === "self") {
+    return theme.info; // Blue for self
+  }
+  if (speakerId === "unknown") {
+    return theme.textMuted; // Muted color for unknown
+  }
+  // Generate color for parts - use allPartNodes for consistent color across all parts
+  const allParts = allPartNodes || partNodes || [];
+  const partIndex = allParts.findIndex((p) => p.id === speakerId);
+  if (partIndex >= 0) {
+    // Use golden angle for color distribution to ensure different colors
+    // Use 58% lightness as a middle ground that works for both themes
+    const hue = (partIndex * 137.508) % 360;
+    return `hsl(${hue}, 65%, 58%)`;
+  }
+  // Fallback color if part not found
+  return theme.error || "rgb(239, 68, 68)";
+}
+
+export default function ToolbarPlugin({
+  partNodes = [],
+  allPartNodes,
+  selectedSpeakers = [],
+  activeSpeaker,
+  onToggleSpeaker,
+  nodeId,
+  nodeType,
+}: ToolbarPluginProps = {}) {
   const [editor] = useLexicalComposerContext();
   const theme = useTheme();
 
@@ -381,6 +442,269 @@ export default function ToolbarPlugin() {
   // Manage active color state internally
   const [activeColor, setActiveColor] = useState<string | null>(
     theme.textPrimary
+  );
+  const [showAddPartDropdown, setShowAddPartDropdown] = useState(false);
+  const [addedPartIds, setAddedPartIds] = useState<string[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get default speakers based on journal node type:
+  // - Impression (emotion, thought, sensation, behavior, other): Only Self
+  // - Part: The part itself + Self
+  // - Tension/Interaction: Self + all parts involved in the relationship
+  const defaultSpeakers = useMemo(() => {
+    const speakers = [
+      { id: "self", label: "Self", isSelf: true, isUnknown: false },
+    ];
+
+    // For part nodes, add the part itself
+    if (nodeType === "part" && nodeId && partNodes) {
+      const targetPart = partNodes.find((p) => p.id === nodeId);
+      if (targetPart) {
+        speakers.push({
+          id: targetPart.id,
+          label: targetPart.label,
+          isSelf: false,
+          isUnknown: false,
+        });
+      }
+      return speakers;
+    }
+
+    // For tension/interaction, add all parts from partNodes (these are the parts involved in the relationship)
+    if ((nodeType === "tension" || nodeType === "interaction") && partNodes) {
+      partNodes.forEach((part) => {
+        if (!speakers.find((s) => s.id === part.id)) {
+          speakers.push({
+            id: part.id,
+            label: part.label,
+            isSelf: false,
+            isUnknown: false,
+          });
+        }
+      });
+      return speakers;
+    }
+
+    // For impression types (emotion, thought, sensation, behavior, other) or undefined, only Self is relevant
+    return speakers;
+  }, [partNodes, nodeId, nodeType]);
+
+  // Get added parts as speaker objects (for rendering as pills in toolbar)
+  const addedSpeakers = useMemo(() => {
+    return addedPartIds
+      .map((partId) => {
+        if (partId === "unknown") {
+          return {
+            id: "unknown",
+            label: "Unknown",
+            isSelf: false,
+            isUnknown: true,
+          };
+        }
+        const part = allPartNodes?.find((p) => p.id === partId);
+        return part
+          ? {
+              id: part.id,
+              label: part.label,
+              isSelf: false,
+              isUnknown: false,
+            }
+          : null;
+      })
+      .filter(
+        (
+          p
+        ): p is {
+          id: string;
+          label: string;
+          isSelf: boolean;
+          isUnknown: boolean;
+        } => p !== null
+      );
+  }, [addedPartIds, allPartNodes]);
+
+  // Get parts available in dropdown (only parts NOT already added or in defaults)
+  const availablePartsToAdd = useMemo(() => {
+    const defaultPartIds = new Set(defaultSpeakers.map((s) => s.id));
+    const allShownIds = new Set([
+      ...Array.from(defaultPartIds),
+      ...addedPartIds,
+    ]);
+
+    // Get parts from allPartNodes that are not already shown
+    const otherParts = (allPartNodes || [])
+      .filter((p) => !allShownIds.has(p.id))
+      .map((p) => ({
+        id: p.id,
+        label: p.label,
+        isUnknown: false,
+      }));
+
+    // Always include Unknown in dropdown if not already added
+    const unknownAvailable = !addedPartIds.includes("unknown");
+
+    return [
+      ...otherParts, // Other available parts
+      ...(unknownAvailable
+        ? [{ id: "unknown", label: "Unknown", isUnknown: true }]
+        : []),
+    ];
+  }, [allPartNodes, defaultSpeakers, addedPartIds]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowAddPartDropdown(false);
+      }
+    };
+
+    if (showAddPartDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showAddPartDropdown]);
+
+  const handleAddPart = useCallback((partId: string) => {
+    setAddedPartIds((prev) => [...prev, partId]);
+    setShowAddPartDropdown(false);
+  }, []);
+
+  const handleSpeakerClick = useCallback(
+    (speaker: {
+      id: string;
+      label: string;
+      isSelf: boolean;
+      isUnknown: boolean;
+    }) => {
+      const isActive = activeSpeaker === speaker.id;
+      const speakerColor = getSpeakerColor(
+        speaker.id,
+        theme,
+        partNodes,
+        allPartNodes
+      );
+
+      // If clicking the active speaker, deselect it
+      if (isActive) {
+        editor.update(() => {
+          editor.focus();
+          const root = $getRoot();
+          const selection = $getSelection();
+
+          // Create a new regular paragraph (not a SpeakerLineNode)
+          const newParagraph = $createParagraphNode();
+
+          // Insert after current selection
+          if ($isRangeSelection(selection)) {
+            const anchorNode = selection.anchor.getNode();
+            let currentNode: LexicalNode | null = anchorNode;
+            let speakerLine: SpeakerLineNode | null = null;
+
+            // Find the SpeakerLineNode we're in
+            while (currentNode) {
+              if ($isSpeakerLineNode(currentNode)) {
+                speakerLine = currentNode;
+                break;
+              }
+              currentNode = currentNode.getParent();
+            }
+
+            if (speakerLine) {
+              speakerLine.insertAfter(newParagraph);
+              const rangeSelection = $createRangeSelection();
+              rangeSelection.anchor.set(newParagraph.getKey(), 0, "element");
+              rangeSelection.focus.set(newParagraph.getKey(), 0, "element");
+              $setSelection(rangeSelection);
+            } else {
+              const parent = anchorNode.getParent();
+              if (parent && parent !== root) {
+                parent.insertAfter(newParagraph);
+              } else {
+                root.append(newParagraph);
+              }
+              const rangeSelection = $createRangeSelection();
+              rangeSelection.anchor.set(newParagraph.getKey(), 0, "element");
+              rangeSelection.focus.set(newParagraph.getKey(), 0, "element");
+              $setSelection(rangeSelection);
+            }
+          } else {
+            root.append(newParagraph);
+            const rangeSelection = $createRangeSelection();
+            rangeSelection.anchor.set(newParagraph.getKey(), 0, "element");
+            rangeSelection.focus.set(newParagraph.getKey(), 0, "element");
+            $setSelection(rangeSelection);
+          }
+        });
+
+        onToggleSpeaker?.(speaker.id);
+        return;
+      }
+
+      // Create a SpeakerLineNode with the speaker's label and color
+      editor.update(() => {
+        editor.focus();
+
+        const root = $getRoot();
+        const selection = $getSelection();
+
+        // Create new SpeakerLineNode
+        const speakerLine = $createSpeakerLineNode(speaker.id);
+
+        // Create and insert the speaker label with bold
+        const labelText = $createTextNode(`${speaker.label}: `);
+        labelText.setFormat("bold");
+        speakerLine.append(labelText);
+
+        // Insert an empty non-bold text node after the label for future typing
+        const contentText = $createTextNode("");
+        contentText.setStyle(`color: ${speakerColor}`);
+        speakerLine.append(contentText);
+
+        // Insert the speaker line after current selection or at end
+        const firstChild = root.getFirstChild();
+        const isEmptyEditor =
+          !firstChild ||
+          (firstChild.getType() === "paragraph" &&
+            firstChild.getTextContent().trim() === "");
+
+        if (isEmptyEditor) {
+          // Replace empty root/paragraph with speaker line
+          if (firstChild) {
+            firstChild.replace(speakerLine);
+          } else {
+            root.append(speakerLine);
+          }
+        } else if ($isRangeSelection(selection)) {
+          const anchorNode = selection.anchor.getNode();
+          const parent = anchorNode.getParent();
+          if (parent && parent !== root) {
+            parent.insertAfter(speakerLine);
+          } else {
+            root.append(speakerLine);
+          }
+        } else {
+          root.append(speakerLine);
+        }
+
+        // Set selection to the empty content text node
+        const rangeSelection = $createRangeSelection();
+        rangeSelection.anchor.set(contentText.getKey(), 0, "text");
+        rangeSelection.focus.set(contentText.getKey(), 0, "text");
+        $setSelection(rangeSelection);
+
+        // Apply color to future typing
+        $patchStyleText(rangeSelection, { color: speakerColor });
+      });
+
+      // Toggle speaker in parent state
+      onToggleSpeaker?.(speaker.id);
+    },
+    [editor, activeSpeaker, onToggleSpeaker, theme, partNodes, allPartNodes]
   );
 
   /**
@@ -514,7 +838,7 @@ export default function ToolbarPlugin() {
         backgroundColor: "transparent",
         color: "var(--theme-text-secondary)",
         boxShadow: "none",
-        border: "1px solid transparent",
+        // border: "1px solid transparent",
       } as const;
     }
 
@@ -606,6 +930,240 @@ export default function ToolbarPlugin() {
         onColorChange={applyColor}
         disabled={false}
       />
+
+      {/* Speaker Pills - only show default speakers (Self + relevant parts) */}
+      {defaultSpeakers.length > 0 && (
+        <>
+          {/* Visual Separator */}
+          <div className="h-5 w-px bg-[var(--theme-border)]" />
+
+          {/* Speaker Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Non-Self default speakers (relevant parts) */}
+            {defaultSpeakers
+              .filter((s) => !s.isSelf)
+              .map((speaker) => {
+                const isActive = activeSpeaker === speaker.id;
+                const speakerColor = getSpeakerColor(
+                  speaker.id,
+                  theme,
+                  partNodes,
+                  allPartNodes
+                );
+
+                return (
+                  <button
+                    key={speaker.id}
+                    type="button"
+                    onClick={() => handleSpeakerClick(speaker)}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
+                      isActive ? "" : "hover:scale-102"
+                    }`}
+                    style={{
+                      backgroundColor: isActive
+                        ? speakerColor
+                        : "var(--theme-surface)",
+                      color: isActive ? "white" : "var(--theme-text-secondary)",
+                      borderColor: isActive
+                        ? speakerColor
+                        : "var(--theme-border)",
+                      boxShadow: isActive
+                        ? `0 4px 12px ${speakerColor}40`
+                        : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                      transition: "none !important",
+                    }}
+                    title={`Switch to ${speaker.label}`}
+                  >
+                    <SquareUserRound size={12} />
+                    {speaker.label}
+                  </button>
+                );
+              })}
+
+            {/* Self pill */}
+            {defaultSpeakers
+              .filter((s) => s.isSelf)
+              .map((speaker) => {
+                const isActive = activeSpeaker === speaker.id;
+                const speakerColor = getSpeakerColor(
+                  speaker.id,
+                  theme,
+                  partNodes,
+                  allPartNodes
+                );
+
+                return (
+                  <button
+                    key={speaker.id}
+                    type="button"
+                    onClick={() => handleSpeakerClick(speaker)}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
+                      isActive ? "scale-105" : "hover:scale-102"
+                    }`}
+                    style={{
+                      backgroundColor: isActive
+                        ? speakerColor
+                        : "var(--theme-surface)",
+                      color: isActive ? "white" : "var(--theme-text-secondary)",
+                      borderColor: isActive
+                        ? speakerColor
+                        : "var(--theme-border)",
+                      boxShadow: isActive
+                        ? `0 4px 12px ${speakerColor}40`
+                        : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                      transition: "none !important",
+                    }}
+                    title={`Switch to ${speaker.label}`}
+                  >
+                    <User size={12} />
+                    {speaker.label}
+                  </button>
+                );
+              })}
+
+            {/* Added parts (from dropdown) - shown as pills with X button */}
+            {addedSpeakers.map((speaker) => {
+              const isActive = activeSpeaker === speaker.id;
+              const speakerColor = getSpeakerColor(
+                speaker.id,
+                theme,
+                partNodes,
+                allPartNodes
+              );
+
+              return (
+                <button
+                  key={speaker.id}
+                  type="button"
+                  onClick={() => handleSpeakerClick(speaker)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
+                    isActive ? "scale-105" : "hover:scale-102"
+                  }`}
+                  style={{
+                    backgroundColor: isActive
+                      ? speakerColor
+                      : "var(--theme-surface)",
+                    color: isActive ? "white" : "var(--theme-text-secondary)",
+                    borderColor: isActive
+                      ? speakerColor
+                      : "var(--theme-border)",
+                    boxShadow: isActive
+                      ? `0 4px 12px ${speakerColor}40`
+                      : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                    transition: "none !important",
+                  }}
+                  title={`Switch to ${speaker.label}`}
+                >
+                  {speaker.isUnknown ? (
+                    <span className="text-sm font-bold">?</span>
+                  ) : (
+                    <SquareUserRound size={12} />
+                  )}
+                  {speaker.label}
+                  <X
+                    size={10}
+                    className="ml-0.5 opacity-70 hover:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAddedPartIds((prev) =>
+                        prev.filter((id) => id !== speaker.id)
+                      );
+                      // If this was the active speaker, deselect it
+                      if (isActive) {
+                        onToggleSpeaker?.(speaker.id);
+                      }
+                    }}
+                  />
+                </button>
+              );
+            })}
+
+            {/* More dropdown - rightmost */}
+            {availablePartsToAdd.length > 0 && (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium hover:scale-102 border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)]"
+                  style={{
+                    transition: "none !important",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      "var(--theme-button-hover)";
+                    e.currentTarget.style.color = "var(--theme-text-primary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      "var(--theme-surface)";
+                    e.currentTarget.style.color = "var(--theme-text-secondary)";
+                  }}
+                  title="More speakers"
+                >
+                  <Plus size={12} />
+                  <span>More</span>
+                  <ChevronDown
+                    size={10}
+                    className={showAddPartDropdown ? "rotate-180" : ""}
+                  />
+                </button>
+
+                {showAddPartDropdown && (
+                  <div className="absolute top-full left-0 mt-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden border-[var(--theme-border)] bg-[var(--theme-card)]">
+                    <div className="max-h-60 overflow-y-auto">
+                      {availablePartsToAdd.map((part) => {
+                        const partId = part.isUnknown ? "unknown" : part.id;
+                        const speaker = {
+                          id: partId,
+                          label: part.label,
+                          isSelf: false,
+                          isUnknown: part.isUnknown,
+                        };
+
+                        return (
+                          <button
+                            key={part.id || (part.isUnknown ? "unknown" : "")}
+                            type="button"
+                            onClick={() => {
+                              // Add to toolbar and use the speaker
+                              handleAddPart(partId);
+                              handleSpeakerClick(speaker);
+                              setShowAddPartDropdown(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-[var(--theme-text-primary)]"
+                            style={{
+                              transition: "none !important",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "var(--theme-button-hover)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-3.5 flex items-center justify-center">
+                                {part.isUnknown ? (
+                                  <span className="text-sm font-bold">?</span>
+                                ) : (
+                                  <SquareUserRound size={14} />
+                                )}
+                              </div>
+                              <span>{part.label}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migrate:journal-types": "npx tsx scripts/migrate-journal-types.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -69,6 +70,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
     "tailwindcss": "^4.0.15",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

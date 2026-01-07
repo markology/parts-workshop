@@ -23,12 +23,21 @@ import { LexicalEditor } from "lexical";
 
 import { $generateHtmlFromNodes } from "@lexical/html";
 import { ListNode, ListItemNode } from "@lexical/list";
+import { SpeakerLineNode } from "./SpeakerLineNode";
+import SpeakerLineEnterPlugin from "./plugins/SpeakerLineEnterPlugin";
+import SpeakerLineDeletePlugin from "./plugins/SpeakerLineDeletePlugin";
 
 interface JournalEditorProps {
   contentJson: string | null;
   onContentChange: (data: { json: string; text: string }) => void;
   readOnly?: boolean;
   nodeType?: ImpressionType | "part" | "tension" | "interaction";
+  partNodes?: Array<{ id: string; label: string }>;
+  allPartNodes?: Array<{ id: string; label: string }>;
+  selectedSpeakers?: string[];
+  activeSpeaker?: string | null;
+  onToggleSpeaker?: (speakerId: string) => void;
+  nodeId?: string;
 }
 
 const PLACEHOLDER_TEXT = "Start writing your journal entry...";
@@ -56,6 +65,21 @@ export function exportEditorHtml(editor: LexicalEditor): string {
 
 const innerHtmlStyle = {
   __html: `
+/* Style speaker pills (first bold child) within speaker lines */
+p[data-speaker-id] > strong:first-child {
+  display: inline-block;
+  width: auto;
+  text-align: right;
+  background: var(--theme-surface);
+  color: var(--theme-text-primary);
+  border-radius: 20px;
+  padding: 2px 6px;
+  font-size: 12px;
+  margin-right: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--theme-border);
+}
+/* Override prose default text color - only apply to elements without inline color style */
 .prose { color: var(--theme-text-primary); }
 .prose p:not([style*="color"]), 
 .prose li:not([style*="color"]), 
@@ -71,6 +95,12 @@ export default function JournalEditor({
   onContentChange,
   readOnly = false,
   nodeType,
+  partNodes,
+  allPartNodes,
+  selectedSpeakers,
+  activeSpeaker,
+  onToggleSpeaker,
+  nodeId,
 }: JournalEditorProps) {
   const accentColor = useMemo(() => {
     return (
@@ -82,7 +112,7 @@ export default function JournalEditor({
   const initialConfig = {
     namespace: "JournalEditor",
     theme: lexicalTheme,
-    nodes: [ListNode, ListItemNode],
+    nodes: [ListNode, ListItemNode, SpeakerLineNode],
     onError: (error: Error) => {
       console.error("Lexical error:", error);
     },
@@ -93,7 +123,17 @@ export default function JournalEditor({
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="flex h-full flex-col gap-4">
-        {!readOnly && <ToolbarPlugin />}
+        {!readOnly && (
+          <ToolbarPlugin
+            partNodes={partNodes}
+            allPartNodes={allPartNodes}
+            selectedSpeakers={selectedSpeakers}
+            activeSpeaker={activeSpeaker}
+            onToggleSpeaker={onToggleSpeaker}
+            nodeId={nodeId}
+            nodeType={nodeType}
+          />
+        )}
 
         <div className="relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex border-[var(--theme-border)] bg-[var(--theme-surface)]">
           <div className="flex-1 relative overflow-hidden">
@@ -121,6 +161,13 @@ export default function JournalEditor({
               <ListPlugin />
               <SmartListPlugin />
               <PointerGhostSelectionPlugin />
+              {!readOnly && (
+                <SpeakerLineEnterPlugin
+                  partNodes={partNodes}
+                  allPartNodes={allPartNodes}
+                />
+              )}
+              {!readOnly && <SpeakerLineDeletePlugin />}
             </div>
           </div>
         </div>

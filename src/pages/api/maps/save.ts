@@ -99,6 +99,14 @@ export default async function handler(
             },
           });
 
+          // Detect journalType from content (for maps save, we need to infer it)
+          let detectedJournalType: "normal" | "textThread" | null = null;
+          if (Array.isArray(parsedJson)) {
+            detectedJournalType = "textThread";
+          } else if (parsedJson?.root) {
+            detectedJournalType = "normal";
+          }
+
           if (existingEntry) {
             // Update if found
             await prisma.journalEntry.update({
@@ -106,6 +114,7 @@ export default async function handler(
               data: {
                 contentJson: parsedJson,
                 contentText: contentText,
+                journalType: detectedJournalType,
                 updatedAt: new Date(),
               },
             });
@@ -117,6 +126,7 @@ export default async function handler(
                 nodeId: entry.nodeId ?? null,
                 contentJson: parsedJson,
                 contentText: contentText,
+                journalType: detectedJournalType,
               },
             });
           }

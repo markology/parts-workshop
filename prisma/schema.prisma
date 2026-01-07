@@ -117,6 +117,7 @@ model JournalEntry {
   contentText    String? // Plain text for search/preview
   contentHtml    String? // Optional HTML cache (not generated on every keystroke)
   contentVersion Int      @default(1) // Version for future migrations
+  journalType    String? // Type of journal: "normal" (Lexical) or "textThread" (array of messages)
   speakers       String[] @default([]) // Array of part IDs or "self"
   tags           Tag[]    @relation("JournalTags")
 

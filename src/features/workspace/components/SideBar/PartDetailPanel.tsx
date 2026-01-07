@@ -1905,27 +1905,6 @@ theme-dark:shadow-none "
                                         onClick={() => {
                                           // Open this entry in the main journal drawer
                                           if (selectedPartId && partNode) {
-                                            // Detect mode from content
-                                            const detectMode = (
-                                              content: string
-                                            ): "normal" | "textThread" => {
-                                              if (!content) return "normal";
-                                              try {
-                                                const parsed =
-                                                  JSON.parse(content);
-                                                if (Array.isArray(parsed)) {
-                                                  return "textThread";
-                                                }
-                                              } catch {
-                                                // Not JSON, assume normal journal
-                                              }
-                                              return "normal";
-                                            };
-
-                                            const mode = detectMode(
-                                              entry.content
-                                            );
-
                                             setJournalTarget({
                                               type: "node",
                                               nodeId: selectedPartId,
@@ -1934,41 +1913,31 @@ theme-dark:shadow-none "
                                                 partNode.data?.label || "Part",
                                             });
 
-                                            // Set mode and load entry - we need to trigger this after the drawer opens
+                                            // Load entry - mode will be set automatically from entry.journalType
                                             setTimeout(() => {
                                               if (typeof window === "undefined")
                                                 return;
 
                                               const store =
                                                 useJournalStore.getState();
+                                              
+                                              // Get contentJson - prefer contentJson, fallback to content (legacy)
+                                              const contentJson = entry.contentJson
+                                                ? typeof entry.contentJson === "string"
+                                                  ? entry.contentJson
+                                                  : JSON.stringify(entry.contentJson)
+                                                : null;
+
                                               store.loadEntry({
                                                 entryId: entry.id,
-                                                content: entry.content,
+                                                contentJson: contentJson,
+                                                contentText: entry.contentText || "",
                                                 speakers: Array.isArray(
                                                   entry.speakers
                                                 )
                                                   ? entry.speakers
                                                   : [],
                                               });
-
-                                              // Dispatch a custom event to set the mode
-                                              try {
-                                                const event = createCustomEvent(
-                                                  "journal-set-mode",
-                                                  { mode }
-                                                );
-                                                if (
-                                                  event &&
-                                                  typeof window !== "undefined"
-                                                ) {
-                                                  window.dispatchEvent(event);
-                                                }
-                                              } catch (error) {
-                                                console.error(
-                                                  "Failed to dispatch journal-set-mode event:",
-                                                  error
-                                                );
-                                              }
                                             }, 100);
                                           }
                                         }}
@@ -2604,24 +2573,6 @@ theme-dark:shadow-none "
                                   onClick={() => {
                                     // Open this entry in the main journal drawer
                                     if (selectedPartId && partNode) {
-                                      // Detect mode from content
-                                      const detectMode = (
-                                        content: string
-                                      ): "normal" | "textThread" => {
-                                        if (!content) return "normal";
-                                        try {
-                                          const parsed = JSON.parse(content);
-                                          if (Array.isArray(parsed)) {
-                                            return "textThread";
-                                          }
-                                        } catch {
-                                          // Not JSON, assume normal journal
-                                        }
-                                        return "normal";
-                                      };
-
-                                      const mode = detectMode(entry.content);
-
                                       setJournalTarget({
                                         type: "node",
                                         nodeId: selectedPartId,
@@ -2629,41 +2580,31 @@ theme-dark:shadow-none "
                                         title: partNode.data?.label || "Part",
                                       });
 
-                                      // Set mode and load entry - we need to trigger this after the drawer opens
+                                      // Load entry - mode will be set automatically from entry.journalType
                                       setTimeout(() => {
                                         if (typeof window === "undefined")
                                           return;
 
                                         const store =
                                           useJournalStore.getState();
+                                        
+                                        // Get contentJson - prefer contentJson, fallback to content (legacy)
+                                        const contentJson = entry.contentJson
+                                          ? typeof entry.contentJson === "string"
+                                            ? entry.contentJson
+                                            : JSON.stringify(entry.contentJson)
+                                          : null;
+
                                         store.loadEntry({
                                           entryId: entry.id,
-                                          content: entry.content,
+                                          contentJson: contentJson,
+                                          contentText: entry.contentText || "",
                                           speakers: Array.isArray(
                                             entry.speakers
                                           )
                                             ? entry.speakers
                                             : [],
                                         });
-
-                                        // Dispatch a custom event to set the mode
-                                        try {
-                                          const event = createCustomEvent(
-                                            "journal-set-mode",
-                                            { mode }
-                                          );
-                                          if (
-                                            event &&
-                                            typeof window !== "undefined"
-                                          ) {
-                                            window.dispatchEvent(event);
-                                          }
-                                        } catch (error) {
-                                          console.error(
-                                            "Failed to dispatch journal-set-mode event:",
-                                            error
-                                          );
-                                        }
                                       }, 100);
 
                                       setShowJournalHistoryModal(false);
