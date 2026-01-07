@@ -1,30 +1,17 @@
 /**
  * JournalEditor.tsx
- *
- * Clean, predictable Lexical editor with:
- * - Bold / Italic / Underline (works correctly for mixed selections)
- * - Bullet list toggle
- * - Text color picker
- * - JSON <-> Lexical state sync
- * - Debounced onContentChange
- *
- * Key behavior:
- * - Toolbar state is DERIVED from Lexical (selection + editor updates)
- * - Formatting commands ONLY mutate Lexical (no setFormats inside editor.update)
- * - Mixed selection formatting:
- *    - if entire selection already has format -> remove it from selection
- *    - else -> apply it only to segments missing it
  */
 
 "use client";
 
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { NodeBackgroundColors } from "../../../constants/Nodes";
 
 // Lexical React
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
@@ -32,10 +19,14 @@ import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import SmartListPlugin from "@/features/workspace/components/Journal/Editor/plugins/SmartListPlugin";
 
 // Lexical core
-import { LexicalEditor } from "lexical";
+import {
+  $getSelection,
+  $isRangeSelection,
+  $isTextNode,
+  LexicalEditor,
+} from "lexical";
 
 import { $generateHtmlFromNodes } from "@lexical/html";
-
 import { ListNode, ListItemNode } from "@lexical/list";
 import { Toolbar } from "./Toolbar";
 
@@ -87,9 +78,6 @@ export default function JournalEditor({
     );
   }, [nodeType]);
 
-  // Shared flag to prevent ContentSync -> ChangeHandler -> parent loop
-  const isSyncingRef = useRef(false);
-
   const initialConfig = {
     namespace: "JournalEditor",
     theme: lexicalTheme,
@@ -101,8 +89,177 @@ export default function JournalEditor({
     editorState: null,
   };
 
+  const editorRef = useRef<LexicalEditor | null>(null);
+  const [editorReady, setEditorReady] = useState(false);
+
+  useEffect(() => {
+    if (!editorReady) return;
+
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const root = editor.getRootElement();
+    if (!root) return;
+
+    // ✅ Track whether this interaction was a DRAG (selection) vs a CLICK.
+    let isPointerDown = false;
+    let didDrag = false;
+    let activePointerId: number | null = null;
+
+    function firstTextDescendant(node: any): any | null {
+      if (!node) return null;
+      if ($isTextNode(node)) return node;
+
+      if (typeof node.getChildren === "function") {
+        const kids = node.getChildren();
+        for (const k of kids) {
+          const found = firstTextDescendant(k);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function getNextTextNode(start: any): any | null {
+      let node: any = start;
+
+      while (node) {
+        // 1) try next sibling
+        let sib = node.getNextSibling?.();
+        while (sib) {
+          const found = firstTextDescendant(sib);
+          if (found) return found;
+          sib = sib.getNextSibling?.();
+        }
+
+        // 2) go up and try parent's siblings
+        node = node.getParent?.();
+        if (!node || node.getType?.() === "root") return null;
+      }
+
+      return null;
+    }
+
+    const fixGhostSelection = () => {
+      editor.update(() => {
+        const sel = $getSelection();
+        if (!$isRangeSelection(sel)) return;
+
+        // ✅ if click collapses selection, do nothing
+        if (sel.isCollapsed()) return;
+
+        const isBackward = sel.isBackward();
+        const a = sel.anchor;
+        const f = sel.focus;
+
+        const aNode = a.getNode();
+        const fNode = f.getNode();
+
+        const aIsText = $isTextNode(aNode);
+        const fIsText = $isTextNode(fNode);
+
+        if (!aIsText && !fIsText) return;
+
+        const aLen = aIsText ? aNode.getTextContentSize() : 0;
+        const fLen = fIsText ? fNode.getTextContentSize() : 0;
+
+        const backwardAnchorGhost = isBackward && aIsText && a.offset === 0;
+        const backwardFocusGhost = isBackward && fIsText && f.offset === fLen;
+
+        const forwardFocusGhost = !isBackward && fIsText && f.offset === 0;
+        const forwardAnchorAtEnd = !isBackward && aIsText && a.offset === aLen;
+
+        const granularity: "character" | "lineboundary" = "lineboundary";
+
+        if (backwardAnchorGhost) sel.modify("extend", "backward", granularity);
+        if (backwardFocusGhost) sel.modify("extend", "forward", granularity);
+
+        if (forwardFocusGhost) sel.modify("extend", "forward", granularity);
+
+        if (forwardAnchorAtEnd) {
+          if (aIsText && fIsText) {
+            const nextText = getNextTextNode(aNode);
+            if (nextText) {
+              sel.setTextNodeRange(nextText, 0, fNode, f.offset);
+            } else {
+              sel.modify("extend", "backward", granularity);
+            }
+          } else {
+            sel.modify("extend", "backward", granularity);
+          }
+        }
+      });
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      isPointerDown = true;
+      didDrag = false;
+      activePointerId = e.pointerId;
+
+      // ✅ capture so move/up still arrive even if pointer leaves the box
+      try {
+        root.setPointerCapture(e.pointerId);
+      } catch {}
+    };
+
+    const onPointerMove = () => {
+      if (!isPointerDown) return;
+      didDrag = true;
+    };
+
+    const onPointerUp = (_e: PointerEvent) => {
+      const wasDrag = didDrag;
+
+      isPointerDown = false;
+      didDrag = false;
+
+      if (activePointerId != null) {
+        try {
+          root.releasePointerCapture(activePointerId);
+        } catch {}
+        activePointerId = null;
+      }
+
+      // ✅ only run fix after a drag-selection, not a click
+      if (!wasDrag) return;
+
+      queueMicrotask(fixGhostSelection);
+    };
+
+    const onPointerCancel = () => {
+      isPointerDown = false;
+      didDrag = false;
+
+      if (activePointerId != null) {
+        try {
+          root.releasePointerCapture(activePointerId);
+        } catch {}
+        activePointerId = null;
+      }
+    };
+
+    root.addEventListener("pointerdown", onPointerDown);
+    root.addEventListener("pointermove", onPointerMove);
+    root.addEventListener("pointerup", onPointerUp);
+    root.addEventListener("pointercancel", onPointerCancel);
+
+    return () => {
+      root.removeEventListener("pointerdown", onPointerDown);
+      root.removeEventListener("pointermove", onPointerMove);
+      root.removeEventListener("pointerup", onPointerUp);
+      root.removeEventListener("pointercancel", onPointerCancel);
+    };
+  }, [editorReady]);
+
   return (
     <LexicalComposer initialConfig={initialConfig}>
+      <CaptureEditorPlugin
+        onEditor={(ed) => {
+          editorRef.current = ed;
+          setEditorReady(true);
+        }}
+      />
+
       <div className="flex h-full flex-col gap-4">
         {!readOnly && (
           <Toolbar activeColor={activeColor} setActiveColor={setActiveColor} />
@@ -146,21 +303,27 @@ export default function JournalEditor({
               <HistoryPlugin />
               <ListPlugin />
               <SmartListPlugin />
-              {/* <ContentSyncPlugin
-                contentJson={contentJson}
-                isSyncingRef={isSyncingRef}
-              /> */}
-              {/* 
-              <ChangeHandler
-                onContentChange={onContentChange}
-                readOnly={readOnly}
-                isSyncingRef={isSyncingRef}
-                onClearFormatting={() => setActiveColor(null)}
-              /> */}
             </div>
           </div>
         </div>
       </div>
     </LexicalComposer>
   );
+}
+
+/**
+ * Tiny plugin to grab the LexicalEditor instance (so we can bind DOM events).
+ */
+function CaptureEditorPlugin({
+  onEditor,
+}: {
+  onEditor: (ed: LexicalEditor) => void;
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    onEditor(editor);
+  }, [editor, onEditor]);
+
+  return null;
 }
