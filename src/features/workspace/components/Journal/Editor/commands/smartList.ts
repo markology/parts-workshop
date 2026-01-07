@@ -4,7 +4,6 @@ import {
   $isListNode,
   INSERT_UNORDERED_LIST_COMMAND,
 } from "@lexical/list";
-import { get } from "http";
 // features/editor/commands/smartList.ts
 
 import {
@@ -13,18 +12,19 @@ import {
   $getRoot,
   $getSelection,
   $isRangeSelection,
-  $isTextNode,
   createCommand,
   LexicalEditor,
   LexicalNode,
 } from "lexical";
-
+import { $createListItemNode } from "@lexical/list";
+import { $isElementNode } from "lexical";
 /**
  * Public command your toolbar should dispatch.
  */
 export const SMART_TOGGLE_BULLET_LIST = createCommand<void>();
 
 /** Find nearest ListItem ancestor for any node. */
+// this works by just going upwards until you find a list item node or run out of parent nodes
 function getListItemAncestor(node: LexicalNode | null): LexicalNode | null {
   let cur: LexicalNode | null = node;
   while (cur) {
@@ -34,7 +34,68 @@ function getListItemAncestor(node: LexicalNode | null): LexicalNode | null {
   return null;
 }
 
-function getSelectedListItems(selection: any): LexicalNode[] {
+function getNearestBlock(node: LexicalNode): LexicalNode {
+  let cur: LexicalNode | null = node;
+  while (cur) {
+    const parent = cur.getParent();
+    // Stop at root OR if current is a direct child of root.
+    if (!parent || parent.getType?.() === "root") return cur;
+    cur = parent;
+  }
+  return node;
+}
+
+function wrapBlocksInBulletList(blocks: LexicalNode[]) {
+  if (blocks.length === 0) return;
+
+  // Dedup blocks by key and keep doc order
+  const seen = new Set<string>();
+  const uniqueBlocks: LexicalNode[] = [];
+  for (const n of blocks) {
+    const b = getNearestBlock(n);
+    const key = (b as any).getKey?.();
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      uniqueBlocks.push(b);
+    }
+  }
+  if (uniqueBlocks.length === 0) return;
+
+  // Create the list and insert it before the first block
+  const list = $createListNode("bullet");
+  uniqueBlocks[0].insertBefore(list);
+
+  for (const block of uniqueBlocks) {
+    // Skip empty paragraphs if any slipped through (extra safety)
+    if (
+      block.getType() === "paragraph" &&
+      (block as any).getTextContentSize?.() === 0
+    ) {
+      continue;
+    }
+
+    const li = $createListItemNode();
+
+    // Move the block's children into the list item (preserves inline formatting)
+    if ($isElementNode(block)) {
+      const kids = block.getChildren();
+      for (const k of kids) li.append(k);
+    } else {
+      // If it’s not an element (rare at block level), just append it
+      li.append(block);
+    }
+
+    list.append(li);
+    block.remove();
+  }
+
+  // If list ended up empty, remove it
+  if (list.getChildren().length === 0) {
+    list.remove();
+  }
+}
+
+function getSelectedListItems(selection: any, editor, inList): LexicalNode[] {
   // Collapsed selection (caret): use the anchor list item directly
   if (selection.isCollapsed?.()) {
     const li = getListItemAncestor(selection.anchor.getNode());
@@ -56,32 +117,69 @@ function getSelectedListItems(selection: any): LexicalNode[] {
   const isBackward = selection.isBackward();
 
   // makes sure that the list focus or anchor isnt in an item that isn't visually highlighted
-  const filteredNodes = nodes.filter((n) => {
+
+  const liToFilter: (string | undefined)[] = [];
+  let foundFirstNonParagraph = false;
+  let firstParagraph = 0;
+  let endingParagraph = 0;
+  let filteredNodes = nodes.filter((n) => {
+    if (n.getType() === "paragraph" && n.getTextContentSize() === 0) {
+      if (firstParagraph >= 0 && !foundFirstNonParagraph) {
+        firstParagraph++;
+        return true;
+      } else {
+        endingParagraph++;
+        return true;
+      }
+    }
+
+    foundFirstNonParagraph = true;
+    endingParagraph = 0;
+
     const anchor = selection.anchor;
     const isAnchor = anchor.key === n.getKey();
     const focus = selection.focus;
     const isFocus = focus.key === n.getKey();
 
-    if (n.getType() === "listitem") return false;
     if (n.getType() === "text") {
       const textLength = n.getTextContent().length;
-      if (
-        (isBackward && isAnchor && anchor.offset === 0) ||
-        (isBackward && isFocus && focus.offset === textLength)
-      )
+      const backwardAnchorGhostCaret =
+        isBackward && isAnchor && anchor.offset === 0;
+      const backwardFocusGhostCaret =
+        isBackward && isFocus && focus.offset === textLength;
+      const anchorGhostCaret = !isBackward && isFocus && focus.offset === 0;
+      const focusGhostCaret =
+        !isBackward && isAnchor && anchor.offset === textLength;
+
+      if (backwardAnchorGhostCaret || anchorGhostCaret) {
+        liToFilter.push(getListItemAncestor(anchor.getNode())?.getKey());
         return false;
-      if (
-        (!isBackward && isFocus && focus.offset === 0) ||
-        (!isBackward && isAnchor && anchor.offset === textLength)
-      )
+      }
+      if (backwardFocusGhostCaret || focusGhostCaret) {
+        liToFilter.push(getListItemAncestor(focus.getNode())?.getKey());
         return false;
+      }
     }
 
     return true;
   });
 
-  console.log({ filteredNodes });
+  if (firstParagraph === 0 && endingParagraph === 0 && !inList) {
+    console.log("DISPATCHING COMMAND");
+    editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+    return [];
+  }
+  console.log("mark PARAGRAPHS", firstParagraph, endingParagraph);
+  console.log("mark filtering before li and paras", { filteredNodes });
 
+  filteredNodes = filteredNodes.filter((n) => !liToFilter.includes(n.getKey()));
+  console.log("mark filtering after lis", { filteredNodes });
+  // filteredNodes = filteredNodes.slice(firstParagraph, filteredNodes.length);
+  const end = Math.max(firstParagraph, filteredNodes.length - endingParagraph);
+  filteredNodes = filteredNodes.slice(firstParagraph, end);
+  // filteredNodes = filteredNodes.slice(0, -endingParagraph);
+
+  console.log("mark filtering after paras", { filteredNodes });
   for (const n of filteredNodes) {
     const li = getListItemAncestor(n);
     if (!li) continue;
@@ -90,11 +188,10 @@ function getSelectedListItems(selection: any): LexicalNode[] {
     if (!seen.has(key)) {
       seen.add(key);
       items.push(li);
-    } else {
     }
   }
 
-  return items;
+  return items.length ? items : filteredNodes;
 }
 
 /**
@@ -158,15 +255,24 @@ function splitListAfterRange(listNode: any, endIndex: number) {
  * - Splits list into before/after lists as needed
  * - Cleans up empty lists
  */
-function smartUnlistSelectionInsideUpdate(editor: LexicalEditor) {
+function smartUnlistSelectionInsideUpdate(editor: LexicalEditor, inList) {
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) return;
 
-  const selectedItems = getSelectedListItems(selection);
+  // checks to see if its just a caret selection and then grabs the parent list item
+
+  const selectedItems = getSelectedListItems(selection, editor, inList);
   console.log("mark a selectedItems", selectedItems);
 
   if (selectedItems.length === 0) {
     editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+    return;
+  }
+
+  // NEW: if we got nodes but they are NOT list items, wrap them into a list
+  const hasAnyListItem = selectedItems.some((n) => $isListItemNode(n));
+  if (!hasAnyListItem) {
+    wrapBlocksInBulletList(selectedItems);
     return;
   }
 
@@ -257,15 +363,28 @@ export function smartToggleBulletList(editor: LexicalEditor) {
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return;
 
+    // check if in list by traversing upwards until finding a list item or no more parents from anchor / focus points
     const anchorLi = getListItemAncestor(selection.anchor.getNode());
     const focusLi = getListItemAncestor(selection.focus.getNode());
-    const inList = !!anchorLi || !!focusLi;
+    let inList = !!anchorLi || !!focusLi;
 
-    if (inList) {
-      console.log("mark a, in list");
-      smartUnlistSelectionInsideUpdate(editor);
+    // checking to see if highlight starts in 1 list and ends in another
+    if (anchorLi && focusLi) {
+      if (anchorLi.getParent()?.getKey() !== focusLi.getParent()?.getKey()) {
+        inList = true;
+      }
+      // else {
+      //   inList = false;
+      // }
+    }
+
+    console.log("mark a inList", inList);
+
+    // if in a list, smart toggle list items
+    if (true) {
+      smartUnlistSelectionInsideUpdate(editor, inList);
     } else {
-      console.log("DISPATCHING INSET UNORDEREDLIST");
+      // else use the default command to apply or remove OL
       editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
     }
   });
