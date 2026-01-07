@@ -6,7 +6,6 @@
 
 import { useMemo } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
-import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { NodeBackgroundColors } from "../../../constants/Nodes";
 
 // Lexical React
@@ -55,6 +54,18 @@ export function exportEditorHtml(editor: LexicalEditor): string {
     .read(() => $generateHtmlFromNodes(editor, null));
 }
 
+const innerHtmlStyle = {
+  __html: `
+.prose { color: var(--theme-text-primary); }
+.prose p:not([style*="color"]), 
+.prose li:not([style*="color"]), 
+.prose span:not([style*="color"]), 
+.prose div:not([style*="color"]) {
+  color: var(--theme-text-primary);
+}
+`,
+};
+
 export default function JournalEditor({
   contentJson,
   onContentChange,
@@ -86,28 +97,15 @@ export default function JournalEditor({
 
         <div className="relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex border-[var(--theme-border)] bg-[var(--theme-surface)]">
           <div className="flex-1 relative overflow-hidden">
-            <style
-              dangerouslySetInnerHTML={{
-                __html: `
-              .prose { color: var(--theme-text-primary); }
-              .prose p:not([style*="color"]), 
-              .prose li:not([style*="color"]), 
-              .prose span:not([style*="color"]), 
-              .prose div:not([style*="color"]) {
-                color: var(--theme-text-primary);
-              }
-            `,
-              }}
-            />
+            <style dangerouslySetInnerHTML={innerHtmlStyle} />
 
             <div className="h-full relative overflow-y-auto">
               <RichTextPlugin
                 contentEditable={
                   <ContentEditable
-                    className="prose prose-slate w-full min-w-full max-w-none py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert whitespace-pre-wrap min-h-full pl-[24px] pr-[24px]"
+                    className="prose prose-slate w-full min-w-full max-w-none py-5 text-base leading-relaxed focus:outline-none focus-visible:ring-0 dark:prose-invert whitespace-pre-wrap min-h-full pl-[24px] pr-[24px] text-[var(--theme-text-primary)]"
                     style={{
                       caretColor: accentColor,
-                      color: "var(--theme-text-primary)",
                     }}
                   />
                 }
