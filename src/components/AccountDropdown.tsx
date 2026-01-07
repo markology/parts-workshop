@@ -63,7 +63,6 @@ function AccountDropdown({
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const workspaceTheme = useWorkspaceTheme ? useTheme() : null;
 
-  console.log({ workspaceTheme, useWorkspaceTheme });
   const [internalDropdownOpen, setInternalDropdownOpen] = useState(false);
   const dropdownOpen =
     externalIsOpen !== undefined ? externalIsOpen : internalDropdownOpen;
