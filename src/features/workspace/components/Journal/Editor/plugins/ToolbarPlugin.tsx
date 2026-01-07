@@ -1,3 +1,15 @@
+/**
+ * Toolbar Plugin for Journal Editor
+ *
+ * Provides a rich text formatting toolbar with:
+ * - Text formatting: Bold, Italic, Underline
+ * - Bullet list toggle (smart Notion-style behavior)
+ * - Text color picker with preset colors
+ *
+ * The toolbar automatically syncs its state with the editor selection,
+ * showing which formats are active in the current selection.
+ */
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -23,21 +35,38 @@ import {
 } from "@lexical/selection";
 import { mergeRegister } from "@lexical/utils";
 import { $isListNode } from "@lexical/list";
-import { SMART_TOGGLE_BULLET_LIST } from "./commands/smartList";
+import { SMART_TOGGLE_BULLET_LIST } from "../commands/smartList";
 
-/* ------------------------------ Color Picker ------------------------------ */
+/* ============================================================================
+ * Color Picker Component
+ * ============================================================================ */
 
+/**
+ * Preset color options for the text color picker.
+ * Includes common colors: black, white, and various accent colors.
+ */
 const PRESET_COLORS = [
-  "#000000",
-  "#FFFFFF",
-  "#EF4444",
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#8B5CF6",
-  "#EC4899",
+  "#000000", // Black
+  "#FFFFFF", // White
+  "#EF4444", // Red
+  "#3B82F6", // Blue
+  "#10B981", // Green
+  "#F59E0B", // Orange
+  "#8B5CF6", // Purple
+  "#EC4899", // Pink
 ];
 
+/**
+ * Color Picker Component
+ *
+ * A dropdown color picker that displays preset colors and allows resetting
+ * to the default theme color. The picker automatically closes when clicking
+ * outside of it.
+ *
+ * @param activeColor - Currently selected color (null = default theme color)
+ * @param onColorChange - Callback when a color is selected
+ * @param disabled - Whether the picker is disabled
+ */
 function ColorPicker({
   activeColor,
   onColorChange,
@@ -51,6 +80,7 @@ function ColorPicker({
   const [isOpen, setIsOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
 
+  // Close picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -68,6 +98,13 @@ function ColorPicker({
     }
   }, [isOpen]);
 
+  /**
+   * Determines if a color is dark (needs white text for contrast).
+   * Uses relative luminance formula: 0.299*R + 0.587*G + 0.114*B
+   *
+   * @param color - Hex color string (e.g., "#FF0000")
+   * @returns true if color is dark (luminance < 0.5)
+   */
   const isDarkColor = (color: string | null): boolean => {
     if (!color) return true;
     const hex = color.replace("#", "");
@@ -78,6 +115,7 @@ function ColorPicker({
     return luminance < 0.5;
   };
 
+  // Determine display color and text contrast
   const displayColor = activeColor || theme.textPrimary;
   const needsWhiteText = isDarkColor(displayColor);
 
@@ -171,29 +209,60 @@ function ColorPicker({
   );
 }
 
-/* --------------------------- Formatting Helpers --------------------------- */
+/* ============================================================================
+ * Formatting Helpers
+ * ============================================================================ */
 
+/**
+ * Supported text format types.
+ */
 type Format = "bold" | "italic" | "underline";
 
+/**
+ * Mapping of format types to their Lexical format flags.
+ */
 const FORMAT_FLAG: Record<Format, number> = {
   bold: IS_BOLD,
   italic: IS_ITALIC,
   underline: IS_UNDERLINE,
 };
 
+/**
+ * Adds a format flag to a text node using bitwise OR.
+ *
+ * @param node - The text node to format
+ * @param format - The format type to add
+ */
 function addFormat(node: TextNode, format: Format) {
   const flag = FORMAT_FLAG[format];
   node.setFormat(node.getFormat() | flag);
 }
 
+/**
+ * Removes a format flag from a text node using bitwise AND with NOT.
+ *
+ * @param node - The text node to unformat
+ * @param format - The format type to remove
+ */
 function removeFormat(node: TextNode, format: Format) {
   const flag = FORMAT_FLAG[format];
   node.setFormat(node.getFormat() & ~flag);
 }
 
 /**
- * Split partially-selected boundary text nodes so formatting applies ONLY
+ * Splits partially-selected boundary text nodes so formatting applies ONLY
  * to the highlighted characters (not outside the selection).
+ *
+ * This is crucial for proper formatting behavior. When a user selects part
+ * of a text node, we need to split it at the selection boundaries so that
+ * formatting only affects the selected portion.
+ *
+ * Example: If "Hello World" is selected from "Hello World!", we split to:
+ * - "Hello World" (selected, will be formatted)
+ * - "!" (not selected, won't be formatted)
+ *
+ * @param selection - The current Lexical selection
+ * @returns Array of text nodes that are fully within the selection
  */
 function getSelectedTextNodes(selection: any): TextNode[] {
   const isBackward = selection.isBackward();
@@ -205,19 +274,25 @@ function getSelectedTextNodes(selection: any): TextNode[] {
 
   const sizeOf = (n: TextNode) => n.getTextContentSize();
 
+  // Split text nodes at selection boundaries
   if ($isTextNode(startNode) && $isTextNode(endNode)) {
     if (startNode === endNode) {
+      // Selection is within a single text node
       const a = Math.min(startPoint.offset, endPoint.offset);
       const b = Math.max(startPoint.offset, endPoint.offset);
+      // Only split if selection doesn't cover the entire node
       if (a !== 0 || b !== sizeOf(startNode)) {
         startNode.splitText(a, b);
       }
     } else {
+      // Selection spans multiple text nodes
+      // Split at start boundary if needed
       const startOffset = startPoint.offset;
       if (startOffset !== 0 && startOffset !== sizeOf(startNode)) {
         startNode.splitText(startOffset);
       }
 
+      // Split at end boundary if needed
       const endOffset = endPoint.offset;
       if (endOffset !== 0 && endOffset !== sizeOf(endNode)) {
         endNode.splitText(endOffset);
@@ -225,28 +300,48 @@ function getSelectedTextNodes(selection: any): TextNode[] {
     }
   }
 
+  // Return all text nodes that are fully within the selection
   return selection.getNodes().filter($isTextNode) as TextNode[];
 }
 
+/**
+ * Toggles a format uniformly across the selection.
+ *
+ * This implements "smart" formatting behavior:
+ * - For collapsed selection (caret): uses Lexical's built-in toggle
+ * - For range selection: implements uniform toggle logic:
+ *   - If ALL selected text has the format → remove it from all
+ *   - If ANY selected text lacks the format → add it to all
+ *
+ * This ensures consistent formatting across mixed selections (e.g., if some
+ * text is bold and some isn't, clicking bold will make ALL selected text bold).
+ *
+ * @param editor - The Lexical editor instance
+ * @param format - The format type to toggle
+ */
 function toggleFormatUniform(editor: LexicalEditor, format: Format) {
   editor.update(() => {
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return;
 
-    // Cursor: Lexical toggle is correct
+    // Collapsed selection (caret): Lexical's built-in toggle works correctly
     if (selection.isCollapsed()) {
       selection.formatText(format);
       return;
     }
 
-    // Range: "uniform toggle"
+    // Range selection: implement uniform toggle logic
     const textNodes = getSelectedTextNodes(selection);
     if (textNodes.length === 0) return;
 
+    // Check if all selected text nodes have the format
     const allHave = textNodes.every((n) => n.hasFormat(format));
+
     if (allHave) {
+      // All have format → remove from all
       textNodes.forEach((n) => removeFormat(n, format));
     } else {
+      // Some lack format → add to all that don't have it
       textNodes.forEach((n) => {
         if (!n.hasFormat(format)) addFormat(n, format);
       });
@@ -254,18 +349,28 @@ function toggleFormatUniform(editor: LexicalEditor, format: Format) {
   });
 }
 
-/* -------------------------------- Toolbar -------------------------------- */
+/* ============================================================================
+ * Main Toolbar Plugin
+ * ============================================================================ */
 
-export function Toolbar({
-  activeColor,
-  setActiveColor,
-}: {
-  activeColor: string | null;
-  setActiveColor: (color: string | null) => void;
-}) {
+/**
+ * Toolbar Plugin
+ *
+ * Provides formatting controls for the editor. The toolbar automatically
+ * syncs its state with the current selection, showing which formats are
+ * active. It listens to both selection changes and editor updates to stay
+ * in sync.
+ *
+ * Features:
+ * - Bold, Italic, Underline formatting (with uniform toggle behavior)
+ * - Smart bullet list toggle (Notion-style)
+ * - Text color picker
+ */
+export default function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
   const theme = useTheme();
 
+  // Track which formats are active in the current selection
   const [formats, setFormats] = useState({
     bold: false,
     italic: false,
@@ -273,96 +378,136 @@ export function Toolbar({
     list: false,
   });
 
-  const readToolbarState = useCallback(
-    (editorState: EditorState) => {
-      editorState.read(() => {
-        const selection = $getSelection();
-        if (!$isRangeSelection(selection)) {
-          setFormats({
-            bold: false,
-            italic: false,
-            underline: false,
-            list: false,
-          });
-          return;
-        }
-
-        // list
-        let inList = false;
-        let node: LexicalNode | null = selection.anchor.getNode();
-        while (node) {
-          if ($isListNode(node)) {
-            inList = true;
-            break;
-          }
-          node = node.getParent();
-        }
-
-        // formats
-        let bold = selection.hasFormat("bold");
-        let italic = selection.hasFormat("italic");
-        let underline = selection.hasFormat("underline");
-
-        // For a range selection, make button "active" only if ALL selected text is formatted
-        if (!selection.isCollapsed()) {
-          const textNodes = selection
-            .getNodes()
-            .filter($isTextNode) as TextNode[];
-          if (textNodes.length > 0) {
-            bold = textNodes.every((n) => n.hasFormat("bold"));
-            italic = textNodes.every((n) => n.hasFormat("italic"));
-            underline = textNodes.every((n) => n.hasFormat("underline"));
-          }
-        }
-
-        setFormats({ bold, italic, underline, list: inList });
-
-        // color indicator (selection style is the least surprising)
-        const selectionStyleColor = $getSelectionStyleValueForProperty(
-          selection,
-          "color",
-          undefined
-        );
-        setActiveColor(selectionStyleColor ?? null);
-      });
-    },
-    [setActiveColor]
+  // Manage active color state internally
+  const [activeColor, setActiveColor] = useState<string | null>(
+    theme.textPrimary
   );
 
-  // Keep toolbar synced (selection changes + editor updates)
+  /**
+   * Reads the current editor state and updates toolbar button states.
+   *
+   * This function:
+   * 1. Checks if selection is in a list (for list button state)
+   * 2. Checks text formatting (bold, italic, underline)
+   * 3. For range selections, only shows format as active if ALL text has it
+   * 4. Reads the current text color from selection styles
+   *
+   * @param editorState - The current editor state to read from
+   */
+  const readToolbarState = useCallback((editorState: EditorState) => {
+    editorState.read(() => {
+      const selection = $getSelection();
+
+      // No range selection: clear all format indicators
+      if (!$isRangeSelection(selection)) {
+        setFormats({
+          bold: false,
+          italic: false,
+          underline: false,
+          list: false,
+        });
+        return;
+      }
+
+      // Check if selection is inside a list
+      // Traverse up from anchor node to find list node
+      let inList = false;
+      let node: LexicalNode | null = selection.anchor.getNode();
+      while (node) {
+        if ($isListNode(node)) {
+          inList = true;
+          break;
+        }
+        node = node.getParent();
+      }
+
+      // Check text formatting
+      // Start with selection-level format check
+      let bold = selection.hasFormat("bold");
+      let italic = selection.hasFormat("italic");
+      let underline = selection.hasFormat("underline");
+
+      // For range selections, only show format as active if ALL text nodes have it
+      // This provides better UX: button is only "pressed" when entire selection is formatted
+      if (!selection.isCollapsed()) {
+        const textNodes = selection
+          .getNodes()
+          .filter($isTextNode) as TextNode[];
+        if (textNodes.length > 0) {
+          // Require ALL text nodes to have the format for button to be active
+          bold = textNodes.every((n) => n.hasFormat("bold"));
+          italic = textNodes.every((n) => n.hasFormat("italic"));
+          underline = textNodes.every((n) => n.hasFormat("underline"));
+        }
+      }
+
+      setFormats({ bold, italic, underline, list: inList });
+
+      // Read text color from selection styles
+      // This shows the color of the selected text (or null if mixed/no color)
+      const selectionStyleColor = $getSelectionStyleValueForProperty(
+        selection,
+        "color",
+        undefined
+      );
+      setActiveColor(selectionStyleColor ?? null);
+    });
+  }, []);
+
+  // Keep toolbar synced with editor state
+  // Listens to both selection changes and editor updates
   useEffect(() => {
     const sync = () => readToolbarState(editor.getEditorState());
 
-    // initial sync
+    // Initial sync on mount
     sync();
 
+    // Register listeners for selection changes and editor updates
     return mergeRegister(
+      // Listen to selection changes (cursor moves, selection changes)
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
           sync();
-          return false;
+          return false; // Don't prevent other handlers
         },
         COMMAND_PRIORITY_LOW
       ),
+      // Listen to editor updates (content changes, formatting changes)
       editor.registerUpdateListener(({ editorState }) => {
         readToolbarState(editorState);
       })
     );
   }, [editor, readToolbarState]);
 
+  /**
+   * Applies a text color to the current selection.
+   *
+   * @param color - Color to apply (null = reset to theme default)
+   */
   const applyColor = (color: string | null) => {
     editor.update(() => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
+
+      // Apply color or reset to theme default
       const styles = color ? { color } : { color: theme.textPrimary };
       $patchStyleText(selection, styles);
     });
 
-    // update indicator immediately (listeners will also update it)
+    // Update indicator immediately (listeners will also update it)
     setActiveColor(color);
   };
 
+  /**
+   * Returns style object for toolbar buttons based on active state.
+   *
+   * Active buttons have a background color and shadow to indicate they're pressed.
+   * Inactive buttons are transparent with secondary text color.
+   *
+   * @param isActive - Whether the button represents an active format
+   * @returns Style object for the button
+   */
   const activeButtonStyle = (isActive: boolean) => {
     if (!isActive) {
       return {
@@ -380,24 +525,27 @@ export function Toolbar({
     } as const;
   };
 
+  // Return the toolbar JSX (plugins can return JSX)
   return (
     <div className="sticky top-0 z-10 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 shadow-sm backdrop-blur border-[var(--theme-border)] bg-[var(--theme-elevated)]">
+      {/* Bold Button */}
       <button
         type="button"
         onMouseDown={(e) => {
-          e.preventDefault();
+          e.preventDefault(); // Prevent editor from losing focus
           toggleFormatUniform(editor, "bold");
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
           ...activeButtonStyle(formats.bold),
-          transition: "none !important",
+          transition: "none !important", // Disable transitions for instant feedback
         }}
         title="Bold"
       >
         <span className="font-semibold">B</span>
       </button>
 
+      {/* Italic Button */}
       <button
         type="button"
         onMouseDown={(e) => {
@@ -414,6 +562,7 @@ export function Toolbar({
         <span className="italic">I</span>
       </button>
 
+      {/* Underline Button */}
       <button
         type="button"
         onMouseDown={(e) => {
@@ -430,10 +579,12 @@ export function Toolbar({
         <span className="underline underline-offset-2">U</span>
       </button>
 
+      {/* Bullet List Button */}
       <button
         type="button"
         onMouseDown={(e) => {
           e.preventDefault();
+          // Dispatch smart list toggle command (handled by SmartListPlugin)
           editor.dispatchCommand(SMART_TOGGLE_BULLET_LIST, undefined);
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
@@ -446,8 +597,10 @@ export function Toolbar({
         • List
       </button>
 
+      {/* Visual Separator */}
       <div className="h-5 w-px bg-[var(--theme-border)]" />
 
+      {/* Color Picker */}
       <ColorPicker
         activeColor={activeColor}
         onColorChange={applyColor}

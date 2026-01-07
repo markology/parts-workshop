@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { NodeBackgroundColors } from "../../../constants/Nodes";
@@ -17,13 +17,13 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import SmartListPlugin from "@/features/workspace/components/Journal/Editor/plugins/SmartListPlugin";
 import PointerGhostSelectionPlugin from "@/features/workspace/components/Journal/Editor/plugins/PointerGhostSelectionPlugin";
+import ToolbarPlugin from "@/features/workspace/components/Journal/Editor/plugins/ToolbarPlugin";
 
 // Lexical core
 import { LexicalEditor } from "lexical";
 
 import { $generateHtmlFromNodes } from "@lexical/html";
 import { ListNode, ListItemNode } from "@lexical/list";
-import { Toolbar } from "./Toolbar";
 
 interface JournalEditorProps {
   contentJson: string | null;
@@ -61,11 +61,6 @@ export default function JournalEditor({
   readOnly = false,
   nodeType,
 }: JournalEditorProps) {
-  const theme = useTheme();
-  const [activeColor, setActiveColor] = useState<string | null>(
-    theme.textPrimary
-  );
-
   const accentColor = useMemo(() => {
     return (
       (nodeType && NodeBackgroundColors[nodeType]) ||
@@ -87,9 +82,7 @@ export default function JournalEditor({
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="flex h-full flex-col gap-4">
-        {!readOnly && (
-          <Toolbar activeColor={activeColor} setActiveColor={setActiveColor} />
-        )}
+        {!readOnly && <ToolbarPlugin />}
 
         <div className="relative flex-1 overflow-hidden rounded-2xl border shadow-inner flex border-[var(--theme-border)] bg-[var(--theme-surface)]">
           <div className="flex-1 relative overflow-hidden">
