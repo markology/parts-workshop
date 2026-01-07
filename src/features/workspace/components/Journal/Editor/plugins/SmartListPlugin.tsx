@@ -5,7 +5,7 @@ import { COMMAND_PRIORITY_EDITOR } from "lexical";
 import {
   SMART_TOGGLE_BULLET_LIST,
   smartToggleBulletList,
-} from "../commands/smartList";
+} from "../commands/smartList/index";
 
 /**
  * Registers Notion-style bullet toggle:
