@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useJournalStore } from "@/features/workspace/state/stores/Journal";
-import JournalEditor from "./JournalEditor";
+import JournalEditor from "./Editor/Editor";
 import TextThreadEditor from "./TextThreadEditor";
 import { useSaveJournalEntry } from "../../state/hooks/useSaveJournalEntry";
 import { useAllJournalEntries } from "../../state/hooks/useAllJournalEntries";
@@ -1677,7 +1677,7 @@ export default function JournalDrawer() {
         }`}
       >
         {/* TEMPORARY DEBUG: Theme toggle - remove when done debugging */}
-        <div className="absolute top-4 right-4 z-[10000] pointer-events-auto">
+        {/* <div className="absolute top-4 right-4 z-[10000] pointer-events-auto">
           <div
             className="flex items-center gap-2 rounded-lg border px-2 py-1.5 shadow-lg"
             style={{ backgroundColor: theme.card, borderColor: theme.border }}
@@ -1715,7 +1715,7 @@ export default function JournalDrawer() {
               {activeTheme}
             </button>
           </div>
-        </div>
+        </div> */}
         {/* END TEMPORARY DEBUG */}
         <div
           className="flex h-full flex-col overflow-hidden shadow-2xl"

@@ -21,36 +21,22 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
-import { NodeBackgroundColors } from "../../constants/Nodes";
+import { NodeBackgroundColors } from "../../../constants/Nodes";
 
 // Lexical React
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import SmartListPlugin from "@/features/workspace/components/Journal/Editor/plugins/SmartListPlugin";
 
 // Lexical core
-import {
-  EditorState,
-  LexicalEditor,
-  LexicalNode,
-  $createParagraphNode,
-  $getRoot,
-  $getSelection,
-  $isRangeSelection,
-} from "lexical";
+import { LexicalEditor } from "lexical";
 
 import { $generateHtmlFromNodes } from "@lexical/html";
 
-import {
-  ListNode,
-  ListItemNode,
-  REMOVE_LIST_COMMAND,
-  $isListNode,
-} from "@lexical/list";
+import { ListNode, ListItemNode } from "@lexical/list";
 import { Toolbar } from "./Toolbar";
 
 interface JournalEditorProps {
@@ -82,156 +68,6 @@ export function exportEditorHtml(editor: LexicalEditor): string {
     .getEditorState()
     .read(() => $generateHtmlFromNodes(editor, null));
 }
-
-/* ----------------------------- Change Handler ----------------------------- */
-
-function ChangeHandler({
-  onContentChange,
-  readOnly,
-  onClearFormatting,
-  isSyncingRef,
-}: {
-  onContentChange: (data: { json: string; text: string }) => void;
-  readOnly: boolean;
-  onClearFormatting?: () => void;
-  isSyncingRef: React.MutableRefObject<boolean>;
-}) {
-  const [editor] = useLexicalComposerContext();
-  const previousTextContentRef = useRef<string>("");
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, []);
-
-  return (
-    <OnChangePlugin
-      onChange={(editorState: EditorState) => {
-        if (readOnly) return;
-        if (isSyncingRef.current) return; // prevent loops during external sync
-
-        editorState.read(() => {
-          const root = $getRoot();
-          const textContent = root.getTextContent();
-
-          const wasNotEmpty = previousTextContentRef.current.trim().length > 0;
-          const isNowEmpty = textContent.trim().length === 0;
-
-          if (wasNotEmpty && isNowEmpty) {
-            editor.update(
-              () => {
-                // Remove list formatting if cursor is currently in a list
-                const selection = $getSelection();
-                if ($isRangeSelection(selection)) {
-                  let node: LexicalNode | null = selection.anchor.getNode();
-                  while (node) {
-                    if ($isListNode(node)) {
-                      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
-                      break;
-                    }
-                    node = node.getParent();
-                  }
-                }
-
-                // Reset to a clean empty paragraph
-                root.clear();
-                root.append($createParagraphNode());
-              },
-              { discrete: true }
-            );
-
-            onClearFormatting?.();
-          }
-
-          previousTextContentRef.current = textContent;
-
-          if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-
-          // debounceTimerRef.current = setTimeout(() => {
-          //   const json = JSON.stringify(editorState.toJSON());
-          //   onContentChange({ json, text: textContent });
-          // }, 300);
-        });
-      }}
-    />
-  );
-}
-
-/* ----------------------------- Content Sync ------------------------------ */
-
-function ContentSyncPlugin({
-  contentJson,
-  isSyncingRef,
-}: {
-  contentJson: string | null;
-  isSyncingRef: React.MutableRefObject<boolean>;
-}) {
-  const [editor] = useLexicalComposerContext();
-  const previousContentRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (isSyncingRef.current) return;
-    if (contentJson === previousContentRef.current) return;
-
-    const normalized =
-      contentJson && contentJson !== "null" && contentJson.trim() !== ""
-        ? contentJson
-        : null;
-
-    // If null/empty, ensure editor is empty (but avoid extra work if already empty)
-    if (!normalized) {
-      let alreadyEmpty = false;
-      editor.getEditorState().read(() => {
-        alreadyEmpty = $getRoot().getTextContent().trim().length === 0;
-      });
-
-      previousContentRef.current = contentJson;
-      if (alreadyEmpty) return;
-
-      isSyncingRef.current = true;
-      editor.update(
-        () => {
-          const root = $getRoot();
-          root.clear();
-          root.append($createParagraphNode());
-        },
-        { discrete: true }
-      );
-      queueMicrotask(() => {
-        isSyncingRef.current = false;
-      });
-      return;
-    }
-
-    // Sync real JSON into editor
-    try {
-      isSyncingRef.current = true;
-      const nextState = editor.parseEditorState(normalized);
-      editor.setEditorState(nextState);
-    } catch (e) {
-      console.warn("ContentSyncPlugin: failed to parse editor state", e);
-      editor.update(
-        () => {
-          const root = $getRoot();
-          root.clear();
-          root.append($createParagraphNode());
-        },
-        { discrete: true }
-      );
-    } finally {
-      previousContentRef.current = contentJson;
-      queueMicrotask(() => {
-        isSyncingRef.current = false;
-      });
-    }
-  }, [contentJson, editor, isSyncingRef]);
-
-  return null;
-}
-
-/* ------------------------------ Main Editor ------------------------------ */
 
 export default function JournalEditor({
   contentJson,
@@ -309,18 +145,18 @@ export default function JournalEditor({
 
               <HistoryPlugin />
               <ListPlugin />
-
-              <ContentSyncPlugin
+              <SmartListPlugin />
+              {/* <ContentSyncPlugin
                 contentJson={contentJson}
                 isSyncingRef={isSyncingRef}
-              />
-
+              /> */}
+              {/* 
               <ChangeHandler
                 onContentChange={onContentChange}
                 readOnly={readOnly}
                 isSyncingRef={isSyncingRef}
                 onClearFormatting={() => setActiveColor(null)}
-              />
+              /> */}
             </div>
           </div>
         </div>

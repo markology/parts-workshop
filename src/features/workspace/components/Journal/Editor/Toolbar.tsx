@@ -21,12 +21,9 @@ import {
   $patchStyleText,
   $getSelectionStyleValueForProperty,
 } from "@lexical/selection";
-import {
-  INSERT_UNORDERED_LIST_COMMAND,
-  REMOVE_LIST_COMMAND,
-  $isListNode,
-} from "@lexical/list";
 import { mergeRegister } from "@lexical/utils";
+import { $isListNode } from "@lexical/list";
+import { SMART_TOGGLE_BULLET_LIST } from "./commands/smartList";
 
 /* ------------------------------ Color Picker ------------------------------ */
 
@@ -354,24 +351,6 @@ export function Toolbar({
     );
   }, [editor, readToolbarState]);
 
-  const toggleList = () => {
-    editor.update(() => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection)) return;
-
-      let node: LexicalNode | null = selection.anchor.getNode();
-      while (node) {
-        if ($isListNode(node)) {
-          editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
-          return;
-        }
-        node = node.getParent();
-      }
-
-      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
-    });
-  };
-
   const applyColor = (color: string | null) => {
     editor.update(() => {
       const selection = $getSelection();
@@ -455,7 +434,7 @@ export function Toolbar({
         type="button"
         onMouseDown={(e) => {
           e.preventDefault();
-          toggleList();
+          editor.dispatchCommand(SMART_TOGGLE_BULLET_LIST, undefined);
         }}
         className="rounded-md px-2.5 py-1 text-sm font-medium"
         style={{
@@ -477,4 +456,3 @@ export function Toolbar({
     </div>
   );
 }
-
