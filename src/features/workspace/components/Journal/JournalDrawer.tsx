@@ -291,12 +291,6 @@ export default function JournalDrawer(
                             ? "700px"
                             : "56rem";
                       })(),
-                      paddingRight:
-                        journalMode === "normal" &&
-                        !showJournalModeSelection &&
-                        activeEntryId !== null
-                          ? "24px"
-                          : undefined,
                       transition: "max-width 300ms ease-in-out",
                     }}
                   >
@@ -754,7 +748,7 @@ export default function JournalDrawer(
                   }}
                 >
                   <div
-                    className={`flex-1 overflow-hidden w-full transition-all duration-300 ease-in-out ${distractionFree && journalMode !== "textThread" ? "rounded-none flex flex-col" : journalMode === "textThread" ? "" : "px-6"}`}
+                    className={`flex-1 overflow-hidden w-full transition-all duration-300 ease-in-out ${distractionFree && journalMode !== "textThread" ? "rounded-none flex flex-col" : ""}`}
                     style={{
                       backgroundColor:
                         journalMode === "textThread"
