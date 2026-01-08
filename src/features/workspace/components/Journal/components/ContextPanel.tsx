@@ -644,25 +644,28 @@ export default function ContextPanel({
     );
   }
 
-  if (
-    ImpressionList.includes(targetNode.type as ImpressionType) ||
-    ImpressionList
-  ) {
+  if (ImpressionList.includes(targetNode.type as ImpressionType)) {
     const label = (targetNode.data as { label?: string })?.label;
+    const impressionType = targetNode.type as ImpressionType;
 
     return (
       <div
-        className="space-y-3 text-sm"
-        style={{ color: theme.textSecondary }}
+        className="text-left rounded-xl px-3 pt-2 pb-3 text-sm font-medium shadow-sm break-words flex flex-col gap-2"
+        style={{
+          backgroundColor: `var(--theme-impression-${impressionType}-bg)`,
+          color: `var(--theme-impression-${impressionType}-text)`,
+        }}
       >
-        <div
-          className="rounded-xl border px-3.5 py-3 text-base leading-relaxed shadow-sm"
+        <strong
+          className="text-sm font-semibold"
           style={{
-            backgroundColor: theme.surface,
-            borderColor: theme.border,
-            color: theme.textPrimary,
+            color: `var(--theme-impression-${impressionType}-title)`,
           }}
         >
+          {ImpressionTextType[impressionType] || impressionType}
+        </strong>
+
+        <div className="text-sm leading-relaxed mt-2">
           {label || "No text added to this impression yet."}
         </div>
       </div>
