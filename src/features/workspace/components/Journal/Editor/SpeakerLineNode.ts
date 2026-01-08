@@ -27,11 +27,12 @@ import {
 
 /**
  * Serialized representation of a SpeakerLineNode.
- * Extends the base SerializedElementNode with a speakerId field.
+ * Extends the base SerializedElementNode with speakerId and groupId fields.
  */
 export type SerializedSpeakerLineNode = Spread<
   {
     speakerId: string | null;
+    groupId: string | null;
   },
   SerializedElementNode
 >;
@@ -39,10 +40,22 @@ export type SerializedSpeakerLineNode = Spread<
 /**
  * Custom Lexical node for speaker lines in journal entries.
  * Each speaker line represents a line of dialogue or content attributed to a specific speaker.
+ *
+ * Speaker lines can be grouped together using a groupId. When a user creates a speaker line
+ * and presses Enter, the new line shares the same groupId, allowing multiple lines from the
+ * same "response" to be identified and deleted together.
  */
 export class SpeakerLineNode extends ElementNode {
   /** Internal storage for the speaker ID (e.g., part ID, "self", "unknown") */
   __speakerId: string | null;
+
+  /**
+   * Internal storage for the group ID.
+   * Groups related speaker lines together (e.g., multiple lines from the same response).
+   * When a speaker line is created, it gets a unique groupId. When Enter is pressed,
+   * the new line shares the same groupId, allowing the entire group to be deleted together.
+   */
+  __groupId: string | null;
 
   /**
    * Returns the Lexical node type identifier for this node.
@@ -53,21 +66,27 @@ export class SpeakerLineNode extends ElementNode {
   }
 
   /**
-   * Creates a clone of this node with the same speakerId.
+   * Creates a clone of this node with the same speakerId and groupId.
    * Used by Lexical internally for undo/redo and state management.
    */
   static clone(node: SpeakerLineNode): SpeakerLineNode {
-    return new SpeakerLineNode(node.__speakerId, node.__key);
+    return new SpeakerLineNode(node.__speakerId, node.__groupId, node.__key);
   }
 
   /**
    * Creates a new SpeakerLineNode instance.
    * @param speakerId - The ID of the speaker (can be a part ID, "self", "unknown", or null)
+   * @param groupId - Optional group ID for grouping related speaker lines. If not provided, will be null.
    * @param key - Optional Lexical node key (auto-generated if not provided)
    */
-  constructor(speakerId: string | null, key?: NodeKey) {
+  constructor(
+    speakerId: string | null,
+    groupId: string | null = null,
+    key?: NodeKey
+  ) {
     super(key);
     this.__speakerId = speakerId;
+    this.__groupId = groupId;
   }
 
   /**
@@ -88,6 +107,24 @@ export class SpeakerLineNode extends ElementNode {
     writable.__speakerId = speakerId;
   }
 
+  /**
+   * Gets the group ID associated with this node.
+   * @returns The group ID string or null if no group is set
+   */
+  getGroupId(): string | null {
+    return this.__groupId;
+  }
+
+  /**
+   * Sets the group ID for this node.
+   * Uses Lexical's getWritable() to ensure proper state mutation tracking.
+   * @param groupId - The new group ID to set
+   */
+  setGroupId(groupId: string | null): void {
+    const writable = this.getWritable();
+    writable.__groupId = groupId;
+  }
+
   // ============================================================================
   // DOM Rendering Methods
   // ============================================================================
@@ -101,9 +138,12 @@ export class SpeakerLineNode extends ElementNode {
   createDOM(config: EditorConfig): HTMLElement {
     const element = document.createElement("p");
     element.className = config.theme.paragraph || "";
-    // Set data attribute so we can identify speaker lines in CSS/styling
+    // Set data attributes so we can identify speaker lines and their groups
     if (this.__speakerId) {
       element.setAttribute("data-speaker-id", this.__speakerId);
+    }
+    if (this.__groupId) {
+      element.setAttribute("data-group-id", this.__groupId);
     }
     return element;
   }
@@ -122,7 +162,9 @@ export class SpeakerLineNode extends ElementNode {
     config: EditorConfig
   ): boolean {
     const prevSpeakerId = prevNode.__speakerId;
-    // Only update the data attribute if the speaker ID changed
+    const prevGroupId = prevNode.__groupId;
+
+    // Update speaker ID attribute if it changed
     if (prevSpeakerId !== this.__speakerId) {
       if (this.__speakerId) {
         dom.setAttribute("data-speaker-id", this.__speakerId);
@@ -130,6 +172,16 @@ export class SpeakerLineNode extends ElementNode {
         dom.removeAttribute("data-speaker-id");
       }
     }
+
+    // Update group ID attribute if it changed
+    if (prevGroupId !== this.__groupId) {
+      if (this.__groupId) {
+        dom.setAttribute("data-group-id", this.__groupId);
+      } else {
+        dom.removeAttribute("data-group-id");
+      }
+    }
+
     // Return false to let Lexical handle child node updates
     return false;
   }
@@ -150,12 +202,13 @@ export class SpeakerLineNode extends ElementNode {
       p: (node: Node) => {
         const element = node as HTMLElement;
         const speakerId = element.getAttribute("data-speaker-id");
+        const groupId = element.getAttribute("data-group-id");
         // Only convert <p> elements that have a data-speaker-id attribute
         if (speakerId) {
           return {
             conversion: () => {
               return {
-                node: $createSpeakerLineNode(speakerId),
+                node: $createSpeakerLineNode(speakerId, groupId),
               };
             },
             priority: 1,
@@ -174,8 +227,12 @@ export class SpeakerLineNode extends ElementNode {
    */
   exportDOM(editor: LexicalEditor): DOMExportOutput {
     const element = this.createDOM(editor._config);
+    // Attributes are already set by createDOM, but we ensure they're present
     if (this.__speakerId) {
       element.setAttribute("data-speaker-id", this.__speakerId);
+    }
+    if (this.__groupId) {
+      element.setAttribute("data-group-id", this.__groupId);
     }
     return { element };
   }
@@ -193,8 +250,8 @@ export class SpeakerLineNode extends ElementNode {
   static importJSON(
     serializedNode: SerializedSpeakerLineNode
   ): SpeakerLineNode {
-    const { speakerId, format, indent, direction } = serializedNode;
-    const node = $createSpeakerLineNode(speakerId || null);
+    const { speakerId, groupId, format, indent, direction } = serializedNode;
+    const node = $createSpeakerLineNode(speakerId || null, groupId || null);
     // Restore formatting properties inherited from ElementNode
     node.setFormat(format);
     node.setIndent(indent);
@@ -211,6 +268,7 @@ export class SpeakerLineNode extends ElementNode {
     return {
       ...super.exportJSON(),
       speakerId: this.__speakerId,
+      groupId: this.__groupId,
       type: "speaker-line",
       version: 1,
     };
@@ -231,8 +289,13 @@ export class SpeakerLineNode extends ElementNode {
     rangeSelection: RangeSelection,
     restoreSelection: boolean
   ): SpeakerLineNode {
-    // Create a new speaker line with the same speaker ID
-    const newSpeakerLine = $createSpeakerLineNode(this.__speakerId);
+    // Create a new speaker line with the same speaker ID and group ID
+    // This preserves the grouping so multiple lines from the same response
+    // can be identified and deleted together
+    const newSpeakerLine = $createSpeakerLineNode(
+      this.__speakerId,
+      this.__groupId
+    );
     // Preserve text direction (for RTL/LTR languages)
     const direction = this.getDirection();
     newSpeakerLine.setDirection(direction);
@@ -271,20 +334,33 @@ export class SpeakerLineNode extends ElementNode {
  * within an editor.update() callback or other Lexical mutation context.
  *
  * @param speakerId - The ID of the speaker (can be a part ID, "self", "unknown", or null)
+ * @param groupId - Optional group ID for grouping related speaker lines. If not provided, will be null.
+ *                  When creating a new speaker line from a pill click, a unique groupId should be generated.
+ *                  When pressing Enter in an existing speaker line, pass the existing groupId to preserve grouping.
  * @returns A new SpeakerLineNode instance
  *
  * @example
  * ```typescript
+ * // Create a new speaker line with a unique group ID
+ * const groupId = crypto.randomUUID();
  * editor.update(() => {
- *   const speakerLine = $createSpeakerLineNode("part-123");
+ *   const speakerLine = $createSpeakerLineNode("part-123", groupId);
  *   root.append(speakerLine);
+ * });
+ *
+ * // Create a new line in the same group (e.g., when pressing Enter)
+ * editor.update(() => {
+ *   const existingLine = getCurrentSpeakerLine();
+ *   const newLine = $createSpeakerLineNode("part-123", existingLine.getGroupId());
+ *   existingLine.insertAfter(newLine);
  * });
  * ```
  */
 export function $createSpeakerLineNode(
-  speakerId: string | null
+  speakerId: string | null,
+  groupId: string | null = null
 ): SpeakerLineNode {
-  return new SpeakerLineNode(speakerId);
+  return new SpeakerLineNode(speakerId, groupId);
 }
 
 /**

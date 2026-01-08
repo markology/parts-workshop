@@ -736,10 +736,12 @@ export default function ToolbarPlugin({
         // ========================================================================
         // Step 1: Create the SpeakerLineNode
         // ========================================================================
-        // Create a new SpeakerLineNode with the speaker's ID.
-        // This node will contain all the text content for this speaker line.
-        // The speaker ID is stored internally and used for styling/identification.
-        const speakerLine = $createSpeakerLineNode(speaker.id);
+        // Create a new SpeakerLineNode with the speaker's ID and a unique group ID.
+        // The group ID allows multiple lines from the same "response" to be grouped
+        // together, so they can be deleted as a unit when the speaker pill is deleted.
+        // Generate a unique group ID for this new speaker line group.
+        const groupId = crypto.randomUUID();
+        const speakerLine = $createSpeakerLineNode(speaker.id, groupId);
 
         // ========================================================================
         // Step 2: Build the speaker label (e.g., "John: " or "Self: ")
@@ -913,6 +915,7 @@ export default function ToolbarPlugin({
 
         setFormats({ bold, italic, underline, list: inList });
 
+        // console.log("RIGHT BEFORE SELECTION IN TOOLBAR", selection);
         // Read text color from selection styles
         // This shows the color of the selected text (or null if mixed/no color)
         const selectionStyleColor = $getSelectionStyleValueForProperty(
@@ -920,6 +923,8 @@ export default function ToolbarPlugin({
           "color",
           undefined
         );
+
+        // console.log("RIGHT AFTER SELECTION IN TOOLBAR", selection);
 
         // Helper to get computed value of --theme-text CSS variable for comparison
         const getThemeTextColorValue = (): string => {

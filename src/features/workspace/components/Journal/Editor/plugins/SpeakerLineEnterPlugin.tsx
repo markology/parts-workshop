@@ -86,10 +86,13 @@ export default function SpeakerLineEnterPlugin({
 
         if (speakerLine) {
           const speakerId = speakerLine.getSpeakerId();
+          const groupId = speakerLine.getGroupId();
           if (speakerId) {
-            // Create new SpeakerLineNode with same speaker and apply color
+            // Create new SpeakerLineNode with same speaker and group ID
+            // This preserves the grouping so multiple lines from the same response
+            // can be identified and deleted together
             editor.update(() => {
-              const newSpeakerLine = $createSpeakerLineNode(speakerId);
+              const newSpeakerLine = $createSpeakerLineNode(speakerId, groupId);
               speakerLine!.insertAfter(newSpeakerLine);
 
               // Move selection to new line
