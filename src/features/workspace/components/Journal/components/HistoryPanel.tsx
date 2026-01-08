@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Trash2 } from "lucide-react";
+import { Clock, Trash2, MessagesSquare, Book } from "lucide-react";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { JournalEntry } from "@/features/workspace/types/Journal";
 import { extractPlainText } from "../utils/journalPreview";
@@ -96,43 +96,126 @@ export default function HistoryPanel({
           {allEntriesToShow.map((entry) => {
             const isDraftEntry = entry.id === "draft";
             const isActive = entry.id === activeEntryId || isDraftEntry;
-            // Get preview text - prefer contentText, fallback to extracting from contentJson
-            const preview = entry.contentText
-              ? entry.contentText.slice(0, 150) +
-                (entry.contentText.length > 150 ? "..." : "")
-              : extractPlainText(
-                  entry.content || "",
-                  partNodes,
-                  entry.journalType
-                ); // Legacy fallback
+
+            // Helper to get content text from entry (supports both new and legacy formats)
+            const getEntryContentText = (entry: any): string => {
+              if (entry.contentText) return entry.contentText;
+              if (entry.content) return entry.content;
+              if (entry.contentJson) {
+                try {
+                  const json =
+                    typeof entry.contentJson === "string"
+                      ? JSON.parse(entry.contentJson)
+                      : entry.contentJson;
+                  if (json?.root?.children) {
+                    const extractText = (nodes: any[]): string => {
+                      let text = "";
+                      for (const node of nodes) {
+                        if (node.type === "text") {
+                          text += node.text || "";
+                        } else if (node.children) {
+                          text += extractText(node.children);
+                        }
+                      }
+                      return text;
+                    };
+                    return extractText(json.root.children);
+                  }
+                } catch {}
+              }
+              return "";
+            };
+
+            // Helper to get content JSON from entry (supports both new and legacy formats)
+            const getEntryContentJson = (entry: any): any => {
+              if (entry.contentJson) {
+                return typeof entry.contentJson === "string"
+                  ? JSON.parse(entry.contentJson)
+                  : entry.contentJson;
+              }
+              if (entry.content) {
+                try {
+                  return JSON.parse(entry.content);
+                } catch {
+                  return null;
+                }
+              }
+              return null;
+            };
 
             // Use stored journalType, defaulting to "normal" for legacy entries
             const entryIsTextThread = entry.journalType === "textThread";
-            const journalTypeLabel = entryIsTextThread
-              ? "Text Thread"
-              : "Journal";
+
+            // Get content preview (matching PartDetailPanel logic)
+            const contentPreview = (() => {
+              if (entryIsTextThread) {
+                const parsed = getEntryContentJson(entry);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  // Get part nodes for speaker name resolution
+                  const partNodesMap = new Map(partNodes.map((n) => [n.id, n]));
+
+                  return (
+                    parsed
+                      .slice(0, 8)
+                      .map((msg: any) => {
+                        let speakerLabel = "Unknown";
+                        if (msg.speakerId === "self") {
+                          speakerLabel = "Self";
+                        } else if (
+                          msg.speakerId === "unknown" ||
+                          msg.speakerId === "?"
+                        ) {
+                          speakerLabel = "Unknown";
+                        } else {
+                          const partNode = partNodesMap.get(msg.speakerId);
+                          speakerLabel = partNode?.label || msg.speakerId;
+                        }
+                        return `${speakerLabel}: ${msg.text || msg.content || ""}`;
+                      })
+                      .join("\n") +
+                    (parsed.length > 8
+                      ? `\n... (${parsed.length - 8} more messages)`
+                      : "")
+                  );
+                }
+              }
+              // Regular content - use contentText or extract from contentJson
+              let text = getEntryContentText(entry);
+              // Remove HTML tags and extract plain text
+              if (typeof window !== "undefined") {
+                const temp = document.createElement("div");
+                temp.innerHTML = text;
+                text = (temp.textContent || temp.innerText || "").trim();
+              } else {
+                // Server-side fallback
+                text = text
+                  .replace(/<[^>]+>/g, " ")
+                  .replace(/\s+/g, " ")
+                  .trim();
+              }
+              return text.length > 500 ? text.substring(0, 500) + "..." : text;
+            })();
 
             // Calculate word and character counts
+            const contentText = getEntryContentText(entry);
             const wordCount = entryIsTextThread
               ? (() => {
-                  try {
-                    const parsed = JSON.parse(entry.content || "[]");
-                    if (Array.isArray(parsed)) {
-                      return parsed.reduce((acc: number, msg: any) => {
-                        return (
-                          acc +
-                          (msg.text || "")
-                            .split(/\s+/)
-                            .filter((w: string) => w.length > 0).length
-                        );
-                      }, 0);
-                    }
-                  } catch {}
+                  const parsed = getEntryContentJson(entry);
+                  if (Array.isArray(parsed)) {
+                    return parsed.reduce((acc: number, msg: any) => {
+                      return (
+                        acc +
+                        (msg.text || msg.content || "")
+                          .split(/\s+/)
+                          .filter((w: string) => w.length > 0).length
+                      );
+                    }, 0);
+                  }
                   return 0;
                 })()
-              : (entry.content || "").split(/\s+/).filter((w) => w.length > 0)
+              : contentText.split(/\s+/).filter((w: string) => w.length > 0)
                   .length;
-            const charCount = entry.content?.length || 0;
+            const charCount = contentText.length;
 
             return (
               <button
@@ -184,19 +267,6 @@ export default function HistoryPanel({
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide whitespace-nowrap"
-                      style={{
-                        backgroundColor: isActive
-                          ? theme.surface
-                          : "var(--theme-sub-button)",
-                        color: isActive
-                          ? theme.textPrimary
-                          : theme.textSecondary,
-                      }}
-                    >
-                      {journalTypeLabel}
-                    </span>
                     {isActive && (
                       <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap bg-[var(--theme-journal-entry-card-active-badge-bg)] text-[var(--theme-journal-entry-card-active-badge-color)]">
                         {isDraftEntry ? "Draft" : "Current"}
@@ -206,30 +276,36 @@ export default function HistoryPanel({
                 </div>
 
                 {/* Preview content */}
-                <p
-                  className="text-sm leading-relaxed mb-2"
+                <div
+                  className={`whitespace-pre-wrap text-sm leading-relaxed mb-2 max-h-32 overflow-y-auto theme-dark:text-slate-300 theme-light:text-slate-700`}
                   style={{
-                    color: isActive ? theme.textPrimary : theme.textSecondary,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
+                    border: "none",
+                    padding: "10px",
+                    borderRadius: "10px",
+                    background: "var(--theme-part-detail-list-item-bg)",
                   }}
                 >
-                  {preview || "This entry is currently empty."}
-                </p>
+                  {contentPreview || "This entry is currently empty."}
+                </div>
 
                 {/* Word and character count with delete button */}
                 <div
                   className="pt-2 border-t flex items-center justify-between"
                   style={{ borderColor: theme.border }}
                 >
-                  <span
-                    className="text-[10px]"
-                    style={{ color: theme.textMuted }}
-                  >
-                    {wordCount} words • {charCount.toLocaleString()} chars
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {entryIsTextThread ? (
+                      <MessagesSquare className="w-3 h-3 theme-dark:text-purple-200 theme-light:text-purple-700" />
+                    ) : (
+                      <Book className="w-3 h-3 theme-dark:text-blue-200 theme-light:text-blue-700" />
+                    )}
+                    <span
+                      className="text-[10px]"
+                      style={{ color: theme.textMuted }}
+                    >
+                      {wordCount} words • {charCount.toLocaleString()} chars
+                    </span>
+                  </div>
                   {!isDraftEntry && (
                     <button
                       type="button"

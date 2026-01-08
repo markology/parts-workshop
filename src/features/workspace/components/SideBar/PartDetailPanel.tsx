@@ -102,7 +102,9 @@ const PartDetailPanel = () => {
   );
   const setJournalTarget = useJournalStore((s) => s.setJournalTarget);
   const journalIsOpen = useJournalStore((s) => s.isOpen);
-  const journalLastSaved = useJournalStore((s) => s.lastSavedJournalData);
+  const lastSavedJournalDataText = useJournalStore(
+    (s) => s.lastSavedJournalDataText
+  );
   const { activeSidebarNode } = useSidebarStore();
 
   // Track window width for responsive positioning
@@ -211,7 +213,7 @@ const PartDetailPanel = () => {
     if (!journalIsOpen && selectedPartId) {
       loadJournalEntries();
     }
-  }, [journalIsOpen, journalLastSaved, selectedPartId]);
+  }, [journalIsOpen, lastSavedJournalDataText, selectedPartId]);
 
   // Initialize temp values from part data when part changes (only on selection change, not on every render)
   useEffect(() => {
@@ -243,6 +245,53 @@ const PartDetailPanel = () => {
     }
   }, [selectedPartId, partNode, shouldAutoEditPart, setShouldAutoEditPart]);
 
+  // Helper to get content text from entry (supports both new and legacy formats)
+  const getEntryContentText = (entry: any): string => {
+    if (entry.contentText) return entry.contentText;
+    if (entry.content) return entry.content;
+    if (entry.contentJson) {
+      // Try to extract text from Lexical JSON
+      try {
+        const json =
+          typeof entry.contentJson === "string"
+            ? JSON.parse(entry.contentJson)
+            : entry.contentJson;
+        if (json?.root?.children) {
+          const extractText = (nodes: any[]): string => {
+            let text = "";
+            for (const node of nodes) {
+              if (node.type === "text") {
+                text += node.text || "";
+              } else if (node.children) {
+                text += extractText(node.children);
+              }
+            }
+            return text;
+          };
+          return extractText(json.root.children);
+        }
+      } catch {}
+    }
+    return "";
+  };
+
+  // Helper to get content JSON from entry (supports both new and legacy formats)
+  const getEntryContentJson = (entry: any): any => {
+    if (entry.contentJson) {
+      return typeof entry.contentJson === "string"
+        ? JSON.parse(entry.contentJson)
+        : entry.contentJson;
+    }
+    if (entry.content) {
+      try {
+        return JSON.parse(entry.content);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
   const loadJournalEntries = async () => {
     if (!selectedPartId) return;
 
@@ -256,11 +305,17 @@ const PartDetailPanel = () => {
         const data = await response.json();
         // Handle both single entry and entries array response formats
         const entries = data.entries || (data.id ? [data] : []);
-        // Filter out empty entries
-        const validEntries = entries.filter(
-          (entry: any) =>
-            entry && entry.content && entry.content.trim().length > 0
-        );
+        // Filter out empty entries - check contentText or contentJson
+        const validEntries = entries.filter((entry: any) => {
+          const contentText = getEntryContentText(entry);
+          const contentJson = getEntryContentJson(entry);
+          return (
+            entry &&
+            (contentText.trim().length > 0 ||
+              (contentJson && Array.isArray(contentJson)) ||
+              (contentJson && contentJson.root))
+          );
+        });
         setJournalEntries(validEntries);
       } else if (response.status === 404) {
         // No journal entries exist yet
@@ -1697,15 +1752,14 @@ theme-dark:shadow-none "
                           {/* Show only the 2 most recent entries */}
                           <div className="space-y-3">
                             {journalEntries.slice(0, 2).map((entry) => {
-                              // Determine if it's a text thread
-                              const isTextThread = (() => {
-                                try {
-                                  const parsed = JSON.parse(entry.content);
-                                  return Array.isArray(parsed);
-                                } catch {
-                                  return false;
-                                }
-                              })();
+                              // Determine if it's a text thread - use journalType first, then check contentJson
+                              const isTextThread =
+                                entry.journalType === "textThread" ||
+                                (() => {
+                                  const contentJson =
+                                    getEntryContentJson(entry);
+                                  return Array.isArray(contentJson);
+                                })();
 
                               // Check if entry was updated (different from created)
                               const wasUpdated =
@@ -1717,54 +1771,50 @@ theme-dark:shadow-none "
                               // Get content preview
                               const contentPreview = (() => {
                                 if (isTextThread) {
-                                  try {
-                                    const parsed = JSON.parse(entry.content);
-                                    if (
-                                      Array.isArray(parsed) &&
-                                      parsed.length > 0
-                                    ) {
-                                      // Get part nodes for speaker name resolution
-                                      const partNodesMap = new Map(
-                                        nodes
-                                          .filter((n) => n.type === "part")
-                                          .map((n) => [n.id, n])
-                                      );
+                                  const parsed = getEntryContentJson(entry);
+                                  if (
+                                    Array.isArray(parsed) &&
+                                    parsed.length > 0
+                                  ) {
+                                    // Get part nodes for speaker name resolution
+                                    const partNodesMap = new Map(
+                                      nodes
+                                        .filter((n) => n.type === "part")
+                                        .map((n) => [n.id, n])
+                                    );
 
-                                      return (
-                                        parsed
-                                          .slice(0, 8)
-                                          .map((msg: any) => {
-                                            let speakerLabel = "Unknown";
-                                            if (msg.speakerId === "self") {
-                                              speakerLabel = "Self";
-                                            } else if (
-                                              msg.speakerId === "unknown" ||
-                                              msg.speakerId === "?"
-                                            ) {
-                                              speakerLabel = "Unknown";
-                                            } else {
-                                              const partNode = partNodesMap.get(
-                                                msg.speakerId
-                                              );
-                                              speakerLabel =
-                                                partNode?.data?.label ||
-                                                partNode?.data?.name ||
-                                                msg.speakerId;
-                                            }
-                                            return `${speakerLabel}: ${msg.text || ""}`;
-                                          })
-                                          .join("\n") +
-                                        (parsed.length > 8
-                                          ? `\n... (${parsed.length - 8} more messages)`
-                                          : "")
-                                      );
-                                    }
-                                  } catch {
-                                    // Fall through to regular content
+                                    return (
+                                      parsed
+                                        .slice(0, 8)
+                                        .map((msg: any) => {
+                                          let speakerLabel = "Unknown";
+                                          if (msg.speakerId === "self") {
+                                            speakerLabel = "Self";
+                                          } else if (
+                                            msg.speakerId === "unknown" ||
+                                            msg.speakerId === "?"
+                                          ) {
+                                            speakerLabel = "Unknown";
+                                          } else {
+                                            const partNode = partNodesMap.get(
+                                              msg.speakerId
+                                            );
+                                            speakerLabel =
+                                              partNode?.data?.label ||
+                                              partNode?.data?.name ||
+                                              msg.speakerId;
+                                          }
+                                          return `${speakerLabel}: ${msg.text || ""}`;
+                                        })
+                                        .join("\n") +
+                                      (parsed.length > 8
+                                        ? `\n... (${parsed.length - 8} more messages)`
+                                        : "")
+                                    );
                                   }
                                 }
-                                // Regular content - extract plain text from HTML and show first 500 chars
-                                let text = entry.content || "";
+                                // Regular content - use contentText or extract from contentJson
+                                let text = getEntryContentText(entry);
                                 // Remove HTML tags and extract plain text
                                 if (typeof window !== "undefined") {
                                   const temp = document.createElement("div");
@@ -1787,32 +1837,31 @@ theme-dark:shadow-none "
                               })();
 
                               // Get word/character count
+                              const contentText = getEntryContentText(entry);
                               const wordCount = isTextThread
                                 ? (() => {
-                                    try {
-                                      const parsed = JSON.parse(entry.content);
-                                      if (Array.isArray(parsed)) {
-                                        return parsed.reduce(
-                                          (acc: number, msg: any) => {
-                                            return (
-                                              acc +
-                                              (msg.text || "")
-                                                .split(/\s+/)
-                                                .filter(
-                                                  (w: string) => w.length > 0
-                                                ).length
-                                            );
-                                          },
-                                          0
-                                        );
-                                      }
-                                    } catch {}
+                                    const parsed = getEntryContentJson(entry);
+                                    if (Array.isArray(parsed)) {
+                                      return parsed.reduce(
+                                        (acc: number, msg: any) => {
+                                          return (
+                                            acc +
+                                            (msg.text || msg.content || "")
+                                              .split(/\s+/)
+                                              .filter(
+                                                (w: string) => w.length > 0
+                                              ).length
+                                          );
+                                        },
+                                        0
+                                      );
+                                    }
                                     return 0;
                                   })()
-                                : (entry.content || "")
+                                : contentText
                                     .split(/\s+/)
                                     .filter((w: string) => w.length > 0).length;
-                              const charCount = entry.content?.length || 0;
+                              const charCount = contentText.length;
 
                               return (
                                 <div
@@ -1920,18 +1969,23 @@ theme-dark:shadow-none "
 
                                               const store =
                                                 useJournalStore.getState();
-                                              
+
                                               // Get contentJson - prefer contentJson, fallback to content (legacy)
-                                              const contentJson = entry.contentJson
-                                                ? typeof entry.contentJson === "string"
-                                                  ? entry.contentJson
-                                                  : JSON.stringify(entry.contentJson)
-                                                : null;
+                                              const contentJson =
+                                                entry.contentJson
+                                                  ? typeof entry.contentJson ===
+                                                    "string"
+                                                    ? entry.contentJson
+                                                    : JSON.stringify(
+                                                        entry.contentJson
+                                                      )
+                                                  : null;
 
                                               store.loadEntry({
                                                 entryId: entry.id,
                                                 contentJson: contentJson,
-                                                contentText: entry.contentText || "",
+                                                contentText:
+                                                  entry.contentText || "",
                                                 speakers: Array.isArray(
                                                   entry.speakers
                                                 )
@@ -2368,15 +2422,13 @@ theme-dark:shadow-none "
                   <div className="flex-1 overflow-y-auto px-6 py-5">
                     <div className="space-y-4">
                       {journalEntries.map((entry) => {
-                        // Determine if it's a text thread
-                        const isTextThread = (() => {
-                          try {
-                            const parsed = JSON.parse(entry.content);
-                            return Array.isArray(parsed);
-                          } catch {
-                            return false;
-                          }
-                        })();
+                        // Use helper functions to get content
+                        const entryContentText = getEntryContentText(entry);
+                        const entryContentJson = getEntryContentJson(entry);
+                        // Determine if it's a text thread - use journalType first, then check contentJson
+                        const isTextThread =
+                          entry.journalType === "textThread" ||
+                          Array.isArray(entryContentJson);
 
                         // Check if entry was updated (different from created)
                         const wasUpdated =
@@ -2387,52 +2439,48 @@ theme-dark:shadow-none "
 
                         // Get content preview
                         const contentPreview = (() => {
-                          if (isTextThread) {
-                            try {
-                              const parsed = JSON.parse(entry.content);
-                              if (Array.isArray(parsed) && parsed.length > 0) {
-                                // Get part nodes for speaker name resolution
-                                const partNodesMap = new Map(
-                                  nodes
-                                    .filter((n) => n.type === "part")
-                                    .map((n) => [n.id, n])
-                                );
+                          if (isTextThread && Array.isArray(entryContentJson)) {
+                            const parsed = entryContentJson;
+                            if (parsed.length > 0) {
+                              // Get part nodes for speaker name resolution
+                              const partNodesMap = new Map(
+                                nodes
+                                  .filter((n) => n.type === "part")
+                                  .map((n) => [n.id, n])
+                              );
 
-                                return (
-                                  parsed
-                                    .slice(0, 8)
-                                    .map((msg: any) => {
-                                      let speakerLabel = "Unknown";
-                                      if (msg.speakerId === "self") {
-                                        speakerLabel = "Self";
-                                      } else if (
-                                        msg.speakerId === "unknown" ||
-                                        msg.speakerId === "?"
-                                      ) {
-                                        speakerLabel = "Unknown";
-                                      } else {
-                                        const partNode = partNodesMap.get(
-                                          msg.speakerId
-                                        );
-                                        speakerLabel =
-                                          partNode?.data?.label ||
-                                          partNode?.data?.name ||
-                                          msg.speakerId;
-                                      }
-                                      return `${speakerLabel}: ${msg.text || ""}`;
-                                    })
-                                    .join("\n") +
-                                  (parsed.length > 8
-                                    ? `\n... (${parsed.length - 8} more messages)`
-                                    : "")
-                                );
-                              }
-                            } catch {
-                              // Fall through to regular content
+                              return (
+                                parsed
+                                  .slice(0, 8)
+                                  .map((msg: any) => {
+                                    let speakerLabel = "Unknown";
+                                    if (msg.speakerId === "self") {
+                                      speakerLabel = "Self";
+                                    } else if (
+                                      msg.speakerId === "unknown" ||
+                                      msg.speakerId === "?"
+                                    ) {
+                                      speakerLabel = "Unknown";
+                                    } else {
+                                      const partNode = partNodesMap.get(
+                                        msg.speakerId
+                                      );
+                                      speakerLabel =
+                                        partNode?.data?.label ||
+                                        partNode?.data?.name ||
+                                        msg.speakerId;
+                                    }
+                                    return `${speakerLabel}: ${msg.text || ""}`;
+                                  })
+                                  .join("\n") +
+                                (parsed.length > 8
+                                  ? `\n... (${parsed.length - 8} more messages)`
+                                  : "")
+                              );
                             }
                           }
-                          // Regular content - extract plain text from HTML and show first 500 chars
-                          let text = entry.content || "";
+                          // Regular content - use contentText
+                          let text = entryContentText;
                           // Remove HTML tags and extract plain text
                           if (typeof window !== "undefined") {
                             const temp = document.createElement("div");
@@ -2455,31 +2503,24 @@ theme-dark:shadow-none "
                         })();
 
                         // Get word/character count
-                        const wordCount = isTextThread
-                          ? (() => {
-                              try {
-                                const parsed = JSON.parse(entry.content);
-                                if (Array.isArray(parsed)) {
-                                  return parsed.reduce(
-                                    (acc: number, msg: any) => {
-                                      return (
-                                        acc +
-                                        (msg.text || "")
-                                          .split(/\s+/)
-                                          .filter((w: string) => w.length > 0)
-                                          .length
-                                      );
-                                    },
-                                    0
+                        const wordCount =
+                          isTextThread && Array.isArray(entryContentJson)
+                            ? entryContentJson.reduce(
+                                (acc: number, msg: any) => {
+                                  return (
+                                    acc +
+                                    (msg.text || msg.content || "")
+                                      .split(/\s+/)
+                                      .filter((w: string) => w.length > 0)
+                                      .length
                                   );
-                                }
-                              } catch {}
-                              return 0;
-                            })()
-                          : (entry.content || "")
-                              .split(/\s+/)
-                              .filter((w: string) => w.length > 0).length;
-                        const charCount = entry.content?.length || 0;
+                                },
+                                0
+                              )
+                            : entryContentText
+                                .split(/\s+/)
+                                .filter((w: string) => w.length > 0).length;
+                        const charCount = entryContentText.length;
 
                         return (
                           <div
@@ -2587,10 +2628,11 @@ theme-dark:shadow-none "
 
                                         const store =
                                           useJournalStore.getState();
-                                        
+
                                         // Get contentJson - prefer contentJson, fallback to content (legacy)
                                         const contentJson = entry.contentJson
-                                          ? typeof entry.contentJson === "string"
+                                          ? typeof entry.contentJson ===
+                                            "string"
                                             ? entry.contentJson
                                             : JSON.stringify(entry.contentJson)
                                           : null;
