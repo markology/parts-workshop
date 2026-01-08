@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { NodeBackgroundColors } from "../../../constants/Nodes";
 
@@ -17,6 +17,8 @@ import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import SmartListPlugin from "@/features/workspace/components/Journal/Editor/plugins/SmartListPlugin";
 import PointerGhostSelectionPlugin from "@/features/workspace/components/Journal/Editor/plugins/PointerGhostSelectionPlugin";
 import ToolbarPlugin from "@/features/workspace/components/Journal/Editor/plugins/ToolbarPlugin";
+import DebouncedOnChangePlugin from "@/features/workspace/components/Journal/Editor/plugins/DebouncedOnChangePlugin";
+import InitialContentPlugin from "@/features/workspace/components/Journal/Editor/plugins/InitialContentPlugin";
 
 // Lexical core
 import { LexicalEditor } from "lexical";
@@ -109,6 +111,9 @@ export default function JournalEditor({
     );
   }, [nodeType]);
 
+  // Shared ref to prevent onChange from firing during initial load
+  const isInitialLoadRef = useRef(true);
+
   const initialConfig = {
     namespace: "JournalEditor",
     theme: lexicalTheme,
@@ -161,6 +166,17 @@ export default function JournalEditor({
               <ListPlugin />
               <SmartListPlugin />
               <PointerGhostSelectionPlugin />
+              <InitialContentPlugin
+                contentJson={contentJson}
+                isInitialLoadRef={isInitialLoadRef}
+              />
+              {!readOnly && (
+                <DebouncedOnChangePlugin
+                  onContentChange={onContentChange}
+                  readOnly={readOnly}
+                  isInitialLoadRef={isInitialLoadRef}
+                />
+              )}
               {!readOnly && (
                 <SpeakerLineEnterPlugin
                   partNodes={partNodes}

@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { normalizeJournalType } from "@/features/workspace/utils/journalType";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -88,7 +89,7 @@ export default async function handler(
     }
 
     // Validate journalType if provided
-    const validJournalType = journalType === "normal" || journalType === "textThread" ? journalType : null;
+    const validJournalType = normalizeJournalType(journalType);
 
     const shouldCreateNew = createNewVersion || !entryId;
 

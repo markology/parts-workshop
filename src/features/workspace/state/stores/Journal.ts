@@ -16,6 +16,7 @@ type JournalStore = {
   journalDataJson: string | null; // Lexical JSON (stringified SerializedEditorState)
   journalDataText: string; // Plain text for preview/search
   lastSavedJournalDataJson: string | null; // Last saved JSON for comparison
+  lastSavedJournalDataText: string; // Last saved text for comparison
   activeEntryId: string | null;
   selectedSpeakers: string[]; // Array of part IDs or "self"
   openJournal: () => void;
@@ -40,6 +41,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
   journalDataJson: null,
   journalDataText: "",
   lastSavedJournalDataJson: null,
+  lastSavedJournalDataText: "",
   activeEntryId: null,
   selectedSpeakers: [],
 
@@ -50,6 +52,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
       journalDataJson: null,
       journalDataText: "",
       lastSavedJournalDataJson: null,
+      lastSavedJournalDataText: "",
       journalTarget: null,
       activeEntryId: null,
       selectedSpeakers: [],
@@ -61,7 +64,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
   }),
   setLastSavedJournalData: (data) => set({ 
     lastSavedJournalDataJson: data.json,
-    // Note: we don't track lastSavedText separately, just JSON
+    lastSavedJournalDataText: data.text || "",
   }),
   setActiveEntryId: (entryId) => set({ activeEntryId: entryId }),
   setSelectedSpeakers: (speakers) => {
@@ -77,9 +80,11 @@ export const useJournalStore = create<JournalStore>((set) => ({
       journalDataJson: contentJson,
       journalDataText: contentText || "",
       lastSavedJournalDataJson: contentJson,
+      lastSavedJournalDataText: contentText || "",
       selectedSpeakers: speakers || [],
     }),
   markJournalSaved: () => set((s) => ({ 
-    lastSavedJournalDataJson: s.journalDataJson 
+    lastSavedJournalDataJson: s.journalDataJson,
+    lastSavedJournalDataText: s.journalDataText,
   })),
 }));

@@ -31,7 +31,7 @@ const Modal = ({
   return (
     <div
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-76 flex items-center justify-center modal-overlay"
+      className="fixed inset-0 z-[10000] flex items-center justify-center modal-overlay pointer-events-auto"
       style={{ 
         background: black ? "black" : "rgba(0,0,0,0.5)",
         backdropFilter: black ? "none" : "blur(2px)",
@@ -40,8 +40,9 @@ const Modal = ({
     >
       <div
         ref={modalRef}
-        className="rounded p-8 relative"
+        className="rounded relative pointer-events-auto"
         style={{ width: width ?? "650px" }}
+        onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}

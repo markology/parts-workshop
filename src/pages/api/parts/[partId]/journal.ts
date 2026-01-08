@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession, type Session } from "next-auth";
 import authOptions from "../../auth/[...nextauth]";
+import { normalizeJournalType } from "@/features/workspace/utils/journalType";
 
 const prisma = new PrismaClient();
 
@@ -68,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Validate journalType if provided
-        const validJournalType = journalType === "normal" || journalType === "textThread" ? journalType : null;
+        const validJournalType = normalizeJournalType(journalType);
 
         // Verify the part belongs to the user
         const part = await prisma.part.findFirst({
@@ -146,7 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Validate journalType if provided
-        const validJournalType = journalType === "normal" || journalType === "textThread" ? journalType : null;
+        const validJournalType = normalizeJournalType(journalType);
 
         const updatedEntry = await prisma.journalEntry.update({
           where: {
