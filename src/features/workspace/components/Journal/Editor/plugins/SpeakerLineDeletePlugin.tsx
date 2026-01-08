@@ -158,6 +158,7 @@ export default function SpeakerLineDeletePlugin() {
           }
         }
       } else {
+        console.log("SPEAKER DELETION 1");
         // Range selection: check if selection includes any speaker line labels
         const nodes = selection.getNodes();
         const speakerLinesToDelete = new Set<SpeakerLineNode>();
@@ -188,6 +189,8 @@ export default function SpeakerLineDeletePlugin() {
             }
           }
         }
+
+        console.log("SPEAKERS TO DELETE", speakerLinesToDelete);
 
         // Check anchor and focus points for special cases
         const anchorNode = selection.anchor.getNode();

@@ -170,10 +170,6 @@ export function useJournalDrawer({ targetNodeProp }: UseJournalDrawerProps) {
 
   // Don't allow saving if it's a new entry with no content
   const canSave = useMemo(() => {
-    console.log("CHECKING IF CAN SAVE");
-    console.log(journalDataJson, lastSavedJournalDataJson);
-    console.log(activeEntryId);
-    console.log("====");
     if (!hasUnsavedChanges) return false;
     // If it's a new entry (never been saved), require content
     if (!activeEntryId) {
