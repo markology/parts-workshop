@@ -44,6 +44,7 @@ import {
   $createParagraphNode,
   $createRangeSelection,
   $setSelection,
+  $getNodeByKey,
 } from "lexical";
 import {
   SpeakerLineNode,
@@ -713,27 +714,72 @@ export default function ToolbarPlugin({
         return;
       }
 
-      // Create a SpeakerLineNode with the speaker's label and color
+      /**
+       * Create and insert a new SpeakerLineNode into the editor.
+       *
+       * This code block handles the main flow when clicking a speaker pill:
+       * 1. Creates a SpeakerLineNode with the speaker's ID
+       * 2. Builds the speaker label (bold text) and an empty content node (colored)
+       * 3. Inserts the speaker line at the appropriate position in the editor
+       * 4. Positions the cursor in the content node for immediate typing
+       * 5. Applies the speaker's color style to future text input
+       */
       editor.update(() => {
+        // Focus the editor to ensure keyboard events work correctly
         editor.focus();
 
+        // Get the root node (top-level container) and current selection state
+        // These are the entry points for manipulating the editor's content tree
         const root = $getRoot();
         const selection = $getSelection();
 
-        // Create new SpeakerLineNode
+        // ========================================================================
+        // Step 1: Create the SpeakerLineNode
+        // ========================================================================
+        // Create a new SpeakerLineNode with the speaker's ID.
+        // This node will contain all the text content for this speaker line.
+        // The speaker ID is stored internally and used for styling/identification.
         const speakerLine = $createSpeakerLineNode(speaker.id);
 
-        // Create and insert the speaker label with bold
+        // ========================================================================
+        // Step 2: Build the speaker label (e.g., "John: " or "Self: ")
+        // ========================================================================
+        // Create a text node containing the speaker's label followed by a colon and space.
+        // This label is displayed in bold to visually distinguish it from the content.
         const labelText = $createTextNode(`${speaker.label}: `);
         labelText.setFormat("bold");
+        // Append the label as the first child of the speaker line node
         speakerLine.append(labelText);
 
-        // Insert an empty non-bold text node after the label for future typing
-        const contentText = $createTextNode("");
+        // ========================================================================
+        // Step 3: Create an empty content node for user typing
+        // ========================================================================
+        // Create a text node that will hold the actual content the user types.
+        // We use a zero-width non-breaking space (\uFEFF) as a placeholder to ensure
+        // the text node renders properly in the DOM and can receive focus. This is
+        // invisible and is less likely to cause issues than a regular space. Without
+        // a placeholder, empty text nodes don't create proper selection points and the
+        // cursor falls back into the bold label node.
+        // We pre-apply the speaker's color style to this node so that any text
+        // typed here will automatically have the correct color. This is separate
+        // from the label so that the label remains bold and the content can be styled
+        // independently (e.g., not bold, with the speaker's color).
+        const contentText = $createTextNode("\uFEFF");
         contentText.setStyle(`color: ${speakerColor}`);
+        // Append the content node after the label
         speakerLine.append(contentText);
 
-        // Insert the speaker line after current selection or at end
+        // ========================================================================
+        // Step 4: Determine where to insert the speaker line
+        // ========================================================================
+        // We need to intelligently place the speaker line based on the current
+        // editor state. There are three main scenarios:
+        //
+        // a) Empty editor: Replace the empty paragraph with the speaker line
+        // b) Has selection: Insert after the node containing the selection
+        // c) No selection: Append to the end of the editor
+
+        // Check if the editor is empty (no content or only empty paragraph)
         const firstChild = root.getFirstChild();
         const isEmptyEditor =
           !firstChild ||
@@ -741,31 +787,62 @@ export default function ToolbarPlugin({
             firstChild.getTextContent().trim() === "");
 
         if (isEmptyEditor) {
-          // Replace empty root/paragraph with speaker line
+          // Scenario a: Empty editor
+          // Replace the empty paragraph (if it exists) with our speaker line,
+          // or append directly to root if there's nothing at all.
+          // This provides a clean starting point for the journal entry.
           if (firstChild) {
             firstChild.replace(speakerLine);
           } else {
             root.append(speakerLine);
           }
         } else if ($isRangeSelection(selection)) {
+          // Scenario b: Has active selection/cursor
+          // Insert the speaker line after the parent node of the current selection.
+          // This allows the user to insert speaker lines at any point in their content,
+          // not just at the end. We traverse up to find the parent to ensure we insert
+          // at the correct level in the node hierarchy.
           const anchorNode = selection.anchor.getNode();
           const parent = anchorNode.getParent();
           if (parent && parent !== root) {
+            // Insert after the parent node (e.g., after the paragraph containing the cursor)
             parent.insertAfter(speakerLine);
           } else {
+            // Fallback: if parent is root or null, append to root
             root.append(speakerLine);
           }
         } else {
+          // Scenario c: No active selection
+          // Append to the end of the editor as a fallback.
           root.append(speakerLine);
         }
 
-        // Set selection to the empty content text node
+        // ========================================================================
+        // Step 5: Position the cursor in the content node
+        // ========================================================================
+        // After inserting the speaker line, we want the cursor to be positioned
+        // in the content text node (after the label) so the user can immediately
+        // start typing.
+        //
+        // IMPORTANT: Empty text nodes don't render proper selection points in the DOM,
+        // so we use a zero-width non-breaking space (\uFEFF) as a placeholder.
+        // We select at offset 1 (after the placeholder) to ensure the cursor is
+        // definitely in the contentText node and not collapsing back into the bold
+        // label node. The placeholder is invisible and will be removed when the user
+        // starts typing (see the update listener below).
         const rangeSelection = $createRangeSelection();
-        rangeSelection.anchor.set(contentText.getKey(), 0, "text");
-        rangeSelection.focus.set(contentText.getKey(), 0, "text");
+        rangeSelection.anchor.set(contentText.getKey(), 1, "text");
+        rangeSelection.focus.set(contentText.getKey(), 1, "text");
         $setSelection(rangeSelection);
 
-        // Apply color to future typing
+        // ========================================================================
+        // Step 6: Apply color styling for future typing
+        // ========================================================================
+        // Patch the selection's style to apply the speaker's color. This ensures
+        // that any text typed after this point will have the correct color applied.
+        // Even though we already set the style on contentText, this ensures that
+        // Lexical's style system knows to continue applying this color as the user
+        // types more text nodes.
         $patchStyleText(rangeSelection, { color: speakerColor });
       });
 
@@ -904,8 +981,123 @@ export default function ToolbarPlugin({
         COMMAND_PRIORITY_LOW
       ),
       // Listen to editor updates (content changes, formatting changes)
-      editor.registerUpdateListener(({ editorState }) => {
+      editor.registerUpdateListener(({ editorState, dirtyElements }) => {
         readToolbarState(editorState);
+
+        // Clean up placeholder characters in speaker line content nodes
+        // When a user types into a content node that starts with our placeholder
+        // (\uFEFF - zero-width non-breaking space), remove the placeholder so their
+        // text replaces it cleanly. We check dirtyElements to find nodes that changed,
+        // and if any are text nodes in speaker lines that start with the placeholder
+        // and have more content, we clean them up.
+        if (dirtyElements.size > 0) {
+          editorState.read(() => {
+            const nodesToClean: Array<{ key: string; newText: string }> = [];
+
+            // Check all dirty elements (elements that changed)
+            // dirtyElements is a Map<NodeKey, boolean>, so we iterate over keys
+            for (const nodeKey of dirtyElements.keys()) {
+              try {
+                const node = $getNodeByKey(nodeKey);
+
+                // If this is a text node in a speaker line that starts with our placeholder
+                if ($isTextNode(node)) {
+                  const textContent = node.getTextContent();
+
+                  const parent = node.getParent();
+                  if (parent && $isSpeakerLineNode(parent)) {
+                    const isBold = node.hasFormat("bold");
+                    // Only process non-bold nodes (content nodes, not label nodes)
+                    if (!isBold) {
+                      // Check if this node starts with our placeholder (\uFEFF)
+                      if (
+                        textContent.length > 1 &&
+                        textContent.startsWith("\uFEFF")
+                      ) {
+                        // This is the content node with placeholder - remove it
+                        nodesToClean.push({
+                          key: node.getKey(),
+                          newText: textContent.substring(1),
+                        });
+                      }
+                      // Also check if this node IS just the placeholder (length 1)
+                      // and there's a sibling node after it - merge them
+                      else if (textContent === "\uFEFF") {
+                        const nextSibling = node.getNextSibling();
+                        if (nextSibling && $isTextNode(nextSibling)) {
+                          // There's text after the placeholder - remove placeholder node
+                          // The next sibling will have the actual text
+                          nodesToClean.push({
+                            key: node.getKey(),
+                            newText: "", // Empty it so it can be removed
+                          });
+                        }
+                      }
+                      // Also check if previous sibling is just the placeholder
+                      // (in case Lexical split the nodes)
+                      const prevSibling = node.getPreviousSibling();
+                      if (
+                        prevSibling &&
+                        $isTextNode(prevSibling) &&
+                        !prevSibling.hasFormat("bold") &&
+                        prevSibling.getTextContent() === "\uFEFF"
+                      ) {
+                        // Previous sibling is just the placeholder - remove it
+                        nodesToClean.push({
+                          key: prevSibling.getKey(),
+                          newText: "", // Empty it so it can be removed
+                        });
+                      }
+                      // Backup: Also check for regular space (for any edge cases)
+                      else if (
+                        textContent.length > 1 &&
+                        textContent.startsWith(" ")
+                      ) {
+                        const prevSibling = node.getPreviousSibling();
+                        if (
+                          prevSibling &&
+                          $isTextNode(prevSibling) &&
+                          prevSibling.hasFormat("bold")
+                        ) {
+                          // This is the content node right after the label
+                          nodesToClean.push({
+                            key: node.getKey(),
+                            newText: textContent.substring(1),
+                          });
+                        }
+                      }
+                    }
+                  }
+                }
+              } catch (e) {
+                // Node might not exist anymore, ignore
+              }
+            }
+
+            // If we found nodes to clean, update them in a mutation
+            if (nodesToClean.length > 0) {
+              editor.update(() => {
+                nodesToClean.forEach(({ key, newText }) => {
+                  try {
+                    const node = $getNodeByKey(key);
+                    if ($isTextNode(node)) {
+                      if (newText === "") {
+                        // If the new text is empty, remove the node entirely
+                        // to prevent empty spans from appearing in the DOM
+                        node.remove();
+                      } else {
+                        // Replace the entire text content to remove the placeholder
+                        node.setTextContent(newText);
+                      }
+                    }
+                  } catch (e) {
+                    // Node might not exist anymore, ignore
+                  }
+                });
+              });
+            }
+          });
+        }
       })
     );
   }, [editor, readToolbarState]);
