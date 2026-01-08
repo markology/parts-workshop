@@ -1,5 +1,6 @@
 .theme-light {
     /* Journal Components */
+    --theme-text: black;
     --theme-journal-mode-card-bg: white;
     --theme-journal-mode-card-hover-bg: rgba(59, 130, 246, 0.05);
     --theme-journal-mode-card-textthread-hover-bg: rgba(168, 85, 247, 0.05);

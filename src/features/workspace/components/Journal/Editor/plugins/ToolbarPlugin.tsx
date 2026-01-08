@@ -56,12 +56,19 @@ import {
  * ============================================================================ */
 
 /**
+ * Special marker for theme-aware default color.
+ * When selected, uses CSS variable var(--theme-text) which adapts to light/dark theme.
+ */
+const THEME_DEFAULT_COLOR = "theme-default";
+const THEME_DEFAULT_CSS_VAR = "var(--theme-text)";
+
+/**
  * Preset color options for the text color picker.
- * Includes common colors: black, white, and various accent colors.
+ * First option is theme-aware default (black in light mode, white in dark mode).
+ * Includes various accent colors.
  */
 const PRESET_COLORS = [
-  "#000000", // Black
-  "#FFFFFF", // White
+  THEME_DEFAULT_COLOR, // Theme-aware default
   "#EF4444", // Red
   "#3B82F6", // Blue
   "#10B981", // Green
@@ -129,8 +136,32 @@ function ColorPicker({
     return luminance < 0.5;
   };
 
+  // Helper to get computed value of --theme-text CSS variable
+  const getThemeTextColor = (): string => {
+    if (typeof window !== "undefined") {
+      const root = document.documentElement;
+      const computed = getComputedStyle(root)
+        .getPropertyValue("--theme-text")
+        .trim();
+      // CSS variables return with spaces, so clean it up
+      // If it's "black" or "white", return the hex equivalent for comparison
+      if (computed === "black") return "#000000";
+      if (computed === "white") return "#ffffff";
+      return computed || theme.textPrimary;
+    }
+    return theme.textPrimary;
+  };
+
   // Determine display color and text contrast
-  const displayColor = activeColor || theme.textPrimary;
+  // If activeColor is theme-default CSS var, null, or the THEME_DEFAULT_COLOR marker, use computed theme text color
+  const themeTextColor = getThemeTextColor();
+  const resolvedColor =
+    activeColor === THEME_DEFAULT_COLOR ||
+    activeColor === THEME_DEFAULT_CSS_VAR ||
+    activeColor === null
+      ? themeTextColor
+      : activeColor;
+  const displayColor = resolvedColor || themeTextColor;
   const needsWhiteText = isDarkColor(displayColor);
 
   return (
@@ -170,30 +201,67 @@ function ColorPicker({
         <div className="absolute top-full left-0 mt-2 z-50 rounded-xl border backdrop-blur-sm p-3 min-w-[190px] theme-light:shadow-[0_14px_42px_rgba(0,0,0,0.18)] theme-dark:shadow-[0_14px_42px_rgba(0,0,0,0.45)] border-[var(--theme-border)] bg-[var(--theme-modal)]">
           <div className="space-y-3">
             <div className="grid grid-cols-5 gap-2.5">
-              {PRESET_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    onColorChange(color);
-                    setIsOpen(false);
-                  }}
-                  className={`relative h-8 w-8 rounded-full border transition-all duration-150 ${
-                    activeColor === color
-                      ? "scale-105 shadow-sm"
-                      : "hover:scale-105 hover:shadow-sm"
-                  }`}
-                  style={{
-                    backgroundColor: color,
-                    borderColor:
-                      activeColor === color
+              {PRESET_COLORS.map((color) => {
+                // For theme-default, use current theme.textPrimary color
+                // For theme-default option, use computed CSS variable value for display
+                const themeTextColorForDisplay =
+                  typeof window !== "undefined"
+                    ? (() => {
+                        const root = document.documentElement;
+                        const computed = getComputedStyle(root)
+                          .getPropertyValue("--theme-text")
+                          .trim();
+                        if (computed === "black") return "#000000";
+                        if (computed === "white") return "#ffffff";
+                        return computed || theme.textPrimary;
+                      })()
+                    : theme.textPrimary;
+                const displayColorValue =
+                  color === THEME_DEFAULT_COLOR
+                    ? themeTextColorForDisplay
+                    : color;
+
+                // Check if this option is active
+                const isActive =
+                  activeColor === color ||
+                  (color === THEME_DEFAULT_COLOR &&
+                    (activeColor === null ||
+                      activeColor === THEME_DEFAULT_CSS_VAR ||
+                      activeColor === themeTextColorForDisplay));
+
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      // Convert theme-default string to CSS variable when storing
+                      onColorChange(
+                        color === THEME_DEFAULT_COLOR
+                          ? THEME_DEFAULT_CSS_VAR
+                          : color
+                      );
+                      setIsOpen(false);
+                    }}
+                    className={`relative h-8 w-8 rounded-full border transition-all duration-150 ${
+                      isActive
+                        ? "scale-105 shadow-sm"
+                        : "hover:scale-105 hover:shadow-sm"
+                    }`}
+                    style={{
+                      backgroundColor: displayColorValue,
+                      borderColor: isActive
                         ? "var(--theme-accent)"
                         : "var(--theme-border)",
-                  }}
-                  title={color}
-                />
-              ))}
+                    }}
+                    title={
+                      color === THEME_DEFAULT_COLOR
+                        ? "Default (adapts to theme)"
+                        : color
+                    }
+                  />
+                );
+              })}
             </div>
 
             <div className="pt-2 border-t border-[var(--theme-border)]">
@@ -718,65 +786,103 @@ export default function ToolbarPlugin({
    *
    * @param editorState - The current editor state to read from
    */
-  const readToolbarState = useCallback((editorState: EditorState) => {
-    editorState.read(() => {
-      const selection = $getSelection();
+  const readToolbarState = useCallback(
+    (editorState: EditorState) => {
+      editorState.read(() => {
+        const selection = $getSelection();
 
-      // No range selection: clear all format indicators
-      if (!$isRangeSelection(selection)) {
-        setFormats({
-          bold: false,
-          italic: false,
-          underline: false,
-          list: false,
-        });
-        return;
-      }
-
-      // Check if selection is inside a list
-      // Traverse up from anchor node to find list node
-      let inList = false;
-      let node: LexicalNode | null = selection.anchor.getNode();
-      while (node) {
-        if ($isListNode(node)) {
-          inList = true;
-          break;
+        // No range selection: clear all format indicators
+        if (!$isRangeSelection(selection)) {
+          setFormats({
+            bold: false,
+            italic: false,
+            underline: false,
+            list: false,
+          });
+          return;
         }
-        node = node.getParent();
-      }
 
-      // Check text formatting
-      // Start with selection-level format check
-      let bold = selection.hasFormat("bold");
-      let italic = selection.hasFormat("italic");
-      let underline = selection.hasFormat("underline");
-
-      // For range selections, only show format as active if ALL text nodes have it
-      // This provides better UX: button is only "pressed" when entire selection is formatted
-      if (!selection.isCollapsed()) {
-        const textNodes = selection
-          .getNodes()
-          .filter($isTextNode) as TextNode[];
-        if (textNodes.length > 0) {
-          // Require ALL text nodes to have the format for button to be active
-          bold = textNodes.every((n) => n.hasFormat("bold"));
-          italic = textNodes.every((n) => n.hasFormat("italic"));
-          underline = textNodes.every((n) => n.hasFormat("underline"));
+        // Check if selection is inside a list
+        // Traverse up from anchor node to find list node
+        let inList = false;
+        let node: LexicalNode | null = selection.anchor.getNode();
+        while (node) {
+          if ($isListNode(node)) {
+            inList = true;
+            break;
+          }
+          node = node.getParent();
         }
-      }
 
-      setFormats({ bold, italic, underline, list: inList });
+        // Check text formatting
+        // Start with selection-level format check
+        let bold = selection.hasFormat("bold");
+        let italic = selection.hasFormat("italic");
+        let underline = selection.hasFormat("underline");
 
-      // Read text color from selection styles
-      // This shows the color of the selected text (or null if mixed/no color)
-      const selectionStyleColor = $getSelectionStyleValueForProperty(
-        selection,
-        "color",
-        undefined
-      );
-      setActiveColor(selectionStyleColor ?? null);
-    });
-  }, []);
+        // For range selections, only show format as active if ALL text nodes have it
+        // This provides better UX: button is only "pressed" when entire selection is formatted
+        if (!selection.isCollapsed()) {
+          const textNodes = selection
+            .getNodes()
+            .filter($isTextNode) as TextNode[];
+          if (textNodes.length > 0) {
+            // Require ALL text nodes to have the format for button to be active
+            bold = textNodes.every((n) => n.hasFormat("bold"));
+            italic = textNodes.every((n) => n.hasFormat("italic"));
+            underline = textNodes.every((n) => n.hasFormat("underline"));
+          }
+        }
+
+        setFormats({ bold, italic, underline, list: inList });
+
+        // Read text color from selection styles
+        // This shows the color of the selected text (or null if mixed/no color)
+        const selectionStyleColor = $getSelectionStyleValueForProperty(
+          selection,
+          "color",
+          undefined
+        );
+
+        // Helper to get computed value of --theme-text CSS variable for comparison
+        const getThemeTextColorValue = (): string => {
+          if (typeof window !== "undefined") {
+            const root = document.documentElement;
+            const computed = getComputedStyle(root)
+              .getPropertyValue("--theme-text")
+              .trim();
+            if (computed === "black") return "#000000";
+            if (computed === "white") return "#ffffff";
+            return computed || theme.textPrimary;
+          }
+          return theme.textPrimary;
+        };
+
+        const themeTextColorValue = getThemeTextColorValue();
+
+        // If color is the CSS variable, matches current theme text color, or is null/undefined,
+        // treat it as theme-default. Store as CSS var so it adapts to theme changes.
+        let normalizedColor: string | null = null;
+        if (selectionStyleColor === THEME_DEFAULT_CSS_VAR) {
+          // Already using CSS variable - store as-is
+          normalizedColor = THEME_DEFAULT_CSS_VAR;
+        } else if (
+          selectionStyleColor === themeTextColorValue ||
+          selectionStyleColor === null ||
+          selectionStyleColor === undefined
+        ) {
+          // Matches current theme text color or is null/undefined - treat as default
+          // Store as CSS var so it adapts to theme changes
+          normalizedColor = THEME_DEFAULT_CSS_VAR;
+        } else {
+          // Specific color value - store as-is
+          normalizedColor = selectionStyleColor;
+        }
+        setActiveColor(normalizedColor);
+      });
+    },
+    [theme]
+  );
 
   // Keep toolbar synced with editor state
   // Listens to both selection changes and editor updates
@@ -814,13 +920,22 @@ export default function ToolbarPlugin({
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
 
-      // Apply color or reset to theme default
-      const styles = color ? { color } : { color: theme.textPrimary };
+      // Apply color: use CSS variable for default, otherwise use the provided color
+      const colorToApply =
+        color === null || color === THEME_DEFAULT_CSS_VAR
+          ? THEME_DEFAULT_CSS_VAR
+          : color;
+      const styles = { color: colorToApply };
       $patchStyleText(selection, styles);
     });
 
     // Update indicator immediately (listeners will also update it)
-    setActiveColor(color);
+    // Normalize null to CSS var for consistency
+    setActiveColor(
+      color === null || color === THEME_DEFAULT_CSS_VAR
+        ? THEME_DEFAULT_CSS_VAR
+        : color
+    );
   };
 
   /**
