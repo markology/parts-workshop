@@ -21,10 +21,7 @@ import {
   KEY_ENTER_COMMAND,
   LexicalNode,
 } from "lexical";
-import {
-  SpeakerLineNode,
-  $isSpeakerLineNode,
-} from "../SpeakerLineNode";
+import { SpeakerLineNode, $isSpeakerLineNode } from "../SpeakerLineNode";
 
 export default function SpeakerLineEnterPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -72,7 +69,7 @@ export default function SpeakerLineEnterPlugin() {
             editor.update(() => {
               const newParagraph = $createParagraphNode();
               speakerLine!.insertAfter(newParagraph);
-              
+
               // Position cursor in the new paragraph
               const rangeSelection = $createRangeSelection();
               rangeSelection.anchor.set(newParagraph.getKey(), 0, "element");
@@ -95,4 +92,3 @@ export default function SpeakerLineEnterPlugin() {
 
   return null;
 }
-

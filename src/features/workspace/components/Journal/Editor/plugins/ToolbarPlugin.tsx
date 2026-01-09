@@ -36,8 +36,9 @@ import {
   $getSelectionStyleValueForProperty,
 } from "@lexical/selection";
 import { mergeRegister } from "@lexical/utils";
-import { $isListNode } from "@lexical/list";
+import { $isListNode, $isListItemNode } from "@lexical/list";
 import { SMART_TOGGLE_BULLET_LIST } from "../commands/smartList";
+import { getListItemAncestor } from "../commands/smartList/utils";
 import {
   $getRoot,
   $createTextNode,
@@ -778,11 +779,11 @@ export default function ToolbarPlugin({
           }
 
           // If no content, add placeholder
-          if (newSpeakerLine.getTextContent().trim() === "") {
-            const contentText = $createTextNode("\uFEFF");
-            contentText.setStyle(`color: ${speakerColor}`);
-            newSpeakerLine.append(contentText);
-          }
+          // if (newSpeakerLine.getTextContent().trim() === "") {
+          //   const contentText = $createTextNode("\uFEFF");
+          //   contentText.setStyle(`color: ${speakerColor}`);
+          //   newSpeakerLine.append(contentText);
+          // }
 
           currentSpeakerLine.replace(newSpeakerLine);
 
@@ -809,7 +810,14 @@ export default function ToolbarPlugin({
           return;
         }
 
-        // Case 2: Not in a speaker line
+        // Case 2: Check if we're in a list item - if so, prevent speaker pill click
+        const listItem = getListItemAncestor(anchorNode);
+        if (listItem && $isListItemNode(listItem)) {
+          // Don't allow speaker pills in list items
+          return;
+        }
+
+        // Case 2: Not in a speaker line or list item
         const hasSelection = !selection.isCollapsed();
         const anchorParent = anchorNode.getParent();
 
