@@ -17,6 +17,7 @@ import {
   listItemToParagraphPreserveNested,
   splitListAfterRange,
 } from "./listOperations";
+import { $isSpeakerLineNode } from "../../SpeakerLineNode";
 
 /**
  * Main orchestration logic for smart list toggling.
@@ -163,10 +164,39 @@ function smartUnlistSelectionInsideUpdate(
  *
  * @param editor - The Lexical editor instance
  */
+/**
+ * Checks if a node or any of its ancestors is a speaker line
+ */
+function isInSpeakerLine(node: LexicalNode | null): boolean {
+  let current: LexicalNode | null = node;
+  while (current) {
+    if ($isSpeakerLineNode(current)) {
+      return true;
+    }
+    current = current.getParent();
+  }
+  return false;
+}
+
 export function smartToggleBulletList(editor: LexicalEditor) {
   editor.update(() => {
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return;
+
+    // Check if selection includes any speaker lines - if so, prevent list toggle
+    const anchorNode = selection.anchor.getNode();
+    const focusNode = selection.focus.getNode();
+    const selectedNodes = selection.getNodes();
+
+    // Check anchor, focus, and all selected nodes
+    if (
+      isInSpeakerLine(anchorNode) ||
+      isInSpeakerLine(focusNode) ||
+      selectedNodes.some((node) => isInSpeakerLine(node))
+    ) {
+      // Selection includes speaker line - prevent list toggle
+      return;
+    }
 
     // Determine if selection is inside a list by checking anchor and focus points
     // Traverse upwards from each point to find list item ancestors

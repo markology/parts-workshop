@@ -42,6 +42,7 @@ import {
   $getRoot,
   $createTextNode,
   $createParagraphNode,
+  $isParagraphNode,
   $createRangeSelection,
   $setSelection,
   $getNodeByKey,
@@ -412,25 +413,8 @@ function toggleFormatUniform(editor: LexicalEditor, format: Format) {
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return;
 
-    // Check if selection is inside a speaker line - if so, prevent formatting
-    const anchorNode = selection.anchor.getNode();
-    const focusNode = selection.focus.getNode();
-
-    function isInSpeakerLine(node: any): boolean {
-      let current: any = node;
-      while (current) {
-        if ($isSpeakerLineNode(current)) {
-          return true;
-        }
-        current = current.getParent();
-      }
-      return false;
-    }
-
-    if (isInSpeakerLine(anchorNode) || isInSpeakerLine(focusNode)) {
-      // Selection is in a speaker line - don't allow formatting
-      return;
-    }
+    // Note: We now allow formatting (bold, italic, underline) in speaker lines
+    // Only list and color changes are blocked
 
     // Collapsed selection (caret): Lexical's built-in toggle works correctly
     if (selection.isCollapsed()) {
@@ -537,6 +521,9 @@ export default function ToolbarPlugin({
   const [activeColor, setActiveColor] = useState<string | null>(
     theme.textPrimary
   );
+  // Track if cursor is inside a speaker line and which speaker
+  const [isInSpeakerLine, setIsInSpeakerLine] = useState(false);
+  const [currentSpeakerId, setCurrentSpeakerId] = useState<string | null>(null);
   const [showAddPartDropdown, setShowAddPartDropdown] = useState(false);
   const [addedPartIds, setAddedPartIds] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -675,7 +662,6 @@ export default function ToolbarPlugin({
       isSelf: boolean;
       isUnknown: boolean;
     }) => {
-      const isActive = activeSpeaker === speaker.id;
       const speakerColor = getSpeakerColor(
         speaker.id,
         theme,
@@ -683,203 +669,315 @@ export default function ToolbarPlugin({
         allPartNodes
       );
 
-      // If clicking the active speaker, deselect it
-      if (isActive) {
-        editor.update(() => {
-          editor.focus();
-          const root = $getRoot();
-          const selection = $getSelection();
-
-          // Create a new regular paragraph (not a SpeakerLineNode)
-          const newParagraph = $createParagraphNode();
-
-          // Insert after current selection
-          if ($isRangeSelection(selection)) {
-            const anchorNode = selection.anchor.getNode();
-            let currentNode: LexicalNode | null = anchorNode;
-            let speakerLine: SpeakerLineNode | null = null;
-
-            // Find the SpeakerLineNode we're in
-            while (currentNode) {
-              if ($isSpeakerLineNode(currentNode)) {
-                speakerLine = currentNode;
-                break;
-              }
-              currentNode = currentNode.getParent();
-            }
-
-            if (speakerLine) {
-              speakerLine.insertAfter(newParagraph);
-              const rangeSelection = $createRangeSelection();
-              rangeSelection.anchor.set(newParagraph.getKey(), 0, "element");
-              rangeSelection.focus.set(newParagraph.getKey(), 0, "element");
-              $setSelection(rangeSelection);
-            } else {
-              const parent = anchorNode.getParent();
-              if (parent && parent !== root) {
-                parent.insertAfter(newParagraph);
-              } else {
-                root.append(newParagraph);
-              }
-              const rangeSelection = $createRangeSelection();
-              rangeSelection.anchor.set(newParagraph.getKey(), 0, "element");
-              rangeSelection.focus.set(newParagraph.getKey(), 0, "element");
-              $setSelection(rangeSelection);
-            }
-          } else {
-            root.append(newParagraph);
-            const rangeSelection = $createRangeSelection();
-            rangeSelection.anchor.set(newParagraph.getKey(), 0, "element");
-            rangeSelection.focus.set(newParagraph.getKey(), 0, "element");
-            $setSelection(rangeSelection);
-          }
-        });
-
-        onToggleSpeaker?.(speaker.id);
-        return;
-      }
-
-      /**
-       * Create and insert a new SpeakerLineNode into the editor.
-       *
-       * This code block handles the main flow when clicking a speaker pill:
-       * 1. Creates a SpeakerLineNode with the speaker's ID
-       * 2. Builds the speaker label (bold text) and an empty content node (colored)
-       * 3. Inserts the speaker line at the appropriate position in the editor
-       * 4. Positions the cursor in the content node for immediate typing
-       * 5. Applies the speaker's color style to future text input
-       */
       editor.update(() => {
-        // Focus the editor to ensure keyboard events work correctly
         editor.focus();
-
-        // Get the root node (top-level container) and current selection state
-        // These are the entry points for manipulating the editor's content tree
         const root = $getRoot();
         const selection = $getSelection();
 
-        // ========================================================================
-        // Step 1: Create the SpeakerLineNode
-        // ========================================================================
-        // Create a new SpeakerLineNode with the speaker's ID and a unique group ID.
-        // The group ID allows multiple lines from the same "response" to be grouped
-        // together, so they can be deleted as a unit when the speaker pill is deleted.
-        // Generate a unique group ID for this new speaker line group.
+        if (!$isRangeSelection(selection)) {
+          return;
+        }
+
+        // Find if we're currently in a speaker line
+        const anchorNode = selection.anchor.getNode();
+        let currentNode: LexicalNode | null = anchorNode;
+        let currentSpeakerLine: SpeakerLineNode | null = null;
+
+        while (currentNode) {
+          if ($isSpeakerLineNode(currentNode)) {
+            currentSpeakerLine = currentNode;
+            break;
+          }
+          currentNode = currentNode.getParent();
+        }
+
+        // Case 1: If we're in a speaker line
+        if (currentSpeakerLine) {
+          const currentSpeakerId = currentSpeakerLine.getSpeakerId();
+
+          // Case 1a: Same speaker → remove label (convert to paragraph)
+          if (currentSpeakerId === speaker.id) {
+            // Convert speaker line back to regular paragraph
+            const paragraph = $createParagraphNode();
+
+            // Copy all children except the label decorator, removing color styles
+            const children = currentSpeakerLine.getChildren();
+            for (const child of children) {
+              if (!$isSpeakerLabelDecorator(child)) {
+                if ($isTextNode(child)) {
+                  // Remove color style from text nodes
+                  const textNode = $createTextNode(child.getTextContent());
+                  // Preserve other formats (bold, italic, underline) but remove color
+                  if (child.hasFormat("bold")) textNode.toggleFormat("bold");
+                  if (child.hasFormat("italic"))
+                    textNode.toggleFormat("italic");
+                  if (child.hasFormat("underline"))
+                    textNode.toggleFormat("underline");
+                  // Remove color style
+                  textNode.setStyle("");
+                  paragraph.append(textNode);
+                } else {
+                  paragraph.append(child);
+                }
+              }
+            }
+
+            // If paragraph is empty, add a placeholder
+            if (paragraph.getTextContent().trim() === "") {
+              const placeholder = $createTextNode("\uFEFF");
+              paragraph.append(placeholder);
+            }
+
+            currentSpeakerLine.replace(paragraph);
+
+            // Position cursor at end of line
+            const rangeSelection = $createRangeSelection();
+            const lastTextNode = paragraph.getLastChild();
+            if (lastTextNode && $isTextNode(lastTextNode)) {
+              const textContent = lastTextNode.getTextContent();
+              const offset = textContent.startsWith("\uFEFF")
+                ? textContent.length
+                : textContent.length;
+              rangeSelection.anchor.set(lastTextNode.getKey(), offset, "text");
+              rangeSelection.focus.set(lastTextNode.getKey(), offset, "text");
+            } else {
+              rangeSelection.anchor.set(paragraph.getKey(), 0, "element");
+              rangeSelection.focus.set(paragraph.getKey(), 0, "element");
+            }
+            $setSelection(rangeSelection);
+
+            // Don't call onToggleSpeaker when removing label - let it deselect naturally
+            return;
+          }
+
+          // Case 1b: Different speaker → convert to new speaker
+          const groupId = crypto.randomUUID();
+          const newSpeakerLine = $createSpeakerLineNode(speaker.id, groupId);
+
+          // Create label decorator
+          const labelDecorator = $createSpeakerLabelDecorator(
+            speaker.id,
+            `${speaker.label}: `,
+            speakerColor
+          );
+          newSpeakerLine.append(labelDecorator);
+
+          // Copy all children except the old label decorator
+          const children = currentSpeakerLine.getChildren();
+          for (const child of children) {
+            if (!$isSpeakerLabelDecorator(child)) {
+              // Apply speaker color to text nodes
+              if ($isTextNode(child)) {
+                const textNode = $createTextNode(child.getTextContent());
+                textNode.setStyle(`color: ${speakerColor}`);
+                newSpeakerLine.append(textNode);
+              } else {
+                newSpeakerLine.append(child);
+              }
+            }
+          }
+
+          // If no content, add placeholder
+          if (newSpeakerLine.getTextContent().trim() === "") {
+            const contentText = $createTextNode("\uFEFF");
+            contentText.setStyle(`color: ${speakerColor}`);
+            newSpeakerLine.append(contentText);
+          }
+
+          currentSpeakerLine.replace(newSpeakerLine);
+
+          // Position cursor at end of line
+          const rangeSelection = $createRangeSelection();
+          const speakerLineChildren = newSpeakerLine.getChildren();
+          const textNodes = speakerLineChildren.filter(
+            (n) => $isTextNode(n) && !$isSpeakerLabelDecorator(n)
+          ) as TextNode[];
+          if (textNodes.length > 0) {
+            const lastTextNode = textNodes[textNodes.length - 1];
+            const textContent = lastTextNode.getTextContent();
+            const offset = textContent.length;
+            rangeSelection.anchor.set(lastTextNode.getKey(), offset, "text");
+            rangeSelection.focus.set(lastTextNode.getKey(), offset, "text");
+          } else {
+            rangeSelection.anchor.set(newSpeakerLine.getKey(), 0, "element");
+            rangeSelection.focus.set(newSpeakerLine.getKey(), 0, "element");
+          }
+          $setSelection(rangeSelection);
+
+          $patchStyleText(rangeSelection, { color: speakerColor });
+          onToggleSpeaker?.(speaker.id);
+          return;
+        }
+
+        // Case 2: Not in a speaker line
+        const hasSelection = !selection.isCollapsed();
+        const anchorParent = anchorNode.getParent();
+
+        // Case 2a: Has selected text → convert selection to speaker line
+        if (hasSelection) {
+          const selectedNodes = selection.getNodes();
+          const groupId = crypto.randomUUID();
+          const speakerLine = $createSpeakerLineNode(speaker.id, groupId);
+
+          // Create label decorator
+          const labelDecorator = $createSpeakerLabelDecorator(
+            speaker.id,
+            `${speaker.label}: `,
+            speakerColor
+          );
+          speakerLine.append(labelDecorator);
+
+          // Copy selected content (excluding decorators)
+          for (const node of selectedNodes) {
+            if ($isSpeakerLabelDecorator(node)) {
+              continue; // Skip any existing decorators
+            }
+            if ($isTextNode(node)) {
+              const textNode = $createTextNode(node.getTextContent());
+              textNode.setStyle(`color: ${speakerColor}`);
+              speakerLine.append(textNode);
+            } else if (
+              node.getType() !== "root" &&
+              node.getType() !== "paragraph"
+            ) {
+              // Copy other nodes (like line breaks)
+              speakerLine.append(node);
+            }
+          }
+
+          // If no content, add placeholder
+          if (speakerLine.getTextContent().trim() === "") {
+            const contentText = $createTextNode("\uFEFF");
+            contentText.setStyle(`color: ${speakerColor}`);
+            speakerLine.append(contentText);
+          }
+
+          // Replace the parent paragraph (or insert after)
+          if (anchorParent && $isParagraphNode(anchorParent)) {
+            anchorParent.replace(speakerLine);
+          } else if (anchorParent && anchorParent !== root) {
+            anchorParent.insertAfter(speakerLine);
+            anchorParent.remove();
+          } else {
+            root.append(speakerLine);
+          }
+
+          // Position cursor at end of line
+          const rangeSelection = $createRangeSelection();
+          const children = speakerLine.getChildren();
+          const textNodes = children.filter(
+            (n) => $isTextNode(n) && !$isSpeakerLabelDecorator(n)
+          ) as TextNode[];
+          if (textNodes.length > 0) {
+            const lastTextNode = textNodes[textNodes.length - 1];
+            const textContent = lastTextNode.getTextContent();
+            const offset = textContent.length;
+            rangeSelection.anchor.set(lastTextNode.getKey(), offset, "text");
+            rangeSelection.focus.set(lastTextNode.getKey(), offset, "text");
+          } else {
+            rangeSelection.anchor.set(speakerLine.getKey(), 0, "element");
+            rangeSelection.focus.set(speakerLine.getKey(), 0, "element");
+          }
+          $setSelection(rangeSelection);
+
+          $patchStyleText(rangeSelection, { color: speakerColor });
+          onToggleSpeaker?.(speaker.id);
+          return;
+        }
+
+        // Case 2b: No selection (empty line or cursor) → add label to current line
+        let targetNode: LexicalNode | null = null;
+        if ($isParagraphNode(anchorParent)) {
+          targetNode = anchorParent;
+        } else if ($isParagraphNode(anchorNode)) {
+          targetNode = anchorNode;
+        }
+
+        if (targetNode) {
+          const isEmpty = targetNode.getTextContent().trim() === "";
+          const groupId = crypto.randomUUID();
+          const speakerLine = $createSpeakerLineNode(speaker.id, groupId);
+
+          // Create label decorator
+          const labelDecorator = $createSpeakerLabelDecorator(
+            speaker.id,
+            `${speaker.label}: `,
+            speakerColor
+          );
+          speakerLine.append(labelDecorator);
+
+          if (isEmpty) {
+            // Empty line: just add placeholder
+            const contentText = $createTextNode("\uFEFF");
+            contentText.setStyle(`color: ${speakerColor}`);
+            speakerLine.append(contentText);
+          } else {
+            // Has content: copy it with speaker color
+            const children =
+              "getChildren" in targetNode
+                ? (targetNode as any).getChildren()
+                : [];
+            for (const child of children) {
+              if ($isTextNode(child)) {
+                const textNode = $createTextNode(child.getTextContent());
+                textNode.setStyle(`color: ${speakerColor}`);
+                speakerLine.append(textNode);
+              } else {
+                speakerLine.append(child);
+              }
+            }
+          }
+
+          targetNode.replace(speakerLine);
+
+          // Position cursor at end of line
+          const rangeSelection = $createRangeSelection();
+          const children = speakerLine.getChildren();
+          const textNodes = children.filter(
+            (n) => $isTextNode(n) && !$isSpeakerLabelDecorator(n)
+          ) as TextNode[];
+          if (textNodes.length > 0) {
+            const lastTextNode = textNodes[textNodes.length - 1];
+            const textContent = lastTextNode.getTextContent();
+            const offset = textContent.length;
+            rangeSelection.anchor.set(lastTextNode.getKey(), offset, "text");
+            rangeSelection.focus.set(lastTextNode.getKey(), offset, "text");
+          } else {
+            rangeSelection.anchor.set(speakerLine.getKey(), 0, "element");
+            rangeSelection.focus.set(speakerLine.getKey(), 0, "element");
+          }
+          $setSelection(rangeSelection);
+
+          $patchStyleText(rangeSelection, { color: speakerColor });
+          onToggleSpeaker?.(speaker.id);
+          return;
+        }
+
+        // Fallback: create new speaker line
         const groupId = crypto.randomUUID();
         const speakerLine = $createSpeakerLineNode(speaker.id, groupId);
 
-        // ========================================================================
-        // Step 2: Build the speaker label using a decorator node
-        // ========================================================================
-        // Create a decorator node for the speaker label. Decorator nodes are
-        // read-only and non-selectable, which prevents formatting issues and
-        // simplifies deletion logic. The decorator behaves like a single character
-        // that cannot be formatted or partially selected.
         const labelDecorator = $createSpeakerLabelDecorator(
           speaker.id,
           `${speaker.label}: `,
           speakerColor
         );
-        // Append the decorator as the first child of the speaker line node
         speakerLine.append(labelDecorator);
 
-        // ========================================================================
-        // Step 3: Create an empty content node for user typing
-        // ========================================================================
-        // Create a text node that will hold the actual content the user types.
-        // We use a zero-width non-breaking space (\uFEFF) as a placeholder to ensure
-        // the text node renders properly in the DOM and can receive focus. This is
-        // invisible and is less likely to cause issues than a regular space. Without
-        // a placeholder, empty text nodes don't create proper selection points and the
-        // cursor falls back into the bold label node.
-        // We pre-apply the speaker's color style to this node so that any text
-        // typed here will automatically have the correct color. This is separate
-        // from the label so that the label remains bold and the content can be styled
-        // independently (e.g., not bold, with the speaker's color).
         const contentText = $createTextNode("\uFEFF");
         contentText.setStyle(`color: ${speakerColor}`);
-        // Append the content node after the label
         speakerLine.append(contentText);
 
-        // ========================================================================
-        // Step 4: Determine where to insert the speaker line
-        // ========================================================================
-        // We need to intelligently place the speaker line based on the current
-        // editor state. There are three main scenarios:
-        //
-        // a) Empty editor: Replace the empty paragraph with the speaker line
-        // b) Has selection: Insert after the node containing the selection
-        // c) No selection: Append to the end of the editor
+        root.append(speakerLine);
 
-        // Check if the editor is empty (no content or only empty paragraph)
-        const firstChild = root.getFirstChild();
-        const isEmptyEditor =
-          !firstChild ||
-          (firstChild.getType() === "paragraph" &&
-            firstChild.getTextContent().trim() === "");
-
-        if (isEmptyEditor) {
-          // Scenario a: Empty editor
-          // Replace the empty paragraph (if it exists) with our speaker line,
-          // or append directly to root if there's nothing at all.
-          // This provides a clean starting point for the journal entry.
-          if (firstChild) {
-            firstChild.replace(speakerLine);
-          } else {
-            root.append(speakerLine);
-          }
-        } else if ($isRangeSelection(selection)) {
-          // Scenario b: Has active selection/cursor
-          // Insert the speaker line after the parent node of the current selection.
-          // This allows the user to insert speaker lines at any point in their content,
-          // not just at the end. We traverse up to find the parent to ensure we insert
-          // at the correct level in the node hierarchy.
-          const anchorNode = selection.anchor.getNode();
-          const parent = anchorNode.getParent();
-          if (parent && parent !== root) {
-            // Insert after the parent node (e.g., after the paragraph containing the cursor)
-            parent.insertAfter(speakerLine);
-          } else {
-            // Fallback: if parent is root or null, append to root
-            root.append(speakerLine);
-          }
-        } else {
-          // Scenario c: No active selection
-          // Append to the end of the editor as a fallback.
-          root.append(speakerLine);
-        }
-
-        // ========================================================================
-        // Step 5: Position the cursor in the content node
-        // ========================================================================
-        // After inserting the speaker line, we want the cursor to be positioned
-        // in the content text node (after the label) so the user can immediately
-        // start typing.
-        //
-        // IMPORTANT: Empty text nodes don't render proper selection points in the DOM,
-        // so we use a zero-width non-breaking space (\uFEFF) as a placeholder.
-        // We select at offset 1 (after the placeholder) to ensure the cursor is
-        // definitely in the contentText node and not collapsing back into the bold
-        // label node. The placeholder is invisible and will be removed when the user
-        // starts typing (see the update listener below).
         const rangeSelection = $createRangeSelection();
         rangeSelection.anchor.set(contentText.getKey(), 1, "text");
         rangeSelection.focus.set(contentText.getKey(), 1, "text");
         $setSelection(rangeSelection);
 
-        // ========================================================================
-        // Step 6: Apply color styling for future typing
-        // ========================================================================
-        // Patch the selection's style to apply the speaker's color. This ensures
-        // that any text typed after this point will have the correct color applied.
-        // Even though we already set the style on contentText, this ensures that
-        // Lexical's style system knows to continue applying this color as the user
-        // types more text nodes.
         $patchStyleText(rangeSelection, { color: speakerColor });
+        onToggleSpeaker?.(speaker.id);
       });
-
-      // Toggle speaker in parent state
-      onToggleSpeaker?.(speaker.id);
     },
     [editor, activeSpeaker, onToggleSpeaker, theme, partNodes, allPartNodes]
   );
@@ -908,6 +1006,8 @@ export default function ToolbarPlugin({
             underline: false,
             list: false,
           });
+          setIsInSpeakerLine(false);
+          setCurrentSpeakerId(null);
           return;
         }
 
@@ -922,6 +1022,36 @@ export default function ToolbarPlugin({
           }
           node = node.getParent();
         }
+
+        // Check if selection is inside a speaker line and get the speaker ID
+        // Traverse up from anchor node to find speaker line node
+        let inSpeakerLine = false;
+        let speakerId: string | null = null;
+        let speakerNode: LexicalNode | null = selection.anchor.getNode();
+        while (speakerNode) {
+          if ($isSpeakerLineNode(speakerNode)) {
+            inSpeakerLine = true;
+            speakerId = speakerNode.getSpeakerId();
+            break;
+          }
+          speakerNode = speakerNode.getParent();
+        }
+
+        // Also check focus node (for range selections)
+        if (!inSpeakerLine && !selection.isCollapsed()) {
+          let focusSpeakerNode: LexicalNode | null = selection.focus.getNode();
+          while (focusSpeakerNode) {
+            if ($isSpeakerLineNode(focusSpeakerNode)) {
+              inSpeakerLine = true;
+              speakerId = focusSpeakerNode.getSpeakerId();
+              break;
+            }
+            focusSpeakerNode = focusSpeakerNode.getParent();
+          }
+        }
+
+        setIsInSpeakerLine(inSpeakerLine);
+        setCurrentSpeakerId(speakerId);
 
         // Check text formatting
         // Start with selection-level format check
@@ -1253,12 +1383,15 @@ export default function ToolbarPlugin({
           // Dispatch smart list toggle command (handled by SmartListPlugin)
           editor.dispatchCommand(SMART_TOGGLE_BULLET_LIST, undefined);
         }}
-        className="rounded-md px-2.5 py-1 text-sm font-medium"
+        disabled={isInSpeakerLine}
+        className="rounded-md px-2.5 py-1 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         style={{
           ...activeButtonStyle(formats.list),
           transition: "none !important",
         }}
-        title="Bullet List"
+        title={
+          isInSpeakerLine ? "Lists disabled in speaker lines" : "Bullet List"
+        }
       >
         • List
       </button>
@@ -1270,7 +1403,7 @@ export default function ToolbarPlugin({
       <ColorPicker
         activeColor={activeColor}
         onColorChange={applyColor}
-        disabled={false}
+        disabled={isInSpeakerLine}
       />
 
       {/* Speaker Pills - only show default speakers (Self + relevant parts) */}
@@ -1285,7 +1418,9 @@ export default function ToolbarPlugin({
             {defaultSpeakers
               .filter((s) => !s.isSelf)
               .map((speaker) => {
-                const isActive = activeSpeaker === speaker.id;
+                // Highlight ONLY if cursor is actually in this speaker's line
+                // This ensures accurate tracking - pill reflects cursor position, not last click
+                const isActive = currentSpeakerId === speaker.id;
                 const speakerColor = getSpeakerColor(
                   speaker.id,
                   theme,
@@ -1326,7 +1461,9 @@ export default function ToolbarPlugin({
             {defaultSpeakers
               .filter((s) => s.isSelf)
               .map((speaker) => {
-                const isActive = activeSpeaker === speaker.id;
+                // Highlight ONLY if cursor is actually in this speaker's line
+                // This ensures accurate tracking - pill reflects cursor position, not last click
+                const isActive = currentSpeakerId === speaker.id;
                 const speakerColor = getSpeakerColor(
                   speaker.id,
                   theme,
@@ -1365,7 +1502,9 @@ export default function ToolbarPlugin({
 
             {/* Added parts (from dropdown) - shown as pills with X button */}
             {addedSpeakers.map((speaker) => {
-              const isActive = activeSpeaker === speaker.id;
+              // Highlight ONLY if cursor is actually in this speaker's line
+              // This ensures accurate tracking - pill reflects cursor position, not last click
+              const isActive = currentSpeakerId === speaker.id;
               const speakerColor = getSpeakerColor(
                 speaker.id,
                 theme,

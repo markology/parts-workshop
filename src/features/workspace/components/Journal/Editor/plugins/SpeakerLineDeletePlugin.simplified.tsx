@@ -14,7 +14,6 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import {
   $getSelection,
   $isRangeSelection,
-  $isTextNode,
   $createParagraphNode,
   $createRangeSelection,
   $setSelection,
@@ -85,8 +84,8 @@ function findSafeCursorPosition(
   if (previousSibling && previousSibling.isAttached()) {
     // Find last text node in previous sibling
     const lastText = findLastTextNode(previousSibling);
-    if (lastText && $isTextNode(lastText)) {
-      const size = lastText.getTextContentSize();
+    if (lastText) {
+      const size = (lastText as any).getTextContentSize?.() || 0;
       return { node: lastText, offset: size };
     }
     return { node: previousSibling, offset: 0 };
@@ -97,7 +96,7 @@ function findSafeCursorPosition(
   if (nextSibling && nextSibling.isAttached()) {
     // Find first text node in next sibling
     const firstText = findFirstTextNode(nextSibling);
-    if (firstText && $isTextNode(firstText)) {
+    if (firstText) {
       return { node: firstText, offset: 0 };
     }
     return { node: nextSibling, offset: 0 };
@@ -115,7 +114,7 @@ function findSafeCursorPosition(
   const firstRemaining = rootChildren[0];
   if (firstRemaining) {
     const firstText = findFirstTextNode(firstRemaining);
-    if (firstText && $isTextNode(firstText)) {
+    if (firstText) {
       return { node: firstText, offset: 0 };
     }
     return { node: firstRemaining, offset: 0 };
@@ -128,7 +127,7 @@ function findSafeCursorPosition(
  * Helper to find last text node in an element
  */
 function findLastTextNode(element: LexicalNode): LexicalNode | null {
-  if ($isTextNode(element)) {
+  if ((element as any).getTextContentSize) {
     return element;
   }
   if ("getChildren" in element) {
@@ -145,7 +144,7 @@ function findLastTextNode(element: LexicalNode): LexicalNode | null {
  * Helper to find first text node in an element
  */
 function findFirstTextNode(element: LexicalNode): LexicalNode | null {
-  if ($isTextNode(element)) {
+  if ((element as any).getTextContentSize) {
     return element;
   }
   if ("getChildren" in element) {
@@ -210,10 +209,10 @@ export default function SpeakerLineDeletePlugin() {
         if (cursorPosition) {
           const rangeSelection = $createRangeSelection();
           const { node, offset } = cursorPosition;
-
+          
           // Check if node is a text node
-          if ($isTextNode(node)) {
-            const nodeSize = node.getTextContentSize();
+          if ((node as any).getTextContentSize) {
+            const nodeSize = (node as any).getTextContentSize();
             const safeOffset = Math.min(Math.max(0, offset), nodeSize);
             rangeSelection.anchor.set(node.getKey(), safeOffset, "text");
             rangeSelection.focus.set(node.getKey(), safeOffset, "text");
@@ -251,3 +250,4 @@ export default function SpeakerLineDeletePlugin() {
 
   return null;
 }
+
