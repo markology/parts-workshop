@@ -185,7 +185,7 @@ export default function JournalEditor({
               {!readOnly && <SpeakerLineDeletePlugin />}
               {!readOnly && <SpeakerLineFormatLockPlugin />}
               {!readOnly && <ListBackspacePlugin />}
-              {!readOnly && <FormatResetPlugin />}
+              {/* {!readOnly && <FormatResetPlugin />} */}
             </div>
           </div>
         </div>

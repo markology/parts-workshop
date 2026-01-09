@@ -86,6 +86,34 @@ const PRESET_COLORS = [
 ];
 
 /**
+ * Checks if document is effectively empty (no content or only empty paragraphs)
+ */
+function isDocumentEffectivelyEmpty(root: any): boolean {
+  const rootChildren = root.getChildren();
+  if (rootChildren.length === 0) {
+    return true;
+  }
+
+  // Check if all children are empty paragraphs
+  for (const child of rootChildren) {
+    const textContent = child.getTextContent?.() || "";
+    if (textContent.trim() !== "") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Checks if document has only a single character (happens when user selects all and types)
+ */
+function isDocumentSingleCharacter(root: any): boolean {
+  const allText = root.getTextContent();
+  return allText.length === 1;
+}
+
+/**
  * Color Picker Component
  *
  * A dropdown color picker that displays preset colors and allows resetting
@@ -528,6 +556,12 @@ export default function ToolbarPlugin({
   const [showAddPartDropdown, setShowAddPartDropdown] = useState(false);
   const [addedPartIds, setAddedPartIds] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  // Track if we just reset formatting (to prevent readToolbarState from reading old color)
+  const justResetFormattingRef = useRef(false);
+  // Track if we're currently clearing formatting to prevent infinite loops
+  const isClearingFormattingRef = useRef(false);
+  // Track previous document state to detect transitions
+  const wasEmptyRef = useRef(false);
 
   // Get default speakers based on journal node type:
   // - Impression (emotion, thought, sensation, behavior, other): Only Self
@@ -1083,6 +1117,12 @@ export default function ToolbarPlugin({
 
         setFormats({ bold, italic, underline, list: inList });
 
+        // If we just reset formatting, skip reading color to prevent it from reverting
+        if (justResetFormattingRef.current) {
+          setActiveColor(THEME_DEFAULT_CSS_VAR);
+          return;
+        }
+
         // console.log("RIGHT BEFORE SELECTION IN TOOLBAR", selection);
         // Read text color from selection styles
         // This shows the color of the selected text (or null if mixed/no color)
@@ -1155,6 +1195,115 @@ export default function ToolbarPlugin({
       ),
       // Listen to editor updates (content changes, formatting changes)
       editor.registerUpdateListener(({ editorState, dirtyElements }) => {
+        // Simple check: if document is empty or single character after content changes, reset formatting
+        // This handles both "select all + backspace" and "select all + type" cases
+        if (dirtyElements.size > 0 && !isClearingFormattingRef.current) {
+          editorState.read(() => {
+            const root = $getRoot();
+            const isEmpty = isDocumentEffectivelyEmpty(root);
+            const isSingleChar = isDocumentSingleCharacter(root);
+
+            if (isEmpty) {
+              // Document is empty after deletion - just update toolbar state
+              // Don't modify editor to preserve undo history
+              setFormats({
+                bold: false,
+                italic: false,
+                underline: false,
+                list: false,
+              });
+              setActiveColor(THEME_DEFAULT_CSS_VAR);
+              justResetFormattingRef.current = true;
+              wasEmptyRef.current = true;
+              setTimeout(() => {
+                justResetFormattingRef.current = false;
+              }, 50);
+            } else if (isSingleChar && wasEmptyRef.current) {
+              // Document has single character and was previously empty (user just typed)
+              // Clear formatting now to prevent first character from having old formatting
+              wasEmptyRef.current = false;
+              setFormats({
+                bold: false,
+                italic: false,
+                underline: false,
+                list: false,
+              });
+              setActiveColor(THEME_DEFAULT_CSS_VAR);
+              justResetFormattingRef.current = true;
+              isClearingFormattingRef.current = true;
+
+              // Clear formatting from the editor
+              editor.update(
+                () => {
+                  const selection = $getSelection();
+                  if ($isRangeSelection(selection)) {
+                    // Clear color style
+                    $patchStyleText(selection, { color: "" });
+                    // Clear text formats
+                    if (selection.hasFormat("bold")) {
+                      selection.formatText("bold");
+                    }
+                    if (selection.hasFormat("italic")) {
+                      selection.formatText("italic");
+                    }
+                    if (selection.hasFormat("underline")) {
+                      selection.formatText("underline");
+                    }
+                  }
+                },
+                { discrete: true }
+              );
+
+              setTimeout(() => {
+                justResetFormattingRef.current = false;
+                isClearingFormattingRef.current = false;
+              }, 50);
+            } else if (isSingleChar) {
+              // Document has single character (user typed after select-all) - clear formatting
+              // Update toolbar state first
+              setFormats({
+                bold: false,
+                italic: false,
+                underline: false,
+                list: false,
+              });
+              setActiveColor(THEME_DEFAULT_CSS_VAR);
+
+              // Set flag to prevent readToolbarState from reading old color
+              justResetFormattingRef.current = true;
+              isClearingFormattingRef.current = true;
+
+              // Actually clear formatting from the editor to prevent new text from inheriting it
+              // Use discrete: true to minimize undo states
+              editor.update(
+                () => {
+                  const selection = $getSelection();
+                  if ($isRangeSelection(selection)) {
+                    // Clear color style
+                    $patchStyleText(selection, { color: "" });
+                    // Clear text formats
+                    if (selection.hasFormat("bold")) {
+                      selection.formatText("bold");
+                    }
+                    if (selection.hasFormat("italic")) {
+                      selection.formatText("italic");
+                    }
+                    if (selection.hasFormat("underline")) {
+                      selection.formatText("underline");
+                    }
+                  }
+                },
+                { discrete: true }
+              );
+
+              setTimeout(() => {
+                justResetFormattingRef.current = false;
+                isClearingFormattingRef.current = false;
+              }, 50);
+            }
+          });
+        }
+
         readToolbarState(editorState);
 
         // Clean up placeholder characters in speaker line content nodes
