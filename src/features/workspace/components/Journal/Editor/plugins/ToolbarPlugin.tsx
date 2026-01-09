@@ -725,7 +725,7 @@ export default function ToolbarPlugin({
 
             // If paragraph is empty, add a placeholder
             if (paragraph.getTextContent().trim() === "") {
-              const placeholder = $createTextNode("\uFEFF");
+              const placeholder = $createTextNode("");
               paragraph.append(placeholder);
             }
 
@@ -780,7 +780,7 @@ export default function ToolbarPlugin({
 
           // If no content, add placeholder
           // if (newSpeakerLine.getTextContent().trim() === "") {
-          //   const contentText = $createTextNode("\uFEFF");
+          //   const contentText = $createTextNode("");
           //   contentText.setStyle(`color: ${speakerColor}`);
           //   newSpeakerLine.append(contentText);
           // }
@@ -855,7 +855,7 @@ export default function ToolbarPlugin({
 
           // If no content, add placeholder
           if (speakerLine.getTextContent().trim() === "") {
-            const contentText = $createTextNode("\uFEFF");
+            const contentText = $createTextNode("");
             contentText.setStyle(`color: ${speakerColor}`);
             speakerLine.append(contentText);
           }
@@ -916,7 +916,7 @@ export default function ToolbarPlugin({
 
           if (isEmpty) {
             // Empty line: just add placeholder
-            const contentText = $createTextNode("\uFEFF");
+            const contentText = $createTextNode("");
             contentText.setStyle(`color: ${speakerColor}`);
             speakerLine.append(contentText);
           } else {
@@ -972,7 +972,7 @@ export default function ToolbarPlugin({
         );
         speakerLine.append(labelDecorator);
 
-        const contentText = $createTextNode("\uFEFF");
+        const contentText = $createTextNode("");
         contentText.setStyle(`color: ${speakerColor}`);
         speakerLine.append(contentText);
 
