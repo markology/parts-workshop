@@ -1232,32 +1232,63 @@ export default function ToolbarPlugin({
               justResetFormattingRef.current = true;
               isClearingFormattingRef.current = true;
 
-              // Clear formatting from the editor
-              editor.update(
-                () => {
-                  const selection = $getSelection();
-                  if ($isRangeSelection(selection)) {
-                    // Clear color style
-                    $patchStyleText(selection, { color: "" });
-                    // Clear text formats
-                    if (selection.hasFormat("bold")) {
-                      selection.formatText("bold");
-                    }
-                    if (selection.hasFormat("italic")) {
-                      selection.formatText("italic");
-                    }
-                    if (selection.hasFormat("underline")) {
-                      selection.formatText("underline");
-                    }
-                  }
-                },
-                { discrete: true }
-              );
+              // Defer formatting clear to try to group with typing action
+              // This may help with undo grouping
+              requestAnimationFrame(() => {
+                editor.update(
+                  () => {
+                    const root = $getRoot();
+                    const allTextNodes = root.getAllTextNodes();
 
-              setTimeout(() => {
-                justResetFormattingRef.current = false;
-                isClearingFormattingRef.current = false;
-              }, 50);
+                    // Clear formatting from all text nodes (especially the first character)
+                    allTextNodes.forEach((node) => {
+                      if ($isTextNode(node)) {
+                        // Clear color style
+                        const style = node.getStyle();
+                        if (style && style.includes("color:")) {
+                          const newStyle = style
+                            .replace(/color:\s*[^;]+;?/g, "")
+                            .trim();
+                          node.setStyle(newStyle || "");
+                        }
+                        // Clear text formats
+                        if (node.hasFormat("bold")) {
+                          node.toggleFormat("bold");
+                        }
+                        if (node.hasFormat("italic")) {
+                          node.toggleFormat("italic");
+                        }
+                        if (node.hasFormat("underline")) {
+                          node.toggleFormat("underline");
+                        }
+                      }
+                    });
+
+                    // Also clear from selection for future typing
+                    const selection = $getSelection();
+                    if ($isRangeSelection(selection)) {
+                      // Clear color style
+                      $patchStyleText(selection, { color: "" });
+                      // Clear text formats
+                      if (selection.hasFormat("bold")) {
+                        selection.formatText("bold");
+                      }
+                      if (selection.hasFormat("italic")) {
+                        selection.formatText("italic");
+                      }
+                      if (selection.hasFormat("underline")) {
+                        selection.formatText("underline");
+                      }
+                    }
+                  },
+                  { discrete: true }
+                );
+
+                setTimeout(() => {
+                  justResetFormattingRef.current = false;
+                  isClearingFormattingRef.current = false;
+                }, 50);
+              });
             } else if (isSingleChar) {
               // Document has single character (user typed after select-all) - clear formatting
               // Update toolbar state first
