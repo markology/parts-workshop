@@ -38,7 +38,7 @@ export function getListItemAncestor(
 export function getNearestBlock(node: LexicalNode): LexicalNode {
   let cur: LexicalNode | null = node;
   while (cur) {
-    const parent = cur.getParent();
+    const parent: LexicalNode | null = cur.getParent();
     // Stop at root OR if current is a direct child of root
     if (!parent || parent.getType?.() === "root") return cur;
     cur = parent;

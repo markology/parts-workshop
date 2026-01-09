@@ -38,7 +38,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   } = useFlowNodesContext();
   const { setJournalTarget } = useJournalStore();
 
-  const { darkMode } = useThemeContext();
+  const { isDark: darkMode } = useThemeContext();
   const theme = useTheme();
   const palette = workspaceDarkPalette;
 

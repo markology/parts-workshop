@@ -42,7 +42,7 @@ const PartNodeDeprecated = ({ data, partId }: { data: PartNodeData; partId: stri
   const isEditing = useUIStore((s) => s.isEditing);
   const setIsEditing = useUIStore((s) => s.setIsEditing);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { darkMode } = useThemeContext();
+  const { isDark: darkMode } = useThemeContext();
   const palette = workspaceDarkPalette;
 
   const { handleContextMenu, showContextMenu, nodeRef, menuItems } =

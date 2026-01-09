@@ -41,7 +41,7 @@ export default async function handler(
       const entry = await prisma.journalEntry.create({
         data: {
           userId,
-          contentJson: null,
+          contentJson: undefined,
           contentText: "",
           journalType: "normal", // Default to normal journal type
         },

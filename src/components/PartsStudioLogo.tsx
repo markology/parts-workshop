@@ -16,7 +16,7 @@ const PartsStudioLogo = ({
   size = "md",
   className = "" 
 }: PartsStudioLogoProps) => {
-  const { darkMode } = useThemeContext();
+  const { isDark: darkMode } = useThemeContext();
   const theme = useTheme();
 
   const sizeClasses = {

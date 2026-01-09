@@ -37,22 +37,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       case "POST":
         // Create a new journal entry for a part
-        const { title, contentJson, contentText, journalType } = req.body;
+        const { title: postTitle, contentJson: postContentJson, contentText: postContentText, journalType: postJournalType } = req.body;
 
-        if (!contentJson || typeof contentJson !== "string") {
+        if (!postContentJson || typeof postContentJson !== "string") {
           return res.status(400).json({ error: "contentJson is required (string)" });
         }
 
         // Parse and validate JSON
         let parsedJson: any;
         try {
-          parsedJson = JSON.parse(contentJson);
+          parsedJson = JSON.parse(postContentJson);
         } catch (error) {
           return res.status(400).json({ error: "contentJson must be valid JSON string" });
         }
 
         // Extract text if not provided
-        let finalContentText = contentText;
+        let finalContentText = postContentText;
         if (!finalContentText && parsedJson?.root?.children) {
           const extractTextFromNodes = (nodes: any[]): string => {
             let text = "";
@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Validate journalType if provided
-        const validJournalType = normalizeJournalType(journalType);
+        const validPostJournalType = normalizeJournalType(postJournalType);
 
         // Verify the part belongs to the user
         const part = await prisma.part.findFirst({
@@ -85,10 +85,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const newEntry = await prisma.journalEntry.create({
           data: {
-            title: title || `Journal Entry - ${part.name}`,
+            title: postTitle || `Journal Entry - ${part.name}`,
             contentJson: parsedJson,
             contentText: finalContentText || "",
-            journalType: validJournalType,
+            journalType: validPostJournalType,
             partId: partId,
             userId: session.user.id,
           },
@@ -98,26 +98,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       case "PUT":
         // Update an existing journal entry
-        const { entryId, title: updateTitle, contentJson, contentText, journalType } = req.body;
+        const { entryId, title: updateTitle, contentJson: putContentJson, contentText: putContentText, journalType: putJournalType } = req.body;
 
         if (!entryId) {
           return res.status(400).json({ error: "Entry ID is required" });
         }
 
-        if (!contentJson || typeof contentJson !== "string") {
+        if (!putContentJson || typeof putContentJson !== "string") {
           return res.status(400).json({ error: "contentJson is required (string)" });
         }
 
         // Parse and validate JSON
         let parsedUpdateJson: any;
         try {
-          parsedUpdateJson = JSON.parse(contentJson);
+          parsedUpdateJson = JSON.parse(putContentJson);
         } catch (error) {
           return res.status(400).json({ error: "contentJson must be valid JSON string" });
         }
 
         // Extract text if not provided
-        let finalUpdateContentText = contentText;
+        let finalUpdateContentText = putContentText;
         if (!finalUpdateContentText && parsedUpdateJson?.root?.children) {
           const extractTextFromNodes = (nodes: any[]): string => {
             let text = "";
@@ -147,7 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Validate journalType if provided
-        const validJournalType = normalizeJournalType(journalType);
+        const validPutJournalType = normalizeJournalType(putJournalType);
 
         const updatedEntry = await prisma.journalEntry.update({
           where: {
@@ -157,7 +157,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             title: updateTitle,
             contentJson: parsedUpdateJson,
             contentText: finalUpdateContentText || "",
-            journalType: validJournalType,
+            journalType: validPutJournalType,
           },
         });
 

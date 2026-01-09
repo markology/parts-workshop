@@ -7,7 +7,7 @@ import { useThemeContext } from "@/state/context/ThemeContext";
 
 export default function JournalAnalysisPage() {
   const router = useRouter();
-  const { darkMode } = useThemeContext();
+  const { isDark: darkMode } = useThemeContext();
   const editorRef = useRef<HTMLDivElement>(null);
   
   const [journalContent, setJournalContent] = useState("");

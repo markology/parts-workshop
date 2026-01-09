@@ -32,7 +32,7 @@ const SideBar = () => {
   const [showRelationshipTypeModal, setShowRelationshipTypeModal] = useState(false);
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const [shouldHideSidebar, setShouldHideSidebar] = useState(false);
-  const { darkMode } = useThemeContext();
+  const { isDark: darkMode } = useThemeContext();
   const theme = useTheme();
 
   // Calculate if sidebar should be hidden due to part details panel collision

@@ -45,7 +45,7 @@ export default async function handler(
         data: {
           userId,
           nodeId,
-          contentJson: null,
+          contentJson: undefined,
           contentText: "",
           journalType: "normal", // Default to normal journal type
         },

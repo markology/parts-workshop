@@ -16,7 +16,7 @@ const Impressions = () => {
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
   const { deleteNode } = useFlowNodesContext();
   const theme = useTheme();
-  const { darkMode } = useThemeContext();
+  const { isDark: darkMode } = useThemeContext();
   const totalImpressions = ImpressionList.reduce(
     (acc, type) => acc + Object.keys(impressions[type] || {}).length,
     0

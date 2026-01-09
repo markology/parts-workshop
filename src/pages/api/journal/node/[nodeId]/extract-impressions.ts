@@ -72,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!journalContent && journalEntry.contentJson) {
       // Fallback: extract text from JSON (shouldn't happen if contentText is always saved)
       const { extractAiText } = await import("@/features/workspace/utils/extractAiText");
-      journalContent = extractAiText(journalEntry.contentJson);
+      journalContent = extractAiText(journalEntry.contentJson as string | object | null | undefined);
     }
     // Last resort: use old content field (legacy)
     if (!journalContent) {

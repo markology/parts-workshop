@@ -454,7 +454,7 @@ const FloatingActionButtons = () => {
         themeModeType="none"
         useWorkspaceTheme={true}
         buttonClassName="group w-12 h-12 rounded-full shadow-sm flex items-center justify-center transition-all duration-200 overflow-hidden"
-        containerRef={profileDropdownRef}
+        containerRef={profileDropdownRef as React.RefObject<HTMLElement>}
       />
     ),
     [] // Empty deps - AccountDropdown is memoized and props are stable
