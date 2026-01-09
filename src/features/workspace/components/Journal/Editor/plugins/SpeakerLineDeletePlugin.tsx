@@ -1,10 +1,14 @@
 /**
  * Speaker Line Delete Plugin - Simplified Version
  *
- * With decorator nodes, deletion logic is much simpler:
- * - If decorator is in selection → delete entire group
- * - Otherwise → let Lexical handle normal deletion
- * - Minimal cursor fixing (only if clearly needed)
+ * Simplified deletion logic:
+ * - Only check anchor and focus points to determine if special rules apply
+ * - If anchor OR focus is on a decorator or at start of speaker line → delete entire speaker line
+ * - If selection is midway in text → let Lexical handle normal deletion
+ * - When deleting speaker line, also delete any selected normal text
+ *
+ * Note: We no longer search for groups since Enter exits the speaker (doesn't create new speaker lines).
+ * Each speaker line is standalone.
  */
 
 "use client";
@@ -16,13 +20,13 @@ import {
   $isRangeSelection,
   $isTextNode,
   $createParagraphNode,
-  $createTextNode,
   $createRangeSelection,
   $setSelection,
   $getRoot,
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
   LexicalNode,
+  RangeSelection,
   COMMAND_PRIORITY_HIGH,
 } from "lexical";
 import { SpeakerLineNode, $isSpeakerLineNode } from "../SpeakerLineNode";
@@ -32,59 +36,81 @@ import {
 } from "../SpeakerLabelDecorator";
 
 /**
- * Finds all SpeakerLineNodes with the same groupId
+ * Checks if a point (anchor or focus) is on a decorator or at the start of a speaker line
+ * Returns the speaker line if found, null otherwise
  */
-function findNodesByGroupId(
-  root: LexicalNode,
-  groupId: string | null
-): SpeakerLineNode[] {
-  const nodes: SpeakerLineNode[] = [];
-
-  function traverse(node: LexicalNode) {
-    if ($isSpeakerLineNode(node) && node.getGroupId() === groupId) {
-      nodes.push(node);
+function isAtSpeakerLineStart(
+  node: LexicalNode,
+  offset: number
+): SpeakerLineNode | null {
+  // Check if the node itself is a decorator
+  if ($isSpeakerLabelDecorator(node)) {
+    const parent = node.getParent();
+    if ($isSpeakerLineNode(parent)) {
+      return parent;
     }
-    if (
-      "getChildren" in node &&
-      typeof (node as any).getChildren === "function"
-    ) {
-      const children = (node as any).getChildren();
-      for (const child of children) {
-        traverse(child);
+  }
+
+  // Check if we're at offset 0 in a text node that's the first content after decorator
+  if ($isTextNode(node) && offset === 0) {
+    const parent = node.getParent();
+    if ($isSpeakerLineNode(parent)) {
+      const children = parent.getChildren();
+      const decoratorIndex = children.findIndex((child) =>
+        $isSpeakerLabelDecorator(child)
+      );
+      if (decoratorIndex >= 0) {
+        const firstContentIndex = decoratorIndex + 1;
+        if (firstContentIndex < children.length) {
+          const firstContentNode = children[firstContentIndex];
+          if (firstContentNode === node) {
+            return parent;
+          }
+        }
       }
     }
   }
 
-  traverse(root);
-  return nodes;
+  // Check if we're at the start of the speaker line element itself
+  if ($isSpeakerLineNode(node) && offset === 0) {
+    const children = node.getChildren();
+    const hasDecorator = children.some((child) =>
+      $isSpeakerLabelDecorator(child)
+    );
+    if (hasDecorator) {
+      return node;
+    }
+  }
+
+  // Check if we're inside a speaker line but not at the start
+  // Walk up to find speaker line
+  let current: LexicalNode | null = node;
+  while (current) {
+    if ($isSpeakerLineNode(current)) {
+      // Only return if we're at the start (offset 0)
+      // If we're midway, return null to let Lexical handle it
+      if (offset === 0) {
+        return current;
+      }
+      return null; // Midway in speaker line, let Lexical handle it
+    }
+    current = current.getParent();
+  }
+
+  return null;
 }
 
 /**
- * Checks if selection includes any decorator nodes
- * With decorator nodes, this is simple: if decorator is in selection, delete group
- */
-function hasDecoratorInSelection(selection: any): boolean {
-  const nodes = selection.getNodes();
-  return nodes.some((node: LexicalNode) => $isSpeakerLabelDecorator(node));
-}
-
-/**
- * Finds a safe position for the cursor after deletion
- * Simple fallback: previous sibling → next sibling → new paragraph
+ * Finds a safe position for the cursor after deleting a speaker line
+ * Simple: previous sibling → next sibling → new paragraph if empty
  */
 function findSafeCursorPosition(
   root: LexicalNode,
-  deletedNodes: SpeakerLineNode[]
+  deletedSpeakerLine: SpeakerLineNode
 ): { node: LexicalNode; offset: number } | null {
-  if (deletedNodes.length === 0) return null;
-
-  const firstDeleted = deletedNodes[0];
-  const lastDeleted = deletedNodes[deletedNodes.length - 1];
-
   // Try previous sibling
-  const previousSibling = firstDeleted.getPreviousSibling();
+  const previousSibling = deletedSpeakerLine.getPreviousSibling();
   if (previousSibling && previousSibling.isAttached()) {
-    // Find last text node in previous sibling
     const lastText = findLastTextNode(previousSibling);
     if (lastText && $isTextNode(lastText)) {
       const size = lastText.getTextContentSize();
@@ -94,9 +120,8 @@ function findSafeCursorPosition(
   }
 
   // Try next sibling
-  const nextSibling = lastDeleted.getNextSibling();
+  const nextSibling = deletedSpeakerLine.getNextSibling();
   if (nextSibling && nextSibling.isAttached()) {
-    // Find first text node in next sibling
     const firstText = findFirstTextNode(nextSibling);
     if (firstText && $isTextNode(firstText)) {
       return { node: firstText, offset: 0 };
@@ -169,130 +194,158 @@ export default function SpeakerLineDeletePlugin() {
         return false; // Let Lexical handle non-range selections
       }
 
-      // Check if decorator is in selection
-      const decoratorInSelection = hasDecoratorInSelection(selection);
+      // Only check anchor and focus points
+      const anchorNode = selection.anchor.getNode();
+      const anchorOffset = selection.anchor.offset;
+      const focusNode = selection.focus.getNode();
+      const focusOffset = selection.focus.offset;
 
-      // Check if cursor is at the start of a speaker line (right after decorator)
-      // This happens when user presses backspace at the very beginning of speaker content
-      let shouldDeleteGroup = decoratorInSelection;
+      // Check if anchor or focus is at the start of a speaker line
+      const anchorSpeakerLine = isAtSpeakerLineStart(anchorNode, anchorOffset);
+      const focusSpeakerLine = isAtSpeakerLineStart(focusNode, focusOffset);
 
-      if (!shouldDeleteGroup && selection.isCollapsed()) {
-        const anchorNode = selection.anchor.getNode();
-        const anchorOffset = selection.anchor.offset;
-
-        // Check if we're at offset 0 in a text node that's the first content node after decorator
-        if ($isTextNode(anchorNode) && anchorOffset === 0) {
-          const parent = anchorNode.getParent();
-          if ($isSpeakerLineNode(parent)) {
-            const children = parent.getChildren();
-            // Find the decorator (should be first child)
-            const decoratorIndex = children.findIndex((child) =>
-              $isSpeakerLabelDecorator(child)
-            );
-            // Check if this text node is the first non-decorator child
-            if (decoratorIndex >= 0) {
-              const firstContentIndex = decoratorIndex + 1;
-              if (firstContentIndex < children.length) {
-                const firstContentNode = children[firstContentIndex];
-                // If this is the first content node and cursor is at offset 0, delete group
-                if (firstContentNode === anchorNode) {
-                  shouldDeleteGroup = true;
-                }
-              }
-            }
-          }
-        }
-
-        // Also check if we're at the start of the speaker line element itself
-        if (!shouldDeleteGroup && $isSpeakerLineNode(anchorNode)) {
-          const children = anchorNode.getChildren();
-          const hasDecorator = children.some((child) =>
-            $isSpeakerLabelDecorator(child)
-          );
-          // If speaker line has decorator and cursor is at element start, delete group
-          if (hasDecorator && anchorOffset === 0) {
-            shouldDeleteGroup = true;
-          }
-        }
+      // Collect unique speaker lines to delete
+      const speakerLinesToDelete = new Set<SpeakerLineNode>();
+      if (anchorSpeakerLine) {
+        speakerLinesToDelete.add(anchorSpeakerLine);
+      }
+      if (focusSpeakerLine) {
+        speakerLinesToDelete.add(focusSpeakerLine);
       }
 
-      if (!shouldDeleteGroup) {
-        return false; // Let Lexical handle normal deletion
+      // If no speaker line at anchor/focus, let Lexical handle normal deletion
+      if (speakerLinesToDelete.size === 0) {
+        return false; // Let Lexical handle normal deletion (it will clean up empty paragraphs)
       }
 
-      // Delete entire group(s) - either decorator is selected or cursor is at start
+      // We have speaker lines to delete - handle them
       editor.update(() => {
         const root = $getRoot();
-        const nodes = selection.getNodes();
+        const speakerLinesArray = Array.from(speakerLinesToDelete);
+        const firstSpeakerLine = speakerLinesArray[0];
 
-        // Find all unique groupIds from decorators in selection
-        const groupIds = new Set<string | null>();
-        for (const node of nodes) {
+        // Helper to check if a node is inside a speaker line we're deleting
+        const isInSpeakerLineToDelete = (node: LexicalNode): boolean => {
+          let current: LexicalNode | null = node;
+          while (current) {
+            if (
+              $isSpeakerLineNode(current) &&
+              speakerLinesToDelete.has(current)
+            ) {
+              return true;
+            }
+            current = current.getParent();
+          }
+          return false;
+        };
+
+        // Delete all selected nodes that are NOT in speaker lines we're deleting
+        // This handles mixed selections (normal text + speaker lines)
+        const selectedNodes = selection.getNodes();
+        const nodesToDelete: LexicalNode[] = [];
+
+        for (const node of selectedNodes) {
+          // Skip decorators (will be deleted with speaker line)
           if ($isSpeakerLabelDecorator(node)) {
-            const parent = node.getParent();
-            if ($isSpeakerLineNode(parent)) {
-              groupIds.add(parent.getGroupId());
-            }
+            continue;
           }
+
+          // Skip nodes inside speaker lines we're deleting
+          if (isInSpeakerLineToDelete(node)) {
+            continue;
+          }
+
+          // This is normal text/element that should be deleted
+          nodesToDelete.push(node);
         }
 
-        // If no decorator in selection but we're deleting, find groupId from cursor position
-        if (groupIds.size === 0 && selection.isCollapsed()) {
-          const anchorNode = selection.anchor.getNode();
-          let speakerLine: SpeakerLineNode | null = null;
+        // Delete the normal text/elements
+        for (const node of nodesToDelete) {
+          if (node.isAttached()) {
+            // For text nodes, check if we need partial deletion
+            if ($isTextNode(node)) {
+              const nodeSize = node.getTextContentSize();
+              const isAnchor = node === anchorNode;
+              const isFocus = node === focusNode;
+              const isBackward = selection.isBackward();
 
-          if ($isSpeakerLineNode(anchorNode)) {
-            speakerLine = anchorNode;
-          } else {
-            let parent = anchorNode.getParent();
-            while (parent) {
-              if ($isSpeakerLineNode(parent)) {
-                speakerLine = parent;
-                break;
+              if (isAnchor && isFocus) {
+                // Selection is within this single node
+                const startOffset = Math.min(anchorOffset, focusOffset);
+                const endOffset = Math.max(anchorOffset, focusOffset);
+                if (startOffset < endOffset) {
+                  node.spliceText(
+                    startOffset,
+                    endOffset - startOffset,
+                    "",
+                    true
+                  );
+                }
+              } else if (isAnchor) {
+                // This is where selection started
+                if (isBackward) {
+                  if (anchorOffset > 0) {
+                    node.spliceText(0, anchorOffset, "", true);
+                  }
+                } else {
+                  if (anchorOffset < nodeSize) {
+                    node.spliceText(
+                      anchorOffset,
+                      nodeSize - anchorOffset,
+                      "",
+                      true
+                    );
+                  }
+                }
+              } else if (isFocus) {
+                // This is where selection ended
+                if (isBackward) {
+                  if (focusOffset < nodeSize) {
+                    node.spliceText(
+                      focusOffset,
+                      nodeSize - focusOffset,
+                      "",
+                      true
+                    );
+                  }
+                } else {
+                  if (focusOffset > 0) {
+                    node.spliceText(0, focusOffset, "", true);
+                  }
+                }
+              } else {
+                // Fully selected, remove entire node
+                node.remove();
               }
-              parent = parent.getParent();
+            } else {
+              // Element node, remove it
+              node.remove();
             }
           }
-
-          if (speakerLine) {
-            groupIds.add(speakerLine.getGroupId());
-          }
         }
 
-        // Collect all speaker lines to delete
-        const allNodesToDelete: SpeakerLineNode[] = [];
-        for (const groupId of groupIds) {
-          const groupNodes = findNodesByGroupId(root, groupId);
-          allNodesToDelete.push(...groupNodes);
-        }
-
-        // Create a new paragraph in place of the first deleted speaker line
-        // This keeps the cursor on the same line
-        const firstDeletedNode = allNodesToDelete[0];
+        // Now delete the speaker lines
+        // Replace first speaker line with a paragraph to keep cursor on same line
         let replacementParagraph: ReturnType<
           typeof $createParagraphNode
         > | null = null;
 
-        if (firstDeletedNode && firstDeletedNode.isAttached()) {
-          // Create new paragraph to replace the first speaker line
+        if (firstSpeakerLine && firstSpeakerLine.isAttached()) {
           replacementParagraph = $createParagraphNode();
-
-          // Replace the first speaker line with the new paragraph
-          firstDeletedNode.replace(replacementParagraph);
+          firstSpeakerLine.replace(replacementParagraph);
         }
 
-        // Delete remaining speaker line groups (skip the first one as it's already replaced)
-        for (let i = 1; i < allNodesToDelete.length; i++) {
-          const node = allNodesToDelete[i];
+        // Delete remaining speaker lines
+        for (let i = 1; i < speakerLinesArray.length; i++) {
+          const node = speakerLinesArray[i];
           if (node.isAttached()) {
             node.remove();
           }
         }
 
-        // Position cursor in the new paragraph
+        // Position cursor
         if (replacementParagraph) {
           const rangeSelection = $createRangeSelection();
-          // Position at start of paragraph
           rangeSelection.anchor.set(
             replacementParagraph.getKey(),
             0,
@@ -301,8 +354,8 @@ export default function SpeakerLineDeletePlugin() {
           rangeSelection.focus.set(replacementParagraph.getKey(), 0, "element");
           $setSelection(rangeSelection);
         } else {
-          // Fallback: use safe cursor position if we couldn't create replacement
-          const cursorPosition = findSafeCursorPosition(root, allNodesToDelete);
+          // Fallback: use safe cursor position
+          const cursorPosition = findSafeCursorPosition(root, firstSpeakerLine);
           if (cursorPosition) {
             const rangeSelection = $createRangeSelection();
             const { node, offset } = cursorPosition;
