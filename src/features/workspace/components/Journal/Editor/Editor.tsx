@@ -26,8 +26,10 @@ import { LexicalEditor } from "lexical";
 import { $generateHtmlFromNodes } from "@lexical/html";
 import { ListNode, ListItemNode } from "@lexical/list";
 import { SpeakerLineNode } from "./SpeakerLineNode";
+import { SpeakerLabelDecorator } from "./SpeakerLabelDecorator";
 import SpeakerLineEnterPlugin from "./plugins/SpeakerLineEnterPlugin";
 import SpeakerLineDeletePlugin from "./plugins/SpeakerLineDeletePlugin";
+import SpeakerLineFormatLockPlugin from "./plugins/SpeakerLineFormatLockPlugin";
 
 interface JournalEditorProps {
   contentJson: string | null;
@@ -117,7 +119,7 @@ export default function JournalEditor({
   const initialConfig = {
     namespace: "JournalEditor",
     theme: lexicalTheme,
-    nodes: [ListNode, ListItemNode, SpeakerLineNode],
+    nodes: [ListNode, ListItemNode, SpeakerLineNode, SpeakerLabelDecorator],
     onError: (error: Error) => {
       console.error("Lexical error:", error);
     },
@@ -184,6 +186,7 @@ export default function JournalEditor({
                 />
               )}
               {!readOnly && <SpeakerLineDeletePlugin />}
+              {!readOnly && <SpeakerLineFormatLockPlugin />}
             </div>
           </div>
         </div>

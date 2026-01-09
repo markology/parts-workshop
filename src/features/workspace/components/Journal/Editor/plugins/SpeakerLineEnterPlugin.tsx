@@ -24,6 +24,12 @@ import {
   $createSpeakerLineNode,
   $isSpeakerLineNode,
 } from "../SpeakerLineNode";
+import {
+  SpeakerLabelDecorator,
+  $createSpeakerLabelDecorator,
+  $isSpeakerLabelDecorator,
+} from "../SpeakerLabelDecorator";
+import { $createTextNode } from "lexical";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 
 interface SpeakerLineEnterPluginProps {
@@ -93,21 +99,62 @@ export default function SpeakerLineEnterPlugin({
             // can be identified and deleted together
             editor.update(() => {
               const newSpeakerLine = $createSpeakerLineNode(speakerId, groupId);
-              speakerLine!.insertAfter(newSpeakerLine);
-
-              // Move selection to new line
-              const rangeSelection = $createRangeSelection();
-              rangeSelection.anchor.set(newSpeakerLine.getKey(), 0, "element");
-              rangeSelection.focus.set(newSpeakerLine.getKey(), 0, "element");
-              $setSelection(rangeSelection);
-
-              // Apply speaker color to future typing
+              
+              // Get speaker label and color from the existing line's decorator
+              const children = speakerLine.getChildren();
+              const existingDecorator = children.find((child) =>
+                $isSpeakerLabelDecorator(child)
+              ) as SpeakerLabelDecorator | undefined;
+              
+              // Get speaker color
               const speakerColor = getSpeakerColor(
                 speakerId,
                 theme,
                 partNodes,
                 allPartNodes
               );
+              
+              // Get speaker label
+              let speakerLabel = `${speakerId}: `;
+              if (existingDecorator) {
+                speakerLabel = existingDecorator.getLabel();
+              } else {
+                // Fallback: try to get label from partNodes
+                if (speakerId === "self") {
+                  speakerLabel = "Self: ";
+                } else if (speakerId === "unknown") {
+                  speakerLabel = "Unknown: ";
+                } else {
+                  const allParts = allPartNodes || partNodes || [];
+                  const part = allParts.find((p) => p.id === speakerId);
+                  if (part) {
+                    speakerLabel = `${part.label}: `;
+                  }
+                }
+              }
+              
+              // Create decorator for the new line
+              const labelDecorator = $createSpeakerLabelDecorator(
+                speakerId,
+                speakerLabel,
+                speakerColor
+              );
+              newSpeakerLine.append(labelDecorator);
+              
+              // Create content text node with placeholder
+              const contentText = $createTextNode("\uFEFF");
+              contentText.setStyle(`color: ${speakerColor}`);
+              newSpeakerLine.append(contentText);
+              
+              speakerLine!.insertAfter(newSpeakerLine);
+
+              // Move selection to content text node
+              const rangeSelection = $createRangeSelection();
+              rangeSelection.anchor.set(contentText.getKey(), 1, "text");
+              rangeSelection.focus.set(contentText.getKey(), 1, "text");
+              $setSelection(rangeSelection);
+
+              // Apply speaker color to future typing
               $patchStyleText(rangeSelection, { color: speakerColor });
             });
 

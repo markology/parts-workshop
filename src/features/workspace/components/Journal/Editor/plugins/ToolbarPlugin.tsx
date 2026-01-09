@@ -51,6 +51,11 @@ import {
   $createSpeakerLineNode,
   $isSpeakerLineNode,
 } from "../SpeakerLineNode";
+import {
+  SpeakerLabelDecorator,
+  $createSpeakerLabelDecorator,
+  $isSpeakerLabelDecorator,
+} from "../SpeakerLabelDecorator";
 
 /* ============================================================================
  * Color Picker Component
@@ -407,6 +412,26 @@ function toggleFormatUniform(editor: LexicalEditor, format: Format) {
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return;
 
+    // Check if selection is inside a speaker line - if so, prevent formatting
+    const anchorNode = selection.anchor.getNode();
+    const focusNode = selection.focus.getNode();
+
+    function isInSpeakerLine(node: any): boolean {
+      let current: any = node;
+      while (current) {
+        if ($isSpeakerLineNode(current)) {
+          return true;
+        }
+        current = current.getParent();
+      }
+      return false;
+    }
+
+    if (isInSpeakerLine(anchorNode) || isInSpeakerLine(focusNode)) {
+      // Selection is in a speaker line - don't allow formatting
+      return;
+    }
+
     // Collapsed selection (caret): Lexical's built-in toggle works correctly
     if (selection.isCollapsed()) {
       selection.formatText(format);
@@ -744,14 +769,19 @@ export default function ToolbarPlugin({
         const speakerLine = $createSpeakerLineNode(speaker.id, groupId);
 
         // ========================================================================
-        // Step 2: Build the speaker label (e.g., "John: " or "Self: ")
+        // Step 2: Build the speaker label using a decorator node
         // ========================================================================
-        // Create a text node containing the speaker's label followed by a colon and space.
-        // This label is displayed in bold to visually distinguish it from the content.
-        const labelText = $createTextNode(`${speaker.label}: `);
-        labelText.setFormat("bold");
-        // Append the label as the first child of the speaker line node
-        speakerLine.append(labelText);
+        // Create a decorator node for the speaker label. Decorator nodes are
+        // read-only and non-selectable, which prevents formatting issues and
+        // simplifies deletion logic. The decorator behaves like a single character
+        // that cannot be formatted or partially selected.
+        const labelDecorator = $createSpeakerLabelDecorator(
+          speaker.id,
+          `${speaker.label}: `,
+          speakerColor
+        );
+        // Append the decorator as the first child of the speaker line node
+        speakerLine.append(labelDecorator);
 
         // ========================================================================
         // Step 3: Create an empty content node for user typing

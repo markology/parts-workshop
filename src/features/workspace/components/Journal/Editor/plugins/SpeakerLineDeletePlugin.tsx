@@ -25,20 +25,29 @@ import {
   LexicalNode,
 } from "lexical";
 import { SpeakerLineNode, $isSpeakerLineNode } from "../SpeakerLineNode";
+import {
+  SpeakerLabelDecorator,
+  $isSpeakerLabelDecorator,
+} from "../SpeakerLabelDecorator";
 
 /**
- * Checks if a text node is the label (bold first child) of a SpeakerLineNode
+ * Checks if a node is the speaker label decorator
+ * With the new architecture, labels are decorator nodes (read-only, non-selectable)
  */
 function isLabelNode(node: LexicalNode): boolean {
-  if (!$isTextNode(node) || !node.hasFormat("bold")) {
-    return false;
+  // Check if it's a decorator node
+  if ($isSpeakerLabelDecorator(node)) {
+    return true;
   }
-  const parent = node.getParent();
-  if (!$isSpeakerLineNode(parent)) {
-    return false;
+  // Legacy support: also check for bold text node (for backward compatibility)
+  if ($isTextNode(node) && node.hasFormat("bold")) {
+    const parent = node.getParent();
+    if ($isSpeakerLineNode(parent)) {
+      const children = parent.getChildren();
+      return children[0] === node;
+    }
   }
-  const children = parent.getChildren();
-  return children[0] === node;
+  return false;
 }
 
 /**
@@ -71,6 +80,18 @@ function findNodesByGroupId(
 }
 
 /**
+ * Checks if a node is inside another node (ancestor check)
+ */
+function isNodeInside(node: LexicalNode, ancestor: LexicalNode): boolean {
+  let current: LexicalNode | null = node;
+  while (current) {
+    if (current === ancestor) return true;
+    current = current.getParent();
+  }
+  return false;
+}
+
+/**
  * Finds the parent element (paragraph or speaker line) containing a node
  */
 function findParentElement(node: LexicalNode | null): LexicalNode | null {
@@ -81,6 +102,12 @@ function findParentElement(node: LexicalNode | null): LexicalNode | null {
     if (!parent) break;
     if (parent.getType() === "paragraph" || $isSpeakerLineNode(parent)) {
       return parent;
+    }
+    // If parent is root, check if current is a direct child paragraph
+    if (parent.getType() === "root") {
+      if (current.getType() === "paragraph") {
+        return current;
+      }
     }
     current = parent;
   }
@@ -147,33 +174,82 @@ export default function SpeakerLineDeletePlugin() {
       }
 
       // Check if the selection touches any speaker label nodes
-      const nodes = selection.getNodes();
+      // Only consider labels that are at anchor/focus or truly within selection
       const touchedGroupIds = new Set<string | null>();
-
-      for (const node of nodes) {
-        if (isLabelNode(node)) {
-          const parent = node.getParent();
-          if ($isSpeakerLineNode(parent)) {
-            touchedGroupIds.add(parent.getGroupId());
-          }
-        }
-      }
-
-      // Also check anchor and focus points for edge cases
       const anchorNode = selection.anchor.getNode();
       const focusNode = selection.focus.getNode();
+      const anchorOffset = selection.anchor.offset;
+      const focusOffset = selection.focus.offset;
 
+      console.log("[DELETE-DEBUG] Checking selection for labels:", {
+        anchorNodeKey: anchorNode.getKey(),
+        anchorNodeType: anchorNode.getType(),
+        anchorOffset,
+        focusNodeKey: focusNode.getKey(),
+        focusNodeType: focusNode.getType(),
+        focusOffset,
+        isCollapsed: selection.isCollapsed(),
+      });
+
+      // Check if anchor is on an empty speaker line paragraph
+      // If so, don't trigger group deletion even if focus is on a label
+      // (double-clicking empty paragraphs can expand selection unintentionally)
+      const anchorParent = findParentElement(anchorNode);
+      const isAnchorOnEmptySpeakerLine =
+        ($isSpeakerLineNode(anchorNode) && isEmptyElement(anchorNode)) ||
+        ($isSpeakerLineNode(anchorParent) &&
+          anchorParent &&
+          isEmptyElement(anchorParent));
+
+      // Check if anchor is on a label node
       if (isLabelNode(anchorNode)) {
         const parent = anchorNode.getParent();
         if ($isSpeakerLineNode(parent)) {
-          touchedGroupIds.add(parent.getGroupId());
+          const groupId = parent.getGroupId();
+          console.log(
+            "[DELETE-DEBUG] Anchor is on label node, adding groupId:",
+            groupId
+          );
+          touchedGroupIds.add(groupId);
         }
       }
 
-      if (isLabelNode(focusNode)) {
+      // Check if focus is on a label node
+      // But only if anchor isn't on an empty speaker line (prevents accidental deletion)
+      if (!isAnchorOnEmptySpeakerLine && isLabelNode(focusNode)) {
         const parent = focusNode.getParent();
         if ($isSpeakerLineNode(parent)) {
-          touchedGroupIds.add(parent.getGroupId());
+          const groupId = parent.getGroupId();
+          console.log(
+            "[DELETE-DEBUG] Focus is on label node, adding groupId:",
+            groupId
+          );
+          touchedGroupIds.add(groupId);
+        }
+      }
+
+      // Only check other nodes in selection if anchor/focus aren't on labels
+      // This prevents accidental deletion when selection expands to include adjacent labels
+      if (touchedGroupIds.size === 0) {
+        const nodes = selection.getNodes();
+        console.log("[DELETE-DEBUG] Checking selection nodes for labels:", {
+          nodeCount: nodes.length,
+          nodeTypes: nodes.map((n) => n.getType()),
+          nodeKeys: nodes.map((n) => n.getKey()),
+        });
+
+        for (const node of nodes) {
+          if (isLabelNode(node)) {
+            const parent = node.getParent();
+            if ($isSpeakerLineNode(parent)) {
+              const groupId = parent.getGroupId();
+              console.log(
+                "[DELETE-DEBUG] Found label node in selection, adding groupId:",
+                groupId
+              );
+              touchedGroupIds.add(groupId);
+            }
+          }
         }
       }
 
@@ -226,9 +302,81 @@ export default function SpeakerLineDeletePlugin() {
           const anchorNodeKey = anchorNode.getKey();
 
           const focusNode = selection.focus.getNode();
-          const focusParent = findParentElement(focusNode);
+          const focusOffset = selection.focus.offset;
+          const focusType = selection.focus.type;
+
+          // Find the nearest block-level node (direct child of root) containing the focus
+          // This handles cases where the focus is in an empty paragraph or nested structures
+          let focusParent: LexicalNode | null = null;
+
+          // If focus is at element level (empty paragraph), the focus node might be the paragraph itself
+          // or we need to check the parent
+          if (focusType === "element") {
+            // Element selection - focus node should be the paragraph/speaker line itself
+            if (
+              focusNode.getType() === "paragraph" ||
+              $isSpeakerLineNode(focusNode)
+            ) {
+              focusParent = focusNode;
+            } else {
+              // Try to find parent
+              focusParent = findParentElement(focusNode);
+            }
+          } else {
+            // Text selection - check if focus node is paragraph/speaker line or find parent
+            if (
+              focusNode.getType() === "paragraph" ||
+              $isSpeakerLineNode(focusNode)
+            ) {
+              focusParent = focusNode;
+            } else {
+              // Traverse up to find the nearest block-level node (direct child of root)
+              let current: LexicalNode | null = focusNode;
+              while (current) {
+                const parent: LexicalNode | null = current.getParent();
+                if (!parent) break;
+
+                // If parent is root, current is a direct child (block-level node)
+                if (parent.getType() === "root") {
+                  if (
+                    current.getType() === "paragraph" ||
+                    $isSpeakerLineNode(current)
+                  ) {
+                    focusParent = current;
+                    break;
+                  }
+                }
+
+                // Check if current is a paragraph or speaker line
+                if (
+                  current.getType() === "paragraph" ||
+                  $isSpeakerLineNode(current)
+                ) {
+                  focusParent = current;
+                  break;
+                }
+
+                current = parent;
+              }
+
+              // Fallback: use findParentElement
+              if (!focusParent) {
+                focusParent = findParentElement(focusNode);
+              }
+            }
+          }
+
           const focusParentKey = focusParent?.getKey() || null;
           const focusNodeKey = focusNode.getKey();
+
+          console.log("[DELETE-DEBUG] Focus parent detection:", {
+            focusNodeKey,
+            focusNodeType: focusNode.getType(),
+            focusOffset,
+            focusType,
+            focusParentKey,
+            focusParentType: focusParent?.getType(),
+          });
 
           const isBackward = selection.isBackward();
           const isForward = !isBackward;
@@ -267,7 +415,11 @@ export default function SpeakerLineDeletePlugin() {
             focusWasInDeletedSpeaker,
             anchorWasInDeletedSpeaker,
             focusParentKey,
+            focusParentType: focusParent?.getType(),
             anchorParentKey,
+            anchorParentType: anchorParent?.getType(),
+            focusNodeType: focusNode.getType(),
+            isFocusNodeParagraph: focusNode.getType() === "paragraph",
           });
 
           // Helper to check if a node is inside a speaker line that will be deleted
@@ -432,19 +584,59 @@ export default function SpeakerLineDeletePlugin() {
             }
           }
 
-          // Clean up empty paragraphs that might be left behind
-          // Iterate through all root children and remove empty paragraphs
+          // Clean up empty paragraphs that were part of the selection or adjacent to deleted content
+          // BUT preserve the focus parent (for backward deletion) or anchor parent (for forward deletion)
+          // if they're empty paragraphs, since we want to stay on that line
           const rootChildren = root.getChildren();
           const emptyParagraphsToRemove: LexicalNode[] = [];
 
+          // Determine which parent we want to preserve based on deletion direction
+          const parentToPreserve = isBackward ? focusParent : anchorParent;
+          const parentToPreserveKey = parentToPreserve?.getKey() || null;
+
+          // Track which paragraphs were part of the selection or adjacent to deleted speaker lines
+          const paragraphsToCheck = new Set<string>();
+
+          // Add paragraphs that were in the selection
+          for (const node of selectedNodes) {
+            let current: LexicalNode | null = node;
+            while (current) {
+              if (current.getType() === "paragraph") {
+                paragraphsToCheck.add(current.getKey());
+                break;
+              }
+              current = current.getParent();
+            }
+          }
+
+          // Add paragraphs adjacent to deleted speaker lines
+          if (firstDeleted) {
+            const prevSibling = firstDeleted.getPreviousSibling();
+            if (prevSibling && prevSibling.getType() === "paragraph") {
+              paragraphsToCheck.add(prevSibling.getKey());
+            }
+          }
+          if (lastDeleted) {
+            const nextSibling = lastDeleted.getNextSibling();
+            if (nextSibling && nextSibling.getType() === "paragraph") {
+              paragraphsToCheck.add(nextSibling.getKey());
+            }
+          }
+
+          // Only remove empty paragraphs that were part of the selection or adjacent to deleted content
           for (const child of rootChildren) {
             if (
               child.getType() === "paragraph" &&
               isEmptyElement(child) &&
-              child.isAttached()
+              child.isAttached() &&
+              paragraphsToCheck.has(child.getKey())
             ) {
               // Don't remove if it's the only child (editor needs at least one element)
-              if (rootChildren.length > 1) {
+              // OR if it's the parent we want to preserve (where cursor should stay)
+              if (
+                rootChildren.length > 1 &&
+                child.getKey() !== parentToPreserveKey
+              ) {
                 emptyParagraphsToRemove.push(child);
               }
             }
@@ -558,8 +750,35 @@ export default function SpeakerLineDeletePlugin() {
               // No content after, try to use anchor parent or previous sibling
               console.log("[DELETE-DEBUG] Forward deletion: no content after");
 
+              // First, try to use anchor parent if it still exists and wasn't deleted
+              if (
+                anchorParent &&
+                anchorParent.isAttached() &&
+                !anchorWasInDeletedSpeaker
+              ) {
+                console.log(
+                  "[DELETE-DEBUG] Forward deletion: using existing anchor parent"
+                );
+                const lastText = findLastTextNode(anchorParent);
+                if (lastText && $isTextNode(lastText)) {
+                  newSelection.anchor.set(
+                    lastText.getKey(),
+                    lastText.getTextContentSize(),
+                    "text"
+                  );
+                  newSelection.focus.set(
+                    lastText.getKey(),
+                    lastText.getTextContentSize(),
+                    "text"
+                  );
+                } else {
+                  newSelection.anchor.set(anchorParent.getKey(), 0, "element");
+                  newSelection.focus.set(anchorParent.getKey(), 0, "element");
+                }
+                cursorSet = true;
+              }
               // If anchor was in a deleted speaker, create paragraph at that position
-              if (anchorWasInDeletedSpeaker) {
+              else if (anchorWasInDeletedSpeaker) {
                 console.log(
                   "[DELETE-DEBUG] Forward deletion: anchor was in deleted speaker, creating paragraph"
                 );
@@ -634,8 +853,47 @@ export default function SpeakerLineDeletePlugin() {
                     newSelection.focus.set(targetParent.getKey(), 0, "element");
                   }
                   cursorSet = true;
+                } else {
+                  // Anchor parent doesn't exist and no previous sibling
+                  // For forward deletion, create paragraph at anchor position to stay on the same line
+                  console.log(
+                    "[DELETE-DEBUG] Forward deletion: anchor parent not found, creating paragraph at anchor position"
+                  );
+
+                  let insertAfter: LexicalNode | null = null;
+                  if (previousSibling && previousSibling.isAttached()) {
+                    insertAfter = previousSibling;
+                  } else if (firstDeleted && firstDeleted.isAttached()) {
+                    const prev = firstDeleted.getPreviousSibling();
+                    if (prev && prev.isAttached()) {
+                      insertAfter = prev;
+                    }
+                  }
+
+                  const newParagraph = $createParagraphNode();
+                  if (insertAfter) {
+                    insertAfter.insertAfter(newParagraph);
+                  } else {
+                    // No previous sibling, insert before first deleted or at start
+                    if (firstDeleted && firstDeleted.isAttached()) {
+                      firstDeleted.insertBefore(newParagraph);
+                    } else {
+                      // First deleted is gone, try to find where anchor was
+                      // Use previous sibling of where anchor would have been
+                      if (anchorParent && anchorParent.getPreviousSibling()) {
+                        anchorParent
+                          .getPreviousSibling()
+                          ?.insertAfter(newParagraph);
+                      } else {
+                        root.append(newParagraph);
+                      }
+                    }
+                  }
+
+                  newSelection.anchor.set(newParagraph.getKey(), 0, "element");
+                  newSelection.focus.set(newParagraph.getKey(), 0, "element");
+                  cursorSet = true;
                 }
-                // If no target parent found, let fallback handle it (which won't create paragraph if content exists)
               }
             }
           } else {
@@ -693,13 +951,48 @@ export default function SpeakerLineDeletePlugin() {
             console.log("[DELETE-DEBUG] Found nodes after deletion:", {
               foundFocusParent: foundFocusParent?.getKey(),
               foundFocusNode: foundFocusNode?.getKey(),
+              focusParentStillExists: focusParent?.isAttached(),
             });
 
-            // Use focus parent if found (and it's not a speaker line that was deleted)
+            // First, try to use focus parent directly if it still exists and wasn't deleted
+            // For backward deletion, we want to stay on the focus line, so prioritize the focus parent
+            // if it's a paragraph (not a speaker line that was deleted)
             if (
+              focusParent &&
+              focusParent.isAttached() &&
+              !wasInDeletedSpeaker &&
+              focusParent.getType() === "paragraph"
+            ) {
+              console.log(
+                "[DELETE-DEBUG] Backward deletion: using existing focus parent (paragraph)",
+                { focusParentKey: focusParent.getKey() }
+              );
+              // Position at the end of the focus parent (or start if it's empty)
+              const lastText = findLastTextNode(focusParent);
+              if (lastText && $isTextNode(lastText)) {
+                newSelection.anchor.set(
+                  lastText.getKey(),
+                  lastText.getTextContentSize(),
+                  "text"
+                );
+                newSelection.focus.set(
+                  lastText.getKey(),
+                  lastText.getTextContentSize(),
+                  "text"
+                );
+              } else {
+                newSelection.anchor.set(focusParent.getKey(), 0, "element");
+                newSelection.focus.set(focusParent.getKey(), 0, "element");
+              }
+              cursorSet = true;
+            }
+            // Use focus parent if found by key (and it's not a speaker line that was deleted)
+            // Make sure it's a paragraph, not a speaker line
+            else if (
               foundFocusParent &&
               foundFocusParent.isAttached() &&
-              !wasInDeletedSpeaker
+              !wasInDeletedSpeaker &&
+              foundFocusParent.getType() === "paragraph"
             ) {
               // Position at the end of the focus parent (or start if it's empty)
               const lastText = findLastTextNode(foundFocusParent);
