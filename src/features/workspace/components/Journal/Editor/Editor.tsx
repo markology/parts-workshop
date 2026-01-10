@@ -31,7 +31,6 @@ import SpeakerLineEnterPlugin from "./plugins/SpeakerLineEnterPlugin";
 import SpeakerLineDeletePlugin from "./plugins/SpeakerLineDeletePlugin";
 import SpeakerLineFormatLockPlugin from "./plugins/SpeakerLineFormatLockPlugin";
 import ListBackspacePlugin from "./plugins/ListBackspacePlugin";
-import FormatResetPlugin from "./plugins/FormatResetPlugin";
 
 interface JournalEditorProps {
   contentJson: string | null;
@@ -185,7 +184,6 @@ export default function JournalEditor({
               {!readOnly && <SpeakerLineDeletePlugin />}
               {!readOnly && <SpeakerLineFormatLockPlugin />}
               {!readOnly && <ListBackspacePlugin />}
-              {/* {!readOnly && <FormatResetPlugin />} */}
             </div>
           </div>
         </div>
