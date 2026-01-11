@@ -203,7 +203,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between pl-3 pr-2">
-                <p className={`text-xs uppercase tracking-[0.28em] theme-light:text-slate-400 theme-dark:text-white`}>Recent impressions</p>
+                <p className={`text-xs uppercase tracking-[0.28em] theme-light:text-slate-400 theme-dark:text-white self-end`}>Recent impressions</p>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
