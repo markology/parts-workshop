@@ -1,13 +1,17 @@
 "use client";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-const SignInButton = () => (
-  <button
-    className="text-3xl bg-[#3a3a3a] text-white pt-1 pb-2 px-5 rounded-full shadow-[0px_4px_8px_0px_black]"
-    onClick={() => redirect("/login")}
-  >
-    Sign in
-  </button>
-);
+const SignInButton = () => {
+  const router = useRouter();
+  
+  return (
+    <button
+      className="text-sm font-medium text-slate-700 hover:text-slate-900 px-4 py-2 rounded-lg border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 transition-all"
+      onClick={() => router.push("/login")}
+    >
+      Sign in
+    </button>
+  );
+};
 
 export default SignInButton;

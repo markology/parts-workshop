@@ -16,9 +16,6 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import GridMotion from "./GridMotion";
-import TiltedCard from "./TiltedCard";
 
 const partImages = [
   "abandonment",
@@ -127,15 +124,6 @@ const gridItems = Array.from({ length: 28 }, (_, index) => {
 });
 
 const Landing = () => {
-  const [currentPartIndex, setCurrentPartIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPartIndex((prev) => (prev + 1) % partImages.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900 overflow-hidden">
       <ClientRedirect />
@@ -147,70 +135,51 @@ const Landing = () => {
         <div className="absolute top-1/2 right-1/3 w-96 h-96 bg-pink-200/40 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
-      {/* Navigation */}
-      <nav className="relative z-50 w-full border-b border-slate-200 backdrop-blur-xl bg-white/80">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-black text-lg">
-              PS
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wider text-slate-600">
-                Parts Studio
-              </p>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a
-              href="#features"
-              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              How it works
-            </a>
-            <a
-              href="/mission"
-              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              Mission
-            </a>
-            <SignInButton />
-          </div>
-        </div>
-      </nav>
-      <section className="relative min-h-screen flex items-center justify-center px-6 py-20">
-        <GridMotion
-          items={gridItems}
-          gradientColor="rgba(248, 250, 252, 0.8)"
-        />
-      </section>
-      <section>
-        <TiltedCard
-          imageSrc="https://i.scdn.co/image/ab67616d0000b273d9985092cd88bffd97653b58"
-          altText="Kendrick Lamar - GNX Album Cover"
-          captionText="Kendrick Lamar - GNX"
-          containerHeight="300px"
-          containerWidth="300px"
-          imageHeight="300px"
-          imageWidth="300px"
-          rotateAmplitude={12}
-          scaleOnHover={1.2}
-          showMobileWarning={false}
-          showTooltip={true}
-          displayOverlayContent={true}
-          overlayContent={
-            <p className="tilted-card-demo-text">Kendrick Lamar - GNX</p>
-          }
-        />
-      </section>
       {/* Hero Section - Full Width */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 py-20">
+      <section className="relative min-h-screen flex items-center justify-center px-6 py-2">
         <div className="max-w-7xl mx-auto w-full">
+          {/* Header integrated into first section */}
+          <div className="relative z-50 w-full mb-16">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Image
+                  src="/official_logo_complete.png"
+                  alt="Parts Studio"
+                  width={40}
+                  height={40}
+                  className="h-10 w-auto"
+                />
+                <span
+                  className="font-semibold text-slate-900 self-end"
+                  style={{ fontSize: "22px" }}
+                >
+                  Parts Studio
+                </span>
+              </div>
+              <div className="hidden md:flex items-center gap-6">
+                <a
+                  href="#features"
+                  className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                >
+                  Features
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                >
+                  How it works
+                </a>
+                <a
+                  href="/mission"
+                  className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                >
+                  Mission
+                </a>
+                <SignInButton />
+              </div>
+            </div>
+          </div>
+
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-purple-50 border border-purple-200 text-purple-700">
@@ -240,28 +209,110 @@ const Landing = () => {
               </div>
             </div>
 
-            {/* Animated Part Images Grid */}
-            <div className="relative">
-              <div className="grid grid-cols-4 gap-4">
-                {partImages.slice(0, 16).map((part, index) => (
+            {/* Workspace Images - Stacked Cards */}
+            <div className="relative h-[500px] w-full">
+              {/* Dark theme card - back */}
+              <div
+                className="absolute top-8 left-8 right-0 rounded-lg overflow-hidden shadow-2xl transform rotate-[-3deg] z-0 opacity-90 bg-white"
+                style={{
+                  willChange: "transform",
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                  transformStyle: "preserve-3d",
+                  WebkitFontSmoothing: "antialiased",
+                }}
+              >
+                {/* Browser Frame */}
+                <div className="flex flex-col h-full">
+                  {/* Browser Controls Bar */}
                   <div
-                    key={part}
-                    className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-500 ${
-                      index === currentPartIndex % 16
-                        ? "border-purple-500 scale-110 shadow-2xl shadow-purple-500/30"
-                        : "border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300"
-                    }`}
+                    className="flex items-center gap-1.5 px-2 h-4 bg-slate-100 border-b border-slate-200"
+                    style={{ height: "16px" }}
+                  >
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                    </div>
+                  </div>
+                  {/* Image Content */}
+                  <div
+                    className="flex-1 overflow-hidden"
+                    style={{
+                      outline: "none",
+                      border: "none",
+                      boxShadow: "none",
+                    }}
                   >
                     <Image
-                      src={`/parts/${part}.png`}
-                      alt={part}
-                      fill
-                      className="object-cover"
+                      src="/assets/workspace_dark.png"
+                      alt="Workspace dark theme"
+                      width={600}
+                      height={400}
+                      className="w-full h-full object-cover"
+                      quality={100}
+                      unoptimized
+                      style={{
+                        outline: "none",
+                        border: "none",
+                        boxShadow: "none",
+                        display: "block",
+                      }}
                     />
                   </div>
-                ))}
+                </div>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none" />
+              {/* Light theme card - front */}
+              <div
+                className="absolute top-0 left-0 right-8 rounded-lg overflow-hidden shadow-2xl transform rotate-[3deg] z-10 hover:scale-[1.02] hover:rotate-[4deg] transition-all duration-300 bg-white"
+                style={{
+                  willChange: "transform",
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                  transformStyle: "preserve-3d",
+                  WebkitFontSmoothing: "antialiased",
+                }}
+              >
+                {/* Browser Frame */}
+                <div className="flex flex-col h-full">
+                  {/* Browser Controls Bar */}
+                  <div
+                    className="flex items-center gap-1.5 px-2 h-4 bg-slate-100 border-b border-slate-200"
+                    style={{ height: "16px" }}
+                  >
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                    </div>
+                  </div>
+                  {/* Image Content */}
+                  <div
+                    className="flex-1 overflow-hidden"
+                    style={{
+                      outline: "none",
+                      border: "none",
+                      boxShadow: "none",
+                    }}
+                  >
+                    <Image
+                      src="/assets/workspace_trimmed.png"
+                      alt="Workspace light theme"
+                      width={600}
+                      height={400}
+                      className="w-full h-full object-cover"
+                      quality={100}
+                      unoptimized
+                      style={{
+                        outline: "none",
+                        border: "none",
+                        boxShadow: "none",
+                        display: "block",
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
