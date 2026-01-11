@@ -1,259 +1,549 @@
-import Image from "next/image";
-import SignInButton from "@/features/landing/components/SignInButton";
+"use client";
+
 import ClientRedirect from "@/components/ClientRedirect";
+import SignInButton from "@/features/landing/components/SignInButton";
+import {
+  ArrowRight,
+  BookOpen,
+  Brain,
+  CheckCircle2,
+  Heart,
+  Layers,
+  Map,
+  Play,
+  Sparkles,
+  Target,
+  Zap,
+} from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import GridMotion from "./GridMotion";
+import TiltedCard from "./TiltedCard";
+
+const partImages = [
+  "abandonment",
+  "addict",
+  "binge_eating",
+  "body_dysmorphic",
+  "caretaker",
+  "confused",
+  "disassociated",
+  "impulsive",
+  "inner_critic",
+  "insecure",
+  "limerence",
+  "lonely",
+  "melancholy",
+  "narcissistic",
+  "night_terrors",
+  "ocd",
+  "overachiever",
+  "overthinking",
+  "rage",
+  "rejected",
+  "scared",
+];
+
+const currentFeatures = [
+  {
+    icon: Map,
+    title: "Infinite Canvas Mapping",
+    description:
+      "Drag and drop parts onto an infinite canvas. Connect them with relationships, tensions, and interactions. See your inner landscape unfold visually.",
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    icon: Brain,
+    title: "Impression Library",
+    description:
+      "Capture emotions, thoughts, sensations, and behaviors as they arise. Organize them by type and connect them directly to your parts.",
+    color: "from-purple-500 to-pink-500",
+  },
+  {
+    icon: BookOpen,
+    title: "Contextual Journaling",
+    description:
+      "Journal directly on the canvas without losing your flow. Each entry is linked to specific parts, tensions, or impressions.",
+    color: "from-rose-500 to-orange-500",
+  },
+  {
+    icon: Layers,
+    title: "Part Relationships",
+    description:
+      "Map tensions and interactions between parts. Understand how your inner team communicates and where conflicts arise.",
+    color: "from-indigo-500 to-purple-500",
+  },
+  {
+    icon: Zap,
+    title: "Auto-Save & Recovery",
+    description:
+      "Every change is saved automatically. Pause anytime and return to exactly where you left off.",
+    color: "from-yellow-500 to-amber-500",
+  },
+  {
+    icon: Target,
+    title: "Themes & Customization",
+    description:
+      "Choose from light, dark, and custom themes. Make your workspace feel calm and intentional.",
+    color: "from-green-500 to-emerald-500",
+  },
+];
+
+const futureFeatures = [
+  {
+    icon: Sparkles,
+    title: "AI Exploration",
+    description:
+      "Ask guided questions and explore parts with an AI companion. Get insights and prompts tailored to your work.",
+    comingSoon: true,
+  },
+  {
+    icon: Map,
+    title: "3D Body Mapping",
+    description:
+      "Place sensations and parts onto an interactive 3D body map. See where emotions and tensions live in your body.",
+    comingSoon: true,
+  },
+  {
+    icon: Brain,
+    title: "Journal Analysis",
+    description:
+      "Surface insights, patterns, and tags across your journal entries. Discover connections you didn't see before.",
+    comingSoon: true,
+  },
+  {
+    icon: Heart,
+    title: "Affirmations Generator",
+    description:
+      "Generate supportive statements tailored to how your parts feel. Build compassion for your inner team.",
+    comingSoon: true,
+  },
+];
+
+// Create items array with part images, cycling through them to fill 28 slots
+const gridItems = Array.from({ length: 28 }, (_, index) => {
+  const partName = partImages[index % partImages.length];
+  return `parts/${partName}.png`;
+});
 
 const Landing = () => {
+  const [currentPartIndex, setCurrentPartIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentPartIndex((prev) => (prev + 1) % partImages.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-50 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900 overflow-hidden">
       <ClientRedirect />
 
-      {/* Background gradient and glow accents */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-black" />
-        <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-purple-500/30 blur-3xl" />
-        <div className="absolute -left-10 bottom-10 h-72 w-72 rounded-full bg-sky-500/25 blur-3xl" />
+      {/* Animated background particles */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 right-1/3 w-96 h-96 bg-pink-200/40 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
-      {/* Subtle grid */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,#1e293b_1px,transparent_0)] [background-size:36px_36px] opacity-20" />
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-14 lg:py-20">
-        {/* Nav */}
-        <header className="flex items-center justify-between gap-4 mb-12">
+      {/* Navigation */}
+      <nav className="relative z-50 w-full border-b border-slate-200 backdrop-blur-xl bg-white/80">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-purple-500 to-sky-500 flex items-center justify-center text-white font-black">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-black text-lg">
               PS
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+              <p className="text-xs uppercase tracking-wider text-slate-600">
                 Parts Studio
-              </p>
-              <p className="text-sm text-slate-300">
-                Map your inner team with clarity
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-8">
             <a
               href="#features"
-              className="hidden sm:inline-flex text-sm text-slate-300 hover:text-white transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
             >
               Features
             </a>
             <a
               href="#how-it-works"
-              className="hidden sm:inline-flex text-sm text-slate-300 hover:text-white transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
             >
               How it works
             </a>
             <a
               href="/mission"
-              className="hidden sm:inline-flex text-sm text-slate-300 hover:text-white transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
             >
               Mission
             </a>
-            <a
-              href="#cta"
-              className="hidden sm:inline-flex text-sm text-slate-300 hover:text-white transition-colors"
-            >
-              Get started
-            </a>
             <SignInButton />
           </div>
-        </header>
+        </div>
+      </nav>
+      <section className="relative min-h-screen flex items-center justify-center px-6 py-20">
+        <GridMotion
+          items={gridItems}
+          gradientColor="rgba(248, 250, 252, 0.8)"
+        />
+      </section>
+      <section>
+        <TiltedCard
+          imageSrc="https://i.scdn.co/image/ab67616d0000b273d9985092cd88bffd97653b58"
+          altText="Kendrick Lamar - GNX Album Cover"
+          captionText="Kendrick Lamar - GNX"
+          containerHeight="300px"
+          containerWidth="300px"
+          imageHeight="300px"
+          imageWidth="300px"
+          rotateAmplitude={12}
+          scaleOnHover={1.2}
+          showMobileWarning={false}
+          showTooltip={true}
+          displayOverlayContent={true}
+          overlayContent={
+            <p className="tilted-card-demo-text">Kendrick Lamar - GNX</p>
+          }
+        />
+      </section>
+      {/* Hero Section - Full Width */}
+      <section className="relative min-h-screen flex items-center justify-center px-6 py-20">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-purple-50 border border-purple-200 text-purple-700">
+                <Sparkles className="w-4 h-4" />
+                Build self-awareness, visually
+              </div>
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight text-slate-900">
+                Map your inner landscape
+                <span className="block bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                  with clarity
+                </span>
+              </h1>
+              <p className="text-xl text-slate-600 leading-relaxed max-w-2xl">
+                A modern workspace for mapping your parts, tensions, and
+                insights. Capture impressions, connect relationships, and
+                journal directly on an infinite canvas.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <SignInButton />
+                <a
+                  href="#features"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-slate-300 text-base font-semibold text-slate-700 hover:bg-slate-50 transition-all hover:scale-105"
+                >
+                  Explore features
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </a>
+              </div>
+            </div>
 
-        {/* Hero */}
-        <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center mb-16">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold bg-white/5 border border-white/10 text-slate-100">
-              ✦ Build self-awareness, visually
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white">
-              A modern workspace for mapping your parts, tensions, and insights.
-            </h1>
-            <p className="text-lg text-slate-300 leading-relaxed">
-              Capture impressions, connect relationships, and journal directly on
-              an infinite canvas. Designed to feel calming, fast, and intentional.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3" id="cta">
-              <SignInButton />
-              <a
-                href="#features"
-                className="inline-flex items-center justify-center px-4 py-3 rounded-xl border border-white/10 text-sm font-semibold text-slate-100 hover:border-white/30 transition-colors"
-              >
-                Explore features
-              </a>
-            </div>
-            <div className="flex items-center gap-6 pt-2">
-              <div>
-                <p className="text-2xl font-semibold text-white">12k+</p>
-                <p className="text-sm text-slate-400">Parts mapped</p>
+            {/* Animated Part Images Grid */}
+            <div className="relative">
+              <div className="grid grid-cols-4 gap-4">
+                {partImages.slice(0, 16).map((part, index) => (
+                  <div
+                    key={part}
+                    className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-500 ${
+                      index === currentPartIndex % 16
+                        ? "border-purple-500 scale-110 shadow-2xl shadow-purple-500/30"
+                        : "border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300"
+                    }`}
+                  >
+                    <Image
+                      src={`/parts/${part}.png`}
+                      alt={part}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
               </div>
-              <div className="h-10 w-px bg-white/10" />
-              <div>
-                <p className="text-2xl font-semibold text-white">4.8/5</p>
-                <p className="text-sm text-slate-400">Session satisfaction</p>
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-br from-purple-500/20 to-sky-500/15 blur-2xl" />
-            <div className="relative rounded-3xl border border-white/10 bg-white/5 shadow-2xl overflow-hidden">
-              <Image
-                src="/parts-hero.jpg"
-                alt="Parts Studio preview"
-                width={1200}
-                height={800}
-                className="w-full object-cover"
-                priority
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5">
-                <p className="text-slate-100 text-sm font-medium">
-                  Visualize parts, tensions, and impressions on a calm canvas.
+      {/* Current Features - Full Width */}
+      <section
+        id="features"
+        className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50"
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-green-50 border border-green-200 text-green-700 mb-6">
+              <CheckCircle2 className="w-4 h-4" />
+              Available Now
+            </div>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+              Everything you need to
+              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                map your inner world
+              </span>
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Powerful features designed for clarity, speed, and gentle focus
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {currentFeatures.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.title}
+                  className="group relative p-8 rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300 hover:scale-105"
+                >
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-300`}
+                  />
+                  <div className="relative">
+                    <div
+                      className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} mb-6 shadow-md`}
+                    >
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 text-slate-900">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-600 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works - Full Width with GIF Placeholder */}
+      <section
+        id="how-it-works"
+        className="relative py-32 px-6 bg-gradient-to-b from-slate-50 to-white"
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+              See it in action
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Watch how Parts Studio helps you visualize and understand your
+              inner landscape
+            </p>
+          </div>
+
+          {/* Video/GIF Placeholder */}
+          <div className="relative rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-lg">
+            <div className="aspect-video bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <div className="inline-flex p-6 rounded-full bg-white border border-slate-200 shadow-md">
+                  <Play className="w-12 h-12 text-purple-600" />
+                </div>
+                <p className="text-lg text-slate-700">Demo video coming soon</p>
+                <p className="text-sm text-slate-500">
+                  Replace this with your GIF or video
                 </p>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* Features */}
-        <section id="features" className="space-y-6 mb-16">
-          <div className="flex items-center gap-2 text-slate-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
-              Features
-            </p>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-semibold text-white">
-            Built for clarity, speed, and gentle focus.
-          </h2>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              {
-                title: "Canvas mapping",
-                desc: "Drag, connect, and color-code parts with relationship edges.",
-              },
-              {
-                title: "Impression library",
-                desc: "Capture emotions, thoughts, sensations, behaviors in one place.",
-              },
-              {
-                title: "Journaling in context",
-                desc: "Open the journal inline while you map, without losing flow.",
-              },
-              {
-                title: "Themes & gradients",
-                desc: "Light, dark, and calming palettes that keep focus on your work.",
-              },
-              {
-                title: "Auto-save & recovery",
-                desc: "Every change is saved, so you can pause and return anytime.",
-              },
-              {
-                title: "Future-ready",
-                desc: "Planned AI prompts, analysis, and guided reflections.",
-              },
-            ].map((card) => (
-              <div
-                key={card.title}
-                className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-5 shadow-lg"
-              >
-                <p className="text-lg font-semibold text-white mb-2">
-                  {card.title}
-                </p>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  {card.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* How it works */}
-        <section id="how-it-works" className="space-y-6 mb-16">
-          <div className="flex items-center gap-2 text-slate-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
-              How it works
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
+          {/* Steps */}
+          <div className="grid md:grid-cols-3 gap-8 mt-20">
             {[
               {
                 step: "01",
                 title: "Start a session",
-                desc: "Open a fresh map and set your intent for the work ahead.",
+                description:
+                  "Open a fresh map and set your intent for the work ahead.",
               },
               {
                 step: "02",
                 title: "Map parts & tensions",
-                desc: "Drop parts, connect relationships, and log impressions quickly.",
+                description:
+                  "Drop parts, connect relationships, and log impressions quickly.",
               },
               {
                 step: "03",
                 title: "Reflect & revisit",
-                desc: "Journal directly on the canvas, then return with full context.",
+                description:
+                  "Journal directly on the canvas, then return with full context.",
               },
             ].map((item) => (
               <div
                 key={item.step}
-                className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-lg"
+                className="p-8 rounded-3xl border border-slate-200 bg-white shadow-sm"
               >
-                <p className="text-xs uppercase tracking-[0.25em] text-slate-400 mb-2">
+                <div className="text-6xl font-black text-transparent bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text mb-4">
                   {item.step}
-                </p>
-                <p className="text-lg font-semibold text-white mb-2">
+                </div>
+                <h3 className="text-2xl font-bold mb-3 text-slate-900">
                   {item.title}
-                </p>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  {item.desc}
+                </h3>
+                <p className="text-slate-600 leading-relaxed">
+                  {item.description}
                 </p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* CTA */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-purple-600/80 via-indigo-600/70 to-sky-500/70 p-8 shadow-2xl">
-          <div className="relative z-10 grid lg:grid-cols-[1.1fr_0.9fr] gap-6 items-center">
-            <div className="space-y-3">
-              <p className="text-sm uppercase tracking-[0.3em] text-white/80">
+      {/* Part Gallery - Full Width Slider */}
+      <section className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+              Explore your parts
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Each part has its own story, its own needs, and its own place in
+              your inner landscape
+            </p>
+          </div>
+
+          {/* Scrolling Part Images */}
+          <div className="relative">
+            <div className="flex gap-6 animate-scroll">
+              {[...partImages, ...partImages].map((part, index) => (
+                <div
+                  key={`${part}-${index}`}
+                  className="flex-shrink-0 w-64 h-64 rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-slate-400 transition-all hover:scale-105 shadow-md hover:shadow-lg"
+                >
+                  <Image
+                    src={`/parts/${part}.png`}
+                    alt={part}
+                    width={256}
+                    height={256}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Future Features - Full Width */}
+      <section className="relative py-32 px-6 bg-gradient-to-b from-slate-50 to-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-purple-50 border border-purple-200 text-purple-700 mb-6">
+              <Sparkles className="w-4 h-4" />
+              Coming Soon
+            </div>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+              What's next
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Exciting features we're building to deepen your practice
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {futureFeatures.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.title}
+                  className="relative p-8 rounded-3xl border border-slate-200 bg-white shadow-sm opacity-75"
+                >
+                  <div className="absolute top-4 right-4">
+                    <span className="text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                      Soon
+                    </span>
+                  </div>
+                  <div className="inline-flex p-4 rounded-2xl bg-slate-100 mb-6">
+                    <Icon className="w-6 h-6 text-slate-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-slate-900">
+                    {feature.title}
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed text-sm">
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Full Width */}
+      <section className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 shadow-xl p-12 sm:p-16">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-100/50 to-blue-100/50 rounded-3xl blur-2xl" />
+            <div className="relative">
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
                 Ready to begin?
+              </h2>
+              <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+                Start mapping your inner landscape today. Create a map, add
+                impressions, and capture insights—all in one calm workspace.
               </p>
-              <h3 className="text-3xl sm:text-4xl font-semibold text-white">
-                Start mapping your inner landscape today.
-              </h3>
-              <p className="text-slate-100/80">
-                Create a map, add impressions, and capture insights—all in one calm
-                workspace.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <SignInButton />
                 <a
                   href="#features"
-                  className="inline-flex items-center justify-center px-4 py-3 rounded-xl border border-white/30 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-slate-300 text-base font-semibold text-slate-700 hover:bg-slate-50 transition-all"
                 >
-                  See what’s inside
+                  Learn more
                 </a>
               </div>
             </div>
-            <div className="relative h-full">
-              <div className="absolute -inset-6 bg-white/10 blur-3xl" />
-              <div className="relative rounded-2xl border border-white/20 bg-white/10 p-6 shadow-xl">
-                <p className="text-sm text-white/90 leading-relaxed">
-                  “Parts Studio makes it effortless to capture what I’m feeling,
-                  why it matters, and how my parts connect. It’s the calmest
-                  place to do deep work.”
-                </p>
-                <p className="text-xs text-white/70 mt-3 uppercase tracking-[0.25em]">
-                  — Early user, pilot cohort
-                </p>
-              </div>
-            </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="relative border-t border-slate-200 py-12 px-6 bg-white">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-black text-sm">
+              PS
+            </div>
+            <p className="text-sm text-slate-600">Parts Studio</p>
+          </div>
+          <div className="flex items-center gap-6 text-sm text-slate-600">
+            <a
+              href="/mission"
+              className="hover:text-slate-900 transition-colors"
+            >
+              Mission
+            </a>
+            <a
+              href="#features"
+              className="hover:text-slate-900 transition-colors"
+            >
+              Features
+            </a>
+            <a
+              href="#how-it-works"
+              className="hover:text-slate-900 transition-colors"
+            >
+              How it works
+            </a>
+          </div>
+        </div>
+      </footer>
+
+      <style jsx>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        .animate-scroll {
+          animation: scroll 30s linear infinite;
+        }
+      `}</style>
     </div>
   );
 };
