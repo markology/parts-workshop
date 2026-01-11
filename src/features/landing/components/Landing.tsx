@@ -136,7 +136,7 @@ const Landing = () => {
       </div>
 
       {/* Hero Section - Full Width */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 py-2">
+      <section className="relative min-h-screen flex items-center justify-center px-6 py-2 bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100">
         <div className="max-w-7xl mx-auto w-full">
           {/* Header integrated into first section */}
           <div className="relative z-50 w-full mb-16">
@@ -209,21 +209,19 @@ const Landing = () => {
               </div>
             </div>
 
-            {/* Workspace Images - Stacked Cards */}
-            <div className="relative h-[500px] w-full">
-              {/* Dark theme card - back */}
+            {/* Workspace Image */}
+            <div className="w-full">
               <div
-                className="absolute top-8 left-8 right-0 rounded-lg overflow-hidden shadow-2xl transform rotate-[-3deg] z-0 opacity-90 bg-white"
+                className="rounded-lg overflow-hidden shadow-2xl bg-white"
                 style={{
                   willChange: "transform",
                   backfaceVisibility: "hidden",
                   WebkitBackfaceVisibility: "hidden",
-                  transformStyle: "preserve-3d",
                   WebkitFontSmoothing: "antialiased",
                 }}
               >
                 {/* Browser Frame */}
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col">
                   {/* Browser Controls Bar */}
                   <div
                     className="flex items-center gap-1.5 px-2 h-4 bg-slate-100 border-b border-slate-200"
@@ -237,58 +235,7 @@ const Landing = () => {
                   </div>
                   {/* Image Content */}
                   <div
-                    className="flex-1 overflow-hidden"
-                    style={{
-                      outline: "none",
-                      border: "none",
-                      boxShadow: "none",
-                    }}
-                  >
-                    <Image
-                      src="/assets/workspace_dark.png"
-                      alt="Workspace dark theme"
-                      width={600}
-                      height={400}
-                      className="w-full h-full object-cover"
-                      quality={100}
-                      unoptimized
-                      style={{
-                        outline: "none",
-                        border: "none",
-                        boxShadow: "none",
-                        display: "block",
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-              {/* Light theme card - front */}
-              <div
-                className="absolute top-0 left-0 right-8 rounded-lg overflow-hidden shadow-2xl transform rotate-[3deg] z-10 hover:scale-[1.02] hover:rotate-[4deg] transition-all duration-300 bg-white"
-                style={{
-                  willChange: "transform",
-                  backfaceVisibility: "hidden",
-                  WebkitBackfaceVisibility: "hidden",
-                  transformStyle: "preserve-3d",
-                  WebkitFontSmoothing: "antialiased",
-                }}
-              >
-                {/* Browser Frame */}
-                <div className="flex flex-col h-full">
-                  {/* Browser Controls Bar */}
-                  <div
-                    className="flex items-center gap-1.5 px-2 h-4 bg-slate-100 border-b border-slate-200"
-                    style={{ height: "16px" }}
-                  >
-                    <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
-                    </div>
-                  </div>
-                  {/* Image Content */}
-                  <div
-                    className="flex-1 overflow-hidden"
+                    className="overflow-hidden"
                     style={{
                       outline: "none",
                       border: "none",
@@ -297,10 +244,10 @@ const Landing = () => {
                   >
                     <Image
                       src="/assets/workspace_trimmed.png"
-                      alt="Workspace light theme"
-                      width={600}
-                      height={400}
-                      className="w-full h-full object-cover"
+                      alt="Workspace"
+                      width={1200}
+                      height={900}
+                      className="w-full h-auto"
                       quality={100}
                       unoptimized
                       style={{
