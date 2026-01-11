@@ -265,6 +265,165 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Visual Features Showcase */}
+      <section className="relative py-32 px-6 bg-gradient-to-b from-purple-100 via-pink-100 to-blue-100">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+              Powerful features,
+              <span className="block bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                beautifully designed
+              </span>
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              See how Parts Studio helps you map, understand, and work with your
+              inner landscape
+            </p>
+          </div>
+
+          <div className="space-y-24">
+            {/* Part Details */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <h3 className="text-3xl font-bold text-slate-900">
+                  Deep part exploration
+                </h3>
+                <p className="text-lg text-slate-600 leading-relaxed">
+                  Dive into each part's unique characteristics. View needs,
+                  fears, impressions, and relationships all in one place.
+                  Understand how your parts interact and what they need to feel
+                  safe and heard.
+                </p>
+              </div>
+              <div className="rounded-xl overflow-hidden shadow-2xl">
+                <Image
+                  src="/assets/part_details.png"
+                  alt="Part Details"
+                  width={1200}
+                  height={900}
+                  className="w-full h-auto"
+                  quality={100}
+                  unoptimized
+                />
+              </div>
+            </div>
+
+            {/* Text Thread */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1 rounded-xl overflow-hidden shadow-2xl">
+                <Image
+                  src="/assets/text_thread.png"
+                  alt="Text Thread"
+                  width={1200}
+                  height={900}
+                  className="w-full h-auto"
+                  quality={100}
+                  unoptimized
+                />
+              </div>
+              <div className="order-1 lg:order-2 space-y-6">
+                <h3 className="text-3xl font-bold text-slate-900">
+                  Conversational journaling
+                </h3>
+                <p className="text-lg text-slate-600 leading-relaxed">
+                  Capture dialogues between parts in a natural, thread-based
+                  format. See conversations unfold as they happen, with each
+                  part's voice clearly represented. Perfect for IFS sessions and
+                  inner work.
+                </p>
+              </div>
+            </div>
+
+            {/* Normal Journal */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <h3 className="text-3xl font-bold text-slate-900">
+                  Rich text journaling
+                </h3>
+                <p className="text-lg text-slate-600 leading-relaxed">
+                  Write freely with a powerful rich text editor. Format your
+                  thoughts, add structure, and create detailed entries that
+                  capture the full depth of your inner work. Link entries to
+                  specific parts or keep them global.
+                </p>
+              </div>
+              <div className="rounded-xl overflow-hidden shadow-2xl">
+                <Image
+                  src="/assets/normal_journal.png"
+                  alt="Normal Journal"
+                  width={1200}
+                  height={900}
+                  className="w-full h-auto"
+                  quality={100}
+                  unoptimized
+                />
+              </div>
+            </div>
+
+            {/* Studio Assistant */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div
+                className="order-2 lg:order-1 rounded-xl overflow-hidden shadow-2xl"
+                style={{ maxHeight: "600px" }}
+              >
+                <Image
+                  src="/assets/studio_assistant.png"
+                  alt="Studio Assistant"
+                  width={1200}
+                  height={900}
+                  className="w-full h-auto"
+                  quality={100}
+                  unoptimized
+                  style={{
+                    maxHeight: "600px",
+                    objectFit: "contain",
+                    width: "100%",
+                    height: "auto",
+                  }}
+                />
+              </div>
+              <div className="order-1 lg:order-2 space-y-6">
+                <h3 className="text-3xl font-bold text-slate-900">
+                  AI-powered insights
+                </h3>
+                <p className="text-lg text-slate-600 leading-relaxed">
+                  Get guided support from Studio Assistant. Ask questions,
+                  explore parts, and receive thoughtful prompts tailored to your
+                  work. Let AI help you deepen your understanding and navigate
+                  your inner landscape.
+                </p>
+              </div>
+            </div>
+
+            {/* Impression Input */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <h3 className="text-3xl font-bold text-slate-900">
+                  Capture impressions instantly
+                </h3>
+                <p className="text-lg text-slate-600 leading-relaxed">
+                  Quickly log emotions, thoughts, sensations, and behaviors as
+                  they arise. Organize by type and connect directly to parts.
+                  Build a comprehensive library of your inner experiences over
+                  time.
+                </p>
+              </div>
+              <div className="rounded-xl overflow-hidden shadow-2xl">
+                <Image
+                  src="/assets/impression_input.png"
+                  alt="Impression Input"
+                  width={1200}
+                  height={900}
+                  className="w-full h-auto"
+                  quality={100}
+                  unoptimized
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Current Features - Full Width */}
       <section
         id="features"
