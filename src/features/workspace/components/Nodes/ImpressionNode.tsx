@@ -93,7 +93,7 @@ const ImpressionNode = ({
                 title: label,
               })
             }
-            className={`journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors flex-shrink-0`}
+            className={`journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all flex-shrink-0 hover:scale-110`}
             style={{
               boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
               background: `var(--theme-impression-${type}-icon-bg)`,

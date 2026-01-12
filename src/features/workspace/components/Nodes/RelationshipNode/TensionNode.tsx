@@ -119,7 +119,7 @@ const TensionNode = ({
                   ""),
                 })
               }
-              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm border-none border-t-[var(--theme-tension-node-bg-top)] theme-dark:shadow-[rgb(0 0 0 / 20%) 0px 2px 4px] theme-light:text-[var(--theme-tension-node-pill-text)] theme-dark:bg-[rgba(168,85,247,0.2)] theme-light:bg-white"
+              className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all shadow-sm border-none border-t-[var(--theme-tension-node-bg-top)] theme-dark:shadow-[rgb(0 0 0 / 20%) 0px 2px 4px] theme-light:text-[var(--theme-tension-node-pill-text)] theme-dark:bg-[rgba(168,85,247,0.2)] theme-light:bg-white hover:scale-110"
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundImage = 'none';
               }}

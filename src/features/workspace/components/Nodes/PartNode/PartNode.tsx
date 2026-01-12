@@ -211,7 +211,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                       title: data.name || data.label,
                     });
                   }}
-                  className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors shadow-sm theme-dark:bg-[#924949] theme-dark:shadow-[var(--theme-button-shadow)] border-none theme-dark:border-t-[1px solid rgba(0, 0, 0, 0.15)] theme-light:border-t-[1px solid #00000012]"
+                  className="journal-icon-button inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all shadow-sm theme-dark:bg-[#924949] theme-dark:shadow-[var(--theme-button-shadow)] border-none theme-dark:border-t-[1px solid rgba(0, 0, 0, 0.15)] theme-light:border-t-[1px solid #00000012] hover:scale-110"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundImage = 'none';
                   }}
