@@ -163,7 +163,16 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
                   {data.scratchpad ? (
                     <p 
                       className="text-sm leading-relaxed line-clamp-3 light-theme:text-slate-900 dark-theme:text-slate-100"
-                      style={{ color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)" }}
+                      style={{ 
+                        color: darkMode ? "rgb(148, 163, 184)" : "rgb(100, 116, 139)",
+                        paddingRight: "8px",
+                        marginRight: "-5px",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}
                     >
                       {data.scratchpad}
                     </p>
