@@ -40,34 +40,8 @@ const Workspace = () => {
   // Call auto-save inside ReactFlow context
   useAutoSave();
 
-  // Track Shift key for snap-to-grid
-  const [isShiftPressed, setIsShiftPressed] = useState(false);
-  
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Shift') {
-        setIsShiftPressed(true);
-      }
-    };
-
-    const handleKeyUp = (event: KeyboardEvent) => {
-      if (event.key === 'Shift') {
-        setIsShiftPressed(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
   const {
     edges,
-    handleNodeDrag,
     handleNodeDragStop,
     handlePaneClick,
     nodes,
@@ -450,7 +424,6 @@ const Workspace = () => {
           edges={edges}
           onNodesChange={onNodesChange as OnNodesChange<Node>}
           onEdgesChange={onEdgeChange}
-          onNodeDrag={handleNodeDrag}
           onNodeDragStop={handleNodeDragStop}
           onConnect={onConnect}
           onDrop={onDrop}
@@ -462,8 +435,6 @@ const Workspace = () => {
           minZoom={0}
           deleteKeyCode="Delete" 
           maxZoom={2}
-          snapToGrid={isShiftPressed}
-          snapGrid={[32, 32]}
         >
           <FitViewOnLoad />
           <Background

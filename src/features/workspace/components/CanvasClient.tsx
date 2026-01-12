@@ -82,6 +82,7 @@ const ImpressionInputModalContent = ({
 }) => {
   const theme = useTheme();
   const setShowImpressionModal = useUIStore((s) => s.setShowImpressionModal);
+  const showImpressionModal = useUIStore((s) => s.showImpressionModal);
   const { updateNode } = useFlowNodesContext();
   const nodes = useWorkingStore((s) => s.nodes);
 
@@ -94,16 +95,21 @@ const ImpressionInputModalContent = ({
   // Determine if this is for a part or sidebar
   const isForPart = !!impressionModalTargetPartId;
 
-  // Set initial type from modal type if provided
+  // Set initial type from modal type if provided, otherwise default to "emotion"
   const [currentType, setCurrentType] = useState<ImpressionType>(
-    (impressionModalType as ImpressionType) || sidebarImpressionType
+    (impressionModalType as ImpressionType) || "emotion"
   );
 
+  // Reset to "emotion" when modal opens unless a specific type is provided
   useEffect(() => {
-    if (impressionModalType) {
-      setCurrentType(impressionModalType as ImpressionType);
+    if (showImpressionModal) {
+      if (impressionModalType) {
+        setCurrentType(impressionModalType as ImpressionType);
+      } else {
+        setCurrentType("emotion");
+      }
     }
-  }, [impressionModalType]);
+  }, [impressionModalType, showImpressionModal]);
 
   // Reset canAddImpression when modal opens
   useEffect(() => {
