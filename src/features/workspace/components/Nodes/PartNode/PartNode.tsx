@@ -94,11 +94,7 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
   const getPartTypePill = (partType: string | undefined) => {
     if (!partType) {
       return (
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize ${
-          darkMode
-            ? "text-slate-300"
-            : "text-slate-500"
-        }`}>
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium capitalize theme-light:text-slate-500 theme-dark:text-slate-300`}>
           <User className="w-3.5 h-3.5" />
           No type set
         </span>
@@ -108,29 +104,21 @@ const PartNode = ({ data, partId }: { data: PartNodeData; partId: string }) => {
     const mapping: Record<string, { icon: React.ReactNode; className: string }> = {
       manager: {
         icon: <Brain className="w-3.5 h-3.5" />,
-        className: darkMode
-          ? "bg-sky-500/15 text-sky-100"
-          : "bg-sky-100 text-sky-600",
+        className: "theme-light:bg-sky-100 theme-light:text-sky-600 theme-dark:bg-sky-500/15 theme-dark:text-sky-100",
       },
       firefighter: {
         icon: <Shield className="w-3.5 h-3.5" />,
-        className: darkMode
-          ? "bg-rose-500/15 text-rose-100"
-          : "bg-rose-100 text-rose-600",
+        className: "theme-light:bg-rose-100 theme-light:text-rose-600 theme-dark:bg-rose-500/15 theme-dark:text-rose-100",
       },
       exile: {
         icon: <Heart className="w-3.5 h-3.5" />,
-        className: darkMode
-          ? "bg-purple-500/15 text-purple-100"
-          : "bg-purple-100 text-purple-600",
+        className: "theme-light:bg-purple-100 theme-light:text-purple-600 theme-dark:bg-purple-500/15 theme-dark:text-purple-100",
       },
     };
 
     const pill = mapping[partType] || {
       icon: <User className="w-3.5 h-3.5" />,
-      className: darkMode
-        ? "bg-slate-800/60 text-slate-200"
-        : "bg-slate-100 text-slate-600",
+      className: "theme-light:bg-slate-100 theme-light:text-slate-600 theme-dark:bg-slate-800/60 theme-dark:text-slate-200",
     };
 
     return (

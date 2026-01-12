@@ -277,7 +277,7 @@ export default function HistoryPanel({
 
                 {/* Preview content */}
                 <div
-                  className={`whitespace-pre-wrap text-sm leading-relaxed mb-2 max-h-32 overflow-y-auto theme-dark:text-slate-300 theme-light:text-slate-700`}
+                  className={`whitespace-pre-wrap text-sm leading-relaxed mb-2 h-32 overflow-hidden theme-dark:text-slate-300 theme-light:text-slate-700`}
                   style={{
                     border: "none",
                     padding: "10px",

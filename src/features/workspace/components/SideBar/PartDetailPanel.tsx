@@ -180,6 +180,7 @@ const PartDetailPanel = () => {
     sectionRef: React.RefObject<HTMLDivElement | null>,
     sectionId: string
   ) => {
+    setActiveSection(sectionId);
     if (sectionRef.current && scrollableContentRef.current) {
       const container = scrollableContentRef.current;
       const sectionElement = sectionRef.current;
@@ -200,6 +201,7 @@ const PartDetailPanel = () => {
   const [showJournalHistoryModal, setShowJournalHistoryModal] = useState(false);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [hoveredPartType, setHoveredPartType] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string>("info");
 
   // Load journal entries when part is selected
   useEffect(() => {
@@ -214,6 +216,109 @@ const PartDetailPanel = () => {
       loadJournalEntries();
     }
   }, [journalIsOpen, lastSavedJournalDataText, selectedPartId]);
+
+  // Track active section on scroll using Intersection Observer
+  useEffect(() => {
+    if (!scrollableContentRef.current) return;
+
+    const sections = [
+      { ref: infoRef, id: "info" },
+      { ref: impressionsRef, id: "impressions" },
+      { ref: insightsRef, id: "insights" },
+      { ref: journalRef, id: "journal" },
+      { ref: relationshipsRef, id: "relationships" },
+    ];
+
+    const container = scrollableContentRef.current;
+    let activeSections: Map<string, number> = new Map();
+
+    const updateActiveSection = () => {
+      if (activeSections.size === 0) return;
+
+      // Check if we're at the bottom of the scroll container
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+      
+      if (isNearBottom && activeSections.has("relationships")) {
+        setActiveSection("relationships");
+        return;
+      }
+
+      // Find the section closest to the top of the viewport
+      let topSection = "";
+      let topPosition = Infinity;
+
+      activeSections.forEach((ratio, sectionId) => {
+        const section = sections.find((s) => s.id === sectionId);
+        if (section?.ref.current) {
+          const rect = section.ref.current.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const relativeTop = rect.top - containerRect.top;
+          
+          // Prefer sections that are in the upper portion of the viewport
+          if (relativeTop < topPosition && relativeTop >= -100) {
+            topPosition = relativeTop;
+            topSection = sectionId;
+          }
+        }
+      });
+
+      if (topSection) {
+        setActiveSection(topSection);
+      }
+    };
+
+    // Use different rootMargin for relationships (last section) to make it easier to trigger
+    const observerOptions = {
+      root: container,
+      rootMargin: "-20% 0px -40% 0px",
+      threshold: [0, 0.1, 0.3, 0.5, 0.7, 1],
+    };
+
+    const relationshipsObserverOptions = {
+      root: container,
+      rootMargin: "-20% 0px -10% 0px", // More lenient for the last section
+      threshold: [0, 0.1, 0.3, 0.5, 0.7, 1],
+    };
+
+    const observers: IntersectionObserver[] = [];
+
+    sections.forEach(({ ref, id }) => {
+      if (!ref.current) return;
+
+      const options = id === "relationships" ? relationshipsObserverOptions : observerOptions;
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0) {
+            activeSections.set(id, entry.intersectionRatio);
+          } else {
+            activeSections.delete(id);
+          }
+        });
+        updateActiveSection();
+      }, options);
+
+      observer.observe(ref.current);
+      observers.push(observer);
+    });
+
+    // Also listen to scroll events to catch edge cases
+    const handleScroll = () => {
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 10;
+      if (isAtBottom && relationshipsRef.current) {
+        setActiveSection("relationships");
+      } else {
+        updateActiveSection();
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      observers.forEach((observer) => observer.disconnect());
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [selectedPartId]);
 
   // Initialize temp values from part data when part changes (only on selection change, not on every render)
   useEffect(() => {
@@ -733,7 +838,11 @@ const PartDetailPanel = () => {
                 <nav className="flex-1 overflow-y-auto px-5 py-5 space-y-2 overflow-x-visible">
                   <button
                     onClick={() => scrollToSection(infoRef, "info")}
-                    className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] transition-none"
+                    className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium transition-none ${
+                      activeSection === "info"
+                        ? "theme-light:bg-white theme-light:text-black theme-dark:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] theme-dark:text-[var(--theme-text-primary)]"
+                        : "theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)]"
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-[#8f85e7]" />
@@ -744,7 +853,11 @@ const PartDetailPanel = () => {
                     onClick={() =>
                       scrollToSection(impressionsRef, "impressions")
                     }
-                    className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] transition-none"
+                    className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium transition-none ${
+                      activeSection === "impressions"
+                        ? "theme-light:bg-white theme-light:text-black theme-dark:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] theme-dark:text-[var(--theme-text-primary)]"
+                        : "theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)]"
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <Eye
@@ -756,7 +869,11 @@ const PartDetailPanel = () => {
                   </button>
                   <button
                     onClick={() => scrollToSection(insightsRef, "insights")}
-                    className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] transition-none"
+                    className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium transition-none ${
+                      activeSection === "insights"
+                        ? "theme-light:bg-white theme-light:text-black theme-dark:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] theme-dark:text-[var(--theme-text-primary)]"
+                        : "theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)]"
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <Brain
@@ -768,7 +885,11 @@ const PartDetailPanel = () => {
                   </button>
                   <button
                     onClick={() => scrollToSection(journalRef, "journal")}
-                    className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] transition-none"
+                    className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium transition-none ${
+                      activeSection === "journal"
+                        ? "theme-light:bg-white theme-light:text-black theme-dark:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] theme-dark:text-[var(--theme-text-primary)]"
+                        : "theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)]"
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-amber-600" />
@@ -779,7 +900,11 @@ const PartDetailPanel = () => {
                     onClick={() =>
                       scrollToSection(relationshipsRef, "relationships")
                     }
-                    className="w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium overflow-visible theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] transition-none"
+                    className={`w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-medium overflow-visible transition-none ${
+                      activeSection === "relationships"
+                        ? "theme-light:bg-white theme-light:text-black theme-dark:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)] theme-dark:text-[var(--theme-text-primary)]"
+                        : "theme-light:text-slate-600 theme-dark:text-slate-400 theme-light:hover:text-black theme-dark:hover:text-[var(--theme-text-primary)] theme-dark:hover:bg-[color-mix(in_srgb,var(--theme-surface)_40%,transparent)]"
+                    }`}
                   >
                     <div className="flex items-center gap-2 overflow-visible">
                       <Users className="w-4 h-4 text-rose-600 flex-shrink-0" />
@@ -1140,7 +1265,7 @@ theme-dark:shadow-none`}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <label
-                              className={`text-xs font-medium uppercase tracking-wide theme-dark:text-slate-400 theme-white:text-slate-500`}
+                              className={`text-xs font-medium uppercase tracking-wide theme-dark:text-slate-400 theme-light:text-slate-500`}
                             >
                               Age
                             </label>
@@ -2039,16 +2164,21 @@ theme-dark:shadow-none "
 
                                   {/* Content Preview */}
                                   <div
-                                    className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto ${"theme-dark:text-slate-300 theme-light:text-slate-700"}`}
+                                    className={`rounded-[10px] theme-dark:bg-[#272b2f] overflow-hidden`}
                                     style={{
-                                      border: "none",
-                                      padding: "10px",
-                                      borderRadius: "10px",
-                                      background:
-                                        "theme-dark:bg-[#272b2f] theme-light:bg-[#f8fafc]",
+                                      background: "#f7f7f7",
+                                      height: "100px",
                                     }}
                                   >
-                                    {contentPreview}
+                                    <div
+                                      className={`whitespace-pre-wrap text-sm leading-relaxed overflow-hidden theme-dark:text-slate-300 theme-light:text-slate-700`}
+                                      style={{
+                                        padding: "10px",
+                                        height: "100%",
+                                      }}
+                                    >
+                                      {contentPreview}
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -2692,10 +2822,22 @@ theme-dark:shadow-none "
 
                             {/* Content Preview */}
                             <div
-                              className={`whitespace-pre-wrap text-sm leading-relaxed max-h-64 overflow-y-auto theme-dark:text-slate-300 theme-light:text-slate-700 border-none p-[10px] rounded-[10px] theme-dark:bg-[#272b2f] theme-light:bg-[#f8fafc]`}
-                              style={subCardStyle}
+                              className={`rounded-[10px] theme-dark:bg-[#272b2f] overflow-hidden`}
+                              style={{ 
+                                ...subCardStyle, 
+                                height: "100px",
+                                background: "#f7f7f7"
+                              }}
                             >
-                              {contentPreview}
+                              <div
+                                className={`whitespace-pre-wrap text-sm leading-relaxed overflow-hidden theme-dark:text-slate-300 theme-light:text-slate-700`}
+                                style={{
+                                  padding: "10px",
+                                  height: "100%",
+                                }}
+                              >
+                                {contentPreview}
+                              </div>
                             </div>
                           </div>
                         );

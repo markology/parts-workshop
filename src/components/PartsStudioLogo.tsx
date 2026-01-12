@@ -11,10 +11,10 @@ interface PartsStudioLogoProps {
   className?: string;
 }
 
-const PartsStudioLogo = ({ 
-  showText = true, 
+const PartsStudioLogo = ({
+  showText = true,
   size = "md",
-  className = "" 
+  className = "",
 }: PartsStudioLogoProps) => {
   const { isDark: darkMode } = useThemeContext();
   const theme = useTheme();
@@ -22,30 +22,29 @@ const PartsStudioLogo = ({
   const sizeClasses = {
     sm: "w-6 h-6",
     md: "w-8 h-8",
-    lg: "w-12 h-12"
+    lg: "w-12 h-12",
   };
 
   const textSizeClasses = {
     sm: "text-sm",
     md: "text-lg",
-    lg: "text-xl"
+    lg: "text-xl",
   };
 
   return (
-    <Link 
-      href="/" 
+    <Link
+      href="/"
       className={`inline-flex items-center gap-2.5 group ${className}`}
     >
-      <div className={`${sizeClasses[size]} relative transition-all group-hover:scale-105`}>
+      <div
+        className={`${sizeClasses[size]} relative transition-all group-hover:scale-105`}
+      >
         <Image
           src="/official_logo_complete.svg"
           alt="Parts Studio Logo"
           width={size === "sm" ? 24 : size === "md" ? 32 : 48}
           height={size === "sm" ? 24 : size === "md" ? 32 : 48}
           className="object-contain"
-          style={{
-            filter: darkMode ? 'brightness(0) invert(1)' : 'none',
-          }}
           priority
         />
       </div>
@@ -64,4 +63,3 @@ const PartsStudioLogo = ({
 };
 
 export default PartsStudioLogo;
-
