@@ -335,6 +335,25 @@ const PartDetailPanel = () => {
     }
   }, [selectedPartId, partNode]); // Only sync when selectedPartId or partNode changes
 
+  // Check if any changes have been made
+  const hasChanges = useMemo(() => {
+    if (!partNode || !selectedPartId) return false;
+    const data = partNode.data;
+    const originalName = (data.name as string) || (data.label as string) || "";
+    const originalScratchpad = (data.scratchpad as string) || "";
+    const originalPartType = (data.customPartType as string) || (data.partType as string) || "";
+    const originalAge = (data.age as string) || "Unknown";
+    const originalGender = (data.gender as string) || "";
+
+    return (
+      tempName.trim() !== originalName.trim() ||
+      tempScratchpad.trim() !== originalScratchpad.trim() ||
+      tempPartType !== originalPartType ||
+      (tempAge === "" || tempAge === "Unknown" ? "" : tempAge.trim()) !== (originalAge === "Unknown" ? "" : originalAge.trim()) ||
+      tempGender.trim() !== originalGender.trim()
+    );
+  }, [partNode, selectedPartId, tempName, tempScratchpad, tempPartType, tempAge, tempGender]);
+
   // Cleanup hover timeout when editing mode changes or component unmounts
 
   // Separate effect to handle auto-edit flag when part is selected
@@ -950,7 +969,12 @@ const PartDetailPanel = () => {
                         <button
                           type="button"
                           onClick={saveAllInfo}
-                          className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold shadow-sm hover:shadow-md theme-light:bg-[var(--theme-jazz-gradient)] theme-dark:bg-[#396bbc] theme-light:text-black theme-dark:text-white transition-none shadow-[0_6px_16px_rgba(57,107,188,0.28)]"
+                          className={`flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold shadow-sm hover:shadow-md transition-none ${
+                            hasChanges
+                              ? "theme-light:bg-blue-600 theme-light:text-white theme-dark:bg-[#396bbc] theme-dark:text-white shadow-[0_6px_16px_rgba(57,107,188,0.28)]"
+                              : "theme-light:bg-slate-100 theme-light:text-slate-400 theme-dark:bg-[rgba(51,65,85,0.4)] theme-dark:text-slate-500 cursor-not-allowed opacity-60"
+                          }`}
+                          disabled={!hasChanges}
                           // onMouseEnter={(e) => {
                           //   e.currentTarget.classList.add(
                           //     "theme-light:bg-[linear-gradient(to_right,rgb(224,242,254),rgb(221,214,254),rgb(254,226,226))]"

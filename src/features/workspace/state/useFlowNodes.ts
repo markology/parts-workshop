@@ -635,6 +635,35 @@ export const useFlowNodes = () => {
     [addPartToTension, getNode, setEdges]
   );
 
+  const snapToGrid = (position: XYPosition, gridSize: number = 32): XYPosition => {
+    return {
+      x: Math.round(position.x / gridSize) * gridSize,
+      y: Math.round(position.y / gridSize) * gridSize,
+    };
+  };
+
+  const handleNodeDrag = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      // Check if Shift key is pressed
+      if (event.shiftKey) {
+        const currentPosition = node.position;
+        const snappedPosition = snapToGrid(currentPosition, 32);
+        
+        // Update node position to snapped position
+        if (snappedPosition.x !== currentPosition.x || snappedPosition.y !== currentPosition.y) {
+          setNodes((nds) =>
+            nds.map((n) =>
+              n.id === node.id
+                ? { ...n, position: snappedPosition }
+                : n
+            )
+          );
+        }
+      }
+    },
+    [setNodes]
+  );
+
   const handleNodeDragStop = useCallback(
     (event: React.MouseEvent, node: Node) => {
       const trashBucket = document.getElementById("trash-bucket");
@@ -658,6 +687,16 @@ export const useFlowNodes = () => {
             deleteEdges(node.id);
           return;
         }
+      }
+
+      // Snap to grid on drag stop if Shift was held
+      if (event.shiftKey) {
+        const snappedPosition = snapToGrid(node.position, 32);
+        setNodes((nds) =>
+          nds.map((n) =>
+            n.id === node.id ? { ...n, position: snappedPosition } : n
+          )
+        );
       }
 
       const position = screenToFlowPosition({
@@ -690,6 +729,7 @@ export const useFlowNodes = () => {
       nodes,
       removePartFromAllTensions,
       screenToFlowPosition,
+      setNodes,
     ]
   );
 
@@ -697,6 +737,7 @@ export const useFlowNodes = () => {
     addPartToTension,
     createNode,
     edges,
+    handleNodeDrag,
     handleNodeDragStop,
     handlePaneClick,
     nodes,
