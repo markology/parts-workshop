@@ -16,6 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
+import GridMotion from "./GridMotion";
 
 const partImages = [
   "abandonment",
@@ -295,30 +296,40 @@ const Landing = () => {
                   safe and heard.
                 </p>
               </div>
-              <div className="rounded-xl overflow-hidden shadow-2xl">
+              <div>
                 <Image
                   src="/assets/part_details.png"
                   alt="Part Details"
                   width={1200}
                   height={900}
-                  className="w-full h-auto"
+                  className="w-full h-auto shadow-2xl"
                   quality={100}
                   unoptimized
+                  style={{
+                    maxHeight: "600px",
+                    objectFit: "contain",
+                    borderRadius: "18px",
+                  }}
                 />
               </div>
             </div>
 
             {/* Text Thread */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="order-2 lg:order-1 rounded-xl overflow-hidden shadow-2xl">
+              <div className="order-2 lg:order-1">
                 <Image
                   src="/assets/text_thread.png"
                   alt="Text Thread"
                   width={1200}
                   height={900}
-                  className="w-full h-auto"
+                  className="w-full h-auto shadow-2xl"
                   quality={100}
                   unoptimized
+                  style={{
+                    maxHeight: "600px",
+                    objectFit: "contain",
+                    borderRadius: "18px",
+                  }}
                 />
               </div>
               <div className="order-1 lg:order-2 space-y-6">
@@ -347,38 +358,40 @@ const Landing = () => {
                   specific parts or keep them global.
                 </p>
               </div>
-              <div className="rounded-xl overflow-hidden shadow-2xl">
+              <div>
                 <Image
                   src="/assets/normal_journal.png"
                   alt="Normal Journal"
                   width={1200}
                   height={900}
-                  className="w-full h-auto"
+                  className="w-full h-auto shadow-2xl"
                   quality={100}
                   unoptimized
+                  style={{
+                    maxHeight: "600px",
+                    objectFit: "contain",
+                    borderRadius: "18px",
+                  }}
                 />
               </div>
             </div>
 
             {/* Studio Assistant */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div
-                className="order-2 lg:order-1 rounded-xl overflow-hidden shadow-2xl"
-                style={{ maxHeight: "600px" }}
-              >
+              <div className="order-2 lg:order-1 flex justify-center">
                 <Image
                   src="/assets/studio_assistant.png"
                   alt="Studio Assistant"
                   width={1200}
                   height={900}
-                  className="w-full h-auto"
+                  className="h-auto shadow-2xl"
                   quality={100}
                   unoptimized
                   style={{
-                    maxHeight: "600px",
+                    height: "500px",
                     objectFit: "contain",
-                    width: "100%",
-                    height: "auto",
+                    width: "auto",
+                    borderRadius: "26px",
                   }}
                 />
               </div>
@@ -408,15 +421,20 @@ const Landing = () => {
                   time.
                 </p>
               </div>
-              <div className="rounded-xl overflow-hidden shadow-2xl">
+              <div>
                 <Image
                   src="/assets/impression_input.png"
                   alt="Impression Input"
                   width={1200}
                   height={900}
-                  className="w-full h-auto"
+                  className="w-full h-auto shadow-2xl"
                   quality={100}
                   unoptimized
+                  style={{
+                    maxHeight: "600px",
+                    objectFit: "contain",
+                    borderRadius: "26px",
+                  }}
                 />
               </div>
             </div>
@@ -475,6 +493,14 @@ const Landing = () => {
             })}
           </div>
         </div>
+      </section>
+
+      {/* GridMotion Section */}
+      <section className="relative w-full">
+        <GridMotion
+          items={gridItems}
+          gradientColor="rgba(248, 250, 252, 0.8)"
+        />
       </section>
 
       {/* How It Works - Full Width with GIF Placeholder */}

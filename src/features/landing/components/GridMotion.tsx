@@ -27,7 +27,21 @@ const GridMotion: FC<GridMotionProps> = ({
     gsap.ticker.lagSmoothing(0);
 
     const handleScroll = (): void => {
-      scrollYRef.current = window.scrollY;
+      if (gridRef.current) {
+        const rect = gridRef.current.getBoundingClientRect();
+        // Calculate scroll relative to when element enters viewport
+        // Start animating when element is visible, use viewport-relative scroll
+        const viewportTop = window.innerHeight;
+        const elementTop = rect.top;
+        // Calculate how much we've scrolled past the element entering viewport
+        const scrollProgress = Math.max(
+          0,
+          (viewportTop - elementTop) / window.innerHeight
+        );
+        scrollYRef.current = scrollProgress * window.innerHeight * 2;
+      } else {
+        scrollYRef.current = window.scrollY;
+      }
     };
 
     const updateMotion = (): void => {
