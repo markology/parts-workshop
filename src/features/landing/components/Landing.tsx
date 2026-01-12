@@ -244,11 +244,11 @@ const Landing = () => {
                     }}
                   >
                     <Image
-                      src="/assets/workspace_trimmed.png"
+                      src="/assets/workspace_square.png"
                       alt="Workspace"
                       width={1200}
                       height={900}
-                      className="w-full h-auto"
+                      className="h-auto"
                       quality={100}
                       unoptimized
                       style={{
@@ -256,6 +256,8 @@ const Landing = () => {
                         border: "none",
                         boxShadow: "none",
                         display: "block",
+                        width: "800px",
+                        maxWidth: "100%",
                       }}
                     />
                   </div>
