@@ -739,7 +739,7 @@ const PartDetailPanel = () => {
 
   const data = partNode.data;
 
-  const { isDark } = useThemeContext();
+  const { isDark, activeTheme } = useThemeContext();
 
   const subCardStyle = {
     backgroundColor: "var(--theme-surface)",
@@ -2164,16 +2164,15 @@ theme-dark:shadow-none "
 
                                   {/* Content Preview */}
                                   <div
-                                    className={`rounded-[10px] theme-dark:bg-[#272b2f] overflow-hidden`}
+                                    className={`rounded-[10px] theme-dark:bg-[#272b2f] theme-light:bg-[rgb(248_250_252/79%)] overflow-hidden shadow-inner`}
                                     style={{
-                                      background: "#f7f7f7",
                                       height: "100px",
+                                      padding: "10px",
                                     }}
                                   >
                                     <div
                                       className={`whitespace-pre-wrap text-sm leading-relaxed overflow-hidden theme-dark:text-slate-300 theme-light:text-slate-700`}
                                       style={{
-                                        padding: "10px",
                                         height: "100%",
                                       }}
                                     >
@@ -2822,17 +2821,16 @@ theme-dark:shadow-none "
 
                             {/* Content Preview */}
                             <div
-                              className={`rounded-[10px] theme-dark:bg-[#272b2f] overflow-hidden`}
+                              className={`rounded-[10px] theme-dark:bg-[#272b2f] theme-light:bg-[rgb(248_250_252/79%)] overflow-hidden shadow-inner`}
                               style={{ 
                                 ...subCardStyle, 
                                 height: "100px",
-                                background: "#f7f7f7"
+                                padding: "10px",
                               }}
                             >
                               <div
                                 className={`whitespace-pre-wrap text-sm leading-relaxed overflow-hidden theme-dark:text-slate-300 theme-light:text-slate-700`}
                                 style={{
-                                  padding: "10px",
                                   height: "100%",
                                 }}
                               >
