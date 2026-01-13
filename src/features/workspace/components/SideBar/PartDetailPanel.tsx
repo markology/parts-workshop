@@ -2516,13 +2516,16 @@ theme-dark:shadow-none "
                 className="fixed inset-0 flex items-center justify-center z-[60] p-4"
                 onClick={() => setShowJournalHistoryModal(false)}
               >
-                <div className="marka absolute inset-0 pointer-events-none backdrop-blur-sm theme-dark:bg-[#272b2f] theme-light-[#ffffff99]" />
+                <div className="absolute inset-0 pointer-events-none backdrop-blur-sm theme-dark:bg-slate-950/30 theme-light:bg-slate-900/20" />
                 <div
-                  className="relative rounded-[24px] shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-4xl max-h-[85vh] mx-4 overflow-hidden flex flex-col border"
+                  className="relative rounded-3xl shadow-[0_20px_48px_rgba(15,23,42,0.26)] w-full max-w-4xl max-h-[85vh] mx-4 overflow-hidden flex flex-col border"
                   style={modalContainerStyle}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="px-6 py-5 flex items-center justify-between theme-dark:bg-[var(--theme-part-detail-sub-card-bg))] theme-light:bg-[var(--theme-surface)]">
+                  <div
+                    className="px-6 py-5 flex items-center justify-between bg-[var(--theme-surface)]"
+                    style={subCardStyle}
+                  >
                     <div>
                       <h3
                         className={`text-xl font-semibold theme-dark:text-slate-100 theme-light:text-slate-900`}
@@ -2541,14 +2544,14 @@ theme-dark:shadow-none "
                     </div>
                     <button
                       onClick={() => setShowJournalHistoryModal(false)}
-                      className={`p-2 rounded-full border theme-dark:border-slate-700 theme-light:border-slate-200 hover:bg-slate-900/60 theme-light:hover:bg-slate-100 theme-dark:text-[#cbd5e1] theme-light:text-[#000000]`}
+                      className={`h-10 w-10 flex items-center justify-center rounded-full border transition-colors theme-dark:border-[var(--theme-border)] theme-light:border-[#e2e8f0] theme-dark:text-[var(--theme-text-secondary)] theme-light:text-[#000000]`}
                       aria-label="Close"
                     >
-                      <X size={16} />
+                      <X size={18} />
                     </button>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto px-6 py-5">
+                  <div className="flex-1 overflow-y-auto px-6 py-6 bg-[var(--theme-card)]">
                     <div className="space-y-4">
                       {journalEntries.map((entry) => {
                         // Use helper functions to get content
@@ -2654,7 +2657,8 @@ theme-dark:shadow-none "
                         return (
                           <div
                             key={entry.id}
-                            className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow bg-[var(--theme-part-detail-list-item-bg)] border-[var(--theme-border)]"
+                            className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow bg-[var(--theme-surface)]"
+                            // style={subCardStyle}
                           >
                             {/* Header with dates and actions */}
                             <div className="flex items-start justify-between mb-3 gap-4">
@@ -2738,8 +2742,8 @@ theme-dark:shadow-none "
 
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <button
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)]theme-light:bg-white theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] theme-dark:border-none theme-light:border-t-[1px] theme-light:border-[#00000012] theme-dark:bg-[#2a2e32]"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium shadow-sm border-none theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] border-t-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)] theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                                   onClick={() => {
                                     // Open this entry in the main journal drawer
                                     if (selectedPartId && partNode) {
@@ -2821,10 +2825,9 @@ theme-dark:shadow-none "
 
                             {/* Content Preview */}
                             <div
-                              className={`rounded-[10px] theme-dark:bg-[#272b2f] theme-light:bg-[rgb(248_250_252/79%)] overflow-hidden shadow-inner`}
+                              className={`rounded-[10px] overflow-hidden shadow-inner bg-[var(--theme-card)]`}
                               style={{
-                                ...subCardStyle,
-                                height: "100px",
+                                // ...subCardStyle,
                                 padding: "10px",
                               }}
                             >
@@ -2832,6 +2835,7 @@ theme-dark:shadow-none "
                                 className={`whitespace-pre-wrap text-sm leading-relaxed overflow-hidden theme-dark:text-slate-300 theme-light:text-slate-700`}
                                 style={{
                                   height: "100%",
+                                  maxHeight: "70px",
                                 }}
                               >
                                 {contentPreview}
