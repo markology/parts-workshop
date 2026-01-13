@@ -38,8 +38,10 @@ export default function TextThreadEditor({
   const [addedPartIds, setAddedPartIds] = useState<string[]>([]); // Track parts added via dropdown
   const [showAddPartDropdown, setShowAddPartDropdown] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const previousContentRef = useRef<string | null>(null);
 
   // Parse content into messages - store as JSON in content
   const messages = useMemo(() => {
@@ -235,10 +237,35 @@ export default function TextThreadEditor({
     return theme.error || "rgb(239, 68, 68)";
   }, [theme, partNodes, allPartNodes]);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when switching to a text thread entry
+  // Wait for width transition to complete (300ms) so content height is final
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messages.length > 0) {
+      const container = messagesContainerRef.current;
+      if (container) {
+        // Wait for transition to complete
+        const timeoutId = setTimeout(() => {
+          if (messagesContainerRef.current) {
+            const container = messagesContainerRef.current;
+            // Start at top
+            container.scrollTop = 0;
+            
+            // Then animate scrolling down to bottom
+            requestAnimationFrame(() => {
+              if (messagesContainerRef.current) {
+                messagesContainerRef.current.scrollTo({
+                  top: messagesContainerRef.current.scrollHeight,
+                  behavior: 'smooth'
+                });
+              }
+            });
+          }
+        }, 350); // Slightly longer than 300ms transition
+        
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [content]);
 
   // Auto-resize textarea based on content
   useEffect(() => {
@@ -332,7 +359,20 @@ export default function TextThreadEditor({
   return (
     <div className="flex flex-col h-full">
       {/* Messages Display Area */}
-      <div className="flex-1 overflow-y-auto space-y-2 rounded-[10px] mb-2.5 p-6 shadow-sm bg-[var(--theme-card)]">
+      <div 
+        ref={(el) => {
+          messagesContainerRef.current = el;
+          // Scroll to bottom immediately when container is ready
+          if (el && messages.length > 0) {
+            requestAnimationFrame(() => {
+              if (el && messagesContainerRef.current === el) {
+                el.scrollTop = el.scrollHeight;
+              }
+            });
+          }
+        }}
+        className="flex-1 overflow-y-auto space-y-2 rounded-[10px] mb-2.5 p-6 shadow-sm bg-[var(--theme-card)]"
+      >
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes slideIn {
             from {
