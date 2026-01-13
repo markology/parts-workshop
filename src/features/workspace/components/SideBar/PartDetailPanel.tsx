@@ -1789,12 +1789,48 @@ theme-dark:shadow-none "
 
                   {/* Journal History Section */}
                   <div ref={journalRef} className="relative space-y-4 mb-12">
-                    <h3
-                      className={`text-[16px] font-semibold flex items-center gap-2 theme-dark:text-slate-400 theme-light:text-slate-500`}
-                    >
-                      <BookOpen className="w-[17px] h-[17px] text-amber-600" />
-                      Journal
-                    </h3>
+                    <div className="flex items-center justify-between">
+                      <h3
+                        className={`text-[16px] font-semibold flex items-center gap-2 theme-dark:text-slate-400 theme-light:text-slate-500`}
+                      >
+                        <BookOpen className="w-[17px] h-[17px] text-amber-600" />
+                        Journal
+                      </h3>
+                      {!isLoadingJournal && (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => {
+                              if (selectedPartId && partNode) {
+                                setJournalTarget({
+                                  type: "node",
+                                  nodeId: selectedPartId,
+                                  nodeType: "part",
+                                  title: partNode.data?.label || "Part",
+                                });
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] 
+                              theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)]  theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
+                            title="Start a new journal entry"
+                          >
+                            <Plus size={14} />
+                            New Entry
+                          </button>
+                          {journalEntries.length > 0 && (
+                            <button
+                              onClick={() => setShowJournalHistoryModal(true)}
+                              className="border-none inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium theme-light:hover:bg-slate-50
+                                  theme-dark:hover:bg-[var(--theme-card)] border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)] theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
+                              title="View all journal entries"
+                            >
+                              <History className="w-3.5 h-3.5" />
+                              <span>View All ({journalEntries.length})</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
                     <div
                       className=""
@@ -1855,64 +1891,6 @@ theme-dark:shadow-none "
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          {/* <div className="flex items-center justify-between">
-                            <span
-                              className={`text-sm theme-dark:text-slate-300 theme-light:text-slate-600`}
-                            >
-                              {journalEntries.length}{" "}
-                              {journalEntries.length === 1
-                                ? "entry"
-                                : "entries"}
-                            </span>
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => {
-                                  if (selectedPartId && partNode) {
-                                    setJournalTarget({
-                                      type: "node",
-                                      nodeId: selectedPartId,
-                                      nodeType: "part",
-                                      title: partNode.data?.label || "Part",
-                                    });
-                                  }
-                                }}
-                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)]border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)]  theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
-                                style={{
-                                  transition: "none !important",
-                                }}
-                                title="Start a new journal entry"
-                              >
-                                <Plus size={14} />
-                                New Entry
-                              </button>
-                              <button
-                                onClick={() => setShowJournalHistoryModal(true)}
-                                className="border-none inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)] border-top-[var(--theme-button-border-top)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)] theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
-                                style={{
-                                  transition: "none !important",
-                                  WebkitTransition: "none !important",
-                                  MozTransition: "none !important",
-                                  OTransition: "none !important",
-                                  msTransition: "none !important",
-                                }}
-                                // onMouseEnter={(e) => {
-                                //   e.currentTarget.style.backgroundColor = isDark
-                                //     ? theme.buttonHover
-                                //     : "#f1f5f9";
-                                // }}
-                                // onMouseLeave={(e) => {
-                                //   e.currentTarget.style.backgroundColor = isDark
-                                //     ? "rgb(59, 63, 67)"
-                                //     : "#ffffff";
-                                // }}
-                              >
-                                <History className="w-3.5 h-3.5" />
-                                <span>View All</span>
-                              </button>
-                            </div>
-                          </div> */}
                           {/* Show only the 2 most recent entries */}
                           <div className="space-y-3">
                             {journalEntries.slice(0, 2).map((entry) => {
@@ -2205,7 +2183,7 @@ theme-dark:shadow-none "
                                   <div
                                     className={`rounded-[10px]  bg-[var(--theme-card)] overflow-hidden shadow-inner`}
                                     style={{
-                                      height: "100px",
+                                      height: "90px",
                                       padding: "10px",
                                     }}
                                   >
