@@ -48,16 +48,17 @@ import {
   $setSelection,
   $getNodeByKey,
 } from "lexical";
-import {
-  SpeakerLineNode,
-  $createSpeakerLineNode,
-  $isSpeakerLineNode,
-} from "../SpeakerLineNode";
-import {
-  SpeakerLabelDecorator,
-  $createSpeakerLabelDecorator,
-  $isSpeakerLabelDecorator,
-} from "../SpeakerLabelDecorator";
+// Speaker label functionality moved to backup files for future use
+// import {
+//   SpeakerLineNode,
+//   $createSpeakerLineNode,
+//   $isSpeakerLineNode,
+// } from "../SpeakerLineNode";
+// import {
+//   SpeakerLabelDecorator,
+//   $createSpeakerLabelDecorator,
+//   $isSpeakerLabelDecorator,
+// } from "../SpeakerLabelDecorator";
 
 /* ============================================================================
  * Color Picker Component
@@ -490,48 +491,51 @@ function toggleFormatUniform(editor: LexicalEditor, format: Format) {
 interface ToolbarPluginProps {
   partNodes?: Array<{ id: string; label: string }>;
   allPartNodes?: Array<{ id: string; label: string }>;
-  selectedSpeakers?: string[];
-  activeSpeaker?: string | null;
-  onToggleSpeaker?: (speakerId: string) => void;
+  // Speaker-related props moved to backup for future use
+  // selectedSpeakers?: string[];
+  // activeSpeaker?: string | null;
+  // onToggleSpeaker?: (speakerId: string) => void;
   nodeId?: string;
   nodeType?: ImpressionType | "part" | "tension" | "interaction";
 }
 
-/**
- * Generates a consistent color for a speaker based on their ID.
- * Uses golden angle distribution for visually distinct colors.
- */
-function getSpeakerColor(
-  speakerId: string,
-  theme: ReturnType<typeof useTheme>,
-  partNodes?: Array<{ id: string; label: string }>,
-  allPartNodes?: Array<{ id: string; label: string }>
-): string {
-  if (speakerId === "self") {
-    return theme.info; // Blue for self
-  }
-  if (speakerId === "unknown") {
-    return theme.textMuted; // Muted color for unknown
-  }
-  // Generate color for parts - use allPartNodes for consistent color across all parts
-  const allParts = allPartNodes || partNodes || [];
-  const partIndex = allParts.findIndex((p) => p.id === speakerId);
-  if (partIndex >= 0) {
-    // Use golden angle for color distribution to ensure different colors
-    // Use 58% lightness as a middle ground that works for both themes
-    const hue = (partIndex * 137.508) % 360;
-    return `hsl(${hue}, 65%, 58%)`;
-  }
-  // Fallback color if part not found
-  return theme.error || "rgb(239, 68, 68)";
-}
+// Speaker color function moved to backup for future use
+// /**
+//  * Generates a consistent color for a speaker based on their ID.
+//  * Uses golden angle distribution for visually distinct colors.
+//  */
+// function getSpeakerColor(
+//   speakerId: string,
+//   theme: ReturnType<typeof useTheme>,
+//   partNodes?: Array<{ id: string; label: string }>,
+//   allPartNodes?: Array<{ id: string; label: string }>
+// ): string {
+//   if (speakerId === "self") {
+//     return theme.info; // Blue for self
+//   }
+//   if (speakerId === "unknown") {
+//     return theme.textMuted; // Muted color for unknown
+//   }
+//   // Generate color for parts - use allPartNodes for consistent color across all parts
+//   const allParts = allPartNodes || partNodes || [];
+//   const partIndex = allParts.findIndex((p) => p.id === speakerId);
+//   if (partIndex >= 0) {
+//     // Use golden angle for color distribution to ensure different colors
+//     // Use 58% lightness as a middle ground that works for both themes
+//     const hue = (partIndex * 137.508) % 360;
+//     return `hsl(${hue}, 65%, 58%)`;
+//   }
+//   // Fallback color if part not found
+//   return theme.error || "rgb(239, 68, 68)";
+// }
 
 export default function ToolbarPlugin({
   partNodes = [],
   allPartNodes,
-  selectedSpeakers = [],
-  activeSpeaker,
-  onToggleSpeaker,
+  // Speaker-related props moved to backup for future use
+  // selectedSpeakers = [],
+  // activeSpeaker,
+  // onToggleSpeaker,
   nodeId,
   nodeType,
 }: ToolbarPluginProps = {}) {
@@ -550,12 +554,12 @@ export default function ToolbarPlugin({
   const [activeColor, setActiveColor] = useState<string | null>(
     theme.textPrimary
   );
-  // Track if cursor is inside a speaker line and which speaker
-  const [isInSpeakerLine, setIsInSpeakerLine] = useState(false);
-  const [currentSpeakerId, setCurrentSpeakerId] = useState<string | null>(null);
-  const [showAddPartDropdown, setShowAddPartDropdown] = useState(false);
-  const [addedPartIds, setAddedPartIds] = useState<string[]>([]);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Speaker-related state moved to backup for future use
+  // const [isInSpeakerLine, setIsInSpeakerLine] = useState(false);
+  // const [currentSpeakerId, setCurrentSpeakerId] = useState<string | null>(null);
+  // const [showAddPartDropdown, setShowAddPartDropdown] = useState(false);
+  // const [addedPartIds, setAddedPartIds] = useState<string[]>([]);
+  // const dropdownRef = useRef<HTMLDivElement>(null);
   // Track if we just reset formatting (to prevent readToolbarState from reading old color)
   const justResetFormattingRef = useRef(false);
   // Track if we're currently clearing formatting to prevent infinite loops
@@ -563,133 +567,15 @@ export default function ToolbarPlugin({
   // Track previous document state to detect transitions
   const wasEmptyRef = useRef(false);
 
-  // Get default speakers based on journal node type:
-  // - Impression (emotion, thought, sensation, behavior, other): Only Self
-  // - Part: The part itself + Self
-  // - Tension/Interaction: Self + all parts involved in the relationship
-  const defaultSpeakers = useMemo(() => {
-    const speakers = [
-      { id: "self", label: "Self", isSelf: true, isUnknown: false },
-    ];
+  // Speaker-related useMemo hooks and functions moved to backup for future use
+  // const defaultSpeakers = useMemo(() => { ... }, [partNodes, nodeId, nodeType]);
+  // const addedSpeakers = useMemo(() => { ... }, [addedPartIds, allPartNodes]);
+  // const availablePartsToAdd = useMemo(() => { ... }, [allPartNodes, defaultSpeakers, addedPartIds]);
+  // useEffect for dropdown click outside handling
+  // const handleAddPart = useCallback((partId: string) => { ... }, []);
 
-    // For part nodes, add the part itself
-    if (nodeType === "part" && nodeId && partNodes) {
-      const targetPart = partNodes.find((p) => p.id === nodeId);
-      if (targetPart) {
-        speakers.push({
-          id: targetPart.id,
-          label: targetPart.label,
-          isSelf: false,
-          isUnknown: false,
-        });
-      }
-      return speakers;
-    }
-
-    // For tension/interaction, add all parts from partNodes (these are the parts involved in the relationship)
-    if ((nodeType === "tension" || nodeType === "interaction") && partNodes) {
-      partNodes.forEach((part) => {
-        if (!speakers.find((s) => s.id === part.id)) {
-          speakers.push({
-            id: part.id,
-            label: part.label,
-            isSelf: false,
-            isUnknown: false,
-          });
-        }
-      });
-      return speakers;
-    }
-
-    // For impression types (emotion, thought, sensation, behavior, other) or undefined, only Self is relevant
-    return speakers;
-  }, [partNodes, nodeId, nodeType]);
-
-  // Get added parts as speaker objects (for rendering as pills in toolbar)
-  const addedSpeakers = useMemo(() => {
-    return addedPartIds
-      .map((partId) => {
-        if (partId === "unknown") {
-          return {
-            id: "unknown",
-            label: "Unknown",
-            isSelf: false,
-            isUnknown: true,
-          };
-        }
-        const part = allPartNodes?.find((p) => p.id === partId);
-        return part
-          ? {
-              id: part.id,
-              label: part.label,
-              isSelf: false,
-              isUnknown: false,
-            }
-          : null;
-      })
-      .filter(
-        (
-          p
-        ): p is {
-          id: string;
-          label: string;
-          isSelf: boolean;
-          isUnknown: boolean;
-        } => p !== null
-      );
-  }, [addedPartIds, allPartNodes]);
-
-  // Get parts available in dropdown (only parts NOT already added or in defaults)
-  const availablePartsToAdd = useMemo(() => {
-    const defaultPartIds = new Set(defaultSpeakers.map((s) => s.id));
-    const allShownIds = new Set([
-      ...Array.from(defaultPartIds),
-      ...addedPartIds,
-    ]);
-
-    // Get parts from allPartNodes that are not already shown
-    const otherParts = (allPartNodes || [])
-      .filter((p) => !allShownIds.has(p.id))
-      .map((p) => ({
-        id: p.id,
-        label: p.label,
-        isUnknown: false,
-      }));
-
-    // Always include Unknown in dropdown if not already added
-    const unknownAvailable = !addedPartIds.includes("unknown");
-
-    return [
-      ...otherParts, // Other available parts
-      ...(unknownAvailable
-        ? [{ id: "unknown", label: "Unknown", isUnknown: true }]
-        : []),
-    ];
-  }, [allPartNodes, defaultSpeakers, addedPartIds]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowAddPartDropdown(false);
-      }
-    };
-
-    if (showAddPartDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [showAddPartDropdown]);
-
-  const handleAddPart = useCallback((partId: string) => {
-    setAddedPartIds((prev) => [...prev, partId]);
-    setShowAddPartDropdown(false);
-  }, []);
-
+  // handleSpeakerClick function moved to backup for future use
+  /*
   const handleSpeakerClick = useCallback(
     (speaker: {
       id: string;
@@ -1023,6 +909,7 @@ export default function ToolbarPlugin({
     },
     [editor, activeSpeaker, onToggleSpeaker, theme, partNodes, allPartNodes]
   );
+  */
 
   /**
    * Reads the current editor state and updates toolbar button states.
@@ -1048,8 +935,9 @@ export default function ToolbarPlugin({
             underline: false,
             list: false,
           });
-          setIsInSpeakerLine(false);
-          setCurrentSpeakerId(null);
+          // Speaker-related state updates moved to backup
+          // setIsInSpeakerLine(false);
+          // setCurrentSpeakerId(null);
           return;
         }
 
@@ -1065,35 +953,12 @@ export default function ToolbarPlugin({
           node = node.getParent();
         }
 
-        // Check if selection is inside a speaker line and get the speaker ID
-        // Traverse up from anchor node to find speaker line node
-        let inSpeakerLine = false;
-        let speakerId: string | null = null;
-        let speakerNode: LexicalNode | null = selection.anchor.getNode();
-        while (speakerNode) {
-          if ($isSpeakerLineNode(speakerNode)) {
-            inSpeakerLine = true;
-            speakerId = speakerNode.getSpeakerId();
-            break;
-          }
-          speakerNode = speakerNode.getParent();
-        }
-
-        // Also check focus node (for range selections)
-        if (!inSpeakerLine && !selection.isCollapsed()) {
-          let focusSpeakerNode: LexicalNode | null = selection.focus.getNode();
-          while (focusSpeakerNode) {
-            if ($isSpeakerLineNode(focusSpeakerNode)) {
-              inSpeakerLine = true;
-              speakerId = focusSpeakerNode.getSpeakerId();
-              break;
-            }
-            focusSpeakerNode = focusSpeakerNode.getParent();
-          }
-        }
-
-        setIsInSpeakerLine(inSpeakerLine);
-        setCurrentSpeakerId(speakerId);
+        // Speaker line detection moved to backup for future use
+        // let inSpeakerLine = false;
+        // let speakerId: string | null = null;
+        // ... speaker detection code ...
+        // setIsInSpeakerLine(inSpeakerLine);
+        // setCurrentSpeakerId(speakerId);
 
         // Check text formatting
         // Start with selection-level format check
@@ -1358,7 +1223,13 @@ export default function ToolbarPlugin({
                   const textContent = node.getTextContent();
 
                   const parent = node.getParent();
-                  if (parent && $isSpeakerLineNode(parent)) {
+                  // @ts-ignore - Speaker functionality disabled
+                  if (
+                    parent &&
+                    false &&
+                    $isSpeakerLineNode &&
+                    $isSpeakerLineNode(parent)
+                  ) {
                     const isBold = node.hasFormat("bold");
                     // Only process non-bold nodes (content nodes, not label nodes)
                     if (!isBold) {
@@ -1571,15 +1442,13 @@ export default function ToolbarPlugin({
           // Dispatch smart list toggle command (handled by SmartListPlugin)
           editor.dispatchCommand(SMART_TOGGLE_BULLET_LIST, undefined);
         }}
-        disabled={isInSpeakerLine}
+        disabled={false}
         className="rounded-md px-2.5 py-1 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         style={{
           ...activeButtonStyle(formats.list),
           transition: "none !important",
         }}
-        title={
-          isInSpeakerLine ? "Lists disabled in speaker lines" : "Bullet List"
-        }
+        title={"Bullet List"}
       >
         • List
       </button>
@@ -1591,16 +1460,14 @@ export default function ToolbarPlugin({
       <ColorPicker
         activeColor={activeColor}
         onColorChange={applyColor}
-        disabled={isInSpeakerLine}
+        disabled={false}
       />
 
-      {/* Speaker Pills - only show default speakers (Self + relevant parts) */}
-      {defaultSpeakers.length > 0 && (
+      {/* Speaker Pills - moved to backup for future use */}
+      {/* @ts-ignore - Speaker functionality disabled but kept for future use */}
+      {false && (
         <>
-          {/* Visual Separator */}
           <div className="h-5 w-px bg-[var(--theme-border)]" />
-
-          {/* Speaker Pills */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Non-Self default speakers (relevant parts) */}
             {defaultSpeakers
