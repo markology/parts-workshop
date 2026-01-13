@@ -608,6 +608,34 @@ export const useFlowNodes = () => {
     [getEdge, getNode, onEdgesChange, removePartFromTension]
   );
 
+  const isValidConnection = useCallback(
+    (connection: Connection | null): boolean => {
+      if (!connection?.source || !connection?.target) return false;
+      
+      const sourceNode = getNode(connection.source);
+      const targetNode = getNode(connection.target);
+      
+      if (!sourceNode || !targetNode) return false;
+      
+      // Only allow connections from Part nodes to Tension/Interaction nodes
+      const isPartToTension = 
+        sourceNode.type === "part" && 
+        (targetNode.type === "tension" || targetNode.type === "interaction");
+      
+      if (!isPartToTension) return false;
+      
+      // Check if part is already connected to this tension/interaction
+      const tensionNode = targetNode as TensionNode;
+      const partNode = sourceNode as PartNode;
+      const alreadyConnected = tensionNode.data?.connectedNodes?.find(
+        (connectedNode) => connectedNode.part.id === partNode.id
+      );
+      
+      return !alreadyConnected;
+    },
+    [getNode]
+  );
+
   const onConnect = useCallback(
     (params: Connection) => {
       const partNode = getNode(params.source) as PartNode;
@@ -708,6 +736,7 @@ export const useFlowNodes = () => {
     deleteEdges,
     deleteNode,
     onConnect,
+    isValidConnection,
     onDragOver,
     onDrop,
     onEdgeChange,

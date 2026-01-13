@@ -26,7 +26,7 @@ const Workspace = () => {
   const hasFitViewRun = useRef(false);
   const selectedPartId = useUIStore((s) => s.selectedPartId);
   const theme = useTheme();
-  const { activeTheme, setActiveTheme, isDark } = useThemeContext();
+  const { activeTheme, setActiveTheme } = useThemeContext();
   // Memoize defaultBg to prevent unnecessary effect triggers when only mode changes
   const defaultBg = useMemo(() => theme.workspace, [theme.workspace]);
   const mapId = useWorkingStore((s) => s.mapId);
@@ -40,12 +40,21 @@ const Workspace = () => {
   // Call auto-save inside ReactFlow context
   useAutoSave();
 
+  // Tooltip state for invalid connections
+  const [connectionTooltip, setConnectionTooltip] = useState<{
+    show: boolean;
+    message: string;
+    x: number;
+    y: number;
+  }>({ show: false, message: "", x: 0, y: 0 });
+
   const {
     edges,
     handleNodeDragStop,
     handlePaneClick,
     nodes,
     onConnect,
+    isValidConnection,
     onDragOver,
     onDrop,
     onEdgeChange,
@@ -125,7 +134,7 @@ const Workspace = () => {
     }
     // Otherwise, use vignette effect for light mode, subtle gradient for dark mode
     if (workspaceBgColor === defaultBg) {
-      if (!isDark) {
+      if (activeTheme === "light") {
         // Radial gradient: white center fading to light peach at edges
         return "radial-gradient(rgb(255, 255, 255) 0%, rgb(255, 255, 255) 40%, rgb(252 248 246 / 82%) 100%)";
       } else {
@@ -426,6 +435,42 @@ const Workspace = () => {
           onEdgesChange={onEdgeChange}
           onNodeDragStop={handleNodeDragStop}
           onConnect={onConnect}
+          isValidConnection={isValidConnection}
+          onConnectEnd={(event, connection) => {
+            if (connection && (event instanceof MouseEvent || (event as any)?.nativeEvent instanceof MouseEvent)) {
+              const isValid = isValidConnection(connection);
+              if (!isValid) {
+                const sourceNode = nodes.find(n => n.id === connection.source);
+                const targetNode = nodes.find(n => n.id === connection.target);
+                
+                let message = "These nodes cannot be connected.";
+                
+                if (sourceNode && targetNode) {
+                  if (sourceNode.type !== "part") {
+                    message = "Only Part nodes can be connected to Tensions or Interactions.";
+                  } else if (targetNode.type !== "tension" && targetNode.type !== "interaction") {
+                    message = "Parts can only connect to Tension or Interaction nodes.";
+                  } else {
+                    message = "This part is already connected to this relationship.";
+                  }
+                }
+                
+                const mouseEvent = event instanceof MouseEvent ? event : (event as any)?.nativeEvent as MouseEvent;
+                if (mouseEvent) {
+                  setConnectionTooltip({
+                    show: true,
+                    message: message,
+                    x: mouseEvent.clientX,
+                    y: mouseEvent.clientY,
+                  });
+                  
+                  setTimeout(() => {
+                    setConnectionTooltip({ show: false, message: "", x: 0, y: 0 });
+                  }, 3000);
+                }
+              }
+            }
+          }}
           onDrop={onDrop}
           onDragOver={onDragOver}
           onPaneClick={handlePaneClickWrapped}
@@ -448,6 +493,23 @@ const Workspace = () => {
             showInteractive={false}
             style={{ flexDirection: 'row-reverse', color: theme.textPrimary }}
           />
+          {connectionTooltip.show && (
+            <div
+              className="fixed z-50 px-4 py-3 rounded-lg shadow-lg max-w-xs pointer-events-none"
+              style={{
+                left: connectionTooltip.x + 10,
+                top: connectionTooltip.y - 10,
+                background: theme.card,
+                color: theme.textPrimary,
+                border: `1px solid ${theme.border}`,
+                transform: "translateY(-100%)",
+              }}
+            >
+              <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>
+                {connectionTooltip.message}
+              </p>
+            </div>
+          )}
         </ReactFlow>
       ) : (
         <ReactFlow
@@ -500,7 +562,7 @@ const Workspace = () => {
           box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
           transition: transform 150ms ease, background 150ms ease, color 150ms ease;
         }
-        ${isDark ? `
+        ${activeTheme === "dark" ? `
         .react-flow__controls button {
           border: none !important;
           box-shadow: 0 12px 28px rgba(0,0,0,0.45) !important;
