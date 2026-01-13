@@ -1664,20 +1664,6 @@ theme-dark:shadow-none "
                             style={{
                               transition: "none !important",
                             }}
-                            // onMouseEnter={(e) => {
-                            //   if (isDark) {
-                            //     e.currentTarget.style.backgroundColor =
-                            //       theme.buttonHover;
-                            //   } else {
-                            //     e.currentTarget.style.backgroundColor =
-                            //       "#f1f5f9";
-                            //   }
-                            // }}
-                            // onMouseLeave={(e) => {
-                            //   e.currentTarget.style.backgroundColor = isDark
-                            //     ? "rgb(42, 46, 50)"
-                            //     : "white";
-                            // }}
                           >
                             Add
                           </button>
@@ -1687,7 +1673,7 @@ theme-dark:shadow-none "
                             (need: string, index: number) => (
                               <div
                                 key={index}
-                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm border-none text-[#7b42e2] text-[var(--theme-text-primary)] border-[var(--theme-border)] bg-[var(--theme-part-detail-list-item-bg)]"
+                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm border-none text-[#7b42e2] border-[var(--theme-border)] bg-[var(--theme-part-detail-list-item-bg)]"
                               >
                                 <span className="text-xs font-medium leading-relaxed text-[#7b42e2]">
                                   {need}
@@ -1736,20 +1722,6 @@ theme-dark:shadow-none "
                             style={{
                               transition: "none !important",
                             }}
-                            // onMouseEnter={(e) => {
-                            //   if (isDark) {
-                            //     e.currentTarget.style.backgroundColor =
-                            //       theme.buttonHover;
-                            //   } else {
-                            //     e.currentTarget.style.backgroundColor =
-                            //       "#f1f5f9";
-                            //   }
-                            // }}
-                            // onMouseLeave={(e) => {
-                            //   e.currentTarget.style.backgroundColor = isDark
-                            //     ? "rgb(42, 46, 50)"
-                            //     : "white";
-                            // }}
                           >
                             Add
                           </button>
@@ -1759,8 +1731,7 @@ theme-dark:shadow-none "
                             (fear: string, index: number) => (
                               <div
                                 key={index}
-                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm bg-[var(--part-detail-sub-card-bg)] border-none text-[#f78585]"
-                                style={listItemStyle}
+                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm border-none text-[#f78585] bg-[var(--theme-part-detail-list-item-bg)]"
                               >
                                 <span className="text-xs font-medium leading-relaxed text-[#f78585]">
                                   {fear}
@@ -1811,7 +1782,7 @@ theme-dark:shadow-none "
                             }}
                             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] 
                               theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)]  theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
+                                  theme-dark:hover:bg-[var(--theme-card)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)] theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
                             title="Start a new journal entry"
                           >
                             <Plus size={14} />
@@ -2181,7 +2152,7 @@ theme-dark:shadow-none "
 
                                   {/* Content Preview */}
                                   <div
-                                    className={`rounded-[10px]  bg-[var(--theme-card)] overflow-hidden shadow-inner`}
+                                    className={`rounded-[10px]  bg-[var(--theme-card)] overflow-hidden`}
                                     style={{
                                       height: "90px",
                                       padding: "10px",
@@ -2327,7 +2298,7 @@ theme-dark:shadow-none "
                       </div>
                     ) : (
                       <div
-                        className="rounded-2xl border text-center py-8"
+                        className="rounded-2xl border-none text-center py-8 shadow-sm"
                         style={subCardStyle}
                       >
                         <Users
@@ -2486,10 +2457,22 @@ theme-dark:shadow-none "
                             className={`px-4 py-2 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed shadow-sm border-none transition-none ${
                               needsFearsInput.trim()
                                 ? addingNeedsOrFears === "needs"
-                                  ? "bg-[var(--theme-part-detail-button-needs-bg-enabled)] text-[var(--theme-part-detail-button-text-enabled)]"
-                                  : "bg-[var(--theme-part-detail-button-fears-bg-enabled)] text-[var(--theme-part-detail-button-text-enabled)]"
+                                  ? "theme-light:bg-[var(--theme-part-detail-button-needs-bg-enabled)] text-[var(--theme-part-detail-button-text-enabled)]"
+                                  : "theme-light:bg-[var(--theme-part-detail-button-fears-bg-enabled)] text-[var(--theme-part-detail-button-text-enabled)]"
                                 : "bg-[var(--theme-part-detail-button-bg-disabled)] text-[var(--theme-part-detail-button-text-disabled)] theme-light:border-t-[var(--theme-part-detail-button-border-top-disabled)]"
                             }`}
+                            style={{
+                              backgroundColor:
+                                needsFearsInput.trim() &&
+                                typeof window !== "undefined" &&
+                                document.documentElement.classList.contains(
+                                  "theme-dark"
+                                )
+                                  ? addingNeedsOrFears === "needs"
+                                    ? "rgba(167, 139, 250, 0.35)"
+                                    : "rgba(252, 165, 165, 0.35)"
+                                  : undefined,
+                            }}
                             onMouseEnter={(e) => {
                               if (needsFearsInput.trim()) {
                                 e.currentTarget.style.opacity = "0.9";
