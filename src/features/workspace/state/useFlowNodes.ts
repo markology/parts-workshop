@@ -609,11 +609,17 @@ export const useFlowNodes = () => {
   );
 
   const isValidConnection = useCallback(
-    (connection: Connection | null): boolean => {
-      if (!connection?.source || !connection?.target) return false;
+    (connection: Edge | Connection | null): boolean => {
+      if (!connection) return false;
       
-      const sourceNode = getNode(connection.source);
-      const targetNode = getNode(connection.target);
+      // Handle both Edge and Connection types
+      const source = 'source' in connection ? connection.source : null;
+      const target = 'target' in connection ? connection.target : null;
+      
+      if (!source || !target) return false;
+      
+      const sourceNode = getNode(source);
+      const targetNode = getNode(target);
       
       if (!sourceNode || !targetNode) return false;
       

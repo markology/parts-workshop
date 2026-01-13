@@ -5,6 +5,7 @@ import { useFlowNodesContext } from "@/features/workspace/state/FlowNodesContext
 import {
   Background,
   Controls,
+  type Connection,
   type Node,
   OnNodesChange,
   ReactFlow,
@@ -502,13 +503,37 @@ const Workspace = () => {
               (event instanceof MouseEvent ||
                 (event as any)?.nativeEvent instanceof MouseEvent)
             ) {
-              const isValid = isValidConnection(connection);
+              // Convert FinalConnectionState to Connection if needed
+              // Check if connection has the required Connection properties
+              const hasConnectionProps = 
+                connection &&
+                typeof connection === 'object' &&
+                'source' in connection &&
+                'target' in connection &&
+                typeof (connection as any).source === 'string' &&
+                typeof (connection as any).target === 'string';
+              
+              if (!hasConnectionProps) return;
+              
+              // Create a proper Connection object with all required properties
+              const connectionData: Connection = {
+                source: (connection as any).source as string,
+                target: (connection as any).target as string,
+                sourceHandle: ('sourceHandle' in connection && typeof (connection as any).sourceHandle === 'string') 
+                  ? (connection as any).sourceHandle as string 
+                  : null,
+                targetHandle: ('targetHandle' in connection && typeof (connection as any).targetHandle === 'string') 
+                  ? (connection as any).targetHandle as string 
+                  : null,
+              };
+              
+              const isValid = isValidConnection(connectionData);
               if (!isValid) {
                 const sourceNode = nodes.find(
-                  (n) => n.id === connection.source
+                  (n) => n.id === connectionData.source
                 );
                 const targetNode = nodes.find(
-                  (n) => n.id === connection.target
+                  (n) => n.id === connectionData.target
                 );
 
                 let message = "These nodes cannot be connected.";
