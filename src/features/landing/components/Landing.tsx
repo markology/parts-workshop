@@ -138,7 +138,7 @@ const Landing = () => {
 
       {/* Hero Section - Full Width */}
       <section className="relative min-h-screen flex items-center justify-center px-6 py-2 bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100">
-        <div className="max-w-7xl mx-auto w-full">
+        <div className="max-w-7xl mx-auto mt-0 w-full">
           {/* Header integrated into first section */}
           <div className="relative z-50 w-full mb-16">
             <div className="flex items-center justify-between">
@@ -152,7 +152,7 @@ const Landing = () => {
                   style={{ filter: "none" }}
                 />
                 <span
-                  className="font-semibold text-slate-900 dark:text-white self-end"
+                  className="font-semibold text-slate-900 self-end"
                   style={{ fontSize: "22px" }}
                 >
                   Parts Studio
@@ -161,19 +161,39 @@ const Landing = () => {
               <div className="hidden md:flex items-center gap-6">
                 <a
                   href="#features"
-                  className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                  className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const element = document.getElementById("features");
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
+                  }}
                 >
                   Features
                 </a>
                 <a
                   href="#how-it-works"
-                  className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                  className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const element = document.getElementById("how-it-works");
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
+                  }}
                 >
                   How it works
                 </a>
                 <a
                   href="/mission"
-                  className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                  className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   Mission
                 </a>
@@ -182,7 +202,7 @@ const Landing = () => {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-purple-50 border border-purple-200 text-purple-700">
                 <Sparkles className="w-4 h-4" />
@@ -200,10 +220,19 @@ const Landing = () => {
                 journal directly on an infinite canvas.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <SignInButton />
                 <a
                   href="#features"
                   className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-slate-300 text-base font-semibold text-slate-700 hover:bg-slate-50 transition-all hover:scale-105"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const element = document.getElementById("features");
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
+                  }}
                 >
                   Explore features
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -257,8 +286,8 @@ const Landing = () => {
                         border: "none",
                         boxShadow: "none",
                         display: "block",
-                        width: "800px",
-                        maxWidth: "100%",
+                        width: "100%",
+                        maxWidth: "1400px",
                       }}
                     />
                   </div>
@@ -672,10 +701,19 @@ const Landing = () => {
                 impressions, and capture insights—all in one calm workspace.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <SignInButton />
                 <a
                   href="#features"
                   className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-slate-300 text-base font-semibold text-slate-700 hover:bg-slate-50 transition-all"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const element = document.getElementById("features");
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
+                  }}
                 >
                   Learn more
                 </a>
