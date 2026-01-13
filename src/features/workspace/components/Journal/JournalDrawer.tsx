@@ -805,9 +805,10 @@ export default function JournalDrawer(
                         }
                         partNodes={partNodes}
                         allPartNodes={allPartNodes}
-                        selectedSpeakers={speakersArray}
-                        activeSpeaker={activeSpeaker}
-                        onToggleSpeaker={toggleSpeaker}
+                        // Speaker-related props moved to backup for future use
+                        // selectedSpeakers={speakersArray}
+                        // activeSpeaker={activeSpeaker}
+                        // onToggleSpeaker={toggleSpeaker}
                         nodeId={nodeId}
                       />
                     )}

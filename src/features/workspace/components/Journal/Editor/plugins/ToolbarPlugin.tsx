@@ -1214,89 +1214,89 @@ export default function ToolbarPlugin({
 
             // Check all dirty elements (elements that changed)
             // dirtyElements is a Map<NodeKey, boolean>, so we iterate over keys
-            for (const nodeKey of dirtyElements.keys()) {
-              try {
-                const node = $getNodeByKey(nodeKey);
+            // for (const nodeKey of dirtyElements.keys()) {
+            //   try {
+            //     const node = $getNodeByKey(nodeKey);
 
-                // If this is a text node in a speaker line that starts with our placeholder
-                if ($isTextNode(node)) {
-                  const textContent = node.getTextContent();
+            //     // If this is a text node in a speaker line that starts with our placeholder
+            //     if ($isTextNode(node)) {
+            //       // const textContent = node.getTextContent();
 
-                  const parent = node.getParent();
-                  // @ts-ignore - Speaker functionality disabled
-                  if (
-                    parent &&
-                    false &&
-                    $isSpeakerLineNode &&
-                    $isSpeakerLineNode(parent)
-                  ) {
-                    const isBold = node.hasFormat("bold");
-                    // Only process non-bold nodes (content nodes, not label nodes)
-                    if (!isBold) {
-                      // Check if this node starts with our placeholder (\uFEFF)
-                      if (
-                        textContent.length > 1 &&
-                        textContent.startsWith("\uFEFF")
-                      ) {
-                        // This is the content node with placeholder - remove it
-                        nodesToClean.push({
-                          key: node.getKey(),
-                          newText: textContent.substring(1),
-                        });
-                      }
-                      // Also check if this node IS just the placeholder (length 1)
-                      // and there's a sibling node after it - merge them
-                      else if (textContent === "\uFEFF") {
-                        const nextSibling = node.getNextSibling();
-                        if (nextSibling && $isTextNode(nextSibling)) {
-                          // There's text after the placeholder - remove placeholder node
-                          // The next sibling will have the actual text
-                          nodesToClean.push({
-                            key: node.getKey(),
-                            newText: "", // Empty it so it can be removed
-                          });
-                        }
-                      }
-                      // Also check if previous sibling is just the placeholder
-                      // (in case Lexical split the nodes)
-                      const prevSibling = node.getPreviousSibling();
-                      if (
-                        prevSibling &&
-                        $isTextNode(prevSibling) &&
-                        !prevSibling.hasFormat("bold") &&
-                        prevSibling.getTextContent() === "\uFEFF"
-                      ) {
-                        // Previous sibling is just the placeholder - remove it
-                        nodesToClean.push({
-                          key: prevSibling.getKey(),
-                          newText: "", // Empty it so it can be removed
-                        });
-                      }
-                      // Backup: Also check for regular space (for any edge cases)
-                      else if (
-                        textContent.length > 1 &&
-                        textContent.startsWith(" ")
-                      ) {
-                        const prevSibling = node.getPreviousSibling();
-                        if (
-                          prevSibling &&
-                          $isTextNode(prevSibling) &&
-                          prevSibling.hasFormat("bold")
-                        ) {
-                          // This is the content node right after the label
-                          nodesToClean.push({
-                            key: node.getKey(),
-                            newText: textContent.substring(1),
-                          });
-                        }
-                      }
-                    }
-                  }
-                }
-              } catch (e) {
-                // Node might not exist anymore, ignore
-              }
-            }
+            //       // const parent = node.getParent();
+            //       // @ts-ignore - Speaker functionality disabled
+            //       // if (
+            //       //   parent &&
+            //       //   false &&
+            //       //   $isSpeakerLineNode &&
+            //       //   $isSpeakerLineNode(parent)
+            //       // ) {
+            //       //   const isBold = node.hasFormat("bold");
+            //       //   // Only process non-bold nodes (content nodes, not label nodes)
+            //       //   if (!isBold) {
+            //       //     // Check if this node starts with our placeholder (\uFEFF)
+            //       //     if (
+            //       //       textContent.length > 1 &&
+            //       //       textContent.startsWith("\uFEFF")
+            //       //     ) {
+            //       //       // This is the content node with placeholder - remove it
+            //       //       nodesToClean.push({
+            //       //         key: node.getKey(),
+            //       //         newText: textContent.substring(1),
+            //       //       });
+            //       //     }
+            //       //     // Also check if this node IS just the placeholder (length 1)
+            //       //     // and there's a sibling node after it - merge them
+            //       //     else if (textContent === "\uFEFF") {
+            //       //       const nextSibling = node.getNextSibling();
+            //       //       if (nextSibling && $isTextNode(nextSibling)) {
+            //       //         // There's text after the placeholder - remove placeholder node
+            //       //         // The next sibling will have the actual text
+            //       //         nodesToClean.push({
+            //       //           key: node.getKey(),
+            //       //           newText: "", // Empty it so it can be removed
+            //       //         });
+            //       //       }
+            //       //     }
+            //       //     // Also check if previous sibling is just the placeholder
+            //       //     // (in case Lexical split the nodes)
+            //       //     const prevSibling = node.getPreviousSibling();
+            //       //     if (
+            //       //       prevSibling &&
+            //       //       $isTextNode(prevSibling) &&
+            //       //       !prevSibling.hasFormat("bold") &&
+            //       //       prevSibling.getTextContent() === "\uFEFF"
+            //       //     ) {
+            //       //       // Previous sibling is just the placeholder - remove it
+            //       //       nodesToClean.push({
+            //       //         key: prevSibling.getKey(),
+            //       //         newText: "", // Empty it so it can be removed
+            //       //       });
+            //       //     }
+            //       //     // Backup: Also check for regular space (for any edge cases)
+            //       //     else if (
+            //       //       textContent.length > 1 &&
+            //       //       textContent.startsWith(" ")
+            //       //     ) {
+            //       //       const prevSibling = node.getPreviousSibling();
+            //       //       if (
+            //       //         prevSibling &&
+            //       //         $isTextNode(prevSibling) &&
+            //       //         prevSibling.hasFormat("bold")
+            //       //       ) {
+            //       //         // This is the content node right after the label
+            //       //         nodesToClean.push({
+            //       //           key: node.getKey(),
+            //       //           newText: textContent.substring(1),
+            //       //         });
+            //       //       }
+            //       //     }
+            //       //   }
+            //       // }
+            //     }
+            //   } catch (e) {
+            //     // Node might not exist anymore, ignore
+            //   }
+            // }
 
             // If we found nodes to clean, update them in a mutation
             if (nodesToClean.length > 0) {
@@ -1462,244 +1462,6 @@ export default function ToolbarPlugin({
         onColorChange={applyColor}
         disabled={false}
       />
-
-      {/* Speaker Pills - moved to backup for future use */}
-      {/* @ts-ignore - Speaker functionality disabled but kept for future use */}
-      {false && (
-        <>
-          <div className="h-5 w-px bg-[var(--theme-border)]" />
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Non-Self default speakers (relevant parts) */}
-            {defaultSpeakers
-              .filter((s) => !s.isSelf)
-              .map((speaker) => {
-                // Highlight ONLY if cursor is actually in this speaker's line
-                // This ensures accurate tracking - pill reflects cursor position, not last click
-                const isActive = currentSpeakerId === speaker.id;
-                const speakerColor = getSpeakerColor(
-                  speaker.id,
-                  theme,
-                  partNodes,
-                  allPartNodes
-                );
-
-                return (
-                  <button
-                    key={speaker.id}
-                    type="button"
-                    onClick={() => handleSpeakerClick(speaker)}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
-                      isActive ? "" : "hover:scale-102"
-                    }`}
-                    style={{
-                      backgroundColor: isActive
-                        ? speakerColor
-                        : "var(--theme-surface)",
-                      color: isActive ? "white" : "var(--theme-text-secondary)",
-                      borderColor: isActive
-                        ? speakerColor
-                        : "var(--theme-border)",
-                      boxShadow: isActive
-                        ? `0 4px 12px ${speakerColor}40`
-                        : "0 1px 3px rgba(0, 0, 0, 0.1)",
-                      transition: "none !important",
-                    }}
-                    title={`Switch to ${speaker.label}`}
-                  >
-                    <SquareUserRound size={12} />
-                    {speaker.label}
-                  </button>
-                );
-              })}
-
-            {/* Self pill */}
-            {defaultSpeakers
-              .filter((s) => s.isSelf)
-              .map((speaker) => {
-                // Highlight ONLY if cursor is actually in this speaker's line
-                // This ensures accurate tracking - pill reflects cursor position, not last click
-                const isActive = currentSpeakerId === speaker.id;
-                const speakerColor = getSpeakerColor(
-                  speaker.id,
-                  theme,
-                  partNodes,
-                  allPartNodes
-                );
-
-                return (
-                  <button
-                    key={speaker.id}
-                    type="button"
-                    onClick={() => handleSpeakerClick(speaker)}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
-                      isActive ? "scale-105" : "hover:scale-102"
-                    }`}
-                    style={{
-                      backgroundColor: isActive
-                        ? speakerColor
-                        : "var(--theme-surface)",
-                      color: isActive ? "white" : "var(--theme-text-secondary)",
-                      borderColor: isActive
-                        ? speakerColor
-                        : "var(--theme-border)",
-                      boxShadow: isActive
-                        ? `0 4px 12px ${speakerColor}40`
-                        : "0 1px 3px rgba(0, 0, 0, 0.1)",
-                      transition: "none !important",
-                    }}
-                    title={`Switch to ${speaker.label}`}
-                  >
-                    <User size={12} />
-                    {speaker.label}
-                  </button>
-                );
-              })}
-
-            {/* Added parts (from dropdown) - shown as pills with X button */}
-            {addedSpeakers.map((speaker) => {
-              // Highlight ONLY if cursor is actually in this speaker's line
-              // This ensures accurate tracking - pill reflects cursor position, not last click
-              const isActive = currentSpeakerId === speaker.id;
-              const speakerColor = getSpeakerColor(
-                speaker.id,
-                theme,
-                partNodes,
-                allPartNodes
-              );
-
-              return (
-                <button
-                  key={speaker.id}
-                  type="button"
-                  onClick={() => handleSpeakerClick(speaker)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
-                    isActive ? "scale-105" : "hover:scale-102"
-                  }`}
-                  style={{
-                    backgroundColor: isActive
-                      ? speakerColor
-                      : "var(--theme-surface)",
-                    color: isActive ? "white" : "var(--theme-text-secondary)",
-                    borderColor: isActive
-                      ? speakerColor
-                      : "var(--theme-border)",
-                    boxShadow: isActive
-                      ? `0 4px 12px ${speakerColor}40`
-                      : "0 1px 3px rgba(0, 0, 0, 0.1)",
-                    transition: "none !important",
-                  }}
-                  title={`Switch to ${speaker.label}`}
-                >
-                  {speaker.isUnknown ? (
-                    <span className="text-sm font-bold">?</span>
-                  ) : (
-                    <SquareUserRound size={12} />
-                  )}
-                  {speaker.label}
-                  <X
-                    size={10}
-                    className="ml-0.5 opacity-70 hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAddedPartIds((prev) =>
-                        prev.filter((id) => id !== speaker.id)
-                      );
-                      // If this was the active speaker, deselect it
-                      if (isActive) {
-                        onToggleSpeaker?.(speaker.id);
-                      }
-                    }}
-                  />
-                </button>
-              );
-            })}
-
-            {/* More dropdown - rightmost */}
-            {availablePartsToAdd.length > 0 && (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowAddPartDropdown(!showAddPartDropdown)}
-                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium hover:scale-102 border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)]"
-                  style={{
-                    transition: "none !important",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      "var(--theme-button-hover)";
-                    e.currentTarget.style.color = "var(--theme-text-primary)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      "var(--theme-surface)";
-                    e.currentTarget.style.color = "var(--theme-text-secondary)";
-                  }}
-                  title="More speakers"
-                >
-                  <Plus size={12} />
-                  <span>More</span>
-                  <ChevronDown
-                    size={10}
-                    className={showAddPartDropdown ? "rotate-180" : ""}
-                  />
-                </button>
-
-                {showAddPartDropdown && (
-                  <div className="absolute top-full left-0 mt-2 z-50 min-w-[200px] rounded-lg border shadow-lg overflow-hidden border-[var(--theme-border)] bg-[var(--theme-card)]">
-                    <div className="max-h-60 overflow-y-auto">
-                      {availablePartsToAdd.map((part) => {
-                        const partId = part.isUnknown ? "unknown" : part.id;
-                        const speaker = {
-                          id: partId,
-                          label: part.label,
-                          isSelf: false,
-                          isUnknown: part.isUnknown,
-                        };
-
-                        return (
-                          <button
-                            key={part.id || (part.isUnknown ? "unknown" : "")}
-                            type="button"
-                            onClick={() => {
-                              // Add to toolbar and use the speaker
-                              handleAddPart(partId);
-                              handleSpeakerClick(speaker);
-                              setShowAddPartDropdown(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-xs font-medium text-[var(--theme-text-primary)]"
-                            style={{
-                              transition: "none !important",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "var(--theme-button-hover)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "transparent";
-                            }}
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="w-3.5 flex items-center justify-center">
-                                {part.isUnknown ? (
-                                  <span className="text-sm font-bold">?</span>
-                                ) : (
-                                  <SquareUserRound size={14} />
-                                )}
-                              </div>
-                              <span>{part.label}</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </>
-      )}
     </div>
   );
 }

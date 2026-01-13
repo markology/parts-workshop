@@ -72,9 +72,10 @@ export function useJournalDrawer({ targetNodeProp }: UseJournalDrawerProps) {
   const [isSavingBeforeClose, setIsSavingBeforeClose] = useState(false);
   const [pendingEntryToSwitch, setPendingEntryToSwitch] =
     useState<JournalEntry | null>(null);
-  const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
+  // Speaker-related state for normal journal editor - moved to backup for future use
+  // const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
 
-  // Ensure selectedSpeakers is always an array
+  // Ensure selectedSpeakers is always an array (still used for text threads and saving)
   const speakersArray = Array.isArray(selectedSpeakers) ? selectedSpeakers : [];
 
   useEffect(() => {
@@ -203,7 +204,7 @@ export function useJournalDrawer({ targetNodeProp }: UseJournalDrawerProps) {
       setShowSaveBeforeCloseModal(false);
       setIsSavingBeforeClose(false);
       setPendingEntryToSwitch(null);
-      setActiveSpeaker(null);
+      // setActiveSpeaker(null); // Speaker functionality disabled
     }
   }, [isOpen]);
 
@@ -240,12 +241,12 @@ export function useJournalDrawer({ targetNodeProp }: UseJournalDrawerProps) {
     }
   }, [activeEntryId, relevantEntries, isImpressionJournal, journalMode]);
 
-  // Reset active speaker and formatting when entry changes
-  useEffect(() => {
-    // Clear active speaker and selected speakers whenever activeEntryId changes
-    setActiveSpeaker(null);
-    setSelectedSpeakers([]);
-  }, [activeEntryId, setSelectedSpeakers]);
+  // Reset active speaker and formatting when entry changes - moved to backup for future use
+  // useEffect(() => {
+  //   // Clear active speaker and selected speakers whenever activeEntryId changes
+  //   setActiveSpeaker(null);
+  //   setSelectedSpeakers([]);
+  // }, [activeEntryId, setSelectedSpeakers]);
 
   // Determine if should show journal mode selection or select journal mode based on current state
   useEffect(() => {
@@ -643,19 +644,24 @@ export function useJournalDrawer({ targetNodeProp }: UseJournalDrawerProps) {
     setPendingEntryToSwitch(null);
   }, [isSavingBeforeClose]);
 
-  const toggleSpeaker = useCallback(
-    (speakerId: string) => {
-      // Toggle: if already active, deselect; otherwise, set as active
-      if (activeSpeaker === speakerId) {
-        setActiveSpeaker(null);
-        setSelectedSpeakers([]);
-      } else {
-        setActiveSpeaker(speakerId);
-        setSelectedSpeakers([speakerId]); // Keep as array for compatibility but only one item
-      }
-    },
-    [activeSpeaker, setSelectedSpeakers]
-  );
+  // toggleSpeaker function moved to backup for future use (normal journal editor only)
+  // const toggleSpeaker = useCallback(
+  //   (speakerId: string) => {
+  //     if (activeSpeaker === speakerId) {
+  //       setActiveSpeaker(null);
+  //       setSelectedSpeakers([]);
+  //     } else {
+  //       setActiveSpeaker(speakerId);
+  //       setSelectedSpeakers([speakerId]);
+  //     }
+  //   },
+  //   [activeSpeaker, setSelectedSpeakers]
+  // );
+  
+  // Stub function to prevent errors (normal journal editor no longer uses speakers)
+  const toggleSpeaker = useCallback(() => {
+    // No-op: speaker functionality disabled for normal journal
+  }, []);
 
   return {
     // Store state
@@ -698,7 +704,8 @@ export function useJournalDrawer({ targetNodeProp }: UseJournalDrawerProps) {
     showSaveBeforeCloseModal,
     setShowSaveBeforeCloseModal,
     isSavingBeforeClose,
-    activeSpeaker,
+    // activeSpeaker, // Speaker functionality disabled for normal journal
+    activeSpeaker: null, // Stub value for compatibility
     // Computed
     hasUnsavedChanges,
     canSave,
