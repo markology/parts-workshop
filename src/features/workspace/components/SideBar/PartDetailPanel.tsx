@@ -1651,7 +1651,7 @@ theme-dark:shadow-none "
                           <h4
                             className={`font-semibold capitalize text-sm flex items-center gap-2 theme-dark:text-slate-100 theme-light:text-slate-900`}
                           >
-                            <Heart className="w-4 h-4 text-[#7b42e2]" />
+                            <Heart className="w-4 h-4 text-[#6ba2d1]" />
                             Needs
                           </h4>
                           <button
@@ -1673,9 +1673,9 @@ theme-dark:shadow-none "
                             (need: string, index: number) => (
                               <div
                                 key={index}
-                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm border-none text-[#7b42e2] border-[var(--theme-border)] bg-[var(--theme-part-detail-list-item-bg)]"
+                                className="group flex items-center justify-between rounded-lg px-3 py-2 shadow-sm border-none text-[#6ba2d1] border-[var(--theme-border)] bg-[var(--theme-part-detail-list-item-bg)]"
                               >
-                                <span className="text-xs font-medium leading-relaxed text-[#7b42e2]">
+                                <span className="text-xs font-medium leading-relaxed text-[#6ba2d1]">
                                   {need}
                                 </span>
                                 <button
@@ -2469,7 +2469,7 @@ theme-dark:shadow-none "
                                   "theme-dark"
                                 )
                                   ? addingNeedsOrFears === "needs"
-                                    ? "rgba(167, 139, 250, 0.35)"
+                                    ? "rgba(107, 162, 209, 0.35)"
                                     : "rgba(252, 165, 165, 0.35)"
                                   : undefined,
                             }}

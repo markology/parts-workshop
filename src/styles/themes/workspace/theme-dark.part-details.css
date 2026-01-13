@@ -17,13 +17,13 @@
     --theme-part-detail-header-interaction-bg: rgba(59, 130, 246, 0.2);
     --theme-part-detail-header-tension-text: #e9d5ff;
     --theme-part-detail-header-interaction-text: #dbeafe;
-    --theme-part-detail-needs-bg: rgba(123, 66, 226, 0.2);
-    --theme-part-detail-needs-text: #a78bfa;
-    --theme-part-detail-needs-border: rgba(123, 66, 226, 0.3);
+    --theme-part-detail-needs-bg: rgba(107, 162, 209, 0.2);
+    --theme-part-detail-needs-text: #8bb5e0;
+    --theme-part-detail-needs-border: rgba(107, 162, 209, 0.3);
     --theme-part-detail-fears-bg: rgba(247, 133, 133, 0.2);
     --theme-part-detail-fears-text: #fca5a5;
     --theme-part-detail-fears-border: rgba(247, 133, 133, 0.3);
-    --theme-part-detail-button-needs-bg-enabled: #6d28d9;
+    --theme-part-detail-button-needs-bg-enabled: #4a8bb8;
     --theme-part-detail-button-fears-bg-enabled: #dc2626;
     --theme-part-detail-button-bg-disabled: rgb(42, 46, 50);
     --theme-part-detail-button-text-enabled: #ffffff;
