@@ -20,6 +20,7 @@ import {
   $isRangeSelection,
   $isTextNode,
   $createParagraphNode,
+  $createTextNode,
   $createRangeSelection,
   $setSelection,
   $getRoot,
@@ -28,6 +29,7 @@ import {
   LexicalNode,
   RangeSelection,
   COMMAND_PRIORITY_HIGH,
+  SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { SpeakerLineNode, $isSpeakerLineNode } from "../SpeakerLineNode";
 import {
@@ -188,23 +190,43 @@ export default function SpeakerLineDeletePlugin() {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
-    const handleDelete = (event: KeyboardEvent | null) => {
+    const handleBackspace = (event: KeyboardEvent | null) => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) {
         return false; // Let Lexical handle non-range selections
       }
 
-      // Only check anchor and focus points
+      // Only handle speaker line deletion for collapsed selection (normal cursor, not highlighted text)
+      if (!selection.isCollapsed()) {
+        return false; // Let Lexical handle highlighted text deletion
+      }
+
+      // Check anchor and focus points to see if we're at the start of a speaker line
       const anchorNode = selection.anchor.getNode();
       const anchorOffset = selection.anchor.offset;
       const focusNode = selection.focus.getNode();
       const focusOffset = selection.focus.offset;
 
-      // Check if anchor or focus is at the start of a speaker line
+      // Check if anchor or focus is at the start of a speaker line (decorator or right after it)
       const anchorSpeakerLine = isAtSpeakerLineStart(anchorNode, anchorOffset);
       const focusSpeakerLine = isAtSpeakerLineStart(focusNode, focusOffset);
 
+      // Also check if any selected nodes are decorators (but NOT if they're just inside speaker lines)
+      const selectedNodes = selection.getNodes();
+      const speakerLinesFromDecorators = new Set<SpeakerLineNode>();
+      
+      for (const node of selectedNodes) {
+        // Only check if node is a decorator itself - don't check if it's just inside a speaker line
+        if ($isSpeakerLabelDecorator(node)) {
+          const parent = node.getParent();
+          if ($isSpeakerLineNode(parent)) {
+            speakerLinesFromDecorators.add(parent);
+          }
+        }
+      }
+
       // Collect unique speaker lines to delete
+      // Only delete if we're at the start (decorator or right after it) OR if decorator is selected
       const speakerLinesToDelete = new Set<SpeakerLineNode>();
       if (anchorSpeakerLine) {
         speakerLinesToDelete.add(anchorSpeakerLine);
@@ -212,6 +234,8 @@ export default function SpeakerLineDeletePlugin() {
       if (focusSpeakerLine) {
         speakerLinesToDelete.add(focusSpeakerLine);
       }
+      // Add any speaker lines where the decorator itself is selected
+      speakerLinesFromDecorators.forEach(line => speakerLinesToDelete.add(line));
 
       // If no speaker line at anchor/focus, let Lexical handle normal deletion
       if (speakerLinesToDelete.size === 0) {
@@ -325,13 +349,37 @@ export default function SpeakerLineDeletePlugin() {
         }
 
         // Now delete the speaker lines
-        // Replace first speaker line with a paragraph to keep cursor on same line
+        // Replace first speaker line with a clean paragraph (no styles, no data attributes)
         let replacementParagraph: ReturnType<
           typeof $createParagraphNode
         > | null = null;
 
         if (firstSpeakerLine && firstSpeakerLine.isAttached()) {
+          // Create a completely clean paragraph with no styles or attributes
           replacementParagraph = $createParagraphNode();
+          
+          // Copy any text content from the speaker line (excluding the decorator)
+          const children = firstSpeakerLine.getChildren();
+          for (const child of children) {
+            if (!$isSpeakerLabelDecorator(child) && $isTextNode(child)) {
+              const textContent = child.getTextContent();
+              if (textContent.trim() !== "") {
+                // Create a new text node without any styles
+                const cleanTextNode = $createTextNode(textContent);
+                replacementParagraph.append(cleanTextNode);
+              }
+            }
+            // Skip decorators and other node types (like line breaks)
+          }
+          
+          // Ensure paragraph has at least an empty text node for cursor positioning
+          if (replacementParagraph.getTextContent().trim() === "") {
+            const emptyText = $createTextNode("");
+            replacementParagraph.append(emptyText);
+          }
+          
+          // Use replace to completely replace the speaker line with the clean paragraph
+          // This ensures the speaker line node and all its attributes are removed
           firstSpeakerLine.replace(replacementParagraph);
         }
 
@@ -343,16 +391,28 @@ export default function SpeakerLineDeletePlugin() {
           }
         }
 
-        // Position cursor
+        // Position cursor in the clean paragraph
         if (replacementParagraph) {
-          const rangeSelection = $createRangeSelection();
-          rangeSelection.anchor.set(
-            replacementParagraph.getKey(),
-            0,
-            "element"
-          );
-          rangeSelection.focus.set(replacementParagraph.getKey(), 0, "element");
-          $setSelection(rangeSelection);
+          // Find the first text node in the paragraph to position cursor
+          const firstTextNode = replacementParagraph.getFirstChild();
+          if ($isTextNode(firstTextNode)) {
+            const rangeSelection = $createRangeSelection();
+            const textContent = firstTextNode.getTextContent();
+            const offset = textContent.length; // Position at end of text
+            rangeSelection.anchor.set(firstTextNode.getKey(), offset, "text");
+            rangeSelection.focus.set(firstTextNode.getKey(), offset, "text");
+            $setSelection(rangeSelection);
+          } else {
+            // Fallback: position at element level
+            const rangeSelection = $createRangeSelection();
+            rangeSelection.anchor.set(
+              replacementParagraph.getKey(),
+              0,
+              "element"
+            );
+            rangeSelection.focus.set(replacementParagraph.getKey(), 0, "element");
+            $setSelection(rangeSelection);
+          }
         } else {
           // Fallback: use safe cursor position
           const cursorPosition = findSafeCursorPosition(root, firstSpeakerLine);
@@ -374,6 +434,10 @@ export default function SpeakerLineDeletePlugin() {
         }
       });
 
+      // Note: $setSelection already triggers SELECTION_CHANGE_COMMAND automatically,
+      // so ToolbarPlugin will automatically re-read state and reset active speaker
+      // No need to manually dispatch it
+
       if (event) {
         event.preventDefault();
       }
@@ -382,19 +446,15 @@ export default function SpeakerLineDeletePlugin() {
 
     const unregisterBackspace = editor.registerCommand(
       KEY_BACKSPACE_COMMAND,
-      handleDelete,
+      handleBackspace,
       COMMAND_PRIORITY_HIGH
     );
 
-    const unregisterDelete = editor.registerCommand(
-      KEY_DELETE_COMMAND,
-      handleDelete,
-      COMMAND_PRIORITY_HIGH
-    );
+    // DELETE key should use normal Lexical behavior (don't handle speaker line deletion)
+    // No need to register DELETE command - let Lexical handle it normally
 
     return () => {
       unregisterBackspace();
-      unregisterDelete();
     };
   }, [editor]);
 
