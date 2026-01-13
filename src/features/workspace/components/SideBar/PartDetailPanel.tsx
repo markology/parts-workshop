@@ -2154,7 +2154,6 @@ theme-dark:shadow-none "
                                   <div
                                     className={`rounded-[10px]  bg-[var(--theme-card)] overflow-hidden`}
                                     style={{
-                                      height: "90px",
                                       padding: "10px",
                                     }}
                                   >
@@ -2162,6 +2161,7 @@ theme-dark:shadow-none "
                                       className={`whitespace-pre-wrap text-sm leading-relaxed overflow-hidden theme-dark:text-slate-300 theme-light:text-slate-700`}
                                       style={{
                                         height: "100%",
+                                        maxHeight: "70px",
                                       }}
                                     >
                                       {contentPreview}
