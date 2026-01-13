@@ -236,8 +236,10 @@ const PartDetailPanel = () => {
       if (activeSections.size === 0) return;
 
       // Check if we're at the bottom of the scroll container
-      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
-      
+      const isNearBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        50;
+
       if (isNearBottom && activeSections.has("relationships")) {
         setActiveSection("relationships");
         return;
@@ -253,7 +255,7 @@ const PartDetailPanel = () => {
           const rect = section.ref.current.getBoundingClientRect();
           const containerRect = container.getBoundingClientRect();
           const relativeTop = rect.top - containerRect.top;
-          
+
           // Prefer sections that are in the upper portion of the viewport
           if (relativeTop < topPosition && relativeTop >= -100) {
             topPosition = relativeTop;
@@ -285,7 +287,8 @@ const PartDetailPanel = () => {
     sections.forEach(({ ref, id }) => {
       if (!ref.current) return;
 
-      const options = id === "relationships" ? relationshipsObserverOptions : observerOptions;
+      const options =
+        id === "relationships" ? relationshipsObserverOptions : observerOptions;
 
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -304,7 +307,9 @@ const PartDetailPanel = () => {
 
     // Also listen to scroll events to catch edge cases
     const handleScroll = () => {
-      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 10;
+      const isAtBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        10;
       if (isAtBottom && relationshipsRef.current) {
         setActiveSection("relationships");
       } else {
@@ -341,7 +346,8 @@ const PartDetailPanel = () => {
     const data = partNode.data;
     const originalName = (data.name as string) || (data.label as string) || "";
     const originalScratchpad = (data.scratchpad as string) || "";
-    const originalPartType = (data.customPartType as string) || (data.partType as string) || "";
+    const originalPartType =
+      (data.customPartType as string) || (data.partType as string) || "";
     const originalAge = (data.age as string) || "Unknown";
     const originalGender = (data.gender as string) || "";
 
@@ -349,10 +355,19 @@ const PartDetailPanel = () => {
       tempName.trim() !== originalName.trim() ||
       tempScratchpad.trim() !== originalScratchpad.trim() ||
       tempPartType !== originalPartType ||
-      (tempAge === "" || tempAge === "Unknown" ? "" : tempAge.trim()) !== (originalAge === "Unknown" ? "" : originalAge.trim()) ||
+      (tempAge === "" || tempAge === "Unknown" ? "" : tempAge.trim()) !==
+        (originalAge === "Unknown" ? "" : originalAge.trim()) ||
       tempGender.trim() !== originalGender.trim()
     );
-  }, [partNode, selectedPartId, tempName, tempScratchpad, tempPartType, tempAge, tempGender]);
+  }, [
+    partNode,
+    selectedPartId,
+    tempName,
+    tempScratchpad,
+    tempPartType,
+    tempAge,
+    tempGender,
+  ]);
 
   // Cleanup hover timeout when editing mode changes or component unmounts
 
@@ -1782,8 +1797,8 @@ theme-dark:shadow-none "
                     </h3>
 
                     <div
-                      className="shadow-sm rounded-2xl theme-dark:bg-[rgb(42,46,50)] p-[20px]"
-                      style={subCardStyle}
+                      className=""
+                      // style={subCardStyle}
                     >
                       {isLoadingJournal ? (
                         <div
@@ -1840,7 +1855,7 @@ theme-dark:shadow-none "
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between">
+                          {/* <div className="flex items-center justify-between">
                             <span
                               className={`text-sm theme-dark:text-slate-300 theme-light:text-slate-600`}
                             >
@@ -1897,7 +1912,7 @@ theme-dark:shadow-none "
                                 <span>View All</span>
                               </button>
                             </div>
-                          </div>
+                          </div> */}
                           {/* Show only the 2 most recent entries */}
                           <div className="space-y-3">
                             {journalEntries.slice(0, 2).map((entry) => {
@@ -2015,7 +2030,7 @@ theme-dark:shadow-none "
                               return (
                                 <div
                                   key={entry.id}
-                                  className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow theme-light:bg-white bg-[var(--theme-part-detail-list-item-bg)]"
+                                  className="rounded-2xl p-5 shadow-sm shadow-inner hover:shadow-md transition-shadow bg-[var(--theme-surface)]"
                                   // style={subCardStyle}
                                 >
                                   {/* Header with dates and actions */}
@@ -2188,7 +2203,7 @@ theme-dark:shadow-none "
 
                                   {/* Content Preview */}
                                   <div
-                                    className={`rounded-[10px] theme-dark:bg-[#272b2f] theme-light:bg-[rgb(248_250_252/79%)] overflow-hidden shadow-inner`}
+                                    className={`rounded-[10px]  bg-[var(--theme-card)] overflow-hidden shadow-inner`}
                                     style={{
                                       height: "100px",
                                       padding: "10px",
@@ -2846,8 +2861,8 @@ theme-dark:shadow-none "
                             {/* Content Preview */}
                             <div
                               className={`rounded-[10px] theme-dark:bg-[#272b2f] theme-light:bg-[rgb(248_250_252/79%)] overflow-hidden shadow-inner`}
-                              style={{ 
-                                ...subCardStyle, 
+                              style={{
+                                ...subCardStyle,
                                 height: "100px",
                                 padding: "10px",
                               }}
