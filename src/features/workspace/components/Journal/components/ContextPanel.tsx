@@ -427,6 +427,34 @@ export default function ContextPanel({
           </section>
         )}
 
+        {data.fears && data.fears.length > 0 && (
+          <section className="space-y-2">
+            <p
+              className="text-xs font-semibold uppercase tracking-wide"
+              style={{ color: theme.textMuted }}
+            >
+              Key Fears
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {data.fears
+                .filter(Boolean)
+                .slice(0, 6)
+                .map((fear, idx) => (
+                  <li
+                    key={`${fear}-${idx}`}
+                    className="rounded-full px-3 py-1 text-xs font-medium shadow-sm"
+                    style={{
+                      backgroundColor: theme.surface,
+                      color: theme.textPrimary,
+                    }}
+                  >
+                    {fear}
+                  </li>
+                ))}
+            </ul>
+          </section>
+        )}
+
         {data.insights && data.insights.length > 0 && (
           <section className="space-y-2">
             <p
