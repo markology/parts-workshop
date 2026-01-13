@@ -204,10 +204,6 @@ const Landing = () => {
 
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-purple-50 border border-purple-200 text-purple-700">
-                <Sparkles className="w-4 h-4" />
-                Build self-awareness, visually
-              </div>
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight text-slate-900">
                 Map your inner landscape
                 <span className="block bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
@@ -221,11 +217,18 @@ const Landing = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
-                  href="#features"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-slate-300 text-base font-semibold text-slate-700 hover:bg-slate-50 transition-all hover:scale-105"
+                  href="/login"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-base font-semibold text-white hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  Sign up
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-base font-semibold text-slate-700 hover:bg-slate-50 transition-all hover:scale-105"
                   onClick={(e) => {
                     e.preventDefault();
-                    const element = document.getElementById("features");
+                    const element = document.getElementById("how-it-works");
                     if (element) {
                       element.scrollIntoView({
                         behavior: "smooth",
@@ -234,8 +237,8 @@ const Landing = () => {
                     }
                   }}
                 >
-                  Explore features
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <Play className="mr-2 w-5 h-5" />
+                  Watch introduction
                 </a>
               </div>
             </div>
