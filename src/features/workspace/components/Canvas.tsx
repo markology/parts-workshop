@@ -31,7 +31,9 @@ const Workspace = () => {
   const defaultBg = useMemo(() => theme.workspace, [theme.workspace]);
   const mapId = useWorkingStore((s) => s.mapId);
   const savedBgColor = useWorkingStore((s) => (s as any).workspaceBgColor);
-  const [workspaceBgColor, setWorkspaceBgColor] = useState(savedBgColor || defaultBg);
+  const [workspaceBgColor, setWorkspaceBgColor] = useState(
+    savedBgColor || defaultBg
+  );
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const colorButtonRef = useRef<HTMLButtonElement>(null);
@@ -77,10 +79,10 @@ const Workspace = () => {
 
   // Reset to theme default when activeTheme changes
   const prevActiveThemeRef = useRef(activeTheme);
-  
+
   useEffect(() => {
     const themeChanged = prevActiveThemeRef.current !== activeTheme;
-    
+
     // Only reset if theme actually changed
     if (themeChanged) {
       setWorkspaceBgColor(defaultBg);
@@ -96,7 +98,7 @@ const Workspace = () => {
   const prevSavedToStoreRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     const currentSaved = useWorkingStore.getState().workspaceBgColor;
-    
+
     // Only update if workspaceBgColor changed AND it's different from what we last saved
     if (workspaceBgColor !== prevSavedToStoreRef.current) {
       if (workspaceBgColor && workspaceBgColor !== defaultBg) {
@@ -129,7 +131,11 @@ const Workspace = () => {
   // Get gradient background for all themes, but allow custom colors
   const getBackgroundStyle = () => {
     // If user has selected a custom color, use it (even in dark mode)
-    if (workspaceBgColor && workspaceBgColor !== defaultBg && workspaceBgColor !== theme.workspace) {
+    if (
+      workspaceBgColor &&
+      workspaceBgColor !== defaultBg &&
+      workspaceBgColor !== theme.workspace
+    ) {
       return workspaceBgColor;
     }
     // Otherwise, use vignette effect for light mode, subtle gradient for dark mode
@@ -166,8 +172,14 @@ const Workspace = () => {
     if (!showColorPicker) return;
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node | null;
-      const insideButton = colorButtonRef.current && target instanceof Node && colorButtonRef.current.contains(target);
-      const insidePicker = colorPickerRef.current && target instanceof Node && colorPickerRef.current.contains(target);
+      const insideButton =
+        colorButtonRef.current &&
+        target instanceof Node &&
+        colorButtonRef.current.contains(target);
+      const insidePicker =
+        colorPickerRef.current &&
+        target instanceof Node &&
+        colorPickerRef.current.contains(target);
       if (insideButton) return; // button click is handled by its own onClick
       if (!insidePicker) {
         setShowColorPicker(false);
@@ -183,7 +195,8 @@ const Workspace = () => {
       setShowColorPicker(true);
     };
     window.addEventListener("open-theme-picker", handleOpenThemePicker);
-    return () => window.removeEventListener("open-theme-picker", handleOpenThemePicker);
+    return () =>
+      window.removeEventListener("open-theme-picker", handleOpenThemePicker);
   }, []);
 
   // Reset fitView when map changes
@@ -194,40 +207,54 @@ const Workspace = () => {
     }
   }, [mapId]);
 
-	// Component to call fitView on load, then zoom out
-	const FitViewOnLoad = () => {
-		const { fitView, getViewport, setCenter, screenToFlowPosition } = useReactFlow();
-    
-	useEffect(() => {
-	  if (hasFitViewRun.current) return;
-	  if (!nodes || nodes.length === 0) return; // wait until nodes exist
-	  // Wait briefly to allow measurements, then run once
-	  const fitTimer = setTimeout(() => {
-	    fitView();
-	    const postTimer = setTimeout(() => {
-	      const viewportAfterFit = getViewport();
-	      const screenCenter = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-	      const flowCenterAfterFit = screenToFlowPosition(screenCenter);
-	      const targetZoom = Math.max(viewportAfterFit.zoom * 0.75, 0.02);
-	      setCenter(flowCenterAfterFit.x - (250 / targetZoom), flowCenterAfterFit.y, { zoom: targetZoom, duration: 200 });
-	      hasFitViewRun.current = true;
-	    }, 300);
-	    return () => clearTimeout(postTimer);
-	  }, 200);
-	  return () => clearTimeout(fitTimer);
-	}, [nodes.length]);
-    
+  // Component to call fitView on load, then zoom out
+  const FitViewOnLoad = () => {
+    const { fitView, getViewport, setCenter, screenToFlowPosition } =
+      useReactFlow();
+
+    useEffect(() => {
+      if (hasFitViewRun.current) return;
+      if (!nodes || nodes.length === 0) return; // wait until nodes exist
+      // Wait briefly to allow measurements, then run once
+      const fitTimer = setTimeout(() => {
+        fitView();
+        const postTimer = setTimeout(() => {
+          const viewportAfterFit = getViewport();
+          const screenCenter = {
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+          };
+          const flowCenterAfterFit = screenToFlowPosition(screenCenter);
+          const targetZoom = Math.max(viewportAfterFit.zoom * 0.75, 0.02);
+          setCenter(
+            flowCenterAfterFit.x - 250 / targetZoom,
+            flowCenterAfterFit.y,
+            { zoom: targetZoom, duration: 200 }
+          );
+          hasFitViewRun.current = true;
+        }, 300);
+        return () => clearTimeout(postTimer);
+      }, 200);
+      return () => clearTimeout(fitTimer);
+    }, [nodes.length]);
+
     return null;
   };
-
 
   // bg-[image:var(--theme-workspace-bg)]
   return (
     <div id="canvas" className="h-full flex-grow relative ">
       {!selectedPartId && (
-        <div 
-          className="fixed" 
-          style={{ left: "146px", bottom: "15px", zIndex: 75, pointerEvents: "auto", display: "flex", alignItems: "center" }}
+        <div
+          className="fixed"
+          style={{
+            left: "146px",
+            bottom: "15px",
+            zIndex: 75,
+            pointerEvents: "auto",
+            display: "flex",
+            alignItems: "center",
+          }}
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
         >
@@ -245,7 +272,7 @@ const Workspace = () => {
               w-9 h-9 rounded-md transition hover:scale-105 border flex items-center justify-center
               theme-dark:bg-[#2a2e32]
               bg-white
-              ${showColorPicker ? 'theme-light:bg-[image:var(--theme-jazz-gradient)] theme-dark:bg-[var(--theme-sub-button-hover)] scale-105' : ''}
+              ${showColorPicker ? "theme-light:bg-[image:var(--theme-jazz-gradient)] theme-dark:bg-[var(--theme-sub-button-hover)] scale-105" : ""}
               theme-light:hover:bg-[image:var(--theme-jazz-gradient)]
             theme-dark:hover:bg-[var(--theme-sub-button-hover)]
               shadow-sm theme-dark:shadow-[0_12px_28px_rgba(0,0,0,0.45)] hover:bg-[var(--theme-component-hover)]
@@ -267,161 +294,194 @@ const Workspace = () => {
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             >
-            <div className="flex items-center justify-between pb-2 px-1 mb-3">
-              <div className="flex items-center gap-2 text-sm" style={{ color: theme.textSecondary }}>
-                <Paintbrush className="w-4 h-4" />
-                <span>Theme</span>
+              <div className="flex items-center justify-between pb-2 px-1 mb-3">
+                <div
+                  className="flex items-center gap-2 text-sm"
+                  style={{ color: theme.textSecondary }}
+                >
+                  <Paintbrush className="w-4 h-4" />
+                  <span>Theme</span>
+                </div>
               </div>
-            </div>
-            
-            {/* Theme Selection: Light, Dark, Cherry */}
-            <div className="space-y-2 mb-4">
-              {[
-                { name: "light", label: "Light", theme: "light" as ActiveTheme, comingSoon: false },
-                { name: "dark", label: "Dark", theme: "dark" as ActiveTheme, comingSoon: false },
-                { name: "cherry", label: "Cherry", theme: "cherry" as ActiveTheme, comingSoon: true },
-              ].map((themeOption) => {
-                // Check if this theme option is currently active
-                const isActive = activeTheme === themeOption.theme;
-                const previewTheme = getTheme(themeOption.theme);
-                
-                const previewSwatches = [
-                  previewTheme.workspace,
-                  previewTheme.card,
-                  previewTheme.accent,
-                ];
-                
-                return (
-                  <button
-                    key={themeOption.name}
-                    disabled={themeOption.comingSoon}
-                    aria-disabled={themeOption.comingSoon}
-                    onClick={async () => {
-                      if (themeOption.comingSoon) return;
-                      
-                      console.log(`[Canvas] Theme option clicked:`, {
-                        themeOption: themeOption.theme,
-                        label: themeOption.label,
-                        mapId,
-                        currentActiveTheme: activeTheme,
-                        previewThemeWorkspace: previewTheme.workspace
-                      });
-                      
-                      // Set workspace-specific theme (do NOT persist as global)
-                      setActiveTheme(themeOption.theme, false);
-                      setWorkspaceBgColor(previewTheme.workspace);
-                      
-                      // Save workspace theme to map immediately
-                      if (mapId) {
-                        const { nodes, edges, sidebarImpressions } = useWorkingStore.getState();
-                        
-                        const sidebarImpressionsData = {
-                          ...sidebarImpressions,
-                          _metadata: {
-                            ...(typeof sidebarImpressions === "object" &&
-                            "_metadata" in sidebarImpressions
-                              ? (sidebarImpressions as any)._metadata
-                              : {}),
+
+              {/* Theme Selection: Light, Dark, Cherry */}
+              <div className="space-y-2 mb-4">
+                {[
+                  {
+                    name: "light",
+                    label: "Light",
+                    theme: "light" as ActiveTheme,
+                    comingSoon: false,
+                  },
+                  {
+                    name: "dark",
+                    label: "Dark",
+                    theme: "dark" as ActiveTheme,
+                    comingSoon: false,
+                  },
+                  {
+                    name: "cherry",
+                    label: "Cherry",
+                    theme: "cherry" as ActiveTheme,
+                    comingSoon: true,
+                  },
+                ].map((themeOption) => {
+                  // Check if this theme option is currently active
+                  const isActive = activeTheme === themeOption.theme;
+                  const previewTheme = getTheme(themeOption.theme);
+
+                  const previewSwatches = [
+                    previewTheme.workspace,
+                    previewTheme.card,
+                    previewTheme.accent,
+                  ];
+
+                  return (
+                    <button
+                      key={themeOption.name}
+                      disabled={themeOption.comingSoon}
+                      aria-disabled={themeOption.comingSoon}
+                      onClick={async () => {
+                        if (themeOption.comingSoon) return;
+
+                        console.log(`[Canvas] Theme option clicked:`, {
+                          themeOption: themeOption.theme,
+                          label: themeOption.label,
+                          mapId,
+                          currentActiveTheme: activeTheme,
+                          previewThemeWorkspace: previewTheme.workspace,
+                        });
+
+                        // Set workspace-specific theme (do NOT persist as global)
+                        setActiveTheme(themeOption.theme, false);
+                        setWorkspaceBgColor(previewTheme.workspace);
+
+                        // Save workspace theme to map immediately
+                        if (mapId) {
+                          const { nodes, edges, sidebarImpressions } =
+                            useWorkingStore.getState();
+
+                          const sidebarImpressionsData = {
+                            ...sidebarImpressions,
+                            _metadata: {
+                              ...(typeof sidebarImpressions === "object" &&
+                              "_metadata" in sidebarImpressions
+                                ? (sidebarImpressions as any)._metadata
+                                : {}),
+                              workspaceBgColor: previewTheme.workspace,
+                              activeTheme: themeOption.theme,
+                            },
+                          };
+
+                          const savePayload = {
+                            nodes,
+                            edges,
+                            sidebarImpressions: sidebarImpressionsData,
                             workspaceBgColor: previewTheme.workspace,
                             activeTheme: themeOption.theme,
-                          },
-                        };
-                        
-                        const savePayload = {
-                          nodes,
-                          edges,
-                          sidebarImpressions: sidebarImpressionsData,
-                          workspaceBgColor: previewTheme.workspace,
-                          activeTheme: themeOption.theme,
-                        };
-                        
-                        console.log(`[Canvas] Saving workspace theme to API:`, {
-                          mapId,
-                          activeTheme: themeOption.theme,
-                          payload: savePayload
-                        });
-                        
-                        try {
-                          const response = await fetch(`/api/maps/${mapId}`, {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(savePayload),
-                          });
-                          const result = await response.json();
-                          console.log(`[Canvas] Workspace theme saved successfully:`, {
-                            theme: themeOption.label,
-                            response: result
-                          });
-                        } catch (error) {
-                          console.error("[Canvas] Failed to save workspace theme:", error);
+                          };
+
+                          console.log(
+                            `[Canvas] Saving workspace theme to API:`,
+                            {
+                              mapId,
+                              activeTheme: themeOption.theme,
+                              payload: savePayload,
+                            }
+                          );
+
+                          try {
+                            const response = await fetch(`/api/maps/${mapId}`, {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(savePayload),
+                            });
+                            const result = await response.json();
+                            console.log(
+                              `[Canvas] Workspace theme saved successfully:`,
+                              {
+                                theme: themeOption.label,
+                                response: result,
+                              }
+                            );
+                          } catch (error) {
+                            console.error(
+                              "[Canvas] Failed to save workspace theme:",
+                              error
+                            );
+                          }
                         }
-                      }
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm rounded-2xl flex items-center gap-3 border transition-all"
-                    style={{
-                      backgroundColor: isActive ? theme.elevated : theme.surface,
-                      borderColor: theme.border,
-                      color: theme.textPrimary,
-                      boxShadow: "none",
-                      opacity: themeOption.comingSoon ? 0.55 : 1,
-                      cursor: themeOption.comingSoon ? "not-allowed" : "pointer",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive && !themeOption.comingSoon) {
-                        e.currentTarget.style.backgroundColor = theme.buttonHover;
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive && !themeOption.comingSoon) {
-                        e.currentTarget.style.backgroundColor = theme.surface;
-                      }
-                    }}
-                  >
-                    <div className="flex gap-1.5">
-                      {previewSwatches.map((color, idx) => (
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm rounded-2xl flex items-center gap-3 border transition-all"
+                      style={{
+                        backgroundColor: isActive
+                          ? theme.elevated
+                          : theme.surface,
+                        borderColor: theme.border,
+                        color: theme.textPrimary,
+                        boxShadow: "none",
+                        opacity: themeOption.comingSoon ? 0.55 : 1,
+                        cursor: themeOption.comingSoon
+                          ? "not-allowed"
+                          : "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive && !themeOption.comingSoon) {
+                          e.currentTarget.style.backgroundColor =
+                            theme.buttonHover;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive && !themeOption.comingSoon) {
+                          e.currentTarget.style.backgroundColor = theme.surface;
+                        }
+                      }}
+                    >
+                      <div className="flex gap-1.5">
+                        {previewSwatches.map((color, idx) => (
+                          <span
+                            key={`${themeOption.name}-${idx}`}
+                            className="h-7 w-4 rounded-full border"
+                            style={{
+                              borderColor: theme.border,
+                              backgroundColor: color,
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <span className="font-semibold">
+                          {themeOption.label}
+                        </span>
+                      </div>
+                      {themeOption.comingSoon ? (
                         <span
-                          key={`${themeOption.name}-${idx}`}
-                          className="h-7 w-4 rounded-full border"
+                          className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
                           style={{
+                            backgroundColor: "rgba(148, 163, 184, 0.15)",
+                            color: theme.textSecondary,
                             borderColor: theme.border,
-                            backgroundColor: color,
                           }}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex flex-col flex-1 min-w-0">
-                      <span className="font-semibold">
-                        {themeOption.label}
-                      </span>
-                    </div>
-                    {themeOption.comingSoon ? (
-                      <span
-                        className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
-                        style={{
-                          backgroundColor: "rgba(148, 163, 184, 0.15)",
-                          color: theme.textSecondary,
-                          borderColor: theme.border,
-                        }}
-                      >
-                        Coming soon
-                      </span>
-                    ) : isActive ? (
-                      <span
-                        className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
-                        style={{
-                          backgroundColor: theme.accent,
-                          color: theme.buttonText,
-                          borderColor: theme.border,
-                        }}
-                      >
-                        Current
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
+                        >
+                          Coming soon
+                        </span>
+                      ) : isActive ? (
+                        <span
+                          className="text-[10px] font-semibold px-2 py-1 rounded-full uppercase tracking-wide border flex-shrink-0"
+                          style={{
+                            backgroundColor: theme.accent,
+                            color: theme.buttonText,
+                            borderColor: theme.border,
+                          }}
+                        >
+                          Current
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
           )}
         </div>
       )}
@@ -437,25 +497,42 @@ const Workspace = () => {
           onConnect={onConnect}
           isValidConnection={isValidConnection}
           onConnectEnd={(event, connection) => {
-            if (connection && (event instanceof MouseEvent || (event as any)?.nativeEvent instanceof MouseEvent)) {
+            if (
+              connection &&
+              (event instanceof MouseEvent ||
+                (event as any)?.nativeEvent instanceof MouseEvent)
+            ) {
               const isValid = isValidConnection(connection);
               if (!isValid) {
-                const sourceNode = nodes.find(n => n.id === connection.source);
-                const targetNode = nodes.find(n => n.id === connection.target);
-                
+                const sourceNode = nodes.find(
+                  (n) => n.id === connection.source
+                );
+                const targetNode = nodes.find(
+                  (n) => n.id === connection.target
+                );
+
                 let message = "These nodes cannot be connected.";
-                
+
                 if (sourceNode && targetNode) {
                   if (sourceNode.type !== "part") {
-                    message = "Only Part nodes can be connected to Tensions or Interactions.";
-                  } else if (targetNode.type !== "tension" && targetNode.type !== "interaction") {
-                    message = "Parts can only connect to Tension or Interaction nodes.";
+                    message =
+                      "Only Part nodes can be connected to Tensions or Interactions.";
+                  } else if (
+                    targetNode.type !== "tension" &&
+                    targetNode.type !== "interaction"
+                  ) {
+                    message =
+                      "Parts can only connect to Tension or Interaction nodes.";
                   } else {
-                    message = "This part is already connected to this relationship.";
+                    message =
+                      "This part is already connected to this relationship.";
                   }
                 }
-                
-                const mouseEvent = event instanceof MouseEvent ? event : (event as any)?.nativeEvent as MouseEvent;
+
+                const mouseEvent =
+                  event instanceof MouseEvent
+                    ? event
+                    : ((event as any)?.nativeEvent as MouseEvent);
                 if (mouseEvent) {
                   setConnectionTooltip({
                     show: true,
@@ -463,9 +540,14 @@ const Workspace = () => {
                     x: mouseEvent.clientX,
                     y: mouseEvent.clientY,
                   });
-                  
+
                   setTimeout(() => {
-                    setConnectionTooltip({ show: false, message: "", x: 0, y: 0 });
+                    setConnectionTooltip({
+                      show: false,
+                      message: "",
+                      x: 0,
+                      y: 0,
+                    });
                   }, 3000);
                 }
               }
@@ -478,34 +560,27 @@ const Workspace = () => {
           nodeTypes={nodeTypes}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           minZoom={0}
-          deleteKeyCode="Delete" 
+          deleteKeyCode="Delete"
           maxZoom={2}
         >
           <FitViewOnLoad />
-          <Background
-            color={theme.workspace}
-            gap={32}
-            size={1.2}
-          />
+          <Background color={theme.workspace} gap={32} size={1.2} />
           <Controls
             className="absolute bottom-4 left-4"
             orientation="horizontal"
             showInteractive={false}
-            style={{ flexDirection: 'row-reverse', color: theme.textPrimary }}
+            style={{ flexDirection: "row-reverse", color: theme.textPrimary }}
           />
           {connectionTooltip.show && (
             <div
-              className="fixed z-50 px-4 py-3 rounded-lg shadow-lg max-w-xs pointer-events-none"
+              className="fixed z-50 px-4 py-3 rounded-lg shadow-lg max-w-xs pointer-events-none bg-[var(--theme-surface)] text-[var(--theme-text-primary)]"
               style={{
                 left: connectionTooltip.x + 10,
                 top: connectionTooltip.y - 10,
-                background: theme.card,
-                color: theme.textPrimary,
-                border: `1px solid ${theme.border}`,
                 transform: "translateY(-100%)",
               }}
             >
-              <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>
+              <p className="text-sm leading-relaxed text-[var(--theme-text-primary)]">
                 {connectionTooltip.message}
               </p>
             </div>
@@ -529,16 +604,12 @@ const Workspace = () => {
           maxZoom={2}
         >
           <FitViewOnLoad />
-          <Background
-            color={'green'}
-            gap={32}
-            size={1.2}
-          />
+          <Background color={"green"} gap={32} size={1.2} />
           <Controls
             className="absolute bottom-4 left-4"
             orientation="horizontal"
             showInteractive={false}
-            style={{ flexDirection: 'row-reverse', color: theme.textPrimary }}
+            style={{ flexDirection: "row-reverse", color: theme.textPrimary }}
           />
         </ReactFlow>
       )}
@@ -559,15 +630,20 @@ const Workspace = () => {
           border: 1px solid ${theme.border} !important;
           background: ${theme.button} !important;
           color: ${theme.textPrimary} !important;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-          transition: transform 150ms ease, background 150ms ease, color 150ms ease;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+          transition:
+            transform 150ms ease,
+            background 150ms ease,
+            color 150ms ease;
         }
-        ${activeTheme === "dark" ? `
+        ${activeTheme === "dark"
+          ? `
         .react-flow__controls button {
           border: none !important;
           box-shadow: 0 12px 28px rgba(0,0,0,0.45) !important;
         }
-        ` : ''}
+        `
+          : ""}
         .react-flow__controls button:hover {
           transform: scale(1.05);
           background: ${theme.buttonHover} !important;
