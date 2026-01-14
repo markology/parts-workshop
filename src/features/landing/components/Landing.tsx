@@ -19,7 +19,7 @@ import Image from "next/image";
 import GridMotion from "./GridMotion";
 // import { InfiniteCarousel } from "./InfiniteCarousel";
 import { InfiniteCarouselCSS } from "./InfiniteCarouselCSS";
-import { useRef } from "react";
+import { useRef, useEffect, useState, useLayoutEffect } from "react";
 import {
   motion,
   useMotionValue,
@@ -177,12 +177,24 @@ function ParallaxFeature({
 
 function TiltedBrowserFrame() {
   const ref = useRef<HTMLDivElement>(null);
-  const rotateX = useSpring(useMotionValue(0), {
+  const [isHovered, setIsHovered] = useState(false);
+  const [initialAnimationDone, setInitialAnimationDone] = useState(false);
+
+  // Initialize with tilt as if cursor is on middle left
+  // Simulate: offsetX = -width/2 (far left), offsetY = 0 (middle)
+  const initialRotationY = -8; // Tilt left (negative offsetX)
+  const initialRotationX = 0; // No vertical tilt (offsetY = 0)
+
+  // Use motion values directly initialized with initial tilt to prevent flash
+  const rotateXValue = useMotionValue(initialRotationX);
+  const rotateYValue = useMotionValue(initialRotationY);
+
+  const rotateX = useSpring(rotateXValue, {
     damping: 30,
     stiffness: 100,
     mass: 2,
   });
-  const rotateY = useSpring(useMotionValue(0), {
+  const rotateY = useSpring(rotateYValue, {
     damping: 30,
     stiffness: 100,
     mass: 2,
@@ -193,8 +205,30 @@ function TiltedBrowserFrame() {
     mass: 2,
   });
 
+  // Release after 1.5 seconds, or immediately if hovered
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (!isHovered) {
+        rotateXValue.set(0);
+        rotateYValue.set(0);
+        setInitialAnimationDone(true);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, [isHovered, rotateXValue, rotateYValue]);
+
+  // If hovered, immediately release and let mouse control
+  useEffect(() => {
+    if (isHovered && !initialAnimationDone) {
+      rotateXValue.set(0);
+      rotateYValue.set(0);
+      setInitialAnimationDone(true);
+    }
+  }, [isHovered, initialAnimationDone, rotateXValue, rotateYValue]);
+
   function handleMouse(e: React.MouseEvent<HTMLDivElement>) {
-    if (!ref.current) return;
+    if (!ref.current || !initialAnimationDone) return;
 
     const rect = ref.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left - rect.width / 2;
@@ -203,15 +237,17 @@ function TiltedBrowserFrame() {
     const rotationX = (offsetY / (rect.height / 2)) * -8;
     const rotationY = (offsetX / (rect.width / 2)) * 8;
 
-    rotateX.set(rotationX);
-    rotateY.set(rotationY);
+    rotateXValue.set(rotationX);
+    rotateYValue.set(rotationY);
   }
 
   function handleMouseEnter() {
+    setIsHovered(true);
     scale.set(1.05);
   }
 
   function handleMouseLeave() {
+    setIsHovered(false);
     scale.set(1);
     rotateX.set(0);
     rotateY.set(0);

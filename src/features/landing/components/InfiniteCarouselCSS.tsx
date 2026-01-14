@@ -20,7 +20,7 @@ export function InfiniteCarouselCSS({
   radius?: number;
 }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const [duration, setDuration] = useState(20);
+  const [duration, setDuration] = useState<number | null>(120.575);
 
   const items = useMemo(() => [...images, ...images], [images]);
 
@@ -75,7 +75,10 @@ export function InfiniteCarouselCSS({
           gap,
           alignItems: "center",
           width: "max-content",
-          animation: `marquee ${duration}s linear infinite`,
+          animation:
+            duration !== null
+              ? `marquee ${duration}s linear infinite`
+              : undefined,
           animationDirection: dirSign === 1 ? "normal" : "reverse",
         }}
         className={pauseOnHover ? "marquee-hover-pause" : undefined}
