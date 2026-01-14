@@ -398,9 +398,9 @@ const Landing = () => {
       <section className="relative py-32 px-6 bg-gradient-to-b from-purple-100 via-pink-100 to-blue-100">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900 leading-tight">
               Powerful features,
-              <span className="block bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent pb-2 pt-1">
                 beautifully designed
               </span>
             </h2>
