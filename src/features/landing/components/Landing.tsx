@@ -19,6 +19,8 @@ import Image from "next/image";
 import GridMotion from "./GridMotion";
 // import { InfiniteCarousel } from "./InfiniteCarousel";
 import { InfiniteCarouselCSS } from "./InfiniteCarouselCSS";
+import { useRef } from "react";
+import { motion, useMotionValue, useSpring } from "motion/react";
 
 const partImages = [
   "binge_eating",
@@ -26,6 +28,7 @@ const partImages = [
   "abandonment",
 
   "addict",
+  "narcissistic",
 
   "body_dysmorphic",
   "rejected",
@@ -37,7 +40,6 @@ const partImages = [
   "limerence",
   "lonely",
   "melancholy",
-  "narcissistic",
   "ocd",
   "confused",
   "overachiever",
@@ -128,6 +130,112 @@ const gridItems = Array.from({ length: 28 }, (_, index) => {
   return `parts/${partName}.png`;
 });
 
+function TiltedBrowserFrame() {
+  const ref = useRef<HTMLDivElement>(null);
+  const rotateX = useSpring(useMotionValue(0), {
+    damping: 30,
+    stiffness: 100,
+    mass: 2,
+  });
+  const rotateY = useSpring(useMotionValue(0), {
+    damping: 30,
+    stiffness: 100,
+    mass: 2,
+  });
+  const scale = useSpring(1, {
+    damping: 30,
+    stiffness: 100,
+    mass: 2,
+  });
+
+  function handleMouse(e: React.MouseEvent<HTMLDivElement>) {
+    if (!ref.current) return;
+
+    const rect = ref.current.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left - rect.width / 2;
+    const offsetY = e.clientY - rect.top - rect.height / 2;
+
+    const rotationX = (offsetY / (rect.height / 2)) * -8;
+    const rotationY = (offsetX / (rect.width / 2)) * 8;
+
+    rotateX.set(rotationX);
+    rotateY.set(rotationY);
+  }
+
+  function handleMouseEnter() {
+    scale.set(1.05);
+  }
+
+  function handleMouseLeave() {
+    scale.set(1);
+    rotateX.set(0);
+    rotateY.set(0);
+  }
+
+  return (
+    <div className="w-[50vw] m-[-75px] [perspective:800px]">
+      <motion.div
+        ref={ref}
+        className="rounded-lg overflow-hidden shadow-2xl bg-white [transform-style:preserve-3d]"
+        style={{
+          rotateX,
+          rotateY,
+          scale,
+          willChange: "transform",
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
+          WebkitFontSmoothing: "antialiased",
+        }}
+        onMouseMove={handleMouse}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Browser Frame */}
+        <div className="flex flex-col">
+          {/* Browser Controls Bar */}
+          <div
+            className="flex items-center gap-1.5 px-2 h-4 bg-slate-100 border-b border-slate-200"
+            style={{ height: "16px" }}
+          >
+            <div className="flex gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+            </div>
+          </div>
+          {/* Image Content */}
+          <div
+            className="overflow-hidden"
+            style={{
+              outline: "none",
+              border: "none",
+              boxShadow: "none",
+            }}
+          >
+            <Image
+              src="/assets/workspace_square.png"
+              alt="Workspace"
+              width={1200}
+              height={900}
+              className="h-auto"
+              quality={100}
+              unoptimized
+              style={{
+                outline: "none",
+                border: "none",
+                boxShadow: "none",
+                display: "block",
+                width: "100%",
+                maxWidth: "1400px",
+              }}
+            />
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 const Landing = () => {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900 overflow-hidden">
@@ -142,7 +250,7 @@ const Landing = () => {
 
       {/* Hero Section - Full Width */}
       <section className="relative min-h-screen flex items-center justify-center px-6 py-2 bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100">
-        <div className="max-w-7xl mx-auto mt-0 w-full">
+        <div className="max-w-7xl mx-auto mt-0 w-full pb-[60px]">
           {/* Header integrated into first section */}
           <div className="relative z-50 w-full mb-16">
             <div className="flex items-center justify-between">
@@ -207,14 +315,14 @@ const Landing = () => {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 items-center">
-            <div className="space-y-8">
+            <div className="space-y-8 w-[calc(50vw-75px)]">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight text-slate-900">
                 Map your inner landscape
                 <span className="block bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
                   with clarity
                 </span>
               </h1>
-              <p className="text-xl text-slate-600 leading-relaxed max-w-2xl">
+              <p className="text-xl text-slate-600 leading-relaxed max-w-2xl pr-[100px]">
                 A modern workspace for mapping your parts, tensions, and
                 insights. Capture impressions, connect relationships, and
                 journal directly on an infinite canvas.
@@ -248,71 +356,21 @@ const Landing = () => {
             </div>
 
             {/* Workspace Image */}
-            <div className="w-full">
-              <div
-                className="rounded-lg overflow-hidden shadow-2xl bg-white"
-                style={{
-                  willChange: "transform",
-                  backfaceVisibility: "hidden",
-                  WebkitBackfaceVisibility: "hidden",
-                  WebkitFontSmoothing: "antialiased",
-                }}
-              >
-                {/* Browser Frame */}
-                <div className="flex flex-col">
-                  {/* Browser Controls Bar */}
-                  <div
-                    className="flex items-center gap-1.5 px-2 h-4 bg-slate-100 border-b border-slate-200"
-                    style={{ height: "16px" }}
-                  >
-                    <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
-                    </div>
-                  </div>
-                  {/* Image Content */}
-                  <div
-                    className="overflow-hidden"
-                    style={{
-                      outline: "none",
-                      border: "none",
-                      boxShadow: "none",
-                    }}
-                  >
-                    <Image
-                      src="/assets/workspace_square.png"
-                      alt="Workspace"
-                      width={1200}
-                      height={900}
-                      className="h-auto"
-                      quality={100}
-                      unoptimized
-                      style={{
-                        outline: "none",
-                        border: "none",
-                        boxShadow: "none",
-                        display: "block",
-                        width: "100%",
-                        maxWidth: "1400px",
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* <div className="w-[calc(50vw+75px)]"> */}
+            <TiltedBrowserFrame />
+            {/* </div> */}
           </div>
         </div>
       </section>
 
       {/* Part Gallery - Full Width Slider */}
-      <section className="relative py-32 px-0 bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 overflow-hidden">
+      <section className="relative py-32 px-0 bg-gradient-to-br from-[#0b1026] via-[#7c3aed] to-[#ff4fd8] overflow-hidden">
         <div className="w-full">
           <div className="text-center mb-20">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white">
               Explore your parts
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-xl text-white/85 max-w-3xl mx-auto">
               Each part has its own story, its own needs, and its own place in
               your inner landscape
             </p>
