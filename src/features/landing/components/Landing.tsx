@@ -20,7 +20,13 @@ import GridMotion from "./GridMotion";
 // import { InfiniteCarousel } from "./InfiniteCarousel";
 import { InfiniteCarouselCSS } from "./InfiniteCarouselCSS";
 import { useRef } from "react";
-import { motion, useMotionValue, useSpring } from "motion/react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useScroll,
+  useTransform,
+} from "motion/react";
 
 const partImages = [
   "binge_eating",
@@ -129,6 +135,45 @@ const gridItems = Array.from({ length: 28 }, (_, index) => {
   const partName = partImages[index % partImages.length];
   return `parts/${partName}.png`;
 });
+
+function ParallaxFeature({
+  children,
+  direction = "left",
+}: {
+  children: React.ReactNode;
+  direction?: "left" | "right";
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "center 0.5"],
+  });
+
+  const x = useTransform(
+    scrollYProgress,
+    [0, 0.7, 1],
+    direction === "left"
+      ? [-60, 0, 0] // Start from left, finish at 70% progress
+      : [60, 0, 0] // Start from right, finish at 70% progress
+  );
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 0.2, 0.5, 1],
+    [0, 0.3, 1, 1]
+  );
+
+  return (
+    <motion.div
+      ref={ref}
+      style={{
+        x,
+        opacity,
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function TiltedBrowserFrame() {
   const ref = useRef<HTMLDivElement>(null);
@@ -413,158 +458,182 @@ const Landing = () => {
           <div className="space-y-24">
             {/* Part Details */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <h3 className="text-3xl font-bold text-slate-900">
-                  Deep part exploration
-                </h3>
-                <p className="text-lg text-slate-600 leading-relaxed">
-                  Dive into each part's unique characteristics. View needs,
-                  fears, impressions, and relationships all in one place.
-                  Understand how your parts interact and what they need to feel
-                  safe and heard.
-                </p>
-              </div>
-              <div>
-                <Image
-                  src="/assets/part_details.png"
-                  alt="Part Details"
-                  width={1200}
-                  height={900}
-                  className="w-full h-auto shadow-2xl"
-                  quality={100}
-                  unoptimized
-                  style={{
-                    maxHeight: "600px",
-                    objectFit: "contain",
-                    borderRadius: "18px",
-                  }}
-                />
-              </div>
+              <ParallaxFeature direction="left">
+                <div className="space-y-6">
+                  <h3 className="text-3xl font-bold text-slate-900">
+                    Deep part exploration
+                  </h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">
+                    Dive into each part's unique characteristics. View needs,
+                    fears, impressions, and relationships all in one place.
+                    Understand how your parts interact and what they need to
+                    feel safe and heard.
+                  </p>
+                </div>
+              </ParallaxFeature>
+              <ParallaxFeature direction="right">
+                <div>
+                  <Image
+                    src="/assets/part_details.png"
+                    alt="Part Details"
+                    width={1200}
+                    height={900}
+                    className="w-full h-auto shadow-2xl"
+                    quality={100}
+                    unoptimized
+                    style={{
+                      maxHeight: "600px",
+                      objectFit: "contain",
+                      borderRadius: "18px",
+                    }}
+                  />
+                </div>
+              </ParallaxFeature>
             </div>
 
             {/* Text Thread */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="order-2 lg:order-1">
-                <Image
-                  src="/assets/text_thread.png"
-                  alt="Text Thread"
-                  width={1200}
-                  height={900}
-                  className="w-full h-auto shadow-2xl"
-                  quality={100}
-                  unoptimized
-                  style={{
-                    maxHeight: "600px",
-                    objectFit: "contain",
-                    borderRadius: "18px",
-                  }}
-                />
+                <ParallaxFeature direction="left">
+                  <Image
+                    src="/assets/text_thread.png"
+                    alt="Text Thread"
+                    width={1200}
+                    height={900}
+                    className="w-full h-auto shadow-2xl"
+                    quality={100}
+                    unoptimized
+                    style={{
+                      maxHeight: "600px",
+                      objectFit: "contain",
+                      borderRadius: "18px",
+                    }}
+                  />
+                </ParallaxFeature>
               </div>
-              <div className="order-1 lg:order-2 space-y-6">
-                <h3 className="text-3xl font-bold text-slate-900">
-                  Conversational journaling
-                </h3>
-                <p className="text-lg text-slate-600 leading-relaxed">
-                  Capture dialogues between parts in a natural, thread-based
-                  format. See conversations unfold as they happen, with each
-                  part's voice clearly represented. Perfect for IFS sessions and
-                  inner work.
-                </p>
+              <div className="order-1 lg:order-2">
+                <ParallaxFeature direction="right">
+                  <div className="space-y-6">
+                    <h3 className="text-3xl font-bold text-slate-900">
+                      Conversational journaling
+                    </h3>
+                    <p className="text-lg text-slate-600 leading-relaxed">
+                      Capture dialogues between parts in a natural, thread-based
+                      format. See conversations unfold as they happen, with each
+                      part's voice clearly represented. Perfect for IFS sessions
+                      and inner work.
+                    </p>
+                  </div>
+                </ParallaxFeature>
               </div>
             </div>
 
             {/* Normal Journal */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <h3 className="text-3xl font-bold text-slate-900">
-                  Rich text journaling
-                </h3>
-                <p className="text-lg text-slate-600 leading-relaxed">
-                  Write freely with a powerful rich text editor. Format your
-                  thoughts, add structure, and create detailed entries that
-                  capture the full depth of your inner work. Link entries to
-                  specific parts or keep them global.
-                </p>
-              </div>
-              <div>
-                <Image
-                  src="/assets/journal_lonely.png"
-                  alt="Journal Lonely"
-                  width={1200}
-                  height={900}
-                  className="w-full h-auto shadow-2xl"
-                  quality={100}
-                  unoptimized
-                  style={{
-                    maxHeight: "600px",
-                    objectFit: "contain",
-                    borderRadius: "18px",
-                  }}
-                />
-              </div>
+              <ParallaxFeature direction="left">
+                <div className="space-y-6">
+                  <h3 className="text-3xl font-bold text-slate-900">
+                    Rich text journaling
+                  </h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">
+                    Write freely with a powerful rich text editor. Format your
+                    thoughts, add structure, and create detailed entries that
+                    capture the full depth of your inner work. Link entries to
+                    specific parts or keep them global.
+                  </p>
+                </div>
+              </ParallaxFeature>
+              <ParallaxFeature direction="right">
+                <div>
+                  <Image
+                    src="/assets/journal_lonely.png"
+                    alt="Journal Lonely"
+                    width={1200}
+                    height={900}
+                    className="w-full h-auto shadow-2xl"
+                    quality={100}
+                    unoptimized
+                    style={{
+                      maxHeight: "600px",
+                      objectFit: "contain",
+                      borderRadius: "18px",
+                    }}
+                  />
+                </div>
+              </ParallaxFeature>
             </div>
 
             {/* Studio Assistant */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="order-2 lg:order-1 flex justify-center">
-                <Image
-                  src="/assets/studio_assistant.png"
-                  alt="Studio Assistant"
-                  width={1200}
-                  height={900}
-                  className="h-auto shadow-2xl"
-                  quality={100}
-                  unoptimized
-                  style={{
-                    height: "500px",
-                    objectFit: "contain",
-                    width: "auto",
-                    borderRadius: "26px",
-                  }}
-                />
+                <ParallaxFeature direction="left">
+                  <Image
+                    src="/assets/studio_assistant.png"
+                    alt="Studio Assistant"
+                    width={1200}
+                    height={900}
+                    className="h-auto shadow-2xl"
+                    quality={100}
+                    unoptimized
+                    style={{
+                      height: "500px",
+                      objectFit: "contain",
+                      width: "auto",
+                      borderRadius: "26px",
+                    }}
+                  />
+                </ParallaxFeature>
               </div>
-              <div className="order-1 lg:order-2 space-y-6">
-                <h3 className="text-3xl font-bold text-slate-900">
-                  AI-powered insights
-                </h3>
-                <p className="text-lg text-slate-600 leading-relaxed">
-                  Get guided support from Studio Assistant. Ask questions,
-                  explore parts, and receive thoughtful prompts tailored to your
-                  work. Let AI help you deepen your understanding and navigate
-                  your inner landscape.
-                </p>
+              <div className="order-1 lg:order-2">
+                <ParallaxFeature direction="right">
+                  <div className="space-y-6">
+                    <h3 className="text-3xl font-bold text-slate-900">
+                      AI-powered insights
+                    </h3>
+                    <p className="text-lg text-slate-600 leading-relaxed">
+                      Get guided support from Studio Assistant. Ask questions,
+                      explore parts, and receive thoughtful prompts tailored to
+                      your work. Let AI help you deepen your understanding and
+                      navigate your inner landscape.
+                    </p>
+                  </div>
+                </ParallaxFeature>
               </div>
             </div>
 
             {/* Impression Input */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <h3 className="text-3xl font-bold text-slate-900">
-                  Capture impressions instantly
-                </h3>
-                <p className="text-lg text-slate-600 leading-relaxed">
-                  Quickly log emotions, thoughts, sensations, and behaviors as
-                  they arise. Organize by type and connect directly to parts.
-                  Build a comprehensive library of your inner experiences over
-                  time.
-                </p>
-              </div>
-              <div>
-                <Image
-                  src="/assets/impression_input.png"
-                  alt="Impression Input"
-                  width={1200}
-                  height={900}
-                  className="w-full h-auto shadow-2xl"
-                  quality={100}
-                  unoptimized
-                  style={{
-                    maxHeight: "600px",
-                    objectFit: "contain",
-                    borderRadius: "26px",
-                  }}
-                />
-              </div>
+              <ParallaxFeature direction="left">
+                <div className="space-y-6">
+                  <h3 className="text-3xl font-bold text-slate-900">
+                    Capture impressions instantly
+                  </h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">
+                    Quickly log emotions, thoughts, sensations, and behaviors as
+                    they arise. Organize by type and connect directly to parts.
+                    Build a comprehensive library of your inner experiences over
+                    time.
+                  </p>
+                </div>
+              </ParallaxFeature>
+              <ParallaxFeature direction="right">
+                <div>
+                  <Image
+                    src="/assets/impression_input.png"
+                    alt="Impression Input"
+                    width={1200}
+                    height={900}
+                    className="w-full h-auto shadow-2xl"
+                    quality={100}
+                    unoptimized
+                    style={{
+                      maxHeight: "600px",
+                      objectFit: "contain",
+                      borderRadius: "26px",
+                    }}
+                  />
+                </div>
+              </ParallaxFeature>
             </div>
           </div>
         </div>
