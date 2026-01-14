@@ -19,26 +19,28 @@ import Image from "next/image";
 import GridMotion from "./GridMotion";
 
 const partImages = [
-  "abandonment",
-  "addict",
   "binge_eating",
-  "body_dysmorphic",
   "caretaker",
+  "abandonment",
+
+  "addict",
+
+  "body_dysmorphic",
+  "rejected",
   "confused",
   "disassociated",
   "impulsive",
+  "night_terrors",
   "inner_critic",
   "insecure",
   "limerence",
   "lonely",
   "melancholy",
   "narcissistic",
-  "night_terrors",
   "ocd",
   "overachiever",
   "overthinking",
   "rage",
-  "rejected",
   "scared",
 ];
 
@@ -296,6 +298,41 @@ const Landing = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Part Gallery - Full Width Slider */}
+      <section className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+              Explore your parts
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Each part has its own story, its own needs, and its own place in
+              your inner landscape
+            </p>
+          </div>
+
+          {/* Scrolling Part Images */}
+          <div className="relative">
+            <div className="flex gap-6 animate-scroll">
+              {partImages.map((part, index) => (
+                <div
+                  key={`${part}-${index}`}
+                  className="flex-shrink-0 w-64 h-64 rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-slate-400 transition-all hover:scale-105 shadow-md hover:shadow-lg"
+                >
+                  <Image
+                    src={`/parts/${part}.png`}
+                    alt={part}
+                    width={256}
+                    height={256}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -606,41 +643,6 @@ const Landing = () => {
                 </p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Part Gallery - Full Width Slider */}
-      <section className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
-              Explore your parts
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Each part has its own story, its own needs, and its own place in
-              your inner landscape
-            </p>
-          </div>
-
-          {/* Scrolling Part Images */}
-          <div className="relative">
-            <div className="flex gap-6 animate-scroll">
-              {[...partImages, ...partImages].map((part, index) => (
-                <div
-                  key={`${part}-${index}`}
-                  className="flex-shrink-0 w-64 h-64 rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-slate-400 transition-all hover:scale-105 shadow-md hover:shadow-lg"
-                >
-                  <Image
-                    src={`/parts/${part}.png`}
-                    alt={part}
-                    width={256}
-                    height={256}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
