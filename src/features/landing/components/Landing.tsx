@@ -199,30 +199,32 @@ function TiltedBrowserFrame() {
     stiffness: 100,
     mass: 2,
   });
-  const scale = useSpring(1, {
+  const scale = useSpring(1.05, {
     damping: 30,
     stiffness: 100,
     mass: 2,
   });
 
-  // Release after 1.5 seconds, or immediately if hovered
+  // Release after 0.75 seconds, or immediately if hovered
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (!isHovered) {
         rotateXValue.set(0);
         rotateYValue.set(0);
+        scale.set(1);
         setInitialAnimationDone(true);
       }
-    }, 1500);
+    }, 0);
 
     return () => clearTimeout(timeoutId);
-  }, [isHovered, rotateXValue, rotateYValue]);
+  }, [isHovered, rotateXValue, rotateYValue, scale]);
 
   // If hovered, immediately release and let mouse control
   useEffect(() => {
     if (isHovered && !initialAnimationDone) {
       rotateXValue.set(0);
       rotateYValue.set(0);
+      // Keep scale at 1.05 on hover (it's already there)
       setInitialAnimationDone(true);
     }
   }, [isHovered, initialAnimationDone, rotateXValue, rotateYValue]);
@@ -314,6 +316,34 @@ function TiltedBrowserFrame() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+function CyclingImage({
+  baseName,
+  alt,
+  ...props
+}: {
+  baseName: string;
+  alt: string;
+  [key: string]: any;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev >= 4 ? 0 : prev + 1));
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Image
+      src={`/assets/${baseName}_${currentIndex}.png`}
+      alt={alt}
+      {...props}
+    />
   );
 }
 
@@ -654,8 +684,8 @@ const Landing = () => {
               </ParallaxFeature>
               <ParallaxFeature direction="right">
                 <div>
-                  <Image
-                    src="/assets/impression_input.png"
+                  <CyclingImage
+                    baseName="impression_input"
                     alt="Impression Input"
                     width={1200}
                     height={900}
