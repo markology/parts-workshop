@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import GridMotion from "./GridMotion";
+// import { InfiniteCarousel } from "./InfiniteCarousel";
+import { InfiniteCarouselCSS } from "./InfiniteCarouselCSS";
 
 const partImages = [
   "binge_eating",
@@ -27,7 +29,6 @@ const partImages = [
 
   "body_dysmorphic",
   "rejected",
-  "confused",
   "disassociated",
   "impulsive",
   "night_terrors",
@@ -38,6 +39,7 @@ const partImages = [
   "melancholy",
   "narcissistic",
   "ocd",
+  "confused",
   "overachiever",
   "overthinking",
   "rage",
@@ -304,8 +306,8 @@ const Landing = () => {
       </section>
 
       {/* Part Gallery - Full Width Slider */}
-      <section className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
-        <div className="max-w-7xl mx-auto">
+      <section className="relative py-32 px-0 bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 overflow-hidden">
+        <div className="w-full">
           <div className="text-center mb-20">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
               Explore your parts
@@ -318,22 +320,18 @@ const Landing = () => {
 
           {/* Scrolling Part Images */}
           <div className="relative">
-            <div className="flex gap-6 animate-scroll">
-              {partImages.map((part, index) => (
-                <div
-                  key={`${part}-${index}`}
-                  className="flex-shrink-0 w-64 h-64 rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-slate-400 transition-all hover:scale-105 shadow-md hover:shadow-lg"
-                >
-                  <Image
-                    src={`/parts/${part}.png`}
-                    alt={part}
-                    width={256}
-                    height={256}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+            <InfiniteCarouselCSS
+              images={partImages.map((part) => ({
+                src: `/parts/${part}.png`,
+                alt: part,
+              }))}
+              gap={16}
+              height={300}
+              // pauseOnHover={true}
+              direction="left"
+              radius={18}
+              speed={60}
+            />
           </div>
         </div>
       </section>
