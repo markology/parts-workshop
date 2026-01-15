@@ -221,7 +221,7 @@ export default function StudioAssistant({
               className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm font-normal break-words dark:text-white"
+                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed font-normal break-words dark:text-white"
                 style={
                   message.role === "user"
                     ? {
@@ -229,7 +229,7 @@ export default function StudioAssistant({
                         color: "#ffffff",
                       }
                     : {
-                        background: "var(--theme-assistant-part-message-bg)",
+                        background: "#ebe9fc",
                         color: "var(--theme-text)",
                       }
                 }

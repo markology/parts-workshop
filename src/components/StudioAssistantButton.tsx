@@ -38,7 +38,7 @@ export default function StudioAssistantButton({
   return (
     <button
       onClick={onClick}
-      className={`w-[320] ${currentSize.button} rounded-full border-0 shadow-sm transition-all duration-200 hover:opacity-90 text-center flex items-center justify-center ${currentSize.gap} ${className} bg-[var(--theme-assistant-button-bg)]`}
+      className={`w-[320] ${currentSize.button} rounded-full border-0 transition-all duration-200 hover:opacity-90 text-center flex items-center justify-center ${currentSize.gap} ${className} bg-[var(--theme-assistant-button-bg)]`}
     >
       <Sparkles className={currentSize.icon} style={{ color: "#be54fe" }} />
       <span

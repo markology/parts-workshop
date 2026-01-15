@@ -166,7 +166,9 @@ export default function PageHeader({
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-[65] bg-[#ebe9fc] dark:bg-[var(--component)] supports-[backdrop-filter]:backdrop-blur-xl shadow-sm dark:shadow-none transition-all duration-300">
+      <header
+        className={`sticky top-0 z-[65] bg-[#ebe9fc] dark:bg-[var(--component)] supports-[backdrop-filter]:backdrop-blur-xl dark:shadow-none transition-all duration-300 ${isScrolled ? "shadow-md" : "shadow-sm"}`}
+      >
         <div
           className={`relative max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-300 ${
             isScrolled ? "py-2" : "py-4"
