@@ -148,11 +148,8 @@ function FeaturesSection() {
         entries.forEach((entry) => {
           if (entry.isIntersecting && !hasEntered) {
             setHasEntered(true);
-            // Trigger flash by incrementing trigger counter
+            // Trigger flash by incrementing trigger counter - only once
             setFlashTrigger((prev) => prev + 1);
-          } else if (!entry.isIntersecting) {
-            // Reset when leaving viewport so it can trigger again
-            setHasEntered(false);
           }
         });
       },
@@ -852,7 +849,7 @@ const Landing = () => {
             </h2>
           </div>
 
-          <div className="space-y-24">
+          <div className="space-y-24 py-[40px]">
             {/* Part Details */}
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <ParallaxFeature direction="left">
