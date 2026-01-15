@@ -103,30 +103,30 @@ const currentFeatures = [
 const futureFeatures = [
   {
     icon: Sparkles,
-    title: "AI Exploration",
+    title: "Powerful AI",
     description:
-      "Ask guided questions and explore parts with an AI companion. Get insights and prompts tailored to your work.",
+      "Resolve tensions. Deepen Relationships. Explore Self. Extract impressions. Heal with the power of digital Self-like containment.",
     comingSoon: true,
   },
   {
     icon: Map,
     title: "3D Body Mapping",
     description:
-      "Place sensations and parts onto an interactive 3D body map. See where emotions and tensions live in your body.",
+      "Paint your physical experience onto a 3d Self to connect your physical body to the digital world.",
     comingSoon: true,
   },
   {
     icon: Brain,
     title: "Journal Analysis",
     description:
-      "Surface insights, patterns, and tags across your journal entries. Discover connections you didn't see before.",
+      "Extract insights, impressions, and generate new parts using AI to analyze your journal impressions and help you organize your construct.",
     comingSoon: true,
   },
   {
-    icon: Heart,
-    title: "Affirmations Generator",
+    icon: BookOpen,
+    title: "Resources",
     description:
-      "Generate supportive statements tailored to how your parts feel. Build compassion for your inner team.",
+      "Quick access to meditations, education, prompts and more to turn you into a Self-led, resourced pro",
     comingSoon: true,
   },
 ];
@@ -956,9 +956,15 @@ const Landing = () => {
       {/* How It Works - Full Width with GIF Placeholder */}
       <section
         id="how-it-works"
-        className="relative py-32 px-6 bg-gradient-to-b from-slate-50 to-white"
+        className="relative py-32 px-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden"
       >
-        <div className="max-w-7xl mx-auto">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-blue-200 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-purple-200 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
               See it in action
