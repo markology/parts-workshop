@@ -397,7 +397,7 @@ export default function WorkspacesPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-2xl dark:border-none bg-white/90 dark:bg-[var(--card)] shadow-md p-[30px]">
+                    <div className="rounded-2xl dark:border-none bg-white/90 dark:bg-[var(--card)] p-[30px]">
                       <p className="text-[11px] uppercase tracking-[0.32em] mb-2 text-slate-500 dark:text-slate-400">
                         Message from the team
                       </p>

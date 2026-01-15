@@ -93,11 +93,33 @@ export default function PageHeader({
 
   // Handle scroll to make header narrower when sticky
   useEffect(() => {
+    let ticking = false;
+    let lastScrollY = window.scrollY;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          
+          // Use hysteresis to prevent rapid toggling:
+          // - When scrolling down, use higher threshold (30px)
+          // - When scrolling up, use lower threshold (10px)
+          if (currentScrollY > lastScrollY) {
+            // Scrolling down
+            setIsScrolled(currentScrollY > 30);
+          } else {
+            // Scrolling up
+            setIsScrolled(currentScrollY > 10);
+          }
+          
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     // Check initial scroll position
     handleScroll();
 
