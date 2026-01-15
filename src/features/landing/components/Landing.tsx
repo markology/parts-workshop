@@ -157,8 +157,13 @@ function FeatureCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Animated gradient background on hover */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 rounded-3xl transition-all duration-400`}
+      />
+
       {/* Icon */}
-      <div className="relative mb-6 z-10">
+      <div className="relative mb-6">
         <div
           className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} shadow-lg`}
         >
@@ -166,37 +171,12 @@ function FeatureCard({
         </div>
       </div>
 
-      <div className="relative z-10">
+      <div className="relative">
         <h3 className="text-2xl font-bold mb-3 text-slate-900">
           {feature.title}
         </h3>
         <p className="text-slate-600 leading-relaxed">{feature.description}</p>
       </div>
-
-      {/* Animated corner accent that spreads on hover */}
-      <motion.div
-        className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${feature.color} rounded-bl-full`}
-        initial={{ scale: 1, opacity: 0.05 }}
-        animate={
-          isHovered
-            ? {
-                scale: 15,
-                opacity: 0.1,
-                originX: 1,
-                originY: 0,
-              }
-            : {
-                scale: 1,
-                opacity: 0.05,
-                originX: 1,
-                originY: 0,
-              }
-        }
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        style={{
-          transformOrigin: "top right",
-        }}
-      />
     </motion.div>
   );
 }
