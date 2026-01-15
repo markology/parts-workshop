@@ -16,7 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
-import GridMotion from "./GridMotion";
+// import GridMotion from "./GridMotion";
 // import { InfiniteCarousel } from "./InfiniteCarousel";
 import { InfiniteCarouselCSS } from "./InfiniteCarouselCSS";
 import { useRef, useEffect, useState, useLayoutEffect } from "react";
@@ -57,45 +57,45 @@ const partImages = [
 const currentFeatures = [
   {
     icon: Map,
-    title: "Infinite Canvas Mapping",
+    title: "Interactive Mapping",
     description:
-      "Drag and drop parts onto an infinite canvas. Connect them with relationships, tensions, and interactions. See your inner landscape unfold visually.",
+      "Drag and drop parts onto an infinite canvas. Create relationships between them. See your inner landscape unfold visually.",
     color: "from-blue-500 to-cyan-500",
   },
   {
     icon: Brain,
     title: "Impression Library",
     description:
-      "Capture emotions, thoughts, sensations, and behaviors as they arise. Organize them by type and connect them directly to your parts.",
+      "Capture emotions, thoughts, sensations, and behaviors as they arise. Organize them by type, on the canvas or drag them directly into your parts.",
     color: "from-purple-500 to-pink-500",
-  },
-  {
-    icon: BookOpen,
-    title: "Contextual Journaling",
-    description:
-      "Journal directly on the canvas without losing your flow. Each entry is linked to specific parts, tensions, or impressions.",
-    color: "from-rose-500 to-orange-500",
   },
   {
     icon: Layers,
     title: "Part Relationships",
     description:
-      "Map tensions and interactions between parts. Understand how your inner team communicates and where conflicts arise.",
+      "Create relationships between parts. Map, mediate and transform your part's tensions through contextual journaling.",
     color: "from-indigo-500 to-purple-500",
   },
   {
     icon: Zap,
-    title: "Auto-Save & Recovery",
+    title: "Autosave & History",
     description:
-      "Every change is saved automatically. Pause anytime and return to exactly where you left off.",
+      "Changes are saved every 15 seconds automatically. Pause anytime and return to exactly where you left off.",
     color: "from-yellow-500 to-amber-500",
   },
   {
     icon: Target,
-    title: "Themes & Customization",
+    title: "Themes + Customization",
     description:
-      "Choose from light, dark, and custom themes. Make your workspace feel calm and intentional.",
+      "Choose from light, dark, and custom themes. Make your workspace your part's workspace.",
     color: "from-green-500 to-emerald-500",
+  },
+  {
+    icon: Heart,
+    title: "We're listening",
+    description:
+      "Feedback provided will be listened to. Constant and rapid improvement is important to us. We want Parts Studio to be what your parts need.",
+    color: "from-rose-500 to-orange-500",
   },
 ];
 
@@ -712,10 +712,6 @@ const Landing = () => {
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-green-50 border border-green-200 text-green-700 mb-6">
-              <CheckCircle2 className="w-4 h-4" />
-              Available Now
-            </div>
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
               Everything you need to
               <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -759,12 +755,12 @@ const Landing = () => {
       </section>
 
       {/* GridMotion Section */}
-      <section className="relative w-full">
+      {/* <section className="relative w-full">
         <GridMotion
           items={gridItems}
           gradientColor="rgba(248, 250, 252, 0.8)"
         />
-      </section>
+      </section> */}
 
       {/* How It Works - Full Width with GIF Placeholder */}
       <section
