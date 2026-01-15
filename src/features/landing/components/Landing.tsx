@@ -987,17 +987,23 @@ const Landing = () => {
       </section>
 
       {/* Future Features - Full Width */}
-      <section className="relative py-32 px-6 bg-gradient-to-b from-slate-50 to-white">
-        <div className="max-w-7xl mx-auto">
+      <section className="relative py-32 px-6 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-purple-50 border border-purple-200 text-purple-700 mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-white/80 backdrop-blur-sm border border-white/30 text-purple-700 mb-6 shadow-sm">
               <Sparkles className="w-4 h-4" />
               Coming Soon
             </div>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white drop-shadow-lg">
               What's next
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-xl text-white/90 max-w-3xl mx-auto drop-shadow-md">
               Exciting features we're building to deepen your practice
             </p>
           </div>
@@ -1008,15 +1014,15 @@ const Landing = () => {
               return (
                 <div
                   key={feature.title}
-                  className="relative p-8 rounded-3xl border border-slate-200 bg-white shadow-sm opacity-75"
+                  className="relative p-8 rounded-3xl border border-white/20 bg-white/90 backdrop-blur-sm shadow-lg opacity-90"
                 >
                   <div className="absolute top-4 right-4">
-                    <span className="text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-purple-600 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
                       Soon
                     </span>
                   </div>
-                  <div className="inline-flex p-4 rounded-2xl bg-slate-100 mb-6">
-                    <Icon className="w-6 h-6 text-slate-500" />
+                  <div className="inline-flex p-4 rounded-2xl bg-white/60 backdrop-blur-sm mb-6">
+                    <Icon className="w-6 h-6 text-slate-700" />
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-slate-900">
                     {feature.title}
@@ -1032,18 +1038,24 @@ const Landing = () => {
       </section>
 
       {/* CTA Section - Full Width */}
-      <section className="relative py-24 px-6 bg-gradient-to-b from-white to-slate-50">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="relative py-32 px-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 overflow-hidden">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-purple-200 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-pink-200 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-3xl mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-slate-900">
             Ready to begin?
           </h2>
-          <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
             Start mapping your inner landscape today. Create a map, add
             impressions, and capture insights—all in one calm workspace.
           </p>
           <a
             href="/login"
-            className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-base font-semibold text-white hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center justify-center px-10 py-5 rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 text-base font-bold text-white hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-110 shadow-2xl hover:shadow-3xl transform"
           >
             Sign up
             <ArrowRight className="ml-2 w-5 h-5" />
