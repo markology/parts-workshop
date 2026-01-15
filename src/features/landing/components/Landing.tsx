@@ -275,6 +275,93 @@ function FeatureCard({
   );
 }
 
+function FutureFeaturesSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+
+  // Parallax effect for background elements
+  const bg1Y = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const bg2Y = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const bg1X = useTransform(scrollYProgress, [0, 1], [0, -50]);
+  const bg2X = useTransform(scrollYProgress, [0, 1], [0, 50]);
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative py-32 px-6 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 overflow-hidden"
+    >
+      {/* Parallax background elements */}
+      <div className="absolute inset-0 opacity-20">
+        <motion.div
+          className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl"
+          style={{ y: bg1Y, x: bg1X }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl"
+          style={{ y: bg2Y, x: bg2X }}
+        />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto">
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-white/80 backdrop-blur-sm border border-white/30 text-purple-700 mb-6 shadow-sm">
+            <Sparkles className="w-4 h-4" />
+            Coming Soon
+          </div>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white drop-shadow-lg">
+            What's next
+          </h2>
+          <p className="text-xl text-white/90 max-w-3xl mx-auto drop-shadow-md">
+            Exciting features we're building to deepen your practice
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {futureFeatures.map((feature, index) => {
+            const Icon = feature.icon;
+            const cardOpacity = useTransform(
+              scrollYProgress,
+              [0, 0.05 + index * 0.08, 0.3125 + index * 0.08],
+              [0, 0, 1]
+            );
+            const cardY = useTransform(
+              scrollYProgress,
+              [0, 0.05 + index * 0.08, 0.3125 + index * 0.08],
+              [30, 15, 0]
+            );
+
+            return (
+              <motion.div
+                key={feature.title}
+                style={{ opacity: cardOpacity, y: cardY }}
+                className="relative p-8 rounded-3xl border border-white/20 bg-white/90 backdrop-blur-sm shadow-lg"
+              >
+                <div className="absolute top-4 right-4">
+                  <span className="text-xs font-semibold text-purple-600 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
+                    Soon
+                  </span>
+                </div>
+                <div className="inline-flex p-4 rounded-2xl bg-white/60 backdrop-blur-sm mb-6">
+                  <Icon className="w-6 h-6 text-slate-700" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-slate-900">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed text-sm">
+                  {feature.description}
+                </p>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ParallaxFeature({
   children,
   direction = "left",
@@ -993,55 +1080,7 @@ const Landing = () => {
       </section>
 
       {/* Future Features - Full Width */}
-      <section className="relative py-32 px-6 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-1000" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold bg-white/80 backdrop-blur-sm border border-white/30 text-purple-700 mb-6 shadow-sm">
-              <Sparkles className="w-4 h-4" />
-              Coming Soon
-            </div>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white drop-shadow-lg">
-              What's next
-            </h2>
-            <p className="text-xl text-white/90 max-w-3xl mx-auto drop-shadow-md">
-              Exciting features we're building to deepen your practice
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {futureFeatures.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.title}
-                  className="relative p-8 rounded-3xl border border-white/20 bg-white/90 backdrop-blur-sm shadow-lg opacity-90"
-                >
-                  <div className="absolute top-4 right-4">
-                    <span className="text-xs font-semibold text-purple-600 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
-                      Soon
-                    </span>
-                  </div>
-                  <div className="inline-flex p-4 rounded-2xl bg-white/60 backdrop-blur-sm mb-6">
-                    <Icon className="w-6 h-6 text-slate-700" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3 text-slate-900">
-                    {feature.title}
-                  </h3>
-                  <p className="text-slate-600 leading-relaxed text-sm">
-                    {feature.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      <FutureFeaturesSection />
 
       {/* CTA Section - Full Width */}
       <section className="relative py-32 px-6 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
