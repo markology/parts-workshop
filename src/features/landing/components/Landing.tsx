@@ -13,6 +13,7 @@ import {
   Play,
   Sparkles,
   Target,
+  X,
   Zap,
 } from "lucide-react";
 import Image from "next/image";
@@ -486,6 +487,108 @@ function CyclingImage({
 }
 
 const Landing = () => {
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactMessage.trim()) {
+      return;
+    }
+
+    setIsSubmittingContact(true);
+
+    try {
+      // Collect browser and device info
+      const getBrowserInfo = () => {
+        const ua = navigator.userAgent;
+        let browserName = "Unknown";
+        let browserVersion = "Unknown";
+
+        if (ua.indexOf("Chrome") > -1 && ua.indexOf("Edg") === -1) {
+          browserName = "Chrome";
+          const match = ua.match(/Chrome\/(\d+)/);
+          browserVersion = match ? match[1] : "Unknown";
+        } else if (ua.indexOf("Firefox") > -1) {
+          browserName = "Firefox";
+          const match = ua.match(/Firefox\/(\d+)/);
+          browserVersion = match ? match[1] : "Unknown";
+        } else if (ua.indexOf("Safari") > -1 && ua.indexOf("Chrome") === -1) {
+          browserName = "Safari";
+          const match = ua.match(/Version\/(\d+)/);
+          browserVersion = match ? match[1] : "Unknown";
+        } else if (ua.indexOf("Edg") > -1) {
+          browserName = "Edge";
+          const match = ua.match(/Edg\/(\d+)/);
+          browserVersion = match ? match[1] : "Unknown";
+        }
+
+        return { browserName, browserVersion, userAgent: ua };
+      };
+
+      const getDeviceType = () => {
+        const ua = navigator.userAgent;
+        if (/tablet|ipad|playbook|silk/i.test(ua)) {
+          return "Tablet";
+        }
+        if (
+          /mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(
+            ua
+          )
+        ) {
+          return "Mobile";
+        }
+        return "Desktop";
+      };
+
+      const { browserName, browserVersion, userAgent } = getBrowserInfo();
+      const deviceType = getDeviceType();
+      const screenResolution = `${window.screen.width}x${window.screen.height}`;
+
+      const sourceInfo = `\n\n--- Message Source ---\nSent from: Landing Page\nPage URL: ${window.location.href}`;
+      const debugInfo = [
+        `Browser: ${browserName || "Unknown"} ${browserVersion || ""}`,
+        `Device: ${deviceType || "Unknown"}`,
+        `Screen: ${screenResolution || "Unknown"}`,
+        `User Agent: ${userAgent || "Unknown"}`,
+      ].join("\n");
+
+      const fullMessage = `${contactMessage}${sourceInfo}\n\n--- Debug Info ---\n${debugInfo}`;
+
+      // Import emailjs dynamically
+      const emailjs = (await import("emailjs-com")).default;
+
+      const templateParams = {
+        name: contactName || "Anonymous",
+        message: fullMessage,
+        userEmail: contactEmail || "not-provided@landing-page.com",
+        userId: "landing-page-visitor",
+      };
+
+      await emailjs.send(
+        "service_p1w1eiy",
+        "template_sz9orwb",
+        templateParams,
+        "hWD-jVch6P8v3kTEk"
+      );
+
+      // Reset form
+      setContactMessage("");
+      setContactEmail("");
+      setContactName("");
+      setShowContactForm(false);
+      alert("Thank you for your message! We'll get back to you soon.");
+    } catch (error) {
+      console.error("Failed to send contact message:", error);
+      alert("Failed to send message. Please try again later.");
+    } finally {
+      setIsSubmittingContact(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900 overflow-hidden">
       <ClientRedirect />
@@ -929,38 +1032,22 @@ const Landing = () => {
       </section>
 
       {/* CTA Section - Full Width */}
-      <section className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 shadow-xl p-12 sm:p-16">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-100/50 to-blue-100/50 rounded-3xl blur-2xl" />
-            <div className="relative">
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
-                Ready to begin?
-              </h2>
-              <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-                Start mapping your inner landscape today. Create a map, add
-                impressions, and capture insights—all in one calm workspace.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
-                  href="#features"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-slate-300 text-base font-semibold text-slate-700 hover:bg-slate-50 transition-all"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const element = document.getElementById("features");
-                    if (element) {
-                      element.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                      });
-                    }
-                  }}
-                >
-                  Learn more
-                </a>
-              </div>
-            </div>
-          </div>
+      <section className="relative py-24 px-6 bg-gradient-to-b from-white to-slate-50">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-slate-900">
+            Ready to begin?
+          </h2>
+          <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
+            Start mapping your inner landscape today. Create a map, add
+            impressions, and capture insights—all in one calm workspace.
+          </p>
+          <a
+            href="/login"
+            className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-base font-semibold text-white hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            Sign up
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </a>
         </div>
       </section>
 
@@ -968,9 +1055,13 @@ const Landing = () => {
       <footer className="relative border-t border-slate-200 py-12 px-6 bg-white">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-black text-sm">
-              PS
-            </div>
+            <Image
+              src="/official_logo_complete.png"
+              alt="Parts Studio"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+            />
             <p className="text-sm text-slate-600">Parts Studio</p>
           </div>
           <div className="flex items-center gap-6 text-sm text-slate-600">
@@ -992,6 +1083,12 @@ const Landing = () => {
             >
               How it works
             </a>
+            <button
+              onClick={() => setShowContactForm(true)}
+              className="hover:text-slate-900 transition-colors"
+            >
+              Contact
+            </button>
           </div>
         </div>
       </footer>
@@ -1035,6 +1132,93 @@ const Landing = () => {
           animation: fade-in 0.5s ease-out forwards;
         }
       `}</style>
+
+      {/* Contact Form Modal */}
+      {showContactForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative">
+            <button
+              onClick={() => setShowContactForm(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <h2 className="text-2xl font-bold mb-2 text-slate-900">
+              Contact Us
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Have a question or feedback? We'd love to hear from you.
+            </p>
+            <form onSubmit={handleContactSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="contact-name"
+                  className="block text-sm font-medium text-slate-700 mb-1"
+                >
+                  Name (optional)
+                </label>
+                <input
+                  type="text"
+                  id="contact-name"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Your name"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="contact-email"
+                  className="block text-sm font-medium text-slate-700 mb-1"
+                >
+                  Email (optional)
+                </label>
+                <input
+                  type="email"
+                  id="contact-email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="your@email.com"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="contact-message"
+                  className="block text-sm font-medium text-slate-700 mb-1"
+                >
+                  Message *
+                </label>
+                <textarea
+                  id="contact-message"
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  required
+                  rows={5}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  placeholder="Your message..."
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={isSubmittingContact || !contactMessage.trim()}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingContact ? "Sending..." : "Send Message"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowContactForm(false)}
+                  className="px-6 py-3 border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
