@@ -179,7 +179,7 @@ function FeaturesSection() {
         <div className="text-center mb-20">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900 leading-tight">
             Everything you need to
-            <span className="block bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent pb-2 pt-1">
+            <span className="block bg-gradient-to-r from-blue-200 via-indigo-200 to-purple-300 bg-clip-text text-transparent pb-2 pt-1">
               map your inner world
             </span>
           </h2>
