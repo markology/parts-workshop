@@ -38,6 +38,7 @@ export default function PageHeader({
 }: PageHeaderProps) {
   const { data: session } = useSession();
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const savedScrollY = useRef<number>(0);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
@@ -90,6 +91,21 @@ export default function PageHeader({
     };
   }, [isSearchExpanded]);
 
+  // Handle scroll to make header narrower when sticky
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    // Check initial scroll position
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <>
       {/* Search overlay */}
@@ -128,27 +144,33 @@ export default function PageHeader({
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-[65] bg-white/75 dark:bg-[var(--component)] border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:shadow-none dark:border-[var(--border)]">
-        <div className="relative max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-[65] bg-white/75 dark:bg-[var(--component)] border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:shadow-none dark:border-[var(--border)] transition-all duration-300">
+        <div className={`relative max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-300 ${
+          isScrolled ? "py-2" : "py-4"
+        }`}>
           {/* Logo and Page Name */}
           <Link
             href={session ? "/dashboard" : "/"}
             className="flex items-center gap-4 hover:opacity-80 transition-opacity"
           >
             <div
-              className="inline-flex items-center"
-              style={{ columnGap: "4px", marginLeft: "6px" }}
+              className="inline-flex items-center transition-all duration-300"
+              style={{ columnGap: isScrolled ? "3px" : "4px", marginLeft: isScrolled ? "4px" : "6px" }}
             >
               <PartsStudioLogo
-                className="dark:invert"
-                size="lg"
+                className="dark:invert transition-all duration-300"
+                size={isScrolled ? "md" : "lg"}
                 showText={false}
               />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-lg font-semibold leading-tight text-slate-900 dark:text-white">
+              <div className={`flex flex-col transition-all duration-300 ${isScrolled ? "gap-0" : "gap-0.5"}`}>
+                <span className={`font-semibold leading-tight text-slate-900 dark:text-white transition-all duration-300 ${
+                  isScrolled ? "text-base" : "text-lg"
+                }`}>
                   Parts Studio
                 </span>
-                <span className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-[#ffffffb3]">
+                <span className={`uppercase tracking-[0.28em] text-slate-500 dark:text-[#ffffffb3] transition-all duration-300 ${
+                  isScrolled ? "text-[10px]" : "text-xs"
+                }`}>
                   {pageName}
                 </span>
               </div>
@@ -158,8 +180,8 @@ export default function PageHeader({
           {/* Search Input - Absolutely positioned, centered */}
           {showSearch && (
             <div
-              className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6 pointer-events-none"
-              style={{ zIndex: 60, top: "20px" }}
+              className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6 pointer-events-none transition-all duration-300"
+              style={{ zIndex: 60, top: isScrolled ? "12px" : "20px" }}
             >
               <div
                 ref={searchBoxRef}
@@ -171,6 +193,7 @@ export default function PageHeader({
                       setIsSearchExpanded(true);
                     }}
                     placeholder="Ask the Studio Assistant"
+                    size={isScrolled ? "sm" : "md"}
                   />
                 )}
               </div>
@@ -183,18 +206,22 @@ export default function PageHeader({
               <>
                 <button
                   onClick={() => setShowFeedbackModal(true)}
-                  className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 text-white bg-[image:var(--button-jazz-gradient)]"
+                  className={`hidden sm:inline-flex items-center gap-2 rounded-full font-medium transition-all duration-300 text-white bg-[image:var(--button-jazz-gradient)] ${
+                    isScrolled ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"
+                  }`}
                   title="Contact"
                 >
-                  <MailPlus className="w-4 h-4" />
+                  <MailPlus className={isScrolled ? "w-3.5 h-3.5" : "w-4 h-4"} />
                   <span>Contact</span>
                 </button>
                 <button
                   onClick={() => setShowFeedbackModal(true)}
-                  className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors bg-white dark:bg-slate-900/80 text-slate-700 dark:text-white"
+                  className={`sm:hidden inline-flex items-center justify-center rounded-full transition-all duration-300 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-white ${
+                    isScrolled ? "w-8 h-8" : "w-10 h-10"
+                  }`}
                   title="Contact"
                 >
-                  <MailPlus className="w-5 h-5" />
+                  <MailPlus className={isScrolled ? "w-4 h-4" : "w-5 h-5"} />
                 </button>
               </>
             )}
@@ -210,10 +237,12 @@ export default function PageHeader({
               ) : (
                 <Link
                   href={backButtonHref}
-                  className="flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-white border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500"
+                  className={`flex items-center justify-center rounded-full border transition-all duration-300 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-white border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 ${
+                    isScrolled ? "w-8 h-8" : "w-10 h-10"
+                  }`}
                   title={backButtonTitle}
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <ArrowLeft className={isScrolled ? "w-4 h-4" : "w-5 h-5"} />
                 </Link>
               ))}
           </div>
