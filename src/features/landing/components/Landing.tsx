@@ -8,6 +8,7 @@ import {
   Brain,
   CheckCircle2,
   Heart,
+  Image as ImageIcon,
   Layers,
   Map,
   Play,
@@ -127,6 +128,34 @@ const futureFeatures = [
     title: "Resources",
     description:
       "Quick access to meditations, education, prompts and more to turn you into a Self-led, resourced pro",
+    comingSoon: true,
+  },
+  {
+    icon: CheckCircle2,
+    title: "Part Reminders / Todos",
+    description:
+      "Set reminders and todos for your parts. Help them stay on track and remember important tasks.",
+    comingSoon: true,
+  },
+  {
+    icon: Layers,
+    title: "Custom Impressions",
+    description:
+      "Create custom impression types tailored to your unique inner experience. Organize and categorize your impressions your way.",
+    comingSoon: true,
+  },
+  {
+    icon: ImageIcon,
+    title: "Part Image Gallery",
+    description:
+      "Build a visual gallery for each part. Add images that represent or resonate with your parts' experiences and identities.",
+    comingSoon: true,
+  },
+  {
+    icon: Heart,
+    title: "Affirmation Trailhead",
+    description:
+      "Generate and store affirmations for your parts. Create a trailhead of supportive statements to guide your inner work.",
     comingSoon: true,
   },
 ];
@@ -319,14 +348,23 @@ function FutureFeaturesSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {futureFeatures.map((feature, index) => {
             const Icon = feature.icon;
+            // Second row (indices 4-7) should fade in much faster
+            const isSecondRow = index >= 4;
+            const startProgress = isSecondRow
+              ? 0.05 + (index - 4) * 0.02 // Much faster for second row
+              : 0.05 + index * 0.08; // Original speed for first row
+            const endProgress = isSecondRow
+              ? 0.1 + (index - 4) * 0.02 // Much faster completion
+              : 0.3125 + index * 0.08; // Original completion
+
             const cardOpacity = useTransform(
               scrollYProgress,
-              [0, 0.05 + index * 0.08, 0.3125 + index * 0.08],
+              [0, startProgress, endProgress],
               [0, 0, 1]
             );
             const cardY = useTransform(
               scrollYProgress,
-              [0, 0.05 + index * 0.08, 0.3125 + index * 0.08],
+              [0, startProgress, endProgress],
               [30, 15, 0]
             );
 
