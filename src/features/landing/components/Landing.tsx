@@ -1038,24 +1038,30 @@ const Landing = () => {
       </section>
 
       {/* CTA Section - Full Width */}
-      <section className="relative py-32 px-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 overflow-hidden">
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-purple-200 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-pink-200 rounded-full blur-3xl" />
+      <section className="relative py-32 px-6 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
+        {/* Swirling background pattern */}
+        <div className="absolute inset-0 opacity-20">
+          <div
+            className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-swirl"
+            style={{ transformOrigin: "center" }}
+          />
+          <div
+            className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-500 rounded-full blur-3xl animate-swirl-reverse"
+            style={{ transformOrigin: "center", animationDelay: "1s" }}
+          />
         </div>
 
         <div className="relative max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-slate-900">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-white drop-shadow-lg">
             Ready to begin?
           </h2>
-          <p className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
+          <p className="text-lg text-white/90 mb-10 max-w-2xl mx-auto drop-shadow-md">
             Start mapping your inner landscape today. Create a map, add
             impressions, and capture insights—all in one calm workspace.
           </p>
           <a
             href="/login"
-            className="inline-flex items-center justify-center px-10 py-5 rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 text-base font-bold text-white hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-110 shadow-2xl hover:shadow-3xl transform"
+            className="inline-flex items-center justify-center px-10 py-5 rounded-2xl bg-white text-base font-bold text-slate-900 hover:bg-purple-50 transition-all hover:scale-110 shadow-2xl hover:shadow-3xl transform"
           >
             Sign up
             <ArrowRight className="ml-2 w-5 h-5" />
@@ -1142,6 +1148,32 @@ const Landing = () => {
         }
         .animate-fade-in {
           animation: fade-in 0.5s ease-out forwards;
+        }
+        @keyframes swirl {
+          0% {
+            transform: translate(-50%, -50%) rotate(0deg) translateX(200px)
+              rotate(0deg);
+          }
+          100% {
+            transform: translate(-50%, -50%) rotate(360deg) translateX(200px)
+              rotate(-360deg);
+          }
+        }
+        @keyframes swirl-reverse {
+          0% {
+            transform: translate(-50%, -50%) rotate(0deg) translateX(150px)
+              rotate(0deg);
+          }
+          100% {
+            transform: translate(-50%, -50%) rotate(-360deg) translateX(150px)
+              rotate(360deg);
+          }
+        }
+        .animate-swirl {
+          animation: swirl 6s linear infinite;
+        }
+        .animate-swirl-reverse {
+          animation: swirl-reverse 10s linear infinite;
         }
       `}</style>
 
