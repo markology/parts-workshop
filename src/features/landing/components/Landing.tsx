@@ -136,30 +136,126 @@ const gridItems = Array.from({ length: 28 }, (_, index) => {
   return `parts/${partName}.png`;
 });
 
+function FeaturesSection() {
+  const [hasEntered, setHasEntered] = useState(false);
+  const [flashTrigger, setFlashTrigger] = useState(0);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasEntered) {
+            setHasEntered(true);
+            // Trigger flash by incrementing trigger counter
+            setFlashTrigger((prev) => prev + 1);
+          } else if (!entry.isIntersecting) {
+            // Reset when leaving viewport so it can trigger again
+            setHasEntered(false);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "100px 0px" }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, [hasEntered]);
+
+  return (
+    <section
+      ref={sectionRef}
+      id="features"
+      className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50"
+    >
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
+            Everything you need to
+            <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              map your inner world
+            </span>
+          </h2>
+          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            Powerful features designed for clarity, speed, and gentle focus
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {currentFeatures.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <FeatureCard
+                key={feature.title}
+                feature={feature}
+                Icon={Icon}
+                index={index}
+                shouldFlash={flashTrigger > 0}
+                flashKey={flashTrigger}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FeatureCard({
   feature,
   Icon,
   index,
+  shouldFlash,
+  flashKey,
 }: {
   feature: (typeof currentFeatures)[0];
   Icon: React.ComponentType<{ className?: string }>;
   index: number;
+  shouldFlash: boolean;
+  flashKey: number;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
+
+  useEffect(() => {
+    if (shouldFlash && flashKey > 0) {
+      // Reset flash state first
+      setIsFlashing(false);
+
+      // Each card flashes at its turn (total 1 second / 6 cards = ~167ms per card)
+      const delay = (index * 1000) / 6;
+      const timeoutId = setTimeout(() => {
+        setIsFlashing(true);
+        setTimeout(() => {
+          setIsFlashing(false);
+        }, 200); // Flash duration - longer to be more visible
+      }, delay);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [shouldFlash, flashKey, index]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+    <div
       className="group relative p-8 rounded-3xl bg-gradient-to-br from-white to-slate-50/50 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Animated gradient background on hover */}
+      {/* Gradient background - on hover or during flash */}
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 rounded-3xl transition-all duration-400`}
+        className={`absolute inset-0 bg-gradient-to-br ${feature.color} ${
+          isFlashing ? "opacity-20" : "opacity-0 group-hover:opacity-10"
+        } rounded-3xl`}
+        style={{
+          transition: isFlashing ? "none" : "opacity 0.4s ease",
+        }}
       />
 
       {/* Icon */}
@@ -177,7 +273,7 @@ function FeatureCard({
         </h3>
         <p className="text-slate-600 leading-relaxed">{feature.description}</p>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -751,38 +847,7 @@ const Landing = () => {
       </section>
 
       {/* Current Features - Full Width */}
-      <section
-        id="features"
-        className="relative py-32 px-6 bg-gradient-to-b from-white to-slate-50"
-      >
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-slate-900">
-              Everything you need to
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                map your inner world
-              </span>
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Powerful features designed for clarity, speed, and gentle focus
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentFeatures.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <FeatureCard
-                  key={feature.title}
-                  feature={feature}
-                  Icon={Icon}
-                  index={index}
-                />
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      <FeaturesSection />
 
       {/* GridMotion Section */}
       {/* <section className="relative w-full">
@@ -821,45 +886,6 @@ const Landing = () => {
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Steps */}
-          <div className="grid md:grid-cols-3 gap-8 mt-20">
-            {[
-              {
-                step: "01",
-                title: "Start a session",
-                description:
-                  "Open a fresh map and set your intent for the work ahead.",
-              },
-              {
-                step: "02",
-                title: "Map parts & tensions",
-                description:
-                  "Drop parts, connect relationships, and log impressions quickly.",
-              },
-              {
-                step: "03",
-                title: "Reflect & revisit",
-                description:
-                  "Journal directly on the canvas, then return with full context.",
-              },
-            ].map((item) => (
-              <div
-                key={item.step}
-                className="p-8 rounded-3xl border border-slate-200 bg-white shadow-sm"
-              >
-                <div className="text-6xl font-black text-transparent bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text mb-4">
-                  {item.step}
-                </div>
-                <h3 className="text-2xl font-bold mb-3 text-slate-900">
-                  {item.title}
-                </h3>
-                <p className="text-slate-600 leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -1003,6 +1029,17 @@ const Landing = () => {
         }
         .animate-jiggle {
           animation: jiggle 0.5s ease-in-out;
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
         }
       `}</style>
     </div>
