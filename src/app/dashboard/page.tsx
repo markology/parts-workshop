@@ -9,18 +9,11 @@ import {
   Play,
   Clock,
   ChevronDown,
-  Sparkles,
-  Target,
-  ArrowRight,
-  Heart,
   User,
 } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
-import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useUIStore } from "@/features/workspace/state/stores/UI";
-import { useThemeContext } from "@/state/context/ThemeContext";
-import { useTheme } from "@/features/workspace/hooks/useTheme";
 import Modal from "@/components/Modal";
 import FeedbackForm from "@/components/FeedbackForm";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -49,9 +42,6 @@ type SortOption = "edited" | "created" | "name";
 
 export default function WorkspacesPage() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const { isDark, themePref, setThemePref } = useThemeContext();
-  const theme = useTheme();
   const showFeedbackModal = useUIStore((s) => s.showFeedbackModal);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
@@ -59,13 +49,10 @@ export default function WorkspacesPage() {
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("edited");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [navigatingToWorkspace, setNavigatingToWorkspace] = useState<
     string | null
   >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchBoxRef = useRef<HTMLDivElement>(null);
-  const savedScrollY = useRef<number>(0);
 
   // Load workspaces from API
   useEffect(() => {
@@ -250,31 +237,6 @@ export default function WorkspacesPage() {
     (sum, workspace) => sum + workspace.partCount,
     0
   );
-  const heroHighlights = [
-    {
-      icon: Map,
-      label: "Interactive Parts Mapping",
-      description:
-        "Plot parts and relationships on an infinite customizable canvas",
-    },
-    {
-      icon: Target,
-      label: "Trailhead Discovery",
-      description:
-        "Develop your Self awareness with powerful noting meditation",
-    },
-    {
-      icon: Heart,
-      label: "Unblending Support",
-      description:
-        "Relieve your parts carrying the weight of your inner to-do list",
-    },
-    {
-      icon: Sparkles,
-      label: "Sitewide Companion",
-      description: "Ask the Studio Assistant to help you on your journey",
-    },
-  ];
 
   // FORCE LOADER FOR EDITING - Remove this line to restore normal behavior
   const forceLoading = false;
@@ -289,149 +251,8 @@ export default function WorkspacesPage() {
   }
 
   return (
-    <div className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50 bg-[image:var(--background-gradient-dashboard)] dark:bg-[image:var(--background-gradient-dashboard)]">
+    <div className="min-h-screen text-gray-900 dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]">
       <PageHeader pageName="Dashboard" showDashboard={false} />
-
-      {/* Start Session Section */}
-      {!loading && !error && (
-        <section className="w-full bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 dark:bg-[image:var(--background-gradient)]">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="relative overflow-hidden">
-              <div className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.28),transparent_60%)]" />
-              <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(51,65,85,0.4),transparent_65%)]" />
-              <div className="relative flex flex-col gap-12 py-8 lg:flex-row lg:items-stretch lg:justify-between lg:py-12">
-                <div className="relative flex-1 space-y-6">
-                  <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] border bg-white/90 dark:bg-[var(--elevated)] text-black dark:text-white border-white/80 dark:border-[var(--border)] shadow-sm">
-                    <span>Self Guided Session</span>
-                  </div>
-                  <h2 className="text-3xl lg:text-4xl font-semibold leading-snug text-slate-900 dark:text-white">
-                    Begin a fresh exploration of your inner team.
-                  </h2>
-                  <p className="text-sm leading-relaxed max-w-2xl text-slate-600 dark:text-slate-300">
-                    Launch a new Parts Studio map to capture impressions,
-                    relationships, and breakthroughs. Your work auto-saves, so
-                    you can pause and return any time.
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    {heroHighlights.map(
-                      ({ icon: Icon, label, description }) => (
-                        <div
-                          key={label}
-                          className="flex items-start gap-3 rounded-xl border px-4 py-3 border-slate-200 dark:border-none bg-white/80 dark:bg-[var(--component)] shadow-md"
-                        >
-                          <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-[var(--elevated)] text-slate-600 dark:text-white">
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="font-semibold text-slate-900 dark:text-white">
-                              {label}
-                            </p>
-                            <p className="text-slate-600 dark:text-slate-300">
-                              {description}
-                            </p>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2">
-                    <button
-                      onClick={handleStartSession}
-                      className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-[0_22px_48px_rgba(190,84,254,0.28)] hover:shadow-[0_28px_60px_rgba(190,84,254,0.32)] transition-all duration-200 hover:-translate-y-[2px] bg-[image:var(--button-jazz-gradient)]"
-                    >
-                      <Play className="w-4 h-4" />
-                      Start a fresh map
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setIsSearchExpanded(true);
-                      }}
-                      className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all text-slate-700 dark:text-white bg-white/85 dark:bg-[var(--component)] border border-sky-200/70 dark:border-[var(--border)] shadow-[0_16px_38px_rgba(59,130,246,0.12)] dark:shadow-[0_14px_32px_rgba(8,15,30,0.45)] hover:bg-white dark:hover:bg-[var(--button)] dark:hover:opacity-90 hover:-translate-y-px"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      Ask the assistant
-                    </button>
-                  </div>
-                </div>
-                <aside className="relative lg:w-[360px] xl:w-[380px]">
-                  <div className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 bg-white/92 dark:bg-[var(--component)] border-white/70 dark:border-none  backdrop-blur-xl dark:shadow-[0_48px_90px_rgba(2,6,23,0.6)]">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-[11px] uppercase tracking-[0.32em] font-semibold text-black dark:text-slate-400">
-                          Studio snapshot
-                        </p>
-                        <p className="text-sm text-slate-600 dark:text-white">
-                          A quick glance at your practice
-                        </p>
-                      </div>
-                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-sky-100 dark:bg-[var(--component)] text-sky-600 dark:text-white">
-                        <Sparkles className="w-4 h-4" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] dark:shadow-none bg-[#f7ebf352] dark:bg-[var(--card)]">
-                        <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-sky-600 dark:text-slate-400">
-                          Sessions
-                        </p>
-                        <div className="flex items-baseline gap-1.5">
-                          <p className="text-2xl font-semibold text-slate-900 dark:text-white">
-                            {workspaces.length}
-                          </p>
-                          <p className="text-xs uppercase tracking-wider font-normal text-black dark:text-white">
-                            saved
-                          </p>
-                        </div>
-                      </div>
-                      <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] dark:shadow-none bg-[#8e7ff812] dark:bg-[var(--card)]">
-                        <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-indigo-600 dark:text-slate-400">
-                          Parts
-                        </p>
-                        <div className="flex items-baseline gap-1.5">
-                          <p className="text-2xl font-semibold text-slate-900 dark:text-white">
-                            {totalParts}
-                          </p>
-                          <p className="text-xs uppercase tracking-wider font-normal text-black dark:text-white">
-                            mapped
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-2xl dark:border-none bg-white/90 dark:bg-[var(--card)] p-[30px]">
-                      <p className="text-[11px] uppercase tracking-[0.32em] mb-2 text-slate-500 dark:text-slate-400">
-                        Message from the team
-                      </p>
-                      <div className="space-y-3 text-sm leading-relaxed text-slate-600 dark:text-white">
-                        <p className="dark:text-slate-300">
-                          Thanks for trying Parts Studio. Every session you
-                          create is saved automatically and backed up securely
-                          so you can experiment without worry.
-                        </p>
-                        <p className="dark:text-slate-300">
-                          We want your parts to feel safe here as we continue to
-                          try and grow this tool together.
-                        </p>
-                        <div className="pt-2">
-                          <button
-                            onClick={() => router.push("/mission")}
-                            className="arrow-pulse inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
-                            style={{ color: "orange" }}
-                          >
-                            <Target className="w-4 h-4" />
-                            Our Mission & Roadmap
-                            <ArrowRight className="arrow-icon w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="pointer-events-none absolute inset-x-10 -bottom-10 h-36 rounded-full bg-gradient-to-t from-sky-500/10 via-sky-400/0 to-transparent blur-3xl" />
-                </aside>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Error State */}

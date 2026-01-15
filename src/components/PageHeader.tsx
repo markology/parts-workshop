@@ -100,7 +100,7 @@ export default function PageHeader({
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const currentScrollY = window.scrollY;
-          
+
           // Use hysteresis to prevent rapid toggling:
           // - When scrolling down, use higher threshold (30px)
           // - When scrolling up, use lower threshold (10px)
@@ -111,7 +111,7 @@ export default function PageHeader({
             // Scrolling up
             setIsScrolled(currentScrollY > 10);
           }
-          
+
           lastScrollY = currentScrollY;
           ticking = false;
         });
@@ -166,10 +166,12 @@ export default function PageHeader({
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-[65] bg-white/75 dark:bg-[var(--component)] border-b border-slate-200/70 supports-[backdrop-filter]:backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:shadow-none dark:border-[var(--border)] transition-all duration-300">
-        <div className={`relative max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-300 ${
-          isScrolled ? "py-2" : "py-4"
-        }`}>
+      <header className="sticky top-0 z-[65] bg-[#ebe9fc] dark:bg-[var(--component)] supports-[backdrop-filter]:backdrop-blur-xl shadow-sm dark:shadow-none transition-all duration-300">
+        <div
+          className={`relative max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-300 ${
+            isScrolled ? "py-2" : "py-4"
+          }`}
+        >
           {/* Logo and Page Name */}
           <Link
             href={session ? "/dashboard" : "/"}
@@ -177,22 +179,31 @@ export default function PageHeader({
           >
             <div
               className="inline-flex items-center transition-all duration-300"
-              style={{ columnGap: isScrolled ? "3px" : "4px", marginLeft: isScrolled ? "4px" : "6px" }}
+              style={{
+                columnGap: isScrolled ? "3px" : "4px",
+                marginLeft: isScrolled ? "4px" : "6px",
+              }}
             >
               <PartsStudioLogo
                 className="dark:invert transition-all duration-300"
                 size={isScrolled ? "md" : "lg"}
                 showText={false}
               />
-              <div className={`flex flex-col transition-all duration-300 ${isScrolled ? "gap-0" : "gap-0.5"}`}>
-                <span className={`font-semibold leading-tight text-slate-900 dark:text-white transition-all duration-300 ${
-                  isScrolled ? "text-base" : "text-lg"
-                }`}>
+              <div
+                className={`flex flex-col transition-all duration-300 ${isScrolled ? "gap-0" : "gap-0.5"}`}
+              >
+                <span
+                  className={`font-semibold leading-tight text-slate-900 dark:text-white transition-all duration-300 ${
+                    isScrolled ? "text-base" : "text-lg"
+                  }`}
+                >
                   Parts Studio
                 </span>
-                <span className={`uppercase tracking-[0.28em] text-slate-500 dark:text-[#ffffffb3] transition-all duration-300 ${
-                  isScrolled ? "text-[10px]" : "text-xs"
-                }`}>
+                <span
+                  className={`uppercase tracking-[0.28em] text-slate-500 dark:text-[#ffffffb3] transition-all duration-300 ${
+                    isScrolled ? "text-[10px]" : "text-xs"
+                  }`}
+                >
                   {pageName}
                 </span>
               </div>
@@ -233,7 +244,9 @@ export default function PageHeader({
                   }`}
                   title="Contact"
                 >
-                  <MailPlus className={isScrolled ? "w-3.5 h-3.5" : "w-4 h-4"} />
+                  <MailPlus
+                    className={isScrolled ? "w-3.5 h-3.5" : "w-4 h-4"}
+                  />
                   <span>Contact</span>
                 </button>
                 <button
