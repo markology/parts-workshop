@@ -136,6 +136,71 @@ const gridItems = Array.from({ length: 28 }, (_, index) => {
   return `parts/${partName}.png`;
 });
 
+function FeatureCard({
+  feature,
+  Icon,
+  index,
+}: {
+  feature: (typeof currentFeatures)[0];
+  Icon: React.ComponentType<{ className?: string }>;
+  index: number;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className="group relative p-8 rounded-3xl bg-gradient-to-br from-white to-slate-50/50 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] overflow-hidden"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Icon */}
+      <div className="relative mb-6 z-10">
+        <div
+          className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} shadow-lg`}
+        >
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+      </div>
+
+      <div className="relative z-10">
+        <h3 className="text-2xl font-bold mb-3 text-slate-900">
+          {feature.title}
+        </h3>
+        <p className="text-slate-600 leading-relaxed">{feature.description}</p>
+      </div>
+
+      {/* Animated corner accent that spreads on hover */}
+      <motion.div
+        className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${feature.color} rounded-bl-full`}
+        initial={{ scale: 1, opacity: 0.05 }}
+        animate={
+          isHovered
+            ? {
+                scale: 15,
+                opacity: 0.1,
+                originX: 1,
+                originY: 0,
+              }
+            : {
+                scale: 1,
+                opacity: 0.05,
+                originX: 1,
+                originY: 0,
+              }
+        }
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        style={{
+          transformOrigin: "top right",
+        }}
+      />
+    </motion.div>
+  );
+}
+
 function ParallaxFeature({
   children,
   direction = "left",
@@ -723,31 +788,16 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentFeatures.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div
+                <FeatureCard
                   key={feature.title}
-                  className="group relative p-8 rounded-3xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-300 hover:scale-105"
-                >
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-300`}
-                  />
-                  <div className="relative">
-                    <div
-                      className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} mb-6 shadow-md`}
-                    >
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-3 text-slate-900">
-                      {feature.title}
-                    </h3>
-                    <p className="text-slate-600 leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
+                  feature={feature}
+                  Icon={Icon}
+                  index={index}
+                />
               );
             })}
           </div>
@@ -958,6 +1008,21 @@ const Landing = () => {
         }
         .animate-scroll {
           animation: scroll 30s linear infinite;
+        }
+        @keyframes jiggle {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(3px);
+          }
+          75% {
+            transform: translateX(-3px);
+          }
+        }
+        .animate-jiggle {
+          animation: jiggle 0.5s ease-in-out;
         }
       `}</style>
     </div>
