@@ -292,23 +292,10 @@ export default function WorkspacesPage() {
     <div className="min-h-screen text-gray-900 dark:text-white bg-gradient-to-b from-sky-50 via-indigo-50 to-rose-50 bg-[image:var(--background-gradient-dashboard)] dark:bg-[image:var(--background-gradient-dashboard)]">
       <PageHeader pageName="Dashboard" showDashboard={false} />
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Error State */}
-        {error && (
-          <div className="text-center py-12">
-            <div className="mb-4 text-red-600 dark:text-red-400">{error}</div>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 rounded-lg transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {/* Start Session Section */}
-        {!loading && !error && (
-          <section className="mb-12">
+      {/* Start Session Section */}
+      {!loading && !error && (
+        <section className="w-full bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 dark:bg-[image:var(--background-gradient)]">
+          <div className="max-w-6xl mx-auto px-6">
             <div className="relative overflow-hidden">
               <div className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.28),transparent_60%)]" />
               <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(51,65,85,0.4),transparent_65%)]" />
@@ -442,7 +429,22 @@ export default function WorkspacesPage() {
                 </aside>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
+      )}
+
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <div className="mb-4 text-red-600 dark:text-red-400">{error}</div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 rounded-lg transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white"
+            >
+              Retry
+            </button>
+          </div>
         )}
 
         {/* Empty State */}
