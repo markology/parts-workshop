@@ -183,9 +183,6 @@ function FeaturesSection() {
               map your inner world
             </span>
           </h2>
-          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            Powerful features designed for clarity, speed, and gentle focus
-          </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -261,7 +258,7 @@ function FeatureCard({
       {/* Icon */}
       <div className="relative mb-6">
         <div
-          className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} shadow-lg`}
+          className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} opacity-75 shadow-lg`}
         >
           <Icon className="w-6 h-6 text-white" />
         </div>
@@ -656,10 +653,6 @@ const Landing = () => {
                 beautifully designed
               </span>
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              See how Parts Studio helps you map, understand, and work with your
-              inner landscape
-            </p>
           </div>
 
           <div className="space-y-24">
