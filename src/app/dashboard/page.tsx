@@ -309,10 +309,10 @@ export default function WorkspacesPage() {
         {/* Start Session Section */}
         {!loading && !error && (
           <section className="mb-12">
-            <div className="relative overflow-hidden rounded-[28px] border transition-all duration-300 bg-gradient-to-r from-sky-50 via-indigo-50 to-rose-50 border-slate-200 shadow-[0_35px_80px_rgba(89,81,255,0.12)] dark:border-none dark:shadow-[0_40px_80px_rgba(15,23,42,0.7)] dark:bg-[image:var(--background-gradient)]">
+            <div className="relative overflow-hidden">
               <div className="absolute -top-28 -right-36 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.28),transparent_60%)]" />
               <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(51,65,85,0.4),transparent_65%)]" />
-              <div className="relative flex flex-col gap-12 p-8 lg:flex-row lg:items-stretch lg:justify-between lg:p-12">
+              <div className="relative flex flex-col gap-12 py-8 lg:flex-row lg:items-stretch lg:justify-between lg:py-12">
                 <div className="relative flex-1 space-y-6">
                   <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] border bg-white/90 dark:bg-[var(--elevated)] text-black dark:text-white border-white/80 dark:border-[var(--border)] shadow-sm">
                     <span>Self Guided Session</span>
@@ -368,7 +368,7 @@ export default function WorkspacesPage() {
                   </div>
                 </div>
                 <aside className="relative lg:w-[360px] xl:w-[380px]">
-                  <div className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 bg-white/92 dark:bg-[var(--component)] border-white/70 dark:border-none shadow-[0_55px_120px_rgba(91,105,255,0.15)] backdrop-blur-xl dark:shadow-[0_48px_90px_rgba(2,6,23,0.6)]">
+                  <div className="relative flex h-full flex-col gap-6 overflow-hidden rounded-3xl border p-6 lg:p-7 bg-white/92 dark:bg-[var(--component)] border-white/70 dark:border-none  backdrop-blur-xl dark:shadow-[0_48px_90px_rgba(2,6,23,0.6)]">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.32em] font-semibold text-black dark:text-slate-400">
@@ -383,7 +383,7 @@ export default function WorkspacesPage() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] shadow-[0px_1px_2px_1px_#dcdcdc82_inset] dark:shadow-none bg-[#f7ebf352] dark:bg-[var(--card)]">
+                      <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] dark:shadow-none bg-[#f7ebf352] dark:bg-[var(--card)]">
                         <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-sky-600 dark:text-slate-400">
                           Sessions
                         </p>
@@ -396,7 +396,7 @@ export default function WorkspacesPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] shadow-[0px_1px_2px_1px_#dcdcdc82_inset] dark:shadow-none bg-[#8e7ff812] dark:bg-[var(--card)]">
+                      <div className="rounded-2xl px-4 py-3 border-none border-b border-[#dcdcdc1c] dark:border dark:border-[var(--theme-border)] dark:shadow-none bg-[#8e7ff812] dark:bg-[var(--card)]">
                         <p className="text-[11px] uppercase tracking-[0.28em] mb-2 font-medium text-indigo-600 dark:text-slate-400">
                           Parts
                         </p>
@@ -410,7 +410,7 @@ export default function WorkspacesPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-slate-200/70 dark:border-none bg-white/90 dark:bg-[var(--card)] shadow-md p-[30px]">
+                    <div className="rounded-2xl dark:border-none bg-white/90 dark:bg-[var(--card)] shadow-md p-[30px]">
                       <p className="text-[11px] uppercase tracking-[0.32em] mb-2 text-slate-500 dark:text-slate-400">
                         Message from the team
                       </p>
