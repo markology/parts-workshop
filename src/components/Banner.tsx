@@ -34,7 +34,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
             style={{
               background: banner.backgroundColor
                 ? banner.backgroundColor
-                : "linear-gradient(145deg, rgba(124, 135, 169, 0.94), #9f75dd, rgba(124, 135, 169, 0.94))",
+                : "#7a69a2f0",
               boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
               borderTop: "#fff4f6 1.5px solid",
               borderLeft: "#ffffff 1.5px solid",

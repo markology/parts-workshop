@@ -170,7 +170,7 @@ export default function PageHeader({
         className={`sticky top-0 z-[65] dark:bg-[var(--component)] supports-[backdrop-filter]:backdrop-blur-xl dark:shadow-none transition-all duration-300 ${isScrolled ? "shadow-md" : "shadow-sm"}`}
         style={{
           background:
-            "linear-gradient(to right, rgb(255 80 105 / 3%), rgb(255, 255, 255), rgb(175 211 238 / 9%))",
+            "linear-gradient(to right, rgb(255 252 252), rgb(255, 255, 255), rgb(247 251 253))",
           boxShadow: "rgba(170, 228, 243, 0.33) 0px -4px 12px 2px",
           borderBottom: "1px solid rgb(237 244 249)",
         }}

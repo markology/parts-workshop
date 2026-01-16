@@ -286,7 +286,13 @@ export default function WorkspacesPage() {
   }
 
   return (
-    <div className="min-h-screen text-gray-900 dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]">
+    <div
+      className="min-h-screen text-gray-900 dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]"
+      style={{
+        background:
+          "radial-gradient(circle, hsla(200, 60%, 98%, 1) 45%, hsl(0deg 0% 99.27%) 66%, hsla(200, 60%, 98%, 1) 100%)",
+      }}
+    >
       <PageHeader pageName="Dashboard" showDashboard={false} />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
@@ -422,7 +428,7 @@ export default function WorkspacesPage() {
                     } dark:bg-[image:var(--background-gradient)]`}
                     style={{
                       background:
-                        "radial-gradient(circle, rgba(175, 211, 238, 0.04), #fff, rgba(255, 80, 105, 0.03))",
+                        "radial-gradient(circle, rgba(175, 211, 238, 0.04) 4%, rgb(255, 255, 255) 98%, rgba(255, 80, 105, 0.03))",
                       boxShadow: "0px 2px 9px -8px #03A9F4",
                       borderWidth: "1.5px 1px 1px 1.5px",
                       borderStyle: "solid",
