@@ -20,9 +20,7 @@ import FeedbackForm from "@/components/FeedbackForm";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
 import PageHeader from "@/components/PageHeader";
-import NotificationBanner, {
-  type Notification,
-} from "@/components/NotificationBanner";
+import Banner, { type Banner as BannerType } from "@/components/Banner";
 
 interface WorkspaceData {
   id: string;
@@ -57,9 +55,19 @@ export default function WorkspacesPage() {
     string | null
   >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [dismissedNotifications, setDismissedNotifications] = useState<
-    string[]
-  >([]);
+  const [dismissedBanners, setDismissedBanners] = useState<string[]>([]);
+
+  // Load dismissed banners from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("dismissedBanners");
+    if (stored) {
+      try {
+        setDismissedBanners(JSON.parse(stored));
+      } catch (e) {
+        console.error("Failed to parse dismissed banners", e);
+      }
+    }
+  }, []);
 
   // Load workspaces from API
   useEffect(() => {
@@ -245,25 +253,24 @@ export default function WorkspacesPage() {
     0
   );
 
-  const handleDismissNotification = (notificationId: string) => {
-    const updated = [...dismissedNotifications, notificationId];
-    setDismissedNotifications(updated);
-    localStorage.setItem("dismissedNotifications", JSON.stringify(updated));
+  const handleDismissBanner = (bannerId: string) => {
+    const updated = [...dismissedBanners, bannerId];
+    setDismissedBanners(updated);
+    localStorage.setItem("dismissedBanners", JSON.stringify(updated));
   };
 
-  const allNotifications: Notification[] = [
+  const allBanners: BannerType[] = [
     {
       id: "mission-page",
       message: "Check out our Mission & Roadmap to see what we're building",
       link: "/mission",
       icon: Target,
-      backgroundColor: "#a6a6f6",
-      textColor: "#ffffff",
+      // backgroundColor: "#a6a6f6",
     },
   ];
 
-  const activeNotifications = allNotifications.filter(
-    (n) => !dismissedNotifications.includes(n.id)
+  const activeBanners = allBanners.filter(
+    (b) => !dismissedBanners.includes(b.id)
   );
 
   // FORCE LOADER FOR EDITING - Remove this line to restore normal behavior
@@ -283,11 +290,8 @@ export default function WorkspacesPage() {
       <PageHeader pageName="Dashboard" showDashboard={false} />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Notifications */}
-        <NotificationBanner
-          notifications={activeNotifications}
-          onDismiss={handleDismissNotification}
-        />
+        {/* Banners */}
+        <Banner banners={activeBanners} onDismiss={handleDismissBanner} />
 
         {/* Error State */}
         {error && (
@@ -405,11 +409,20 @@ export default function WorkspacesPage() {
                   <div
                     key={workspace.id}
                     data-workspace-tile
-                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 shadow-sm hover:shadow-sm hover:-translate-y-1 ${
+                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 ${
                       navigatingToWorkspace === workspace.id
                         ? "opacity-60 pointer-events-none"
                         : ""
-                    } bg-[image:var(--background-gradient)] dark:bg-[image:var(--background-gradient)]`}
+                    } dark:bg-[image:var(--background-gradient)]`}
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(175, 211, 238, 0.04), #fff, rgba(255, 80, 105, 0.03))",
+                      boxShadow: "0px 2px 9px -8px #03A9F4",
+                      borderWidth: "1.5px 1px 1px 1.5px",
+                      borderStyle: "solid",
+                      borderColor:
+                        "rgb(230 207 211 / 46%) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(230 207 211 / 41%)",
+                    }}
                     onClick={() => handleOpenWorkspace(workspace.id)}
                     onMouseMove={(e) => {
                       const target = e.target as HTMLElement;
@@ -450,7 +463,17 @@ export default function WorkspacesPage() {
                     <div className="relative p-6 pb-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-2">
-                          <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase border shadow-sm bg-white/90 text-slate-600 dark:text-white border-slate-200 dark:border-none shadow-slate-200/50 dark:shadow-none dark:bg-[var(--card)]">
+                          <span
+                            className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase text-slate-600 dark:text-white dark:bg-[var(--card)]"
+                            style={{
+                              background: "#ffac000a",
+                              boxShadow: "0px 1px 5px -3px #bdf8ff",
+                              borderWidth: "1.5px 1px 1px 1.5px",
+                              borderStyle: "solid",
+                              borderColor:
+                                "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
+                            }}
+                          >
                             Session
                           </span>
                           <h3 className="text-xl font-semibold leading-tight line-clamp-1 text-slate-900 dark:text-white">
@@ -514,11 +537,27 @@ export default function WorkspacesPage() {
                         )}
                       </div>
                     </div>
-                    <div className="relative px-6 pb-6 pt-4 mt-auto border-t border-slate-200 dark:border-slate-800/60 bg-[image:var(--background-gradient-tile)] dark:bg-none">
+                    <div
+                      className="relative px-6 pb-6 pt-4 mt-auto border-t border-slate-200 dark:border-slate-800/60 dark:bg-none"
+                      style={{
+                        background:
+                          "radial-gradient(circle, rgba(175, 211, 238, 0.04), #fff, rgba(255, 80, 105, 0.03))",
+                      }}
+                    >
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
                           <User className="w-4 h-4" />
-                          <span className="px-[5px] py-[2px] bg-[rgb(237,242,255)] dark:bg-transparent rounded-md">
+                          <span
+                            className="px-[5px] py-[2px] dark:bg-transparent rounded-md"
+                            style={{
+                              background: "#ffac000a",
+                              boxShadow: "0px 1px 5px -3px #bdf8ff",
+                              borderWidth: "1.5px 1px 1px 1.5px",
+                              borderStyle: "solid",
+                              borderColor:
+                                "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
+                            }}
+                          >
                             {workspace.partCount}
                           </span>
                         </span>
