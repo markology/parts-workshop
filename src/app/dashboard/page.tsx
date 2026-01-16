@@ -444,11 +444,7 @@ export default function WorkspacesPage() {
                           "[data-open-button]"
                         ) as HTMLButtonElement;
                         if (openButton) {
-                          openButton.style.backgroundImage =
-                            "linear-gradient(90deg, #be54fe, #6366f1, #0ea5e9)";
-                          openButton.style.backgroundColor = "transparent";
-                          openButton.style.backgroundClip = "padding-box";
-                          openButton.style.webkitBackgroundClip = "padding-box";
+                          openButton.style.backgroundColor = "#253eff66";
                           openButton.style.color = "white";
                           openButton.style.borderColor = "transparent";
                         }
@@ -574,20 +570,10 @@ export default function WorkspacesPage() {
                               e.stopPropagation();
                               handleOpenWorkspace(workspace.id);
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[var(--border)]/60 transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[var(--border)]/60 transition-colors hover:bg-[#253eff66] hover:text-white hover:border-transparent"
                             style={{
                               textTransform: "uppercase",
                               backgroundColor: "transparent",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "#253eff66";
-                              e.currentTarget.style.color = "white";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "transparent";
-                              e.currentTarget.style.color = "";
                             }}
                             title="Open session"
                           >
@@ -630,14 +616,8 @@ export default function WorkspacesPage() {
                                   tile.contains(relatedTarget) ||
                                   relatedTarget === tile
                                 ) {
-                                  openButton.style.backgroundImage =
-                                    "linear-gradient(90deg, #a855f7, #6366f1, #0ea5e9)";
                                   openButton.style.backgroundColor =
-                                    "transparent";
-                                  openButton.style.backgroundClip =
-                                    "padding-box";
-                                  openButton.style.webkitBackgroundClip =
-                                    "padding-box";
+                                    "#253eff66";
                                   openButton.style.color = "white";
                                   openButton.style.borderColor = "transparent";
                                 }
