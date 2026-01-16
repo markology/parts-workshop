@@ -10,6 +10,7 @@ import {
   Clock,
   ChevronDown,
   User,
+  Target,
 } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Image from "next/image";
@@ -19,6 +20,9 @@ import FeedbackForm from "@/components/FeedbackForm";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PageLoader from "@/components/PageLoader";
 import PageHeader from "@/components/PageHeader";
+import NotificationBanner, {
+  type Notification,
+} from "@/components/NotificationBanner";
 
 interface WorkspaceData {
   id: string;
@@ -53,6 +57,9 @@ export default function WorkspacesPage() {
     string | null
   >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dismissedNotifications, setDismissedNotifications] = useState<
+    string[]
+  >([]);
 
   // Load workspaces from API
   useEffect(() => {
@@ -238,6 +245,27 @@ export default function WorkspacesPage() {
     0
   );
 
+  const handleDismissNotification = (notificationId: string) => {
+    const updated = [...dismissedNotifications, notificationId];
+    setDismissedNotifications(updated);
+    localStorage.setItem("dismissedNotifications", JSON.stringify(updated));
+  };
+
+  const allNotifications: Notification[] = [
+    {
+      id: "mission-page",
+      message: "Check out our Mission & Roadmap to see what we're building",
+      link: "/mission",
+      icon: Target,
+      backgroundColor: "#a6a6f6",
+      textColor: "#ffffff",
+    },
+  ];
+
+  const activeNotifications = allNotifications.filter(
+    (n) => !dismissedNotifications.includes(n.id)
+  );
+
   // FORCE LOADER FOR EDITING - Remove this line to restore normal behavior
   const forceLoading = false;
 
@@ -255,6 +283,12 @@ export default function WorkspacesPage() {
       <PageHeader pageName="Dashboard" showDashboard={false} />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Notifications */}
+        <NotificationBanner
+          notifications={activeNotifications}
+          onDismiss={handleDismissNotification}
+        />
+
         {/* Error State */}
         {error && (
           <div className="text-center py-12">
