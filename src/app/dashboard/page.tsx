@@ -340,7 +340,13 @@ export default function WorkspacesPage() {
                 <h2 className="text-2xl font-semibold leading-none text-slate-900 dark:text-white">
                   My Workspaces
                 </h2>
-                <span className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] bg-white dark:bg-white/90 text-slate-700 dark:text-slate-900 shadow-sm dark:shadow-none">
+                <span
+                  className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] dark:bg-white/90 dark:text-slate-900 shadow-sm dark:shadow-none"
+                  style={{
+                    color: "#ffffffba",
+                    background: "#9e77dc",
+                  }}
+                >
                   {workspaces.length}{" "}
                   {workspaces.length === 1 ? "session" : "sessions"}
                 </span>
@@ -491,7 +497,7 @@ export default function WorkspacesPage() {
                       )}
                     </div>
                     <div className="relative px-6 pb-4">
-                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner dark:bg-[image:var(--background-gradient-tile)] bg-[image:var(--background-gradient-tile)]">
+                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner bg-white dark:bg-[image:var(--background-gradient-tile)]">
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
                             {workspace.nodes.slice(0, 6).map((node) => (
@@ -568,10 +574,20 @@ export default function WorkspacesPage() {
                               e.stopPropagation();
                               handleOpenWorkspace(workspace.id);
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 hover:text-white border border-slate-200 dark:border-[var(--border)]/60 transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[var(--border)]/60 transition-colors"
                             style={{
                               textTransform: "uppercase",
                               backgroundColor: "transparent",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "#253eff66";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                              e.currentTarget.style.color = "";
                             }}
                             title="Open session"
                           >

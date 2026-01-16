@@ -74,7 +74,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                       : "hover:opacity-80"
                   }`}
                   style={{
-                    color: banner.textColor || "rgb(255 255 255 / 72%)",
+                    color: banner.textColor || "#ffffff",
                   }}
                 >
                   Visit →

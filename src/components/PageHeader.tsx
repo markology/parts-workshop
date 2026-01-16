@@ -247,15 +247,25 @@ export default function PageHeader({
               <>
                 <button
                   onClick={() => setShowFeedbackModal(true)}
-                  className={`hidden sm:inline-flex items-center gap-2 rounded-full font-medium transition-all duration-300 text-white bg-[image:var(--button-jazz-gradient)] ${
+                  className={`hidden sm:inline-flex items-center gap-2 rounded-full font-medium transition-all duration-300 ${
                     isScrolled ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"
                   }`}
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(175, 211, 238, 0.04), rgb(255, 255, 255), rgba(255, 80, 105, 0.03))",
+                    boxShadow: "rgb(3, 169, 244) 0px 2px 7px -8px",
+                    borderWidth: "1.5px 1px 1px 1.5px",
+                    borderStyle: "solid",
+                    borderColor:
+                      "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
+                  }}
                   title="Contact"
                 >
                   <MailPlus
                     className={isScrolled ? "w-3.5 h-3.5" : "w-4 h-4"}
+                    style={{ color: "#484848" }}
                   />
-                  <span>Contact</span>
+                  <span style={{ color: "#597487" }}>Contact</span>
                 </button>
                 <button
                   onClick={() => setShowFeedbackModal(true)}
