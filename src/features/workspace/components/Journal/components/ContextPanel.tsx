@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Brain,
   Heart,
   Shield,
   User,
+  Calendar,
 } from "lucide-react";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import {
@@ -18,6 +19,8 @@ import {
 import { ImpressionType } from "@/features/workspace/types/Impressions";
 import { ImpressionList } from "@/features/workspace/constants/Impressions";
 import { ImpressionTextType } from "@/features/workspace/types/Impressions";
+import { useWorkingStore } from "@/features/workspace/state/stores/useWorkingStore";
+import { useLoadMap } from "@/features/workspace/state/hooks/useLoadMap";
 
 interface ContextPanelProps {
   journalTarget: { type: "global" } | {
@@ -40,6 +43,35 @@ export default function ContextPanel({
   flowNodesContext,
 }: ContextPanelProps) {
   const theme = useTheme();
+  const mapId = useWorkingStore((s) => s.mapId);
+  const { data: mapData } = useLoadMap(mapId || "");
+
+  // Get part nodes for global journal info
+  const partNodes = useMemo(() => {
+    return nodes.filter((node) => node.type === "part");
+  }, [nodes]);
+
+  const partNames = useMemo(() => {
+    return partNodes.map((node) => {
+      const data = node.data as PartNodeData;
+      return data?.label || "Unnamed Part";
+    });
+  }, [partNodes]);
+
+  // Format creation date
+  const formattedCreatedAt = useMemo(() => {
+    if (!mapData?.createdAt) return null;
+    try {
+      const date = new Date(mapData.createdAt);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return null;
+    }
+  }, [mapData?.createdAt]);
 
   if (!journalTarget) {
     return (
@@ -51,6 +83,103 @@ export default function ContextPanel({
         <p>
           Open a part, impression, or interaction to display its context here.
         </p>
+      </div>
+    );
+  }
+
+  // Handle global journal
+  if (journalTarget.type === "global") {
+    return (
+      <div
+        className="space-y-6 text-sm"
+        style={{ color: theme.textSecondary }}
+      >
+        <section className="p-0">
+          <h3
+            className="text-xl font-semibold mb-4"
+            style={{ color: theme.textPrimary }}
+          >
+            Global Journal
+          </h3>
+          <p
+            className="text-sm mb-4"
+            style={{ color: theme.textSecondary }}
+          >
+            This journal is attached to the map itself, not to any specific part or node.
+          </p>
+
+          <div className="space-y-4">
+            {/* Part Count */}
+            <div className="flex items-center gap-2">
+              <span
+                className="text-xs font-semibold uppercase tracking-wide"
+                style={{ color: theme.textMuted }}
+              >
+                Parts Mapped:
+              </span>
+              <span
+                className="text-sm font-medium"
+                style={{ color: theme.textPrimary }}
+              >
+                {partNodes.length}
+              </span>
+            </div>
+
+            {/* Part Names List */}
+            {partNames.length > 0 && (
+              <div
+                className="rounded-xl px-3.5 py-3 shadow-sm"
+                style={{
+                  backgroundColor: theme.surface,
+                }}
+              >
+                <p
+                  className="text-xs font-semibold uppercase tracking-wide mb-3"
+                  style={{ color: theme.textMuted }}
+                >
+                  Part Names
+                </p>
+                <ul className="space-y-1.5">
+                  {partNames.map((name, idx) => (
+                    <li
+                      key={idx}
+                      className="text-sm"
+                      style={{ color: theme.textPrimary }}
+                    >
+                      • {name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Creation Date */}
+            {formattedCreatedAt && (
+              <div
+                className="rounded-xl px-3.5 py-3 shadow-sm"
+                style={{
+                  backgroundColor: theme.surface,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="w-4 h-4" style={{ color: theme.textMuted }} />
+                  <span
+                    className="text-xs font-semibold uppercase tracking-wide"
+                    style={{ color: theme.textMuted }}
+                  >
+                    Map Created
+                  </span>
+                </div>
+                <p
+                  className="text-sm"
+                  style={{ color: theme.textPrimary }}
+                >
+                  {formattedCreatedAt}
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     );
   }

@@ -13,6 +13,7 @@ import {
   Mail,
   Sparkles,
   User,
+  BookOpen,
 } from "lucide-react";
 import StudioAssistantButton from "@/components/StudioAssistantButton";
 import StudioAssistant from "@/components/StudioAssistant";
@@ -41,6 +42,7 @@ import { toast } from "react-hot-toast";
 import { useThemeContext } from "@/state/context/ThemeContext";
 import { useTheme } from "@/features/workspace/hooks/useTheme";
 import { HelpCircle } from "lucide-react";
+import { useJournalStore } from "../state/stores/Journal";
 const FloatingActionButtons = () => {
   const [activeButton, setActiveButton] = useState<string | null>("action");
   const [windowWidth, setWindowWidth] = useState(0);
@@ -87,6 +89,7 @@ const FloatingActionButtons = () => {
   const saveMap = useSaveMap();
   const [localIsSaving, setLocalIsSaving] = useState(false);
   const [localSaveCheck, setLocalSaveCheck] = useState(false);
+  const setJournalTarget = useJournalStore((s) => s.setJournalTarget);
   const optionItems = [
     {
       key: "3d-body-map",
@@ -380,6 +383,11 @@ const FloatingActionButtons = () => {
       return;
     }
 
+    if (action === "global-journal") {
+      setJournalTarget({ type: "global" });
+      return;
+    }
+
     // Settings action is now handled by AccountDropdown component directly
     // No need to handle it here
 
@@ -424,6 +432,7 @@ const FloatingActionButtons = () => {
     { icon: Plus, action: "action", label: "Add" },
     { icon: "dots", action: "options", label: "Options" },
     { icon: "save", action: "save", label: "Save" },
+    { icon: BookOpen, action: "global-journal", label: "Global Journal" },
     { icon: "contact", action: "contact", label: "Contact" },
     { icon: User, action: "settings", label: "Settings" },
   ];
@@ -472,6 +481,7 @@ const FloatingActionButtons = () => {
     const isActive = activeButton === action;
     const isSaveAction = action === "save";
     const isContactAction = action === "contact";
+    const isGlobalJournalAction = action === "global-journal";
     const isActionButton = action === "action";
     const isOptionsButton = action === "options";
     const showXForAction = isActionButton && showRelationshipTypeModal;
@@ -527,6 +537,8 @@ const FloatingActionButtons = () => {
               <MailPlus className="w-6 h-6 opacity-0 group-hover:opacity-100 absolute" />
               <Mail className="w-6 h-6 opacity-100 group-hover:opacity-0" />
             </>
+          ) : isGlobalJournalAction ? (
+            <BookOpen className="w-6 h-6" />
           ) : null}
         </button>
       </div>

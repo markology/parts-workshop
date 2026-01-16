@@ -80,11 +80,14 @@ export function useJournalDrawer({ targetNodeProp }: UseJournalDrawerProps) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // Only auto-hide on very small screens, but allow user to toggle
-    if (window.innerWidth < 768) {
+    // Close left panel by default for global journal
+    if (journalTarget?.type === "global") {
+      setShowLeftPanel(false);
+    } else if (window.innerWidth < 768) {
+      // Only auto-hide on very small screens, but allow user to toggle
       setShowLeftPanel(false);
     }
-  }, []);
+  }, [journalTarget]);
 
   const nodeId =
     journalTarget?.type === "node" ? journalTarget.nodeId : undefined;

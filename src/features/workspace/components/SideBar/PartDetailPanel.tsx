@@ -747,9 +747,10 @@ const PartDetailPanel = () => {
       setTempScratchpad(trimmedScratchpad);
       setTempAge(trimmedAge || "Unknown");
       setTempGender(trimmedGender);
-    });
 
-    setIsEditingInfo(false);
+      // Exit editing mode after saving
+      setIsEditingInfo(false);
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1837,27 +1838,6 @@ theme-dark:shadow-none "
                             >
                               Start writing about this part to see entries here.
                             </p>
-                          </div>
-                          <div className="flex justify-center">
-                            <button
-                              onClick={() => {
-                                if (selectedPartId && partNode) {
-                                  setJournalTarget({
-                                    type: "node",
-                                    nodeId: selectedPartId,
-                                    nodeType: "part",
-                                    title: partNode.data?.label || "Part",
-                                  });
-                                }
-                              }}
-                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium flex-shrink-0 border-none border-top-[var(--theme-button-border-top)] 
-                              theme-light:hover:bg-slate-50
-                                  theme-dark:hover:bg-[var(--theme-card)] theme-dark:text-[var(--theme-text-primary)] theme-light:text-[#475569] bg-[var(--theme-foreground-button-bg)]  theme-light:shadow-sm shadow-[var(--theme-part-detail-button-shadow)]"
-                              title="Start a new journal entry"
-                            >
-                              <Plus size={14} />
-                              New Entry
-                            </button>
                           </div>
                         </div>
                       ) : (
