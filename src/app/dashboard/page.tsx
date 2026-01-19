@@ -289,8 +289,7 @@ export default function WorkspacesPage() {
     <div
       className="min-h-screen text-gray-900 dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]"
       style={{
-        background:
-          "radial-gradient(circle, hsla(200, 60%, 98%, 1) 45%, hsl(0deg 0% 99.27%) 66%, hsla(200, 60%, 98%, 1) 100%)",
+        background: "radial-gradient(circle, #fafdff, #fff9f3, #fffefe)",
       }}
     >
       <PageHeader pageName="Dashboard" showDashboard={false} />
@@ -343,7 +342,13 @@ export default function WorkspacesPage() {
           <>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex flex-wrap items-baseline gap-3 items-center">
-                <h2 className="text-2xl font-semibold leading-none text-slate-900 dark:text-white">
+                <h2
+                  className="text-2xl font-semibold leading-none text-slate-900 dark:text-white"
+                  style={{
+                    color: "rgb(127 104 164)",
+                    textShadow: "rgb(253 203 203) 0px 1px 1px",
+                  }}
+                >
                   My Workspaces
                 </h2>
                 <span
@@ -362,6 +367,15 @@ export default function WorkspacesPage() {
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-300 bg-white dark:bg-[image:var(--background-gradient)]"
+                    style={{
+                      background:
+                        "linear-gradient(to right, rgb(255 252 252), rgb(255, 255, 255), rgb(247 251 253))",
+                      boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
+                      borderWidth: "1.5px 1px 1px 1.5px",
+                      borderStyle: "solid",
+                      borderColor:
+                        "rgb(255 247 234) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 247 234)",
+                    }}
                   >
                     {sortBy === "edited" && "Recently Edited"}
                     {sortBy === "created" && "Recently Created"}
@@ -428,12 +442,12 @@ export default function WorkspacesPage() {
                     } dark:bg-[image:var(--background-gradient)]`}
                     style={{
                       background:
-                        "radial-gradient(circle, rgba(175, 211, 238, 0.04) 4%, rgb(255, 255, 255) 98%, rgba(255, 80, 105, 0.03))",
+                        "radial-gradient(circle, rgb(255 253 252) 37%, rgb(255, 255, 255) 62%, rgb(255 252 252) 100%)",
                       boxShadow: "0px 2px 9px -8px #03A9F4",
-                      borderWidth: "1.5px 1px 1px 1.5px",
+                      borderWidth: "1.5px 1px 1px 2px",
                       borderStyle: "solid",
                       borderColor:
-                        "rgb(230 207 211 / 46%) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(230 207 211 / 41%)",
+                        "rgb(255 239 218) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(251 224 228 / 41%)",
                     }}
                     onClick={() => handleOpenWorkspace(workspace.id)}
                     onMouseMove={(e) => {

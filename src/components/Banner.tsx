@@ -34,12 +34,12 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
             style={{
               background: banner.backgroundColor
                 ? banner.backgroundColor
-                : "#7a69a2f0",
+                : "linear-gradient(354deg, rgb(253 238 238 / 94%), rgba(255, 246, 244, 0.94), rgb(255 236 236 / 94%))",
               boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
-              borderTop: "#fff4f6 1.5px solid",
-              borderLeft: "#ffffff 1.5px solid",
-              borderRight: "rgba(170, 228, 243, 0.33) 1px solid",
-              borderBottom: "rgba(170, 228, 243, 0.33) 1px solid",
+              borderWidth: "1.5px 1px 1px 1.5px",
+              borderStyle: "solid",
+              borderColor:
+                "rgb(255 247 234) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 247 234)",
             }}
           >
             <div className="flex items-center gap-3 flex-1">
@@ -49,7 +49,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                     !banner.textColor ? "dark:text-slate-400" : ""
                   }`}
                   style={{
-                    color: banner.textColor || "rgb(255 255 255 / 72%)",
+                    color: banner.textColor || "#ffa6b5",
                   }}
                 />
               </div>
@@ -59,7 +59,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                     !banner.textColor ? "dark:text-slate-300" : ""
                   }`}
                   style={{
-                    color: banner.textColor || "rgb(255 255 255 / 72%)",
+                    color: banner.textColor || "#ffa6b5",
                   }}
                 >
                   {banner.message}
@@ -74,7 +74,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                       : "hover:opacity-80"
                   }`}
                   style={{
-                    color: banner.textColor || "#ffffff",
+                    color: banner.textColor || "#ffa6b5",
                   }}
                 >
                   Visit →
@@ -89,7 +89,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                   : "hover:opacity-70"
               }`}
               style={{
-                color: banner.textColor || "rgb(255 255 255 / 72%)",
+                color: banner.textColor || "#ffa6b5",
               }}
               title="Dismiss"
             >
