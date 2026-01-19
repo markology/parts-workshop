@@ -304,11 +304,12 @@ export default function WorkspacesPage() {
 
   return (
     <div
-      className="min-h-screen text-gray-900 dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]"
+      className="min-h-screen dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]"
       style={
         !isDarkMode
           ? {
               background: "radial-gradient(circle, #fafdff, #fff9f3, #fffefe)",
+              color: "#6a6a6a",
             }
           : undefined
       }
@@ -325,7 +326,8 @@ export default function WorkspacesPage() {
             <div className="mb-4 text-red-600 dark:text-red-400">{error}</div>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 rounded-lg transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white"
+              className="px-4 py-2 rounded-lg transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+              style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
             >
               Retry
             </button>
@@ -340,7 +342,10 @@ export default function WorkspacesPage() {
               <div className="bg-slate-100 dark:bg-slate-900/60 p-5 rounded-full">
                 <Map className="w-14 h-14 text-slate-500 dark:text-slate-400" />
               </div>
-              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">
+              <h3
+                className="text-2xl font-semibold dark:text-white"
+                style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
+              >
                 Your canvas is ready
               </h3>
               <p className="text-slate-600 dark:text-slate-400 max-w-md">
@@ -367,12 +372,11 @@ export default function WorkspacesPage() {
             >
               <div className="flex flex-wrap items-baseline gap-3 items-center">
                 <h2
-                  className="text-2xl font-medium leading-none text-slate-900 dark:text-white"
+                  className="text-2xl font-medium leading-none dark:text-white"
                   style={
                     !isDarkMode
                       ? {
-                          color: "rgb(255 166 181)",
-                          textShadow: "rgb(255 205 205) 0px 1px 0px",
+                          color: "rgb(110 110 110)",
                         }
                       : undefined
                   }
@@ -409,10 +413,11 @@ export default function WorkspacesPage() {
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-300 bg-white dark:bg-[image:var(--background-gradient)]"
+                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium dark:text-white dark:hover:text-slate-300 bg-white dark:bg-[image:var(--background-gradient)]"
                     style={
                       !isDarkMode
                         ? {
+                            color: "#6a6a6a",
                             background:
                               "linear-gradient(to right, rgb(255, 252, 252), rgb(255, 255, 255), rgb(254 255 255))",
                             boxShadow:
@@ -440,7 +445,8 @@ export default function WorkspacesPage() {
                             setSortBy("edited");
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+                          className="w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+                          style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
                         >
                           Recently Edited
                         </button>
@@ -451,7 +457,8 @@ export default function WorkspacesPage() {
                             setSortBy("created");
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm transition-colors text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+                          className="w-full text-left px-4 py-2 text-sm transition-colors dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+                          style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
                         >
                           Recently Created
                         </button>
@@ -462,7 +469,8 @@ export default function WorkspacesPage() {
                             setSortBy("name");
                             setDropdownOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+                          className="w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+                          style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
                         >
                           Name
                         </button>
@@ -554,7 +562,12 @@ export default function WorkspacesPage() {
                           >
                             Session
                           </span>
-                          <h3 className="text-xl font-semibold leading-tight line-clamp-1 text-slate-900 dark:text-white">
+                          <h3
+                            className="text-xl font-semibold leading-tight line-clamp-1 dark:text-white"
+                            style={
+                              !isDarkMode ? { color: "#6a6a6a" } : undefined
+                            }
+                          >
                             {workspace.name}
                           </h3>
                         </div>
