@@ -42,6 +42,8 @@ interface AccountDropdownProps {
   isOpen?: boolean;
   /** Callback when dropdown should close */
   onClose?: () => void;
+  /** Whether the header is scrolled (for shrinking icon) */
+  isScrolled?: boolean;
 }
 
 function AccountDropdown({
@@ -56,6 +58,7 @@ function AccountDropdown({
   containerRef,
   isOpen: externalIsOpen,
   onClose,
+  isScrolled = false,
 }: AccountDropdownProps) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -200,8 +203,9 @@ function AccountDropdown({
   };
 
   // Default button className if not provided
-  const defaultButtonClassName =
-    "flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-200 overflow-hidden bg-[var(--theme-account-icon-bg)] border-[var(--theme-account-icon-border)] hover:border-[var(--theme-account-icon-border-hover)] border-none";
+  const defaultButtonClassName = `flex items-center justify-center rounded-full border transition-all duration-200 overflow-hidden bg-[var(--theme-account-icon-bg)] border-[var(--theme-account-icon-border)] hover:border-[var(--theme-account-icon-border-hover)] border-none ${
+    isScrolled ? "w-8 h-8" : "w-10 h-10"
+  }`;
 
   const menuItemClassName =
     "w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-[var(--theme-account-dropdown-item-bg-hover)] text-[var(--theme-account-dropdown-item-text-color)]";
@@ -226,13 +230,13 @@ function AccountDropdown({
               <Image
                 src={session.user.image}
                 alt={session.user.name || "User"}
-                width={40}
-                height={40}
+                width={isScrolled ? 32 : 40}
+                height={isScrolled ? 32 : 40}
                 className="rounded-full w-auto h-auto border-none"
               />
             ) : (
               <User
-                className={`w-5 h-5 ${useWorkspaceTheme ? "" : "text-slate-700 dark:text-slate-300 border-none"}`}
+                className={`${isScrolled ? "w-4 h-4" : "w-5 h-5"} ${useWorkspaceTheme ? "" : "text-slate-700 dark:text-slate-300 border-none"}`}
               />
             )}
           </button>

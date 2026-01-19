@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { X, LucideIcon } from "lucide-react";
 
 export interface Banner {
@@ -17,6 +18,24 @@ interface BannerProps {
 }
 
 export default function Banner({ banners, onDismiss }: BannerProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
+    };
+
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   if (banners.length === 0) {
     return null;
   }
@@ -31,16 +50,29 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
             className={`flex items-center justify-between gap-4 rounded-xl px-4 py-3 ${
               !banner.backgroundColor ? "" : ""
             }`}
-            style={{
-              background: banner.backgroundColor
-                ? banner.backgroundColor
-                : "linear-gradient(354deg, rgb(253 238 238 / 94%), rgba(255, 246, 244, 0.94), rgb(255 236 236 / 94%))",
-              boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
-              borderWidth: "1.5px 1px 1px 1.5px",
-              borderStyle: "solid",
-              borderColor:
-                "rgb(255, 247, 234) rgba(170, 228, 243, 0.33) rgb(253 230 230) rgb(255, 247, 234)",
-            }}
+            style={
+              banner.backgroundColor
+                ? { background: banner.backgroundColor }
+                : isDarkMode
+                  ? {
+                      background:
+                        "linear-gradient(354deg, rgba(30, 30, 35, 0.95), rgba(35, 35, 40, 0.95), rgba(30, 30, 35, 0.95))",
+                      boxShadow: "rgba(0, 0, 0, 0.4) 4px 3px 6px -7px",
+                      borderWidth: "1.5px 1px 1px 1.5px",
+                      borderStyle: "solid",
+                      borderColor:
+                        "rgba(60, 60, 70, 0.8) rgba(100, 120, 140, 0.3) rgba(100, 120, 140, 0.3) rgba(60, 60, 70, 0.8)",
+                    }
+                  : {
+                      background:
+                        "linear-gradient(354deg, rgb(253 238 238 / 94%), rgba(255, 246, 244, 0.94), rgb(255 236 236 / 94%))",
+                      boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
+                      borderWidth: "1.5px 1px 1px 1.5px",
+                      borderStyle: "solid",
+                      borderColor:
+                        "rgb(255, 247, 234) rgba(170, 228, 243, 0.33) rgb(253 230 230) rgb(255, 247, 234)",
+                    }
+            }
           >
             <div className="flex items-center gap-3 flex-1">
               <div className="flex-shrink-0">
@@ -49,7 +81,11 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                     !banner.textColor ? "dark:text-slate-400" : ""
                   }`}
                   style={{
-                    color: banner.textColor || "#ffa6b5",
+                    color: banner.textColor
+                      ? banner.textColor
+                      : isDarkMode
+                        ? "#c4b4de"
+                        : "#ffa6b5",
                   }}
                 />
               </div>
@@ -59,7 +95,11 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                     !banner.textColor ? "dark:text-slate-300" : ""
                   }`}
                   style={{
-                    color: banner.textColor || "#ffa6b5",
+                    color: banner.textColor
+                      ? banner.textColor
+                      : isDarkMode
+                        ? "#c4b4de"
+                        : "#ffa6b5",
                   }}
                 >
                   {banner.message}
@@ -74,7 +114,11 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                       : "hover:opacity-80"
                   }`}
                   style={{
-                    color: banner.textColor || "#ffa6b5",
+                    color: banner.textColor
+                      ? banner.textColor
+                      : isDarkMode
+                        ? "#a78bfa"
+                        : "#ffa6b5",
                   }}
                 >
                   Visit →
@@ -89,7 +133,11 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                   : "hover:opacity-70"
               }`}
               style={{
-                color: banner.textColor || "#ffa6b5",
+                color: banner.textColor
+                  ? banner.textColor
+                  : isDarkMode
+                    ? "#c4b4de"
+                    : "#ffa6b5",
               }}
               title="Dismiss"
             >

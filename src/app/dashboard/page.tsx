@@ -380,17 +380,25 @@ export default function WorkspacesPage() {
                   My Workspaces
                 </h2>
                 <span
-                  className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] bg-white border-solid"
+                  className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] border-solid"
                   style={
-                    !isDarkMode
+                    isDarkMode
                       ? {
+                          color: "#c4b4de",
+                          background: "rgba(30, 30, 35, 0.8)",
+                          borderWidth: "1.5px 1px 1px 1.5px",
+                          borderColor:
+                            "rgba(60, 60, 70, 0.8) rgba(100, 120, 140, 0.3) rgba(100, 120, 140, 0.3) rgba(60, 60, 70, 0.8)",
+                          boxShadow: "rgba(0, 0, 0, 0.3) 0px 2px 4px -2px",
+                        }
+                      : {
                           color: "rgb(255 151 165)",
+                          background: "rgb(255 255 255)",
                           borderWidth: "1.5px 1px 1px 1.5px",
                           borderColor:
                             "rgb(255 234 213) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 227 144)",
                           boxShadow: "none",
                         }
-                      : undefined
                   }
                 >
                   {workspaces.length}{" "}
@@ -465,7 +473,7 @@ export default function WorkspacesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 pb-[40px]">
               {sortedWorkspaces.map((workspace) => {
                 // Use lastModified if available, otherwise fall back to createdAt
                 const lastEdited =

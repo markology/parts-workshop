@@ -267,8 +267,8 @@ export default function PageHeader({
               <>
                 <button
                   onClick={() => setShowFeedbackModal(true)}
-                  className={`hidden sm:inline-flex items-center gap-2 rounded-full font-medium transition-all duration-300 ${
-                    isScrolled ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"
+                  className={`hidden sm:inline-flex items-center justify-center rounded-full transition-all duration-300 ${
+                    isScrolled ? "w-8 h-8" : "w-10 h-10"
                   }`}
                   style={
                     !isDarkMode
@@ -279,19 +279,16 @@ export default function PageHeader({
                           borderWidth: "1.5px 1px 1px 1.5px",
                           borderStyle: "solid",
                           borderColor:
-                            "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
+                            "rgb(255 200 210 / 72%) rgb(170 228 243 / 67%) rgb(170 228 243 / 63%) rgb(255 200 161 / 68%)",
                         }
                       : undefined
                   }
                   title="Contact"
                 >
                   <MailPlus
-                    className={isScrolled ? "w-3.5 h-3.5" : "w-4 h-4"}
+                    className={isScrolled ? "w-4 h-4" : "w-5 h-5"}
                     style={!isDarkMode ? { color: "#484848" } : undefined}
                   />
-                  <span style={!isDarkMode ? { color: "#597487" } : undefined}>
-                    Contact
-                  </span>
                 </button>
                 <button
                   onClick={() => setShowFeedbackModal(true)}
@@ -312,6 +309,7 @@ export default function PageHeader({
                   showDashboard={showDashboard}
                   showHelp={true}
                   themeModeType="system"
+                  isScrolled={isScrolled}
                 />
               ) : (
                 <Link
