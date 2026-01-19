@@ -56,6 +56,23 @@ export default function WorkspacesPage() {
   >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [dismissedBanners, setDismissedBanners] = useState<string[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
+    };
+
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Load dismissed banners from localStorage
   useEffect(() => {
@@ -288,9 +305,13 @@ export default function WorkspacesPage() {
   return (
     <div
       className="min-h-screen text-gray-900 dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]"
-      style={{
-        background: "radial-gradient(circle, #fafdff, #fff9f3, #fffefe)",
-      }}
+      style={
+        !isDarkMode
+          ? {
+              background: "radial-gradient(circle, #fafdff, #fff9f3, #fffefe)",
+            }
+          : undefined
+      }
     >
       <PageHeader pageName="Dashboard" showDashboard={false} />
 
@@ -347,22 +368,30 @@ export default function WorkspacesPage() {
               <div className="flex flex-wrap items-baseline gap-3 items-center">
                 <h2
                   className="text-2xl font-medium leading-none text-slate-900 dark:text-white"
-                  style={{
-                    color: "rgb(255 166 181)",
-                    textShadow: "rgb(255 205 205) 0px 1px 0px",
-                  }}
+                  style={
+                    !isDarkMode
+                      ? {
+                          color: "rgb(255 166 181)",
+                          textShadow: "rgb(255 205 205) 0px 1px 0px",
+                        }
+                      : undefined
+                  }
                 >
                   My Workspaces
                 </h2>
                 <span
                   className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] bg-white border-solid"
-                  style={{
-                    color: "rgb(255 151 165)",
-                    borderWidth: "1.5px 1px 1px 1.5px",
-                    borderColor:
-                      "rgb(255 234 213) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 227 144)",
-                    boxShadow: "none",
-                  }}
+                  style={
+                    !isDarkMode
+                      ? {
+                          color: "rgb(255 151 165)",
+                          borderWidth: "1.5px 1px 1px 1.5px",
+                          borderColor:
+                            "rgb(255 234 213) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 227 144)",
+                          boxShadow: "none",
+                        }
+                      : undefined
+                  }
                 >
                   {workspaces.length}{" "}
                   {workspaces.length === 1 ? "session" : "sessions"}
@@ -373,15 +402,20 @@ export default function WorkspacesPage() {
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-300 bg-white dark:bg-[image:var(--background-gradient)]"
-                    style={{
-                      background:
-                        "linear-gradient(to right, rgb(255, 252, 252), rgb(255, 255, 255), rgb(254 255 255))",
-                      boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
-                      borderWidth: "1.5px 1px 1px 1.5px",
-                      borderStyle: "solid",
-                      borderColor:
-                        "rgb(255 238 210) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 233 197)",
-                    }}
+                    style={
+                      !isDarkMode
+                        ? {
+                            background:
+                              "linear-gradient(to right, rgb(255, 252, 252), rgb(255, 255, 255), rgb(254 255 255))",
+                            boxShadow:
+                              "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
+                            borderWidth: "1.5px 1px 1px 1.5px",
+                            borderStyle: "solid",
+                            borderColor:
+                              "rgb(255 238 210) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 233 197)",
+                          }
+                        : undefined
+                    }
                   >
                     {sortBy === "edited" && "Recently Edited"}
                     {sortBy === "created" && "Recently Created"}
@@ -446,15 +480,19 @@ export default function WorkspacesPage() {
                         ? "opacity-60 pointer-events-none"
                         : ""
                     } dark:bg-[image:var(--background-gradient)]`}
-                    style={{
-                      background:
-                        "radial-gradient(circle, rgb(255 253 252) 37%, rgb(255, 255, 255) 62%, rgb(255 252 252) 100%)",
-                      boxShadow: "0px 2px 9px -8px #03A9F4",
-                      borderWidth: "1.5px 1px 1px 2px",
-                      borderStyle: "solid",
-                      borderColor:
-                        "rgb(255 239 218) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(251 224 228 / 41%)",
-                    }}
+                    style={
+                      !isDarkMode
+                        ? {
+                            background:
+                              "radial-gradient(circle, rgb(255 253 252) 37%, rgb(255, 255, 255) 62%, rgb(255 252 252) 100%)",
+                            boxShadow: "0px 2px 9px -8px #03A9F4",
+                            borderWidth: "1.5px 1px 1px 2px",
+                            borderStyle: "solid",
+                            borderColor:
+                              "rgb(255 239 218) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(251 224 228 / 41%)",
+                          }
+                        : undefined
+                    }
                     onClick={() => handleOpenWorkspace(workspace.id)}
                     onMouseMove={(e) => {
                       const target = e.target as HTMLElement;
@@ -493,14 +531,18 @@ export default function WorkspacesPage() {
                         <div className="space-y-2">
                           <span
                             className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.2em] uppercase text-slate-600 dark:text-white dark:bg-[var(--card)]"
-                            style={{
-                              background: "#ffac000a",
-                              boxShadow: "0px 1px 5px -3px #bdf8ff",
-                              borderWidth: "1.5px 1px 1px 1.5px",
-                              borderStyle: "solid",
-                              borderColor:
-                                "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
-                            }}
+                            style={
+                              !isDarkMode
+                                ? {
+                                    background: "#ffac000a",
+                                    boxShadow: "0px 1px 5px -3px #bdf8ff",
+                                    borderWidth: "1.5px 1px 1px 1.5px",
+                                    borderStyle: "solid",
+                                    borderColor:
+                                      "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
+                                  }
+                                : undefined
+                            }
                           >
                             Session
                           </span>
@@ -567,24 +609,32 @@ export default function WorkspacesPage() {
                     </div>
                     <div
                       className="relative px-6 pb-6 pt-4 mt-auto border-t border-slate-200 dark:border-slate-800/60 dark:bg-none"
-                      style={{
-                        background:
-                          "radial-gradient(circle, rgba(175, 211, 238, 0.04), #fff, rgba(255, 80, 105, 0.03))",
-                      }}
+                      style={
+                        !isDarkMode
+                          ? {
+                              background:
+                                "radial-gradient(circle, rgba(175, 211, 238, 0.04), #fff, rgba(255, 80, 105, 0.03))",
+                            }
+                          : undefined
+                      }
                     >
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
                           <User className="w-4 h-4" />
                           <span
                             className="px-[5px] py-[2px] dark:bg-transparent rounded-md"
-                            style={{
-                              background: "#ffac000a",
-                              boxShadow: "0px 1px 5px -3px #bdf8ff",
-                              borderWidth: "1.5px 1px 1px 1.5px",
-                              borderStyle: "solid",
-                              borderColor:
-                                "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
-                            }}
+                            style={
+                              !isDarkMode
+                                ? {
+                                    background: "#ffac000a",
+                                    boxShadow: "0px 1px 5px -3px #bdf8ff",
+                                    borderWidth: "1.5px 1px 1px 1.5px",
+                                    borderStyle: "solid",
+                                    borderColor:
+                                      "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
+                                  }
+                                : undefined
+                            }
                           >
                             {workspace.partCount}
                           </span>

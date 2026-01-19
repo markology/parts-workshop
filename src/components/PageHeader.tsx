@@ -39,9 +39,26 @@ export default function PageHeader({
   const { data: session } = useSession();
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const savedScrollY = useRef<number>(0);
   const setShowFeedbackModal = useUIStore((s) => s.setShowFeedbackModal);
+
+  // Detect dark mode
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains("dark"));
+    };
+
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Handle body scroll locking when search is expanded
   useEffect(() => {
@@ -168,12 +185,16 @@ export default function PageHeader({
       {/* Header */}
       <header
         className={`sticky top-0 z-[65] dark:bg-[var(--component)] supports-[backdrop-filter]:backdrop-blur-xl dark:shadow-none transition-all duration-300 ${isScrolled ? "shadow-md" : "shadow-sm"}`}
-        style={{
-          background:
-            "linear-gradient(to right, rgb(255 252 252), rgb(255, 255, 255), rgb(247 251 253))",
-          boxShadow: "rgba(170, 228, 243, 0.33) 0px -4px 11px 1px",
-          borderBottom: "1px solid rgb(237 244 249)",
-        }}
+        style={
+          !isDarkMode
+            ? {
+                background:
+                  "linear-gradient(to right, rgb(255 252 252), rgb(255, 255, 255), rgb(247 251 253))",
+                boxShadow: "rgba(170, 228, 243, 0.33) 0px -4px 11px 1px",
+                borderBottom: "1px solid rgb(237 244 249)",
+              }
+            : undefined
+        }
       >
         <div
           className={`relative max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-300 ${
@@ -249,22 +270,28 @@ export default function PageHeader({
                   className={`hidden sm:inline-flex items-center gap-2 rounded-full font-medium transition-all duration-300 ${
                     isScrolled ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"
                   }`}
-                  style={{
-                    background:
-                      "radial-gradient(circle, rgba(175, 211, 238, 0.04), rgb(255, 255, 255), rgba(255, 80, 105, 0.03))",
-                    boxShadow: "rgb(3, 169, 244) 0px 2px 7px -8px",
-                    borderWidth: "1.5px 1px 1px 1.5px",
-                    borderStyle: "solid",
-                    borderColor:
-                      "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
-                  }}
+                  style={
+                    !isDarkMode
+                      ? {
+                          background:
+                            "radial-gradient(circle, rgba(175, 211, 238, 0.04), rgb(255, 255, 255), rgba(255, 80, 105, 0.03))",
+                          boxShadow: "rgb(3, 169, 244) 0px 2px 7px -8px",
+                          borderWidth: "1.5px 1px 1px 1.5px",
+                          borderStyle: "solid",
+                          borderColor:
+                            "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
+                        }
+                      : undefined
+                  }
                   title="Contact"
                 >
                   <MailPlus
                     className={isScrolled ? "w-3.5 h-3.5" : "w-4 h-4"}
-                    style={{ color: "#484848" }}
+                    style={!isDarkMode ? { color: "#484848" } : undefined}
                   />
-                  <span style={{ color: "#597487" }}>Contact</span>
+                  <span style={!isDarkMode ? { color: "#597487" } : undefined}>
+                    Contact
+                  </span>
                 </button>
                 <button
                   onClick={() => setShowFeedbackModal(true)}
