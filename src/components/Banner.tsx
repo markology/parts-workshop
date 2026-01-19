@@ -39,7 +39,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
               borderWidth: "1.5px 1px 1px 1.5px",
               borderStyle: "solid",
               borderColor:
-                "rgb(255 247 234) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 247 234)",
+                "rgb(255, 247, 234) rgba(170, 228, 243, 0.33) rgb(253 230 230) rgb(255, 247, 234)",
             }}
           >
             <div className="flex items-center gap-3 flex-1">
@@ -55,7 +55,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
               </div>
               <div className="flex-1">
                 <p
-                  className={`text-sm ${
+                  className={`text-sm font-medium ${
                     !banner.textColor ? "dark:text-slate-300" : ""
                   }`}
                   style={{

@@ -340,22 +340,28 @@ export default function WorkspacesPage() {
         {/* Workspaces Grid */}
         {!loading && !error && workspaces.length > 0 && (
           <>
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div
+              className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+              style={{ marginTop: "50px" }}
+            >
               <div className="flex flex-wrap items-baseline gap-3 items-center">
                 <h2
-                  className="text-2xl font-semibold leading-none text-slate-900 dark:text-white"
+                  className="text-2xl font-medium leading-none text-slate-900 dark:text-white"
                   style={{
-                    color: "rgb(127 104 164)",
-                    textShadow: "rgb(253 203 203) 0px 1px 1px",
+                    color: "rgb(255 166 181)",
+                    textShadow: "rgb(255 205 205) 0px 1px 0px",
                   }}
                 >
                   My Workspaces
                 </h2>
                 <span
-                  className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] dark:bg-white/90 dark:text-slate-900 shadow-sm dark:shadow-none"
+                  className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] bg-white border-solid"
                   style={{
-                    color: "#ffffffba",
-                    background: "#9e77dc",
+                    color: "rgb(255 151 165)",
+                    borderWidth: "1.5px 1px 1px 1.5px",
+                    borderColor:
+                      "rgb(255 234 213) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 227 144)",
+                    boxShadow: "none",
                   }}
                 >
                   {workspaces.length}{" "}
@@ -369,12 +375,12 @@ export default function WorkspacesPage() {
                     className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-300 bg-white dark:bg-[image:var(--background-gradient)]"
                     style={{
                       background:
-                        "linear-gradient(to right, rgb(255 252 252), rgb(255, 255, 255), rgb(247 251 253))",
+                        "linear-gradient(to right, rgb(255, 252, 252), rgb(255, 255, 255), rgb(254 255 255))",
                       boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
                       borderWidth: "1.5px 1px 1px 1.5px",
                       borderStyle: "solid",
                       borderColor:
-                        "rgb(255 247 234) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 247 234)",
+                        "rgb(255 238 210) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 233 197)",
                     }}
                   >
                     {sortBy === "edited" && "Recently Edited"}

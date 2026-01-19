@@ -171,7 +171,7 @@ export default function PageHeader({
         style={{
           background:
             "linear-gradient(to right, rgb(255 252 252), rgb(255, 255, 255), rgb(247 251 253))",
-          boxShadow: "rgba(170, 228, 243, 0.33) 0px -4px 12px 2px",
+          boxShadow: "rgba(170, 228, 243, 0.33) 0px -4px 11px 1px",
           borderBottom: "1px solid rgb(237 244 249)",
         }}
       >
@@ -189,7 +189,6 @@ export default function PageHeader({
               className="inline-flex items-center transition-all duration-300"
               style={{
                 columnGap: isScrolled ? "3px" : "4px",
-                marginLeft: isScrolled ? "4px" : "6px",
               }}
             >
               <PartsStudioLogo
