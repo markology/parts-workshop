@@ -505,7 +505,7 @@ export default function WorkspacesPage() {
                             borderWidth: "1.5px 1px 1px 2px",
                             borderStyle: "solid",
                             borderColor:
-                              "rgb(255 239 218) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(251 224 228 / 41%)",
+                              "rgb(255, 239, 218) rgb(227 245 250) rgb(227 245 250) rgb(253 241 243)",
                           }
                         : undefined
                     }
@@ -634,7 +634,7 @@ export default function WorkspacesPage() {
                         !isDarkMode
                           ? {
                               background:
-                                "radial-gradient(circle, rgba(175, 211, 238, 0.04), #fff, rgba(255, 80, 105, 0.03))",
+                                "radial-gradient(circle, rgb(253 253 253), rgb(255, 255, 255), rgb(255 248 249))",
                             }
                           : undefined
                       }
