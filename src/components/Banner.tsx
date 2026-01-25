@@ -10,6 +10,7 @@ export interface Banner {
   icon: LucideIcon;
   backgroundColor?: string;
   textColor?: string;
+  dismissible?: boolean;
 }
 
 interface BannerProps {
@@ -125,24 +126,26 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                 </a>
               )}
             </div>
-            <button
-              onClick={() => onDismiss(banner.id)}
-              className={`flex-shrink-0 p-1 rounded-lg transition-colors ${
-                !banner.textColor
-                  ? "hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400"
-                  : "hover:opacity-70"
-              }`}
-              style={{
-                color: banner.textColor
-                  ? banner.textColor
-                  : isDarkMode
-                    ? "#c4b4de"
-                    : "#ffa6b5",
-              }}
-              title="Dismiss"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {banner.dismissible !== false && (
+              <button
+                onClick={() => onDismiss(banner.id)}
+                className={`flex-shrink-0 p-1 rounded-lg transition-colors ${
+                  !banner.textColor
+                    ? "hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400"
+                    : "hover:opacity-70"
+                }`}
+                style={{
+                  color: banner.textColor
+                    ? banner.textColor
+                    : isDarkMode
+                      ? "#c4b4de"
+                      : "#ffa6b5",
+                }}
+                title="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         );
       })}

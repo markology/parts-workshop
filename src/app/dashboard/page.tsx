@@ -282,6 +282,7 @@ export default function WorkspacesPage() {
       message: "Check out our Mission & Roadmap to see what we're building",
       link: "/mission",
       icon: Target,
+      dismissible: false,
       // backgroundColor: "#a6a6f6",
     },
   ];
@@ -308,7 +309,7 @@ export default function WorkspacesPage() {
       style={
         !isDarkMode
           ? {
-              background: "radial-gradient(circle, #fafdff, #fff9f3, #fffefe)",
+              background: "white",
               color: "#6a6a6a",
             }
           : undefined
@@ -372,42 +373,38 @@ export default function WorkspacesPage() {
             >
               <div className="flex flex-wrap items-baseline gap-3 items-center">
                 <h2
-                  className="text-2xl font-medium leading-none dark:text-white"
+                  className="text-2xl font-medium leading-none dark:text-white flex items-center"
                   style={
                     !isDarkMode
                       ? {
-                          color: "rgb(110 110 110)",
+                          color: "black",
                         }
                       : undefined
                   }
                 >
-                  My Workspaces
+                  My Workspaces{" "}
+                  <span
+                    className="font-normal"
+                    style={
+                      !isDarkMode
+                        ? {
+                            color: "#939393",
+                            marginTop: "3px",
+                            letterSpacing: "2px",
+                            marginLeft: "10px",
+                            fontSize: "19px",
+                          }
+                        : {
+                            marginTop: "3px",
+                            letterSpacing: "2px",
+                            marginLeft: "10px",
+                            fontSize: "19px",
+                          }
+                    }
+                  >
+                    ({workspaces.length})
+                  </span>
                 </h2>
-                <span
-                  className="inline-flex items-center text-[11px] font-semibold ml-3.5 px-2.5 py-1 rounded-[14px] border-solid"
-                  style={
-                    isDarkMode
-                      ? {
-                          color: "#c4b4de",
-                          background: "rgba(30, 30, 35, 0.8)",
-                          borderWidth: "1.5px 1px 1px 1.5px",
-                          borderColor:
-                            "rgba(60, 60, 70, 0.8) rgba(100, 120, 140, 0.3) rgba(100, 120, 140, 0.3) rgba(60, 60, 70, 0.8)",
-                          boxShadow: "rgba(0, 0, 0, 0.3) 0px 2px 4px -2px",
-                        }
-                      : {
-                          color: "rgb(255 151 165)",
-                          background: "rgb(255 255 255)",
-                          borderWidth: "1.5px 1px 1px 1.5px",
-                          borderColor:
-                            "rgb(255 234 213) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 227 144)",
-                          boxShadow: "none",
-                        }
-                  }
-                >
-                  {workspaces.length}{" "}
-                  {workspaces.length === 1 ? "session" : "sessions"}
-                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative" ref={dropdownRef}>
@@ -491,7 +488,7 @@ export default function WorkspacesPage() {
                   <div
                     key={workspace.id}
                     data-workspace-tile
-                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 ${
+                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 shadow-sm ${
                       navigatingToWorkspace === workspace.id
                         ? "opacity-60 pointer-events-none"
                         : ""
@@ -500,12 +497,8 @@ export default function WorkspacesPage() {
                       !isDarkMode
                         ? {
                             background:
-                              "radial-gradient(circle, rgb(255 253 252) 37%, rgb(255, 255, 255) 62%, rgb(255 252 252) 100%)",
-                            boxShadow: "0px 2px 9px -8px #03A9F4",
-                            borderWidth: "1.5px 1px 1px 2px",
-                            borderStyle: "solid",
-                            borderColor:
-                              "rgb(255, 239, 218) rgb(227 245 250) rgb(227 245 250) rgb(253 241 243)",
+                              "linear-gradient(354deg, rgb(243 238 253 / 94%), rgb(250 244 255 / 94%), rgb(236 240 255 / 94%))",
+                            border: "none",
                           }
                         : undefined
                     }
@@ -550,12 +543,7 @@ export default function WorkspacesPage() {
                             style={
                               !isDarkMode
                                 ? {
-                                    background: "#ffac000a",
-                                    boxShadow: "0px 1px 5px -3px #bdf8ff",
-                                    borderWidth: "1.5px 1px 1px 1.5px",
-                                    borderStyle: "solid",
-                                    borderColor:
-                                      "rgba(230, 207, 211, 0.46) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgba(230, 207, 211, 0.41)",
+                                    background: "white",
                                   }
                                 : undefined
                             }
@@ -633,8 +621,7 @@ export default function WorkspacesPage() {
                       style={
                         !isDarkMode
                           ? {
-                              background:
-                                "radial-gradient(circle, rgb(253 253 253), rgb(255, 255, 255), rgb(255 248 249))",
+                              background: "white",
                             }
                           : undefined
                       }

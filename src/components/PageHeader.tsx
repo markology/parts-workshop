@@ -184,14 +184,14 @@ export default function PageHeader({
 
       {/* Header */}
       <header
-        className={`sticky top-0 z-[65] dark:bg-[var(--component)] supports-[backdrop-filter]:backdrop-blur-xl dark:shadow-none transition-all duration-300 ${isScrolled ? "shadow-md" : "shadow-sm"}`}
+        className={`sticky top-0 z-[65] dark:bg-[var(--component)] supports-[backdrop-filter]:backdrop-blur-xl dark:shadow-none transition-all duration-300`}
         style={
           !isDarkMode
             ? {
                 background:
                   "linear-gradient(to right, rgb(255 252 252), rgb(255, 255, 255), rgb(247 251 253))",
-                boxShadow: "rgba(170, 228, 243, 0.33) 0px -4px 11px 1px",
-                borderBottom: "1px solid #e8e8e8",
+                boxShadow: "0 1px 7px -4px #00000036",
+                marginBottom: "10px",
               }
             : undefined
         }
