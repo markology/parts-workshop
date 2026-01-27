@@ -281,7 +281,7 @@ export default function WorkspacesPage() {
       id: "mission-page",
       message: "Check out our Mission & Roadmap to see what we're building",
       link: "/mission",
-      icon: Target,
+      icon: Map,
       dismissible: false,
       // backgroundColor: "#a6a6f6",
     },
@@ -304,18 +304,26 @@ export default function WorkspacesPage() {
   }
 
   return (
-    <div
-      className="min-h-screen dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]"
-      style={
-        !isDarkMode
-          ? {
-              background: "white",
-              color: "#6a6a6a",
-            }
-          : undefined
-      }
-    >
-      <PageHeader pageName="Dashboard" showDashboard={false} />
+    <>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .workspace-tile-footer {
+            background: #fbfbfb !important;
+          }
+        `
+      }} />
+      <div
+        className="min-h-screen dark:text-white bg-white dark:bg-[image:var(--background-gradient-dashboard)]"
+        style={
+          !isDarkMode
+            ? {
+                background: "rgb(244 244 244)",
+                color: "#393939",
+              }
+            : undefined
+        }
+      >
+        <PageHeader pageName="Dashboard" showDashboard={false} />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Banners */}
@@ -328,7 +336,7 @@ export default function WorkspacesPage() {
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 rounded-lg transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
-              style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
+              style={!isDarkMode ? { color: "#393939" } : undefined}
             >
               Retry
             </button>
@@ -345,7 +353,7 @@ export default function WorkspacesPage() {
               </div>
               <h3
                 className="text-2xl font-semibold dark:text-white"
-                style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
+                style={!isDarkMode ? { color: "#393939" } : undefined}
               >
                 Your canvas is ready
               </h3>
@@ -414,7 +422,7 @@ export default function WorkspacesPage() {
                     style={
                       !isDarkMode
                         ? {
-                            color: "#6a6a6a",
+                            color: "#393939",
                             background:
                               "linear-gradient(to right, rgb(255, 252, 252), rgb(255, 255, 255), rgb(254 255 255))",
                             boxShadow:
@@ -443,7 +451,7 @@ export default function WorkspacesPage() {
                             setDropdownOpen(false);
                           }}
                           className="w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-xl dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
-                          style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
+                          style={!isDarkMode ? { color: "#393939" } : undefined}
                         >
                           Recently Edited
                         </button>
@@ -455,7 +463,7 @@ export default function WorkspacesPage() {
                             setDropdownOpen(false);
                           }}
                           className="w-full text-left px-4 py-2 text-sm transition-colors dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
-                          style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
+                          style={!isDarkMode ? { color: "#393939" } : undefined}
                         >
                           Recently Created
                         </button>
@@ -467,7 +475,7 @@ export default function WorkspacesPage() {
                             setDropdownOpen(false);
                           }}
                           className="w-full text-left px-4 py-2 text-sm transition-colors last:rounded-b-xl dark:text-white hover:bg-slate-100 dark:hover:bg-white/10"
-                          style={!isDarkMode ? { color: "#6a6a6a" } : undefined}
+                          style={!isDarkMode ? { color: "#393939" } : undefined}
                         >
                           Name
                         </button>
@@ -488,7 +496,7 @@ export default function WorkspacesPage() {
                   <div
                     key={workspace.id}
                     data-workspace-tile
-                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 shadow-sm ${
+                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 ${
                       navigatingToWorkspace === workspace.id
                         ? "opacity-60 pointer-events-none"
                         : ""
@@ -496,9 +504,11 @@ export default function WorkspacesPage() {
                     style={
                       !isDarkMode
                         ? {
-                            background:
-                              "linear-gradient(354deg, rgb(243 238 253 / 94%), rgb(250 244 255 / 94%), rgb(236 240 255 / 94%))",
-                            border: "none",
+                            background: "white",
+                            borderWidth: "1.5px 1px 1px 1.5px",
+                            borderStyle: "solid",
+                            borderColor: "rgba(255, 200, 210, 0.72) rgba(170, 228, 243, 0.67) rgba(170, 228, 243, 0.63) rgba(255, 200, 161, 0.68)",
+                            boxShadow: "none",
                           }
                         : undefined
                     }
@@ -543,7 +553,7 @@ export default function WorkspacesPage() {
                             style={
                               !isDarkMode
                                 ? {
-                                    background: "white",
+                                    background: "#f5f5f5",
                                   }
                                 : undefined
                             }
@@ -553,13 +563,16 @@ export default function WorkspacesPage() {
                           <h3
                             className="text-xl font-semibold leading-tight line-clamp-1 dark:text-white"
                             style={
-                              !isDarkMode ? { color: "#6a6a6a" } : undefined
+                              !isDarkMode ? { color: "#393939" } : undefined
                             }
                           >
                             {workspace.name}
                           </h3>
                         </div>
-                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        <span
+                          className="text-xs font-medium text-slate-500 dark:text-slate-400"
+                          style={!isDarkMode ? { color: "#393939" } : undefined}
+                        >
                           {formatDate(lastEdited)}
                         </span>
                       </div>
@@ -570,13 +583,13 @@ export default function WorkspacesPage() {
                       )}
                     </div>
                     <div className="relative px-6 pb-4">
-                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner bg-white dark:bg-[image:var(--background-gradient-tile)]">
+                      <div className="rounded-2xl border p-3 h-32 sm:h-36 border-slate-200 dark:border-[var(--border)] shadow-inner bg-[#fbfbfb] dark:bg-[image:var(--background-gradient-tile)]">
                         {workspace.nodes && workspace.nodes.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2 h-full">
                             {workspace.nodes.slice(0, 6).map((node) => (
                               <div
                                 key={node.id}
-                                className="rounded-lg overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-[var(--button)]"
+                                className="rounded-lg overflow-hidden flex items-center justify-center bg-white dark:bg-[var(--button)]"
                               >
                                 {node.data?.image ? (
                                   <Image
@@ -617,11 +630,11 @@ export default function WorkspacesPage() {
                       </div>
                     </div>
                     <div
-                      className="relative px-6 pb-6 pt-4 mt-auto border-t border-slate-200 dark:border-slate-800/60 dark:bg-none"
+                      className={`relative px-6 pb-6 pt-4 mt-auto border-t border-slate-200 dark:border-slate-800/60 dark:bg-none ${!isDarkMode ? "workspace-tile-footer" : ""}`}
                       style={
                         !isDarkMode
                           ? {
-                              background: "white",
+                              background: "#fbfbfb",
                             }
                           : undefined
                       }
@@ -737,6 +750,7 @@ export default function WorkspacesPage() {
       >
         <FeedbackForm />
       </Modal>
-    </div>
+      </div>
+    </>
   );
 }

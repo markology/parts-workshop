@@ -197,9 +197,7 @@ export default function PageHeader({
         }
       >
         <div
-          className={`relative max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-300 ${
-            isScrolled ? "py-2" : "py-4"
-          }`}
+          className="relative max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-300 py-2"
         >
           {/* Logo and Page Name */}
           <Link
@@ -242,7 +240,7 @@ export default function PageHeader({
           {showSearch && (
             <div
               className="absolute left-1/2 -translate-x-1/2 w-full max-w-md px-6 pointer-events-none transition-all duration-300"
-              style={{ zIndex: 60, top: isScrolled ? "12px" : "20px" }}
+              style={{ zIndex: 60, top: "12px" }}
             >
               <div
                 ref={searchBoxRef}

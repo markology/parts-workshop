@@ -65,8 +65,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                         "rgba(60, 60, 70, 0.8) rgba(100, 120, 140, 0.3) rgba(100, 120, 140, 0.3) rgba(60, 60, 70, 0.8)",
                     }
                   : {
-                      background:
-                        "linear-gradient(354deg, rgb(253 238 238 / 94%), rgba(255, 246, 244, 0.94), rgb(255 236 236 / 94%))",
+                      background: "white",
                       boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
                       borderWidth: "1.5px 1px 1px 1.5px",
                       borderStyle: "solid",
@@ -100,7 +99,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                       ? banner.textColor
                       : isDarkMode
                         ? "#c4b4de"
-                        : "#ffa6b5",
+                        : "black",
                   }}
                 >
                   {banner.message}
@@ -119,7 +118,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                       ? banner.textColor
                       : isDarkMode
                         ? "#a78bfa"
-                        : "#ffa6b5",
+                        : "black",
                   }}
                 >
                   Visit →
@@ -139,7 +138,7 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                     ? banner.textColor
                     : isDarkMode
                       ? "#c4b4de"
-                      : "#ffa6b5",
+                      : "black",
                 }}
                 title="Dismiss"
               >
