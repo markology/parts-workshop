@@ -76,6 +76,14 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
           >
             <div className="flex items-center gap-3 flex-1">
               <div className="flex-shrink-0">
+                <svg width="0" height="0" style={{ position: "absolute" }}>
+                  <defs>
+                    <linearGradient id="banner-icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="rgb(255, 200, 210)" />
+                      <stop offset="100%" stopColor="rgb(170, 228, 243)" />
+                    </linearGradient>
+                  </defs>
+                </svg>
                 <Icon
                   className={`w-5 h-5 ${
                     !banner.textColor ? "dark:text-slate-400" : ""
@@ -85,7 +93,15 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                       ? banner.textColor
                       : isDarkMode
                         ? "#c4b4de"
+                        : !isDarkMode
+                        ? "url(#banner-icon-gradient)"
                         : "#ffa6b5",
+                    // fill: !banner.textColor && !isDarkMode
+                    //   ? "url(#banner-icon-gradient)"
+                    //   : undefined,
+                    stroke: !banner.textColor && !isDarkMode
+                      ? "url(#banner-icon-gradient)"
+                      : undefined,
                   }}
                 />
               </div>

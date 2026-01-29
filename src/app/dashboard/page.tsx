@@ -11,6 +11,7 @@ import {
   ChevronDown,
   User,
   Target,
+  Route,
 } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Image from "next/image";
@@ -281,7 +282,7 @@ export default function WorkspacesPage() {
       id: "mission-page",
       message: "Check out our Mission & Roadmap to see what we're building",
       link: "/mission",
-      icon: Map,
+      icon: Route,
       dismissible: false,
       // backgroundColor: "#a6a6f6",
     },
@@ -496,7 +497,7 @@ export default function WorkspacesPage() {
                   <div
                     key={workspace.id}
                     data-workspace-tile
-                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 ${
+                    className={`relative flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 shadow-md ${
                       navigatingToWorkspace === workspace.id
                         ? "opacity-60 pointer-events-none"
                         : ""
@@ -508,7 +509,6 @@ export default function WorkspacesPage() {
                             borderWidth: "1.5px 1px 1px 1.5px",
                             borderStyle: "solid",
                             borderColor: "rgba(255, 200, 210, 0.72) rgba(170, 228, 243, 0.67) rgba(170, 228, 243, 0.63) rgba(255, 200, 161, 0.68)",
-                            boxShadow: "none",
                           }
                         : undefined
                     }
@@ -620,7 +620,7 @@ export default function WorkspacesPage() {
                               //   background: "linear-gradient(152deg, rgb(42, 46, 50), rgb(35, 39, 43))",
                               // } : undefined}
                             >
-                              <Map className="w-7 h-7 text-sky-500 dark:text-slate-400" />
+                              <Route className="w-7 h-7 text-sky-500 dark:text-slate-400" />
                             </div>
                             <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
                               Empty workspace
