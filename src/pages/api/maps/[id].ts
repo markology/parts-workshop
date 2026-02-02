@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { decrypt, decryptJson, encryptMapData, decryptMapData } from "@/lib/encryption";
 
 export const config = {
   api: {
@@ -62,11 +63,32 @@ export default async function handler(
         }
       });
 
-      // Map data fetched successfully
+      // Decrypt sensitive fields in journal entries
+      const decryptedJournalEntries = journalEntries.map((entry) => ({
+        ...entry,
+        contentJson: entry.contentJson
+          ? decryptJson(entry.contentJson as string)
+          : null,
+        contentText: decrypt(entry.contentText || null),
+        title: decrypt(entry.title || null),
+      }));
 
+      // Decrypt map data (nodes, edges, title, etc.)
+      const decryptedMap = decryptMapData({
+        nodes: map.nodes as any,
+        edges: map.edges as any,
+        title: map.title,
+        sidebarImpressions: map.sidebarImpressions as any,
+      });
+
+      // Map data fetched successfully
       return res.status(200).json({
         ...map,
-        journalEntries,
+        nodes: decryptedMap.nodes,
+        edges: decryptedMap.edges,
+        title: decryptedMap.title,
+        sidebarImpressions: decryptedMap.sidebarImpressions,
+        journalEntries: decryptedJournalEntries,
       });
     } catch (error: any) {
       return res.status(500).json({ error: "Failed to fetch map" });
@@ -75,6 +97,20 @@ export default async function handler(
 
   if (req.method === "POST" || req.method === "PUT") {
     try {
+      // Verify map ownership before allowing update
+      const existingMap = await prisma.map.findUnique({
+        where: { id },
+        select: { userId: true },
+      });
+
+      if (!existingMap) {
+        return res.status(404).json({ error: "Map not found" });
+      }
+
+      if (existingMap.userId !== userId) {
+        return res.status(403).json({ error: "Forbidden: You don't have permission to update this map" });
+      }
+
       let body = req.body;
       
       // Saving map data to database
@@ -119,12 +155,21 @@ export default async function handler(
         },
       };
 
+      // Encrypt sensitive data in map (nodes, title, sidebarImpressions)
+      const encryptedMapData = encryptMapData({
+        nodes: body.nodes,
+        edges: body.edges,
+        title: body.title,
+        sidebarImpressions: sidebarImpressionsData,
+      });
+
       await prisma.map.update({
         where: { id },
         data: {
-          nodes: body.nodes,
-          edges: body.edges,
-          sidebarImpressions: sidebarImpressionsData,
+          nodes: encryptedMapData.nodes,
+          edges: encryptedMapData.edges,
+          title: encryptedMapData.title,
+          sidebarImpressions: encryptedMapData.sidebarImpressions,
         },
       });
 
@@ -136,6 +181,20 @@ export default async function handler(
 
   if (req.method === "DELETE") {
     try {
+      // Verify map ownership before allowing delete
+      const existingMap = await prisma.map.findUnique({
+        where: { id },
+        select: { userId: true },
+      });
+
+      if (!existingMap) {
+        return res.status(404).json({ error: "Map not found" });
+      }
+
+      if (existingMap.userId !== userId) {
+        return res.status(403).json({ error: "Forbidden: You don't have permission to delete this map" });
+      }
+
       // Delete the map
       await prisma.map.delete({
         where: { id },

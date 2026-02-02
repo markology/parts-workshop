@@ -59,18 +59,12 @@ export default function Banner({ banners, onDismiss }: BannerProps) {
                       background:
                         "linear-gradient(354deg, rgba(30, 30, 35, 0.95), rgba(35, 35, 40, 0.95), rgba(30, 30, 35, 0.95))",
                       boxShadow: "rgba(0, 0, 0, 0.4) 4px 3px 6px -7px",
-                      borderWidth: "1.5px 1px 1px 1.5px",
-                      borderStyle: "solid",
-                      borderColor:
-                        "rgba(60, 60, 70, 0.8) rgba(100, 120, 140, 0.3) rgba(100, 120, 140, 0.3) rgba(60, 60, 70, 0.8)",
+                      
                     }
                   : {
                       background: "white",
                       boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
-                      borderWidth: "1.5px 1px 1px 1.5px",
-                      borderStyle: "solid",
-                      borderColor:
-                        "rgb(255, 247, 234) rgba(170, 228, 243, 0.33) rgb(253 230 230) rgb(255, 247, 234)",
+                     
                     }
             }
           >

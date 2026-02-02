@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { normalizeJournalType } from "@/features/workspace/utils/journalType";
+import { encrypt, encryptJson, decrypt, decryptJson } from "@/lib/encryption";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -23,9 +24,19 @@ export default async function handler(
       },
     });
 
+    // Decrypt sensitive fields
+    const decryptedEntries = entries.map((entry) => ({
+      ...entry,
+      contentJson: entry.contentJson
+        ? decryptJson(entry.contentJson as string)
+        : null,
+      contentText: decrypt(entry.contentText || null),
+      title: decrypt(entry.title || null),
+    }));
+
     if (includeHistory) {
       return res.json({
-        entries,
+        entries: decryptedEntries,
       });
     }
 
@@ -47,10 +58,15 @@ export default async function handler(
         },
       });
 
-      return res.json(entry);
+      return res.json({
+        ...entry,
+        contentJson: null,
+        contentText: "",
+        title: null,
+      });
     }
 
-    return res.json(entries[0]);
+    return res.json(decryptedEntries[0]);
   }
 
   if (req.method === "POST") {
@@ -102,33 +118,55 @@ export default async function handler(
         return res.status(404).json({ error: "Journal entry not found" });
       }
 
+      // Encrypt sensitive data before saving
+      const encryptedContentJson = encryptJson(parsedJson);
+      const encryptedContentText = encrypt(finalContentText || "");
+      const encryptedTitle = typeof title === "string" ? encrypt(title) : undefined;
+
       const entry = await prisma.journalEntry.update({
         where: { id: entryId },
         data: {
-          contentJson: parsedJson,
-          contentText: finalContentText || "",
-          title: typeof title === "string" ? title : undefined,
+          contentJson: encryptedContentJson as any,
+          contentText: encryptedContentText,
+          title: encryptedTitle,
           journalType: validJournalType,
           speakers: Array.isArray(speakers) ? speakers : undefined,
         },
       });
 
-      return res.json(entry);
+      // Decrypt for response
+      return res.json({
+        ...entry,
+        contentJson: decryptJson(entry.contentJson as string),
+        contentText: decrypt(entry.contentText || null),
+        title: decrypt(entry.title || null),
+      });
     }
+
+    // Encrypt sensitive data before saving
+    const encryptedContentJson = encryptJson(parsedJson);
+    const encryptedContentText = encrypt(finalContentText || "");
+    const encryptedTitle = typeof title === "string" ? encrypt(title) : null;
 
     const entry = await prisma.journalEntry.create({
       data: {
         userId,
-        contentJson: parsedJson,
-        contentText: finalContentText || "",
+        contentJson: encryptedContentJson as any,
+        contentText: encryptedContentText,
         nodeId: null,
-        title: typeof title === "string" ? title : null,
+        title: encryptedTitle,
         journalType: validJournalType,
         speakers: Array.isArray(speakers) ? speakers : [],
       },
     });
 
-    return res.json(entry);
+    // Decrypt for response
+    return res.json({
+      ...entry,
+      contentJson: decryptJson(entry.contentJson as string),
+      contentText: decrypt(entry.contentText || null),
+      title: decrypt(entry.title || null),
+    });
   }
 
   if (req.method === "DELETE") {

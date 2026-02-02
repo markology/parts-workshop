@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { encrypt, encryptJson, encryptMapData } from "@/lib/encryption";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export const config = {
@@ -38,13 +39,34 @@ export default async function handler(
           .json({ error: "Invalid payload: nodes or edges missing" });
       }
 
+      // Verify map ownership before allowing update
+      const existingMap = await prisma.map.findUnique({
+        where: { id: mapId },
+        select: { userId: true },
+      });
+
+      if (!existingMap) {
+        return res.status(404).json({ error: "Map not found" });
+      }
+
+      if (existingMap.userId !== userId) {
+        return res.status(403).json({ error: "Forbidden: You don't have permission to update this map" });
+      }
+
+      // Encrypt sensitive data in map (nodes, sidebarImpressions)
+      const encryptedMapData = encryptMapData({
+        nodes,
+        edges,
+        sidebarImpressions,
+      });
+
       // ✅ Save Map visual state
       await prisma.map.update({
         where: { id: mapId },
         data: {
-          nodes,
-          edges,
-          sidebarImpressions,
+          nodes: encryptedMapData.nodes,
+          edges: encryptedMapData.edges,
+          sidebarImpressions: encryptedMapData.sidebarImpressions,
         },
       });
 
@@ -107,13 +129,17 @@ export default async function handler(
             detectedJournalType = "normal";
           }
 
+          // Encrypt sensitive data before saving
+          const encryptedContentJson = encryptJson(parsedJson);
+          const encryptedContentText = encrypt(contentText);
+
           if (existingEntry) {
             // Update if found
             await prisma.journalEntry.update({
               where: { id: existingEntry.id },
               data: {
-                contentJson: parsedJson,
-                contentText: contentText,
+                contentJson: encryptedContentJson as any,
+                contentText: encryptedContentText,
                 journalType: detectedJournalType,
                 updatedAt: new Date(),
               },
@@ -124,8 +150,8 @@ export default async function handler(
               data: {
                 userId,
                 nodeId: entry.nodeId ?? null,
-                contentJson: parsedJson,
-                contentText: contentText,
+                contentJson: encryptedContentJson as any,
+                contentText: encryptedContentText,
                 journalType: detectedJournalType,
               },
             });

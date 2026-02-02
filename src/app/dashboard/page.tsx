@@ -12,6 +12,7 @@ import {
   User,
   Target,
   Route,
+  Plus,
 } from "lucide-react";
 import { createEmptyImpressionGroups } from "@/features/workspace/state/stores/useWorkingStore";
 import Image from "next/image";
@@ -330,6 +331,74 @@ export default function WorkspacesPage() {
         {/* Banners */}
         <Banner banners={activeBanners} onDismiss={handleDismissBanner} />
 
+        {/* New Workspace Banner */}
+        {!loading && !error && (
+          <div
+            onClick={handleStartSession}
+            className="mb-6 cursor-pointer flex items-center justify-between gap-4 rounded-xl px-4 py-3 transition-all hover:scale-[1.01] active:scale-[0.99]"
+            style={
+              !isDarkMode
+                ? {
+                    background: "white",
+                    boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
+                    borderWidth: "1.5px 1px 1px 1.5px",
+                    borderStyle: "solid",
+                    borderColor:
+                      "rgb(255 238 210) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 233 197)",
+                  }
+                : {
+                    background:
+                      "linear-gradient(354deg, rgba(30, 30, 35, 0.95), rgba(35, 35, 40, 0.95), rgba(30, 30, 35, 0.95))",
+                    boxShadow: "rgba(0, 0, 0, 0.4) 4px 3px 6px -7px",
+                    borderWidth: "1.5px 1px 1px 1.5px",
+                    borderStyle: "solid",
+                    borderColor:
+                      "rgba(60, 60, 70, 0.8) rgba(100, 120, 140, 0.3) rgba(100, 120, 140, 0.3) rgba(60, 60, 70, 0.8)",
+                  }
+            }
+          >
+            <div className="flex items-center gap-3 flex-1">
+              <div className="flex-shrink-0">
+                <svg width="0" height="0" style={{ position: "absolute" }}>
+                  <defs>
+                    <linearGradient id="new-workspace-icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="rgb(255, 200, 210)" />
+                      <stop offset="100%" stopColor="rgb(170, 228, 243)" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <Plus
+                  className="w-5 h-5"
+                  style={{
+                    stroke: !isDarkMode
+                      ? "url(#new-workspace-icon-gradient)"
+                      : "#c4b4de",
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <p
+                  className="text-sm font-medium"
+                  style={{
+                    color: !isDarkMode ? "black" : "#c4b4de",
+                  }}
+                >
+                  Create a new workspace to start mapping your parts and impressions
+                </p>
+              </div>
+              <div
+                className="text-sm font-medium transition-colors flex items-center gap-1"
+                style={{
+                  color: !isDarkMode ? "black" : "#a78bfa",
+                }}
+              >
+                <span>Create</span>
+                <span>→</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Error State */}
         {error && (
           <div className="text-center py-12">
@@ -509,6 +578,7 @@ export default function WorkspacesPage() {
                             borderWidth: "1.5px 1px 1px 1.5px",
                             borderStyle: "solid",
                             borderColor: "rgba(255, 200, 210, 0.72) rgba(170, 228, 243, 0.67) rgba(170, 228, 243, 0.63) rgba(255, 200, 161, 0.68)",
+                            border: 'none',
                           }
                         : undefined
                     }
@@ -539,7 +609,7 @@ export default function WorkspacesPage() {
                       ) as HTMLButtonElement;
                       if (openButton) {
                         openButton.style.backgroundImage = "";
-                        openButton.style.backgroundColor = "";
+                        openButton.style.backgroundColor = "#253eff66";
                         openButton.style.color = "";
                         openButton.style.borderColor = "";
                       }
@@ -670,7 +740,7 @@ export default function WorkspacesPage() {
                             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[var(--border)]/60 transition-colors hover:bg-[#253eff66] hover:text-white hover:border-transparent"
                             style={{
                               textTransform: "uppercase",
-                              backgroundColor: "transparent",
+                              backgroundColor: "#253eff66",
                             }}
                             title="Open session"
                           >
@@ -692,7 +762,7 @@ export default function WorkspacesPage() {
                               ) as HTMLButtonElement;
                               if (openButton) {
                                 openButton.style.backgroundImage = "";
-                                openButton.style.backgroundColor = "";
+                                openButton.style.backgroundColor = "#253eff66";
                                 openButton.style.color = "";
                                 openButton.style.borderColor = "";
                               }
@@ -717,6 +787,8 @@ export default function WorkspacesPage() {
                                     "#253eff66";
                                   openButton.style.color = "white";
                                   openButton.style.borderColor = "transparent";
+                                } else {
+                                  openButton.style.backgroundColor = "#253eff66";
                                 }
                               }
                             }}

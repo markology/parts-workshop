@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { decrypt, decryptJson } from "@/lib/encryption";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -19,5 +20,15 @@ export default async function handler(
     },
   });
 
-  res.status(200).json(entries);
+  // Decrypt sensitive fields
+  const decryptedEntries = entries.map((entry) => ({
+    ...entry,
+    contentJson: entry.contentJson
+      ? decryptJson(entry.contentJson as string)
+      : null,
+    contentText: decrypt(entry.contentText || null),
+    title: decrypt(entry.title || null),
+  }));
+
+  res.status(200).json(decryptedEntries);
 }

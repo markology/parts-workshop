@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { getServerSession, type Session } from "next-auth";
 import authOptions from "../../auth/[...nextauth]";
 import { normalizeJournalType } from "@/features/workspace/utils/journalType";
+import { encrypt, encryptJson, decrypt, decryptJson } from "@/lib/encryption";
 
 const prisma = new PrismaClient();
 
@@ -33,7 +34,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         });
 
-        return res.status(200).json(journalEntries);
+        // Decrypt sensitive fields
+        const decryptedEntries = journalEntries.map((entry) => ({
+          ...entry,
+          contentJson: entry.contentJson
+            ? decryptJson(entry.contentJson as string)
+            : null,
+          contentText: decrypt(entry.contentText || null),
+          title: decrypt(entry.title || null),
+        }));
+
+        return res.status(200).json(decryptedEntries);
 
       case "POST":
         // Create a new journal entry for a part
@@ -83,18 +94,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(404).json({ error: "Part not found" });
         }
 
+        // Encrypt sensitive data before saving
+        const encryptedContentJson = encryptJson(parsedJson);
+        const encryptedContentText = encrypt(finalContentText || "");
+        const encryptedTitle = encrypt(postTitle || `Journal Entry - ${part.name}`);
+
         const newEntry = await prisma.journalEntry.create({
           data: {
-            title: postTitle || `Journal Entry - ${part.name}`,
-            contentJson: parsedJson,
-            contentText: finalContentText || "",
+            title: encryptedTitle,
+            contentJson: encryptedContentJson as any,
+            contentText: encryptedContentText,
             journalType: validPostJournalType,
             partId: partId,
             userId: session.user.id,
           },
         });
 
-        return res.status(201).json(newEntry);
+        // Decrypt for response
+        return res.status(201).json({
+          ...newEntry,
+          contentJson: decryptJson(newEntry.contentJson as string),
+          contentText: decrypt(newEntry.contentText || null),
+          title: decrypt(newEntry.title || null),
+        });
 
       case "PUT":
         // Update an existing journal entry
@@ -149,19 +171,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Validate journalType if provided
         const validPutJournalType = normalizeJournalType(putJournalType);
 
+        // Encrypt sensitive data before saving
+        const encryptedUpdateContentJson = encryptJson(parsedUpdateJson);
+        const encryptedUpdateContentText = encrypt(finalUpdateContentText || "");
+        const encryptedUpdateTitle = updateTitle ? encrypt(updateTitle) : undefined;
+
         const updatedEntry = await prisma.journalEntry.update({
           where: {
             id: entryId,
           },
           data: {
-            title: updateTitle,
-            contentJson: parsedUpdateJson,
-            contentText: finalUpdateContentText || "",
+            title: encryptedUpdateTitle,
+            contentJson: encryptedUpdateContentJson as any,
+            contentText: encryptedUpdateContentText,
             journalType: validPutJournalType,
           },
         });
 
-        return res.status(200).json(updatedEntry);
+        // Decrypt for response
+        return res.status(200).json({
+          ...updatedEntry,
+          contentJson: decryptJson(updatedEntry.contentJson as string),
+          contentText: decrypt(updatedEntry.contentText || null),
+          title: decrypt(updatedEntry.title || null),
+        });
 
       case "DELETE":
         // Delete a journal entry
