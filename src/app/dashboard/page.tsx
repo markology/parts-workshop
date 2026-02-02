@@ -331,69 +331,85 @@ export default function WorkspacesPage() {
         {/* Banners */}
         <Banner banners={activeBanners} onDismiss={handleDismissBanner} />
 
-        {/* New Workspace Banner */}
+        {/* New Workspace Welcome Card */}
         {!loading && !error && (
           <div
             onClick={handleStartSession}
-            className="mb-6 cursor-pointer flex items-center justify-between gap-4 rounded-xl px-4 py-3 transition-all hover:scale-[1.01] active:scale-[0.99]"
+            className="mb-8 cursor-pointer group relative overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 shadow-md"
             style={
               !isDarkMode
                 ? {
                     background: "white",
-                    boxShadow: "rgba(170, 228, 243, 0.33) 4px 3px 6px -7px",
                     borderWidth: "1.5px 1px 1px 1.5px",
                     borderStyle: "solid",
                     borderColor:
-                      "rgb(255 238 210) rgba(170, 228, 243, 0.33) rgba(170, 228, 243, 0.33) rgb(255 233 197)",
+                      "rgba(255, 200, 210, 0.72) rgba(170, 228, 243, 0.67) rgba(170, 228, 243, 0.63) rgba(255, 200, 161, 0.68)",
                   }
-                : {
-                    background:
-                      "linear-gradient(354deg, rgba(30, 30, 35, 0.95), rgba(35, 35, 40, 0.95), rgba(30, 30, 35, 0.95))",
-                    boxShadow: "rgba(0, 0, 0, 0.4) 4px 3px 6px -7px",
-                    borderWidth: "1.5px 1px 1px 1.5px",
-                    borderStyle: "solid",
-                    borderColor:
-                      "rgba(60, 60, 70, 0.8) rgba(100, 120, 140, 0.3) rgba(100, 120, 140, 0.3) rgba(60, 60, 70, 0.8)",
-                  }
+                : undefined
             }
           >
-            <div className="flex items-center gap-3 flex-1">
-              <div className="flex-shrink-0">
-                <svg width="0" height="0" style={{ position: "absolute" }}>
-                  <defs>
-                    <linearGradient id="new-workspace-icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="rgb(255, 200, 210)" />
-                      <stop offset="100%" stopColor="rgb(170, 228, 243)" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <Plus
-                  className="w-5 h-5"
-                  style={{
-                    stroke: !isDarkMode
-                      ? "url(#new-workspace-icon-gradient)"
-                      : "#c4b4de",
-                  }}
-                />
-              </div>
-              <div className="flex-1">
-                <p
-                  className="text-sm font-medium"
-                  style={{
-                    color: !isDarkMode ? "black" : "#c4b4de",
-                  }}
-                >
-                  Create a new workspace to start mapping your parts and impressions
-                </p>
-              </div>
-              <div
-                className="text-sm font-medium transition-colors flex items-center gap-1"
-                style={{
-                  color: !isDarkMode ? "black" : "#a78bfa",
-                }}
-              >
-                <span>Create</span>
-                <span>→</span>
+            <div className="p-8">
+              <div className="flex items-start justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                      style={
+                        !isDarkMode
+                          ? {
+                              background:
+                                "linear-gradient(135deg, rgba(255, 200, 210, 0.2), rgba(170, 228, 243, 0.2))",
+                            }
+                          : {
+                              background: "rgba(124, 58, 237, 0.15)",
+                            }
+                      }
+                    >
+                      <Plus
+                        className="w-6 h-6"
+                        strokeWidth={2.5}
+                        style={{
+                          color: !isDarkMode ? "#6dbdf1" : "#a78bfa",
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <h3
+                        className="text-xl font-semibold"
+                        style={{
+                          color: !isDarkMode ? "#393939" : "#e2e8f0",
+                        }}
+                      >
+                        Ready to start?
+                      </h3>
+                    </div>
+                  </div>
+                  <p
+                    className="text-sm leading-relaxed mb-4"
+                    style={{
+                      color: !isDarkMode ? "#6b7280" : "#94a3b8",
+                    }}
+                  >
+                    Create a new workspace to begin mapping your parts, exploring impressions, and building relationships. Your journey starts here.
+                  </p>
+                  <div
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all group-hover:scale-105"
+                    style={
+                      !isDarkMode
+                        ? {
+                            background: "#253eff66",
+                            color: "white",
+                          }
+                        : {
+                            background: "rgba(124, 58, 237, 0.2)",
+                            color: "#a78bfa",
+                          }
+                    }
+                  >
+                    <span>Create Workspace</span>
+                    <span>→</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -737,7 +753,7 @@ export default function WorkspacesPage() {
                               e.stopPropagation();
                               handleOpenWorkspace(workspace.id);
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[var(--border)]/60 transition-colors hover:bg-[#253eff66] hover:text-white hover:border-transparent"
+                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium uppercase overflow-hidden text-white dark:text-slate-200 border border-slate-200 dark:border-[var(--border)]/60 transition-colors hover:bg-[#253eff66] hover:text-white hover:border-transparent"
                             style={{
                               textTransform: "uppercase",
                               backgroundColor: "#253eff66",
