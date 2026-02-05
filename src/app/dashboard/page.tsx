@@ -319,7 +319,7 @@ export default function WorkspacesPage() {
         style={
           !isDarkMode
             ? {
-                background: "rgb(244 244 244)",
+                background: "linear-gradient(308deg, oklch(0.977 0.013 236.62) 0px, oklch(0.962 0.018 272.314) 30%, oklch(0.969 0.015 12.422) 100%)",
                 color: "#393939",
               }
             : undefined
@@ -330,90 +330,6 @@ export default function WorkspacesPage() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Banners */}
         <Banner banners={activeBanners} onDismiss={handleDismissBanner} />
-
-        {/* New Workspace Welcome Card */}
-        {!loading && !error && (
-          <div
-            onClick={handleStartSession}
-            className="mb-8 cursor-pointer group relative overflow-hidden rounded-3xl transition-all duration-300 hover:-translate-y-1 shadow-md"
-            style={
-              !isDarkMode
-                ? {
-                    background: "white",
-                    borderWidth: "1.5px 1px 1px 1.5px",
-                    borderStyle: "solid",
-                    borderColor:
-                      "rgba(255, 200, 210, 0.72) rgba(170, 228, 243, 0.67) rgba(170, 228, 243, 0.63) rgba(255, 200, 161, 0.68)",
-                  }
-                : undefined
-            }
-          >
-            <div className="p-8">
-              <div className="flex items-start justify-between gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                      style={
-                        !isDarkMode
-                          ? {
-                              background:
-                                "linear-gradient(135deg, rgba(255, 200, 210, 0.2), rgba(170, 228, 243, 0.2))",
-                            }
-                          : {
-                              background: "rgba(124, 58, 237, 0.15)",
-                            }
-                      }
-                    >
-                      <Plus
-                        className="w-6 h-6"
-                        strokeWidth={2.5}
-                        style={{
-                          color: !isDarkMode ? "#6dbdf1" : "#a78bfa",
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <h3
-                        className="text-xl font-semibold"
-                        style={{
-                          color: !isDarkMode ? "#393939" : "#e2e8f0",
-                        }}
-                      >
-                        Ready to start?
-                      </h3>
-                    </div>
-                  </div>
-                  <p
-                    className="text-sm leading-relaxed mb-4"
-                    style={{
-                      color: !isDarkMode ? "#6b7280" : "#94a3b8",
-                    }}
-                  >
-                    Create a new workspace to begin mapping your parts, exploring impressions, and building relationships. Your journey starts here.
-                  </p>
-                  <div
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all group-hover:scale-105"
-                    style={
-                      !isDarkMode
-                        ? {
-                            background: "#253eff66",
-                            color: "white",
-                          }
-                        : {
-                            background: "rgba(124, 58, 237, 0.2)",
-                            color: "#a78bfa",
-                          }
-                    }
-                  >
-                    <span>Create Workspace</span>
-                    <span>→</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Error State */}
         {error && (
@@ -501,6 +417,24 @@ export default function WorkspacesPage() {
                 </h2>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={handleStartSession}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                  style={
+                    !isDarkMode
+                      ? {
+                          background: "#253eff66",
+                          color: "white",
+                        }
+                      : {
+                          background: "rgba(124, 58, 237, 0.3)",
+                          color: "#a78bfa",
+                        }
+                  }
+                >
+                  <Plus className="w-4 h-4" />
+                  New Workspace
+                </button>
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}

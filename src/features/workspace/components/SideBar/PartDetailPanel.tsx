@@ -325,40 +325,80 @@ const PartDetailPanel = () => {
     };
   }, [selectedPartId]);
 
+  // Track the last selectedPartId to detect when part selection actually changes
+  const lastSelectedPartIdRef = useRef<string | undefined>(undefined);
+  
+  // Store original values when editing starts - these are the baseline for comparison
+  const originalValuesRef = useRef<{
+    name: string;
+    scratchpad: string;
+    partType: string;
+    age: string;
+    gender: string;
+  } | null>(null);
+  
   // Initialize temp values from part data when part changes (only on selection change, not on every render)
+  // Don't reset temp values if we're currently editing - preserve user's unsaved changes
   useEffect(() => {
-    if (partNode && selectedPartId) {
+    const partChanged = lastSelectedPartIdRef.current !== selectedPartId;
+    lastSelectedPartIdRef.current = selectedPartId;
+    
+    if (partNode && selectedPartId && (!isEditingInfo || partChanged)) {
       const data = partNode.data;
       const name = (data.name as string) || (data.label as string) || "";
+      const scratchpad = (data.scratchpad as string) || "";
+      const partType = (data.customPartType as string) || (data.partType as string) || "";
+      const age = (data.age as string) || "Unknown";
+      const gender = (data.gender as string) || "";
+      
       setTempName(name);
-      setTempScratchpad((data.scratchpad as string) || "");
-      setTempPartType(
-        (data.customPartType as string) || (data.partType as string) || ""
-      );
-      setTempAge((data.age as string) || "Unknown");
-      setTempGender((data.gender as string) || "");
+      setTempScratchpad(scratchpad);
+      setTempPartType(partType);
+      setTempAge(age);
+      setTempGender(gender);
+      
+      // Store original values when not editing or when part changes
+      if (!isEditingInfo || partChanged) {
+        originalValuesRef.current = {
+          name,
+          scratchpad,
+          partType,
+          age,
+          gender,
+        };
+      }
     }
-  }, [selectedPartId, partNode]); // Only sync when selectedPartId or partNode changes
+  }, [selectedPartId, partNode, isEditingInfo]); // Only sync when selectedPartId or partNode changes, and not when editing
+  
+  // Store original values when entering edit mode
+  useEffect(() => {
+    if (partNode && selectedPartId && isEditingInfo && !originalValuesRef.current) {
+      const data = partNode.data;
+      originalValuesRef.current = {
+        name: (data.name as string) || (data.label as string) || "",
+        scratchpad: (data.scratchpad as string) || "",
+        partType: (data.customPartType as string) || (data.partType as string) || "",
+        age: (data.age as string) || "Unknown",
+        gender: (data.gender as string) || "",
+      };
+    }
+  }, [isEditingInfo, selectedPartId, partNode]);
 
-  // Check if any changes have been made
+  // Check if any changes have been made - compare against original values stored when editing started
   const hasChanges = useMemo(() => {
-    if (!partNode || !selectedPartId) return false;
-    const data = partNode.data;
-    const originalName = (data.name as string) || (data.label as string) || "";
-    const originalScratchpad = (data.scratchpad as string) || "";
-    const originalPartType =
-      (data.customPartType as string) || (data.partType as string) || "";
-    const originalAge = (data.age as string) || "Unknown";
-    const originalGender = (data.gender as string) || "";
+    if (!partNode || !selectedPartId || !originalValuesRef.current) return false;
+    
+    const original = originalValuesRef.current;
 
-    return (
-      tempName.trim() !== originalName.trim() ||
-      tempScratchpad.trim() !== originalScratchpad.trim() ||
-      tempPartType !== originalPartType ||
-      (tempAge === "" || tempAge === "Unknown" ? "" : tempAge.trim()) !==
-        (originalAge === "Unknown" ? "" : originalAge.trim()) ||
-      tempGender.trim() !== originalGender.trim()
-    );
+    // Compare all fields - if ANY field differs, there are changes
+    const nameChanged = tempName.trim() !== original.name.trim();
+    const scratchpadChanged = tempScratchpad.trim() !== original.scratchpad.trim();
+    const partTypeChanged = tempPartType !== original.partType;
+    const ageChanged = (tempAge === "" || tempAge === "Unknown" ? "" : tempAge.trim()) !==
+      (original.age === "Unknown" ? "" : original.age.trim());
+    const genderChanged = tempGender.trim() !== original.gender.trim();
+
+    return nameChanged || scratchpadChanged || partTypeChanged || ageChanged || genderChanged;
   }, [
     partNode,
     selectedPartId,
@@ -370,6 +410,26 @@ const PartDetailPanel = () => {
   ]);
 
   // Cleanup hover timeout when editing mode changes or component unmounts
+
+  // Initialize temp values when entering edit mode (if not already initialized)
+  useEffect(() => {
+    if (partNode && selectedPartId && isEditingInfo) {
+      // Only initialize if temp values are empty (first time entering edit mode)
+      if (!tempName && !tempPartType) {
+        const data = partNode.data;
+        const name = (data.name as string) || (data.label as string) || "";
+        if (!tempName) setTempName(name);
+        if (!tempScratchpad) setTempScratchpad((data.scratchpad as string) || "");
+        if (!tempPartType) {
+          setTempPartType(
+            (data.customPartType as string) || (data.partType as string) || ""
+          );
+        }
+        if (!tempAge) setTempAge((data.age as string) || "Unknown");
+        if (!tempGender) setTempGender((data.gender as string) || "");
+      }
+    }
+  }, [isEditingInfo, selectedPartId, partNode, tempName, tempPartType, tempScratchpad, tempAge, tempGender]);
 
   // Separate effect to handle auto-edit flag when part is selected
   useEffect(() => {
@@ -748,6 +808,15 @@ const PartDetailPanel = () => {
       setTempAge(trimmedAge || "Unknown");
       setTempGender(trimmedGender);
 
+      // Update original values to match saved values
+      originalValuesRef.current = {
+        name: trimmedName,
+        scratchpad: trimmedScratchpad,
+        partType: tempPartType,
+        age: trimmedAge || "Unknown",
+        gender: trimmedGender,
+      };
+
       // Exit editing mode after saving
       setIsEditingInfo(false);
     });
@@ -1015,7 +1084,19 @@ const PartDetailPanel = () => {
                       {isEditingInfo && (
                         <button
                           type="button"
-                          onClick={() => setIsEditingInfo(false)}
+                          onClick={() => {
+                            // Reset temp values to original values when canceling
+                            if (originalValuesRef.current) {
+                              setTempName(originalValuesRef.current.name);
+                              setTempScratchpad(originalValuesRef.current.scratchpad);
+                              setTempPartType(originalValuesRef.current.partType);
+                              setTempAge(originalValuesRef.current.age);
+                              setTempGender(originalValuesRef.current.gender);
+                            }
+                            // Clear original values ref so it gets recalculated
+                            originalValuesRef.current = null;
+                            setIsEditingInfo(false);
+                          }}
                           className="flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-semibold theme-light:text-slate-700 theme-light:hover:bg-slate-100 theme-dark:text-slate-200 theme-dark:hover:bg-slate-700/60 theme-dark:bg-[rgba(51,65,85,0.4)] transition-none"
                         >
                           Cancel
@@ -1211,13 +1292,17 @@ theme-dark:shadow-none`}
                                           key={type}
                                           onClick={() => {
                                             setTempPartType(type);
-                                            updateNode(selectedPartId, {
-                                              data: {
-                                                ...partNode.data,
-                                                customPartType: type,
-                                                partType: type,
-                                              },
-                                            });
+                                            // Only update node immediately if NOT in editing mode
+                                            // If in editing mode, changes are saved via "Save changes" button
+                                            if (!isEditingInfo) {
+                                              updateNode(selectedPartId, {
+                                                data: {
+                                                  ...partNode.data,
+                                                  customPartType: type,
+                                                  partType: type,
+                                                },
+                                              });
+                                            }
                                           }}
                                           className={`${pillBase} ${getPillStyle()} ${!isSelected && !isHovered ? "theme-dark:bg-[rgb(33_37_41)]" : ""}`}
                                           onMouseEnter={() =>
