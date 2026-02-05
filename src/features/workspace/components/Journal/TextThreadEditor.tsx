@@ -42,6 +42,7 @@ export default function TextThreadEditor({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const previousContentRef = useRef<string | null>(null);
+  const isAddingMessageRef = useRef(false); // Track if we're adding a message vs switching entries
 
   // Parse content into messages - store as JSON in content
   const messages = useMemo(() => {
@@ -237,9 +238,29 @@ export default function TextThreadEditor({
     return theme.error || "rgb(239, 68, 68)";
   }, [theme, partNodes, allPartNodes]);
 
-  // Scroll to bottom when switching to a text thread entry
+  // Scroll to bottom when switching to a text thread entry (not when adding messages)
   // Wait for width transition to complete (300ms) so content height is final
   useEffect(() => {
+    // Only do the scroll-to-top-then-bottom animation when content actually changes
+    // (like switching entries), not when we're just adding a message
+    if (isAddingMessageRef.current) {
+      // We're adding a message, just scroll to bottom smoothly
+      isAddingMessageRef.current = false;
+      const container = messagesContainerRef.current;
+      if (container) {
+        requestAnimationFrame(() => {
+          if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+              top: messagesContainerRef.current.scrollHeight,
+              behavior: 'smooth'
+            });
+          }
+        });
+      }
+      return;
+    }
+
+    // This is a content change (switching entries), do the full animation
     if (messages.length > 0) {
       const container = messagesContainerRef.current;
       if (container) {
@@ -265,7 +286,7 @@ export default function TextThreadEditor({
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [content]);
+  }, [content, messages.length]);
 
   // Auto-resize textarea based on content
   useEffect(() => {
@@ -301,6 +322,9 @@ export default function TextThreadEditor({
     // Add message to array and store as JSON
     const currentMessages = messages;
     const updatedMessages = [...currentMessages, newMessage];
+    
+    // Mark that we're adding a message (not switching entries)
+    isAddingMessageRef.current = true;
     
     // Store messages as JSON string
     const newContent = JSON.stringify(updatedMessages);
